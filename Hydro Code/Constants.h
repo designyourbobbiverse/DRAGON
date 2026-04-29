@@ -9,24 +9,37 @@
 #define Constants_h
 
 
-//Physical Constants
+//MARK: Physical Constants
 
 const double gamma = 5.0/3.0;
 
 
-//Numerical Parameters
+//MARK: Numerical Parameters
 
 const double ExactSolver_Tolerance = 1E-13;
 const double ExactSolver_MaxIters = 0; //Use a nonpostiive value for unlimited iterations
 
 const double Adaptive_PVRS_Ratio = 2.0;
 
-
-//Comment to use 
-#define Roe_Pike
+//Comment the following line to skip the Harten_Hyman Entropy Fix when using the Roe solver
 #define Harten_Hyman
 
 
 
+
+
+
+
+
+
+//MARK: Gamma-dependent constants
+const double  _Gm1_2G = (gamma - 1.0)/(2.0 * gamma);
+const double _Gp1_2G = (gamma + 1.0)/(2.0*gamma);
+const double _2G_Gm1 = 2.0*gamma/(gamma - 1.0);
+const double _Gm1_2 = (gamma - 1.0)/2.0;
+const double _2_Gm1 = 2.0/(gamma - 1.0);
+const double _2_Gp1 = 2.0/(gamma + 1.0);
+const double _Gm1_Gp1 = (gamma - 1.0)/(gamma + 1.0);
+const double _Ginv = 1.0/gamma;
 
 #endif /* Constants_h */

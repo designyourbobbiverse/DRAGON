@@ -25,7 +25,7 @@ ConservativeState::ConservativeState(){
     E = 0;
 }
 
-//MARK: Primative-Conservative conversion
+//MARK: Type Conversion
 
 
 ConservativeState::ConservativeState(PrimativeState state){
@@ -93,6 +93,21 @@ PrimativeState PrimativeState::swapXZ(){
 PrimativeState PrimativeState::swapYZ(){
     PrimativeState wT = *this;
     wT.vz = vy; wT.vy = vz;
+    return wT;
+}
+ConservativeState ConservativeState::swapXY(){
+    ConservativeState wT = *this;
+    wT.px = py; wT.py = px;
+    return wT;
+}
+ConservativeState ConservativeState::swapXZ(){
+    ConservativeState wT = *this;
+    wT.px = pz; wT.pz = px;
+    return wT;
+}
+ConservativeState ConservativeState::swapYZ(){
+    ConservativeState wT = *this;
+    wT.pz = py; wT.py = pz;
     return wT;
 }
 

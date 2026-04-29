@@ -31,6 +31,9 @@ struct ConservativeState {
     ConservativeState(PrimativeState prim);
     double pressure();
     ConservativeState flux(double v);
+    ConservativeState swapXY();
+    ConservativeState swapXZ();
+    ConservativeState swapYZ();
 };
 
 

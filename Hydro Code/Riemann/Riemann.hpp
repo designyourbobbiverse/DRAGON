@@ -30,35 +30,33 @@ struct RiemannSolution;
 struct Riemann{
     PrimativeState L, R;
 
-    ///Exact Riemann Solvers
+//MARK: Exact Riemann Solvers
     RiemannSolution exact();
     RiemannSolution exact(double pGuess);
-
+    
+    static double f(double p, PrimativeState w);
     double exact_StarP();
     double exact_StarP(double pGuess);
     double exact_StarV(double pStar);
     double exact_StarRho(PrimativeState L, double pStar);
 
-    ///Flux Approximation Solvers
-
-    //HLL Solvers
+//MARK: HLL/HLLC
     ConservativeState HLL();
     ConservativeState HLL(double SL, double SR);
     ConservativeState HLLC();
     ConservativeState HLLC(double SL, double SR);
 
-    //Roe Solver
+//MARK: Roe
     ConservativeState Roe();
 
-    ///Star Region Approximation Solvers (Toro Ch 9)
-    //Primative Variable Riemann Solver
-    RiemannSolution PVRS();
-    //Two-Rarefaction Riemann Solver
-    RiemannSolution TRRS();
-    //Two-Shock Riemann Solver
-    RiemannSolution TSRS();
     
-    ///Adaptive Solvers
+//MARK: Other Approximate Solvers
+    ///Star Region Approximation Solvers (Toro Ch 9)
+    RiemannSolution PVRS();//Primative Variable Riemann Solver
+    RiemannSolution TRRS();//Two-Rarefaction Riemann Solver
+    RiemannSolution TSRS(); //Two-Shock Riemann Solver
+    
+//MARK: Adaptive Solvers
     //Two-Rarefaction if conditions met, otherwise pivots to iterative
     RiemannSolution TRRS_Iter();
     RiemannSolution TRRS_Iter(double pGuess);
@@ -66,33 +64,31 @@ struct Riemann{
     RiemannSolution PVRS_Iter();
     //Adaptive Noniterative Riemann Solver: PVRS if within limits, otherwise pivots to TRRS/TSRS
     RiemannSolution PVRS_TXRS();
-
+    
 
 private:
     //Internal Implementations
     RiemannSolution PVRS(double aL, double aR, double p_pvrs);
     RiemannSolution TRRS(double aL, double aR);
     RiemannSolution TSRS(double aL, double aR, double pGuess);
-
-
 };
     
-
+//MARK: Riemann Solution State
 struct RiemannSolution{
     PrimativeState wL, wR; //Left and Right Initial States
     PrimativeState sL, sR; //Left and Right Star Regions
     
+    //Creates a Riemann Solution from a pair of initial values
+    //Copies the y and z velocities, but does not solve for rho/vx/p
+    RiemannSolution(Riemann problem);
+    
+//MARK: Solution Sampling
     //Returns the state along the line x/t
     PrimativeState sample(double x_t);
     //Returns the flux through x/t
     ConservativeState flux(double x_t);
     //Flux through x=0
     ConservativeState flux();
-
-
-    //Creates a Riemann Solution from a pair of initial values
-    //Copies the y and z velocities, but does not solve for rho/vx/p
-    RiemannSolution(Riemann problem);
  
 private:
     //Swap left and right states, negate all vx.
