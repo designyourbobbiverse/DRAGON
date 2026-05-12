@@ -30,7 +30,7 @@ RiemannSolution Riemann::PVRS(double aL, double aR, double p_pvrs){
     return s;
 }
 RiemannSolution Riemann::PVRS(){
-    double aL = sqrt(gamma * L.p/L.rho), aR = sqrt(gamma * R.p/L.rho); // Sound Speeds
+    double aL = sqrt(_gamma * L.p/L.rho), aR = sqrt(_gamma * R.p/R.rho); // Sound Speeds
     return PVRS(aL, aR, 0);
 }
 
@@ -52,7 +52,7 @@ RiemannSolution Riemann::TRRS(double aL, double aR){
     return s;
 }
 RiemannSolution Riemann::TRRS(){
-    double aL = sqrt(gamma * L.p/L.rho), aR = sqrt(gamma * R.p/L.rho); // Sound Speeds
+    double aL = sqrt(_gamma * L.p/L.rho), aR = sqrt(_gamma * R.p/R.rho); // Sound Speeds
     return TRRS(aL, aR);
 }
 
@@ -75,28 +75,28 @@ RiemannSolution Riemann::TSRS(double aL, double aR, double pGuess){
     return s;
 }
 RiemannSolution Riemann::TSRS(){
-    double aL = sqrt(gamma * L.p/L.rho), aR = sqrt(gamma * R.p/L.rho); // Sound Speeds
+    double aL = sqrt(_gamma * L.p/L.rho), aR = sqrt(_gamma * R.p/R.rho); // Sound Speeds
     double p_pvrs = (L.p + R.p)/2 + (L.vx - R.vx) * (L.rho + R.rho) * (aL + aR) / 8;
-    return TSRS(aL, aR, fmax(p_pvrs,0));
+    return TSRS(aL, aR, fmax(p_pvrs,1e-12));
 }
 
 
 //MARK: Adaptive Solvers
 //PVRS, pivot to iterative exact if conditions not met
 RiemannSolution Riemann::PVRS_Iter(){
-    double aL = sqrt(gamma * L.p/L.rho), aR = sqrt(gamma * R.p/L.rho); // Sound Speeds
+    double aL = sqrt(_gamma * L.p/L.rho), aR = sqrt(_gamma * R.p/R.rho); // Sound Speeds
     double p_pvrs = (L.p + R.p)/2 + (L.vx - R.vx) * (L.rho + R.rho) * (aL + aR) / 8;
     double pMin = fmin(L.p, R.p), pMax = fmax(L.p, R.p);
     
     if (pMin < p_pvrs && p_pvrs < pMax && pMax / pMin < Adaptive_PVRS_Ratio) { //PVRS
         return PVRS(aL, aR, p_pvrs);
     } else { //Pivot to Exact
-        return exact(p_pvrs);
+        return exact(fmax(p_pvrs,1e-12));
     }
 }
 //PVRS, pivot to TRRS/TSRS if conditions not met
 RiemannSolution Riemann::PVRS_TXRS(){
-    double aL = sqrt(gamma * L.p/L.rho), aR = sqrt(gamma * R.p/L.rho); // Sound Speeds
+    double aL = sqrt(_gamma * L.p/L.rho), aR = sqrt(_gamma * R.p/R.rho); // Sound Speeds
     double rhoBar = (L.rho + R.rho)/2, aBar = (aL + aR)/2;
     double p_pvrs = (L.p + R.p)/2 + (L.vx - R.vx)/2 * rhoBar*aBar;
     double pMin = fmin(L.p, R.p), pMax = fmax(L.p, R.p);
@@ -116,8 +116,8 @@ RiemannSolution Riemann::TRRS_Iter(){
     return TRRS_Iter( (L.p + R.p)/2 );
 }
 RiemannSolution Riemann::TRRS_Iter(double pGuess){
-    double p = L.p < R.p ? f(L.p, L) : f(R.p, R);
-    if(p > 0 ){
+    double p_min = fmin(L.p, R.p);
+    if(f(p_min,L) + f(p_min,R) + R.vx - L.vx >= 0){
         return TRRS();
     } else {
         return exact(pGuess);

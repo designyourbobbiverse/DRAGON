@@ -11,7 +11,7 @@
 
 //MARK: Physical Constants
 
-const double gamma = 5.0/3.0;
+constexpr double _gamma = 5.0/3.0;
 
 //MARK: Grid Parameters
 const double stepSize = 0.01;
@@ -24,7 +24,7 @@ const double timeStep = 0.01;
     const int RIEMANN_HLL = 1;
     const int RIEMANN_HLLC = 2;
     const int RIEMANN_ROE = 3;
-const int RIEMANN_SOLVER = RIEMANN_EXACT;
+constexpr int RIEMANN_SOLVER = RIEMANN_EXACT;
 
 // Comment the following line to skip the Harten_Hyman Entropy Fix when using the Roe solver
 // If not using Roe, this line does nothing
@@ -54,13 +54,14 @@ const double Adaptive_PVRS_Ratio = 2.0;
 
 
 //MARK: Gamma-dependent constants
-const double  _Gm1_2G = (gamma - 1.0)/(2.0 * gamma);
-const double _Gp1_2G = (gamma + 1.0)/(2.0*gamma);
-const double _2G_Gm1 = 2.0*gamma/(gamma - 1.0);
-const double _Gm1_2 = (gamma - 1.0)/2.0;
-const double _2_Gm1 = 2.0/(gamma - 1.0);
-const double _2_Gp1 = 2.0/(gamma + 1.0);
-const double _Gm1_Gp1 = (gamma - 1.0)/(gamma + 1.0);
-const double _Ginv = 1.0/gamma;
+constexpr double  _Gm1_2G = (_gamma - 1.0)/(2.0 * _gamma);
+constexpr double _Gp1_2G = (_gamma + 1.0)/(2.0*_gamma);
+constexpr double _2G_Gm1 = 2.0*_gamma/(_gamma - 1.0);
+constexpr double _G_Gm1 = _gamma / (_gamma - 1.0);
+constexpr double _Gm1_2 = (_gamma - 1.0)/2.0;
+constexpr double _2_Gm1 = 2.0/(_gamma - 1.0);
+constexpr double _2_Gp1 = 2.0/(_gamma + 1.0);
+constexpr double _Gm1_Gp1 = (_gamma - 1.0)/(_gamma + 1.0);
+constexpr double _Ginv = 1.0/_gamma;
 
 #endif /* Constants_h */

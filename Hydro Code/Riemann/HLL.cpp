@@ -15,7 +15,7 @@
 //MARK: HLL
 ConservativeState Riemann::HLL(){
     //Estimate the pressure
-    double aL = sqrt(gamma * L.p/L.rho), aR = sqrt(gamma * R.p/L.rho); // Sound Speeds
+    double aL = sqrt(_gamma * L.p/L.rho), aR = sqrt(_gamma * R.p/R.rho); // Sound Speeds
     double p_pvrs = (L.p + R.p)/2 + (L.rho + R.rho)*(L.vx - R.vx)*(aL + aR)/8;
     //Left Speed
     double SL = aL;
@@ -23,7 +23,7 @@ ConservativeState Riemann::HLL(){
     SL = L.vx - SL;
     //Right Speed
     double SR = aR;
-    if(p_pvrs > R.p) SL *= sqrt(1 + _Gp1_2G*(p_pvrs/R.p - 1));
+    if(p_pvrs > R.p) SR *= sqrt(1 + _Gp1_2G*(p_pvrs/R.p - 1));
     SR = R.vx + SR;
     
     return HLL(SL, SR);
@@ -31,8 +31,8 @@ ConservativeState Riemann::HLL(){
 
 ConservativeState Riemann::HLL(double sl, double sr){
     //Outside region
-    if(sl > 0) return ConservativeState(L).flux(L.vx);
-    if(sr < 0) return ConservativeState(R).flux(R.vx);
+    if(sl >= 0) return ConservativeState(L).flux(L.vx);
+    if(sr <= 0) return ConservativeState(R).flux(R.vx);
     
     ConservativeState UL = ConservativeState(L);
     ConservativeState UR = ConservativeState(R);
@@ -46,7 +46,7 @@ ConservativeState Riemann::HLL(double sl, double sr){
 //MARK: HLLC
 ConservativeState Riemann::HLLC(){
     //Estimate the pressure
-    double aL = sqrt(gamma * L.p/L.rho), aR = sqrt(gamma * R.p/L.rho); // Sound Speeds
+    double aL = sqrt(_gamma * L.p/L.rho), aR = sqrt(_gamma * R.p/R.rho); // Sound Speeds
     double p_pvrs = (L.p + R.p)/2 + (L.rho + R.rho)*(L.vx - R.vx)*(aL + aR)/8;
     //Left Speed
     double SL = aL;
@@ -54,7 +54,7 @@ ConservativeState Riemann::HLLC(){
     SL = L.vx - SL;
     //Right Speed
     double SR = aR;
-    if(p_pvrs > R.p) SL *= sqrt(1 + _Gp1_2G*(p_pvrs/R.p - 1));
+    if(p_pvrs > R.p) SR *= sqrt(1 + _Gp1_2G*(p_pvrs/R.p - 1));
     SR = R.vx + SR;
     
     return HLLC(SL, SR);
@@ -68,7 +68,7 @@ ConservativeState Riemann::HLLC(double sl, double sr){
     double _pr = R.p + R.rho*R.vx*(R.vx - sr), _pl = L.p + L.rho*L.vx*(L.vx - sl);
     double sc = (_pr - _pl) / (R.rho*(R.vx-sr) - L.rho*(L.vx-sl));
     //Left or Right
-    PrimativeState X = (sc > 0 ? L : R);
+    PrimitiveState X = (sc > 0 ? L : R);
     double sx = sc > 0 ? sl : sr;
     ConservativeState UX = ConservativeState(X);
     //Compute Star Region

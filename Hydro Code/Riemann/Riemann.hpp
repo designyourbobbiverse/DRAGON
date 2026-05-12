@@ -28,8 +28,10 @@ struct Riemann;
 struct RiemannSolution;
 
 struct Riemann{
-    PrimativeState L, R;
+    PrimitiveState L, R;
+    Riemann(PrimitiveState L, PrimitiveState R);
 
+    
     //Computes the flux using whatever method was selected in Constants.h
     ConservativeState flux();
     
@@ -37,11 +39,11 @@ struct Riemann{
     RiemannSolution exact();
     RiemannSolution exact(double pGuess);
     
-    static double f(double p, PrimativeState w);
+    static double f(double p, PrimitiveState w);
     double exact_StarP();
     double exact_StarP(double pGuess);
     double exact_StarV(double pStar);
-    double exact_StarRho(PrimativeState L, double pStar);
+    double exact_StarRho(PrimitiveState L, double pStar);
 
 //MARK: HLL/HLLC
     ConservativeState HLL();
@@ -78,8 +80,8 @@ private:
     
 //MARK: Riemann Solution State
 struct RiemannSolution{
-    PrimativeState wL, wR; //Left and Right Initial States
-    PrimativeState sL, sR; //Left and Right Star Regions
+    PrimitiveState wL, wR; //Left and Right Initial States
+    PrimitiveState sL, sR; //Left and Right Star Regions
     
     //Creates a Riemann Solution from a pair of initial values
     //Copies the y and z velocities, but does not solve for rho/vx/p
@@ -87,7 +89,7 @@ struct RiemannSolution{
     
 //MARK: Solution Sampling
     //Returns the state along the line x/t
-    PrimativeState sample(double x_t);
+    PrimitiveState sample(double x_t);
     //Returns the flux through x/t
     ConservativeState flux(double x_t);
     //Flux through x=0

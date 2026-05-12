@@ -8,9 +8,8 @@
 #include "FluidElement.hpp"
 #include "Constants.h"
 #include <math.h>
-#include <simd/simd.h>
 
-PrimativeState::PrimativeState(){
+PrimitiveState::PrimitiveState(){
     rho = 0;
     vx = 0;
     vy = 0;
@@ -28,7 +27,7 @@ ConservativeState::ConservativeState(){
 //MARK: Type Conversion
 
 
-ConservativeState::ConservativeState(PrimativeState state){
+ConservativeState::ConservativeState(PrimitiveState state){
     rho = state.rho;
     px = rho * state.vx;
     py = rho * state.vy;
@@ -36,7 +35,7 @@ ConservativeState::ConservativeState(PrimativeState state){
     E = state.energy();
 }
 
-PrimativeState::PrimativeState(ConservativeState state){
+PrimitiveState::PrimitiveState(ConservativeState state){
     rho = state.rho;
     vx = state.px / rho;
     vy = state.py / rho;
@@ -44,16 +43,15 @@ PrimativeState::PrimativeState(ConservativeState state){
     p = state.pressure();
 }
 
-double PrimativeState::energy(){
-    return p/(gamma-1.0) + (rho/2)*(vx*vx + vy*vy + vz*vz);
+double PrimitiveState::energy(){
+    return p/(_gamma - 1.0) + (rho/2)*(vx*vx + vy*vy + vz*vz);
 }
 double ConservativeState::pressure(){
-    return (gamma-1.0) * (E - (px*px + py*py + pz*pz) / (2*rho));
+    return (_gamma - 1.0) * (E - (px*px + py*py + pz*pz) / (2*rho));
 }
 
 //Enthalpy Density
-const double _G_Gm1 = gamma / (gamma - 1.0);
-double PrimativeState::enthalpy(){
+double PrimitiveState::enthalpy(){
     return (_G_Gm1*p/rho) + (vx*vx + vy*vy + vz*vz)/2;
 }
 
@@ -80,18 +78,18 @@ ConservativeState ConservativeState::flux(double v){
 
 
 //MARK: 2D + 3D
-PrimativeState PrimativeState::swapXY(){
-    PrimativeState wT = *this;
+PrimitiveState PrimitiveState::swapXY(){
+    PrimitiveState wT = *this;
     wT.vx = vy; wT.vy = vx;
     return wT;
 }
-PrimativeState PrimativeState::swapXZ(){
-    PrimativeState wT = *this;
+PrimitiveState PrimitiveState::swapXZ(){
+    PrimitiveState wT = *this;
     wT.vx = vz; wT.vz = vx;
     return wT;
 }
-PrimativeState PrimativeState::swapYZ(){
-    PrimativeState wT = *this;
+PrimitiveState PrimitiveState::swapYZ(){
+    PrimitiveState wT = *this;
     wT.vz = vy; wT.vy = vz;
     return wT;
 }
@@ -143,11 +141,11 @@ ConservativeState& operator-=(ConservativeState &X, const ConservativeState &Y){
 }
 //Arithmetic (*): Multiply State by some scalar
 ConservativeState operator*(const double &a, ConservativeState X){ return X*a; }
-ConservativeState operator*(ConservativeState X, const double &a){
+ConservativeState operator*(ConservativeState X, double a){
     X *= a;
     return X;
 }
-ConservativeState& operator*=(ConservativeState &X, const double &a){
+ConservativeState& operator*=(ConservativeState &X, double a){
     X.rho *= a;
     X.px *= a;
     X.py *= a;
@@ -156,11 +154,11 @@ ConservativeState& operator*=(ConservativeState &X, const double &a){
     return X;
 }
 //Arithmetic (/): Divide state by some scalar
-ConservativeState operator/(ConservativeState X, const double &a){
+ConservativeState operator/(ConservativeState X, double a){
     X /= a;
     return X;
 }
-ConservativeState& operator/=(ConservativeState &X, const double &a){
+ConservativeState& operator/=(ConservativeState &X, double a){
     X.rho /= a;
     X.px /= a;
     X.py /= a;
@@ -171,10 +169,10 @@ ConservativeState& operator/=(ConservativeState &X, const double &a){
 
 
 
-//MARK: Primative Arithmetic (Don't)
-#ifdef PRIMATIVE_ARITHMETIC_ALLOWED
-PrimativeState operator+(const PrimativeState &X, const PrimativeState &Y){
-    PrimativeState z = X;
+//MARK: Primitive Arithmetic (Don't)
+#ifdef PRIMITIVE_ARITHMETIC_ALLOWED
+PrimitiveState operator+(const PrimitiveState &X, const PrimitiveState &Y){
+    PrimitiveState z = X;
     z.rho += Y.rho;
     z.vx += Y.vx;
     z.vy += Y.vy;
@@ -182,8 +180,8 @@ PrimativeState operator+(const PrimativeState &X, const PrimativeState &Y){
     z.p += Y.p;
     return z;
 }
-PrimativeState operator-(const PrimativeState &X, const PrimativeState &Y){
-    PrimativeState z = X;
+PrimitiveState operator-(const PrimitiveState &X, const PrimitiveState &Y){
+    PrimitiveState z = X;
     z.rho -= Y.rho;
     z.vx -= Y.vx;
     z.vy -= Y.vy;
@@ -191,9 +189,9 @@ PrimativeState operator-(const PrimativeState &X, const PrimativeState &Y){
     z.p -= Y.p;
     return z;
 }
-PrimativeState operator*(const double &a, const PrimativeState &X){ return X * a; }
-PrimativeState operator*(const PrimativeState &X, const double &a){
-    PrimativeState z = X;
+PrimitiveState operator*(const double &a, const PrimitiveState &X){ return X * a; }
+PrimitiveState operator*(const PrimitiveState &X, double a){
+    PrimitiveState z = X;
     z.rho *= a;
     z.vx *= a;
     z.vy *= a;
@@ -201,8 +199,8 @@ PrimativeState operator*(const PrimativeState &X, const double &a){
     z.p *= a;
     return z;
 }
-PrimativeState operator/(const PrimativeState &X, const double &a){
-    PrimativeState z = X;
+PrimitiveState operator/(const PrimitiveState &X, double a){
+    PrimitiveState z = X;
     z.rho /= a;
     z.vx /= a;
     z.vy /= a;

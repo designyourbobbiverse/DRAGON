@@ -10,25 +10,25 @@
 
 #include <stdio.h>
 
-struct PrimativeState;
+struct PrimitiveState;
 struct ConservativeState;
 
 
-struct PrimativeState {
+struct PrimitiveState {
     double rho,  vx, vy, vz,  p;
-    PrimativeState();
-    PrimativeState(ConservativeState state);
+    PrimitiveState();
+    PrimitiveState(ConservativeState state);
     double energy();
     double enthalpy();
     //double S();
-    PrimativeState swapXY();
-    PrimativeState swapXZ();
-    PrimativeState swapYZ();
+    PrimitiveState swapXY();
+    PrimitiveState swapXZ();
+    PrimitiveState swapYZ();
 };
 struct ConservativeState {
     double rho,  px, py, pz, E;
     ConservativeState();
-    ConservativeState(PrimativeState prim);
+    ConservativeState(PrimitiveState prim);
     double pressure();
     ConservativeState flux(double v);
     ConservativeState swapXY();
@@ -45,12 +45,12 @@ ConservativeState& operator+=(ConservativeState &X, const ConservativeState &Y);
 ConservativeState operator-(ConservativeState X, const ConservativeState &Y);
 ConservativeState& operator-=(ConservativeState &X, const ConservativeState &Y);
 //Arithmetic (*): Multiply State by some scalar
-ConservativeState operator*(ConservativeState X, const double &a);
+ConservativeState operator*(ConservativeState X, double a);
 ConservativeState operator*(const double &a, ConservativeState X);
-ConservativeState& operator*=(ConservativeState &X, const double &a);
+ConservativeState& operator*=(ConservativeState &X, double a);
 //Arithmetic (/): Divide state by some scalar
-ConservativeState operator/(ConservativeState X, const double &a);
-ConservativeState& operator/=(ConservativeState &X, const double &a);
+ConservativeState operator/(ConservativeState X, double a);
+ConservativeState& operator/=(ConservativeState &X, double a);
 
 
 
@@ -60,14 +60,14 @@ ConservativeState& operator/=(ConservativeState &X, const double &a);
 //Arithmetic operators for primatives
 //Don't do this unless you know what you are doing.
 //If you do need this, Uncomment the next line
-//#define PRIMATIVE_ARITHMETIC_ALLOWED
+//#define PRIMITIVE_ARITHMETIC_ALLOWED
 
-#ifdef PRIMATIVE_ARITHMETIC_ALLOWED
-PrimativeState operator+(const PrimativeState &X, const PrimativeState &Y);
-PrimativeState operator-(const PrimativeState &X, const PrimativeState &Y);
-PrimativeState operator*(const PrimativeState &X, const double &a);
-PrimativeState operator*(const double &a, const PrimativeState &X);
-PrimativeState operator/(const PrimativeState &X, const double &a);
+#ifdef PRIMITIVE_ARITHMETIC_ALLOWED
+PrimitiveState operator+(const PrimitiveState &X, const PrimitiveState &Y);
+PrimitiveState operator-(const PrimitiveState &X, const PrimitiveState &Y);
+PrimitiveState operator*(const PrimitiveState &X, double a);
+PrimitiveState operator*(const double &a, const PrimitiveState &X);
+PrimitiveState operator/(const PrimitiveState &X, double a);
 #endif
 
 

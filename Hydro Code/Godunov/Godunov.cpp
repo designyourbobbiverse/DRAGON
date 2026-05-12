@@ -10,17 +10,17 @@
 #include "Riemann.hpp"
 
 
-void advance1D(PrimativeState* w, int size, double time){
+void advance1D(PrimitiveState* w, int size, double time){
     ConservativeState flux = Riemann(w[0],w[0]).flux();
     
     ConservativeState fL = flux, fR;
     for(int i=0; i<size; i++){
-        PrimativeState wR = i==size-1 ? w[i] : w[i+1];
+        PrimitiveState wR = i==size-1 ? w[i] : w[i+1];
         ConservativeState u = ConservativeState(w[i]);
       /*  fR = tvdFlux(w, i, size, time);
        */
         u += (fL - fR) * (time/stepSize);
-        w[i] = PrimativeState(u);
+        w[i] = PrimitiveState(u);
         fL = fR;
     }
 }

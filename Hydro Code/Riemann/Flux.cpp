@@ -24,18 +24,18 @@ ConservativeState Riemann::flux(){
 //MARK: Solution Sampling
 ConservativeState RiemannSolution::flux(){ return flux(0); }
 ConservativeState RiemannSolution::flux(double x_t){
-    PrimativeState w = sample(x_t);
+    PrimitiveState w = sample(x_t);
     return ConservativeState(w).flux(w.vx);
 }
 
 
-PrimativeState RiemannSolution::sample(double x_t){
-    PrimativeState state;
+PrimitiveState RiemannSolution::sample(double x_t){
+    PrimitiveState state;
     //Handle left vs Right side
     bool isLeft = x_t < sR.vx;
     if(isLeft){ mirror(); x_t=-x_t; }
     
-    double a = sqrt(gamma * wR.p / wR.rho);
+    double a = sqrt(_gamma * wR.p / wR.rho);
     
     //Determine Zone
     int zone = 0; // 1 = outside, 2 = fan, 3 = star
@@ -67,7 +67,7 @@ PrimativeState RiemannSolution::sample(double x_t){
 }
 
 void RiemannSolution::mirror(){
-    PrimativeState temp = wL;
+    PrimitiveState temp = wL;
     wL = wR;
     wR = temp;
     

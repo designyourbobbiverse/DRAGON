@@ -13,6 +13,7 @@
 
 
 //MARK: Setup
+Riemann::Riemann(PrimitiveState _L, PrimitiveState _R){ L = _L; R = _R; }
 RiemannSolution::RiemannSolution(Riemann problem){
     wL = problem.L;
     wR = problem.R;
@@ -25,22 +26,22 @@ RiemannSolution::RiemannSolution(Riemann problem){
 
 
 //MARK: Velocity Jump Function
-double Riemann::f(double p, PrimativeState w){
+double Riemann::f(double p, PrimitiveState w){
     if (p > w.p) { //Shock
         double A= _2_Gp1/w.rho, B= _Gm1_Gp1 * w.p;
-        return (p-w.p) * sqrt(A/(B+p));
+        return (p - w.p) * sqrt(A/(B+p));
     } else {//Rarefaction
-        double a = sqrt(gamma * w.p / w.rho);
+        double a = sqrt(_gamma * w.p / w.rho);
         return _2_Gm1 * a * (pow(p/w.p, _Gm1_2G)-1);
     }
 }
-double df(double p, PrimativeState w){
+double df(double p, PrimitiveState w){
     if (p > w.p) { //Shock
         double A = _2_Gp1/w.rho, B= _Gm1_Gp1 * w.p;
         return sqrt(A/(p+B)) * (1-(p-w.p)/(2*(B+p)));
     }
     else {//Rarefaction
-        double a = sqrt(gamma * w.p / w.rho);
+        double a = sqrt(_gamma * w.p / w.rho);
         return  pow(p/w.p, -_Gp1_2G) / (w.rho * a);
     }
 }
@@ -81,7 +82,7 @@ double Riemann::exact_StarP(double pGuess){
 double Riemann::exact_StarV(double pStar){
     return (L.vx + R.vx + f(pStar,R)-f(pStar,L))/2.0;
 }
-double Riemann::exact_StarRho(PrimativeState w, double p){
+double Riemann::exact_StarRho(PrimitiveState w, double p){
     if(p>w.p) return w.rho * (p+_Gm1_Gp1*w.p)/(_Gm1_Gp1*p+w.p);//Shock
     else return w.rho * pow( p/w.p, _Ginv); //Rarefaction
 }
