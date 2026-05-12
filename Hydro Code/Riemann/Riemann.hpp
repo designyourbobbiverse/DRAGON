@@ -30,6 +30,9 @@ struct RiemannSolution;
 struct Riemann{
     PrimativeState L, R;
 
+    //Computes the flux using whatever method was selected in Constants.h
+    ConservativeState flux();
+    
 //MARK: Exact Riemann Solvers
     RiemannSolution exact();
     RiemannSolution exact(double pGuess);

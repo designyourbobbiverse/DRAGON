@@ -13,6 +13,28 @@
 
 const double gamma = 5.0/3.0;
 
+//MARK: Grid Parameters
+const double stepSize = 0.01;
+const double timeStep = 0.01;
+
+//MARK: Algorithm Choices
+
+//Riemann Solver algorithm
+    const int RIEMANN_EXACT = 0;
+    const int RIEMANN_HLL = 1;
+    const int RIEMANN_HLLC = 2;
+    const int RIEMANN_ROE = 3;
+const int RIEMANN_SOLVER = RIEMANN_EXACT;
+
+// Comment the following line to skip the Harten_Hyman Entropy Fix when using the Roe solver
+// If not using Roe, this line does nothing
+#define Harten_Hyman
+
+
+
+
+
+
 
 //MARK: Numerical Parameters
 
@@ -21,8 +43,7 @@ const double ExactSolver_MaxIters = 0; //Use a nonpostiive value for unlimited i
 
 const double Adaptive_PVRS_Ratio = 2.0;
 
-//Comment the following line to skip the Harten_Hyman Entropy Fix when using the Roe solver
-#define Harten_Hyman
+
 
 
 
