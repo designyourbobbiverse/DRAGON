@@ -61,7 +61,7 @@ PrimitiveState RiemannSolution::sample(double x_t){
             break;
     }
     //Be a good citizen, restore original state if we mirrored
-    if(isLeft) mirror();
+    if(isLeft){ mirror(); state.vx *= -1;}
 
     return state;
 }

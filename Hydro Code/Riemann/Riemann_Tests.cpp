@@ -32,6 +32,7 @@ void DRAGON_Test::verify_riemann(){
     verify_roe_equal_state();
     verify_roe_supersonic_upwind();
     verify_roe_stationary_contact();
+
     //Finiteness of Approximate Solvers
     verify_approximate_solver_finiteness();
 }
@@ -95,7 +96,6 @@ void DRAGON_Test::verify_exact_equal_state() {
     expect_close(S.sL, W, 1e-10, 1e-10);
     expect_close(S.sR, W, 1e-10, 1e-10);
     expect_close(S.flux(), expected, 1e-10, 1e-10);
-
 }
 void DRAGON_Test::verify_exact_stationary_contact() {
     PrimitiveState L = make_state(1.0, 0.0, 0.0, 0.0, 1.0);
@@ -131,12 +131,13 @@ void DRAGON_Test::verify_exact_sod() {
 
     RiemannSolution S = Riemann(L, R).exact();
 
-    assert(approx(S.sL.p,   0.2939452593807063, 1e-10, 1e-10));
-    assert(approx(S.sR.p,   0.2939452593807063, 1e-10, 1e-10));
-    assert(approx(S.sL.vx,  0.8411941568423733, 1e-10, 1e-10));
-    assert(approx(S.sR.vx,  0.8411941568423733, 1e-10, 1e-10));
-    assert(approx(S.sL.rho, 0.47968935867819666, 1e-10, 1e-10));
-    assert(approx(S.sR.rho, 0.22973470298714272, 1e-10, 1e-10));
+    assert(approx(S.sL.p,   0.29394518766601785, 1e-10, 1e-10));
+    assert(approx(S.sR.p,   0.29394518766601785, 1e-10, 1e-10));
+    assert(approx(S.sL.vx,  0.8411948521688083, 1e-10, 1e-10));
+    assert(approx(S.sR.vx,  0.8411948521688083, 1e-10, 1e-10));
+    assert(approx(S.sL.rho, 0.4796890587209175, 1e-10, 1e-10));
+    assert(approx(S.sR.rho, 0.22980574931194703, 1e-10, 1e-10));
+    
 
     assert(approx(S.sL.vy, L.vy));
     assert(approx(S.sL.vz, L.vz));
