@@ -36,8 +36,8 @@
 		F77A71572FB4153A006C2776 /* Exceptions for "Hydro Code" folder in "Hydro Code" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				FluidElement/FluidElement_Tests.cpp,
-				Riemann/Riemann_Tests.cpp,
+				Testing/FluidElement_Tests.cpp,
+				Testing/Riemann_Tests.cpp,
 				Testing/Testing.cpp,
 			);
 			target = F70D18F22FA12B5A00A2B235 /* Hydro Code */;
@@ -45,14 +45,14 @@
 		F77A71642FB415B4006C2776 /* Exceptions for "Hydro Code" folder in "DRAGON_TESTS" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				FluidElement/FluidElement_Tests.cpp,
 				FluidElement/FluidElement.cpp,
 				Riemann/Exact.cpp,
 				Riemann/Flux.cpp,
 				Riemann/HLL.cpp,
-				Riemann/Riemann_Tests.cpp,
 				Riemann/Roe.cpp,
 				Riemann/StateSolvers.cpp,
+				Testing/FluidElement_Tests.cpp,
+				Testing/Riemann_Tests.cpp,
 				Testing/Testing.cpp,
 			);
 			target = F77A715B2FB415A5006C2776 /* DRAGON_TESTS */;
