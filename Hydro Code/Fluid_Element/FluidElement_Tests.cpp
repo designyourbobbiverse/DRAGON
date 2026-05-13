@@ -7,6 +7,7 @@
 
 #include "Testing.hpp"
 #include <math.h>
+#include <iostream>
 
 using namespace DRAGON_Test;
 
@@ -43,6 +44,7 @@ void DRAGON_Test::expect_close(const PrimitiveState& a, const PrimitiveState& b,
     assert(approx(a.vz,  b.vz,  rel, abs));
     assert(approx(a.p,   b.p,   rel, abs));
 }
+
 
 //MARK: Data Structure Verification
 void DRAGON_Test::verify_constructors(){
