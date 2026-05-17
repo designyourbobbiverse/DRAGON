@@ -46,6 +46,8 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				FluidElement/FluidElement.cpp,
+				Godunov/Godunov.cpp,
+				Godunov/Splitting.cpp,
 				Riemann/Exact.cpp,
 				Riemann/Flux.cpp,
 				Riemann/HLL.cpp,
@@ -351,10 +353,12 @@
 		F77A71612FB415A5006C2776 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++23";
 				CODE_SIGN_STYLE = Automatic;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = UR2T3Z854C;
 				ENABLE_HARDENED_RUNTIME = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu23;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -362,10 +366,12 @@
 		F77A71622FB415A5006C2776 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++23";
 				CODE_SIGN_STYLE = Automatic;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = UR2T3Z854C;
 				ENABLE_HARDENED_RUNTIME = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu23;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;

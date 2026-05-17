@@ -14,20 +14,20 @@
 
 //MARK: 1D array
 
-FluidLine::FluidLine(int size, int ghosts){
+Grid1D::Grid1D(int size, int ghosts){
     w = new PrimitiveState[size+2*ghosts];
     this->size = size; this->ghosts = ghosts;
 }
-PrimitiveState& FluidLine::operator[](int k) {
+PrimitiveState& Grid1D::operator[](int k) {
     assert(k + ghosts >= 0 && k < size+ghosts);
     return w[k+ghosts];
 }
-const PrimitiveState& FluidLine::operator[](int k) const {
+const PrimitiveState& Grid1D::operator[](int k) const {
     assert(k + ghosts >= 0 && k < size+ghosts);
     return w[k+ghosts];
 }
 
-FluidLine::~FluidLine(){ delete w; }
+Grid1D::~Grid1D(){ delete[] w; }
 
 
 
@@ -50,22 +50,27 @@ PrimitiveState minmod(const PrimitiveState& a, const PrimitiveState& b) {
 
 
 //MARK: 1D Godunov Advance
-void FluidLine::advance(double dt, double dx){
-    FluidLine _L(size,ghosts), _R(size,ghosts);
+void Grid1D::advance(double dt, double dx){
+    Grid1D _L(size,ghosts), _R(size,ghosts);
     advance(dt, dx,_L,_R);
 }
-void FluidLine::advance(double dt, double dx, FluidLine& _L, FluidLine& _R){
-    for(int i=0; i<size; i++) {
+void Grid1D::advance(double dt, double dx, Grid1D& _L, Grid1D& _R){
+    for(int i=-ghosts; i<size+ghosts; i++) {
 #ifdef MUSCL_Hancock
+        if(i==-ghosts || i == size+ghosts-1){
+            _L[i] = (*this)[i];
+            _R[i] = (*this)[i];
+            continue;
+        }
         PrimitiveState dW = minmod((*this)[i] - (*this)[i-1], (*this)[i+1] - (*this)[i]);
         _L[i] = (*this)[i] - dW/2;
         _R[i] = (*this)[i] + dW/2;
         ConservativeState UL = ConservativeState(_L[i]), UR = ConservativeState(_R[i]);
-        ConservativeState correction = (UR.flux() - UL.flux()) * 0.5 * (dt/stepSize);
+        ConservativeState correction = (UR.flux() - UL.flux()) * (0.5 * dt/dx);
         _L[i] = PrimitiveState(UL - correction);
         _R[i] = PrimitiveState(UR - correction);
         
-        if(_L[i].isPhysical() && _R[i].isPhysical() ) //Check to make sure this is physical, fallback to First order if not
+        if(!_L[i].isPhysical() || !_R[i].isPhysical() ) //Check to make sure this is physical, fallback to First order if not
 #endif
         {
             _L[i] = (*this)[i];
@@ -73,8 +78,8 @@ void FluidLine::advance(double dt, double dx, FluidLine& _L, FluidLine& _R){
         }
     }
     //Compute Fluxes
-    ConservativeState fL, fR;//Initialize fL based on left boundary condition
-    for(int i=0; i<size; i++){
+    ConservativeState fL = ConservativeState(), fR;//TODO: Initialize fL based on left boundary condition
+    for(int i=0; i<size; i++) {
         fR = Riemann(_R[i], _L[i+1]).flux();
         (*this)[i] += (fL - fR) * (dt/dx);
         fL = fR; //Right flux on this cell must equal Left flux on next cell

@@ -13,7 +13,7 @@
 
 //MARK: Selected Flux algorithm
 //Make sure to set RIEMANN_DEFAULT in Constants.h
-inline ConservativeState Riemann::flux(){
+ConservativeState Riemann::flux(){
 #if RIEMANN_DEFAULT == RIEMANN_HLL
     return HLL();
 #elif RIEMANN_DEFAULT == RIEMANN_HLLC
