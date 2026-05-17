@@ -33,7 +33,7 @@ struct Riemann{
 
     
     //Computes the flux using whatever method was selected in Constants.h
-    ConservativeState flux();
+    inline ConservativeState flux();
     
 //MARK: Exact Riemann Solvers
     RiemannSolution exact();

@@ -28,6 +28,7 @@ void verify_fluid_element();
 void verify_constructors();
 void verify_conversion();
 void verify_flux();
+void verify_flux_add();
 void verify_enthalpy();
 void verify_swaps_P();//Primitive
 void verify_swaps_C();//Conservative

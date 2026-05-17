@@ -20,20 +20,29 @@ struct PrimitiveState {
     PrimitiveState(ConservativeState state);
     double energy();
     double enthalpy();
-    //double S();
+    ConservativeState flux();
+
     PrimitiveState swapXY();
     PrimitiveState swapXZ();
     PrimitiveState swapYZ();
+    
+    bool isPhysical();
 };
 struct ConservativeState {
     double rho,  px, py, pz, E;
     ConservativeState();
     ConservativeState(PrimitiveState prim);
     double pressure();
+    
+    ConservativeState flux();
     ConservativeState flux(double v);
+
     ConservativeState swapXY();
     ConservativeState swapXZ();
     ConservativeState swapYZ();
+    
+    bool isPhysical();
+
 };
 
 
@@ -52,6 +61,8 @@ ConservativeState& operator*=(ConservativeState &X, double a);
 ConservativeState operator/(ConservativeState X, double a);
 ConservativeState& operator/=(ConservativeState &X, double a);
 
+//Arithmetic (+): Adjust primative state by flux
+PrimitiveState& operator+=(PrimitiveState &X, const ConservativeState &dU);
 
 
 

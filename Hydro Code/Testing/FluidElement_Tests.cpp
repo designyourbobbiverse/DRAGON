@@ -16,6 +16,7 @@ void DRAGON_Test::verify_fluid_element() {
     verify_constructors();
     verify_conversion();
     verify_flux();
+    verify_flux_add();
     verify_enthalpy();
     verify_swaps_P();
     verify_swaps_C();
@@ -283,4 +284,31 @@ void DRAGON_Test::verify_div(){
 
     assert(approx(k,2));  // original unchanged
 
+}
+void DRAGON_Test::verify_flux_add() {
+    PrimitiveState W;
+    W.rho = 1.0;
+    W.vx = 2.0;
+    W.vy = 3.0;
+    W.vz = 4.0;
+    W.p = 10.0;
+    ConservativeState U0(W);
+
+    ConservativeState dU;
+    dU.rho = 0.1;
+    dU.px  = 0.2;
+    dU.py  = 0.3;
+    dU.pz  = 0.4;
+    dU.E   = 0.5;
+
+    W += dU;
+
+    ConservativeState U1(W);
+    ConservativeState expected = U0 + dU;
+
+    assert(approx(U1.rho, expected.rho, 1e-12, 1e-12));
+    assert(approx(U1.px,  expected.px,  1e-12, 1e-12));
+    assert(approx(U1.py,  expected.py,  1e-12, 1e-12));
+    assert(approx(U1.pz,  expected.pz,  1e-12, 1e-12));
+    assert(approx(U1.E,   expected.E,   1e-12, 1e-12));
 }

@@ -11,14 +11,25 @@
 
 
 //MARK: Selected Flux algorithm
-ConservativeState Riemann::flux(){
-    switch (RIEMANN_SOLVER) {
-        case RIEMANN_EXACT: return exact().flux();
+
+//Make sure to set RIEMANN_DEFAULT in Constants.h
+inline ConservativeState Riemann::flux(){
+#if RIEMANN_DEFAULT == RIEMANN_HLL
+    return HLL();
+#elif RIEMANN_DEFAULT == RIEMANN_HLLC
+    return HLLC();
+#elif RIEMANN_DEFAULT == RIEMANN_ROE
+    return Roe();
+#elif RIEMANN_DEFAULT == RIEMANN_EXACT
+    return exact().flux();
+#elif RIEMANN_DEFAULT == CHOOSE_RUNTIME
+    switch (dynamicSolverChoice){
         case RIEMANN_HLL: return HLL();
         case RIEMANN_HLLC: return HLLC();
         case RIEMANN_ROE: return Roe();
         default: return exact().flux();
     }
+#endif
 }
 
 //MARK: Solution Sampling

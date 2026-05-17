@@ -61,7 +61,19 @@ double PrimativeState::S(){
     return sqrt(vx*vx + vy*vy + vz*vz) + sqrt(gamma * p/rho);
 }*/
 
+//MARK: Physical validity
+bool PrimitiveState::isPhysical() {
+    return isfinite(rho) && isfinite(vx)  && isfinite(vy)  && isfinite(vz)  && isfinite(p)   && rho > 0.0 && p > 0.0;
+}
+bool ConservativeState::isPhysical() {
+    return isfinite(rho) && isfinite(px)  && isfinite(py)  && isfinite(pz)  && isfinite(E)   && rho > 0.0 && E > 0.0;
+}
+
+
+
 //MARK: Flux
+ConservativeState PrimitiveState::flux(){ return ConservativeState(*this).flux(vx); }
+ConservativeState ConservativeState::flux(){ return flux(px / rho); }
 ConservativeState ConservativeState::flux(double v){
     ConservativeState F = ConservativeState();
     double p = pressure();
@@ -73,6 +85,12 @@ ConservativeState ConservativeState::flux(double v){
     return F;
 }
 
+PrimitiveState& operator+=(PrimitiveState &W, const ConservativeState &dU){
+    ConservativeState U(W);
+    U += dU;
+    W = PrimitiveState(U);
+    return W;
+}
 
 
 
@@ -108,6 +126,7 @@ ConservativeState ConservativeState::swapYZ(){
     wT.pz = py; wT.py = pz;
     return wT;
 }
+
 
 
 //MARK: Arithmetic

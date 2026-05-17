@@ -18,13 +18,18 @@ const double stepSize = 0.01;
 const double timeStep = 0.01;
 
 //MARK: Algorithm Choices
+#define CHOOSE_RUNTIME -1
 
 //Riemann Solver algorithm
-    const int RIEMANN_EXACT = 0;
-    const int RIEMANN_HLL = 1;
-    const int RIEMANN_HLLC = 2;
-    const int RIEMANN_ROE = 3;
-constexpr int RIEMANN_SOLVER = RIEMANN_EXACT;
+    #define RIEMANN_EXACT 0
+    #define RIEMANN_HLL 1
+    #define RIEMANN_HLLC 2
+    #define RIEMANN_ROE 3
+#define RIEMANN_DEFAULT RIEMANN_HLLC
+
+#if RIEMANN_DEFAULT == CHOOSE_RUNTIME
+int dynamicSolverChoice = RIEMANN_EXACT;
+#endif
 
 // Comment the following line to skip the Harten_Hyman Entropy Fix when using the Roe solver
 // If not using Roe, this line does nothing
@@ -33,7 +38,8 @@ constexpr int RIEMANN_SOLVER = RIEMANN_EXACT;
 
 
 
-
+//Comment the following line to only use first order Godunov
+#define MUSCL_Hancock
 
 
 //MARK: Numerical Parameters
