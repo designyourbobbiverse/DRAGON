@@ -7,6 +7,7 @@
 #include "Riemann.hpp"
 #include <math.h>
 #include "Constants.h"
+#include "Config.h"
 
 //MARK: Eigenvectors
 inline ConservativeState _K1(double _vx, double _vy, double _vz, double _H, double _a){

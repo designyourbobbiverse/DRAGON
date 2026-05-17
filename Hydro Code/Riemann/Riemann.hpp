@@ -10,6 +10,7 @@
 
 #include <stdio.h>
 #include "FluidElement.hpp"
+#include "Config.h"
 
 
 /*
@@ -53,7 +54,11 @@ struct Riemann{
 
 //MARK: Roe
     ConservativeState Roe();
-
+    
+    
+#if RIEMANN_DEFAULT == CHOOSE_RUNTIME
+    static int runtimeRiemannChoice = RIEMANN_EXACT;
+#endif
     
 //MARK: Other Approximate Solvers
     ///Star Region Approximation Solvers (Toro Ch 9)
@@ -69,6 +74,7 @@ struct Riemann{
     RiemannSolution PVRS_Iter();
     //Adaptive Noniterative Riemann Solver: PVRS if within limits, otherwise pivots to TRRS/TSRS
     RiemannSolution PVRS_TXRS();
+    
     
 
 private:
@@ -99,6 +105,9 @@ private:
     //Swap left and right states, negate all vx.
     void mirror();
 };
+
+
+
 
     
     

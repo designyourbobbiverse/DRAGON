@@ -7,6 +7,7 @@
 
 #include "Godunov.hpp"
 #include "Constants.h"
+#include "Config.h"
 #include "Riemann.hpp"
 #include <math.h>
 #include <cassert>

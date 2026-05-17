@@ -8,10 +8,10 @@
 #include "Riemann.hpp"
 #include <math.h>
 #include "Constants.h"
+#include "Config.h"
 
 
 //MARK: Selected Flux algorithm
-
 //Make sure to set RIEMANN_DEFAULT in Constants.h
 inline ConservativeState Riemann::flux(){
 #if RIEMANN_DEFAULT == RIEMANN_HLL
@@ -23,7 +23,7 @@ inline ConservativeState Riemann::flux(){
 #elif RIEMANN_DEFAULT == RIEMANN_EXACT
     return exact().flux();
 #elif RIEMANN_DEFAULT == CHOOSE_RUNTIME
-    switch (dynamicSolverChoice){
+    switch (runtimeRiemannChoice){
         case RIEMANN_HLL: return HLL();
         case RIEMANN_HLLC: return HLLC();
         case RIEMANN_ROE: return Roe();
@@ -31,6 +31,10 @@ inline ConservativeState Riemann::flux(){
     }
 #endif
 }
+
+#if RIEMANN_DEFAULT == CHOOSE_RUNTIME
+static int runtimeRiemannChoice = RIEMANN_EXACT;
+#endif
 
 //MARK: Solution Sampling
 ConservativeState RiemannSolution::flux(){ return flux(0); }
