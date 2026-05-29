@@ -10,46 +10,46 @@
 
 #include "FluidElement.hpp"
 
-struct Grid1D{
-    int size;
+class BoundaryType;
 
+struct Grid1D{
     Grid1D(int size, int ghosts=0);
     ~Grid1D();
     Grid1D(const Grid1D&) = delete; //No copying
     Grid1D& operator=(const Grid1D&) = delete;
     
-    
+    //Advance forward in time
     void advance(double dt, double dx);
     void advance(double dt, double dx, Grid1D& _L, Grid1D& _R);
-    
+
+    //Grid access
     PrimitiveState& operator[](int k);
     const PrimitiveState& operator[](int k) const;
-
+    int getSize(), getGhosts();
+    
     
 private:
     PrimitiveState* w;
-    int ghosts;
-    
-    
+    int ghosts, size;
 };
 
 struct Grid2D{
-    int nx,ny;
     double dx, dy;
 
     Grid2D(int nx, int ny, int ghosts=0);
     ~Grid2D();
     Grid2D(const Grid2D&) = delete; //No copying
     Grid2D& operator=(const Grid2D&) = delete;
-    
+        
     PrimitiveState& operator[](int i,int j);
     const PrimitiveState& operator[](int i,int j) const;
+    int getSizeX(), getSizeY(), getGhosts();
 
     void advance(double dt);
 
 private:
     PrimitiveState* w;
-    int ghosts;
+    int ghosts, nx, ny;
 
     void advanceX(double dt);
     void advanceY(double dt);
@@ -57,7 +57,6 @@ private:
 };
 
 struct Grid3D{
-    int nx,ny,nz;
     double dx, dy, dz;
     
     Grid3D(int nx, int ny, int nz, int ghosts=0);
@@ -67,12 +66,13 @@ struct Grid3D{
 
     PrimitiveState& operator[](int i,int j,int k);
     const PrimitiveState& operator[](int i,int j,int k) const;
-    
+    int getSizeX(), getSizeY(), getSizeZ(), getGhosts();
+
     void advance(double dt);
     
 private:
     PrimitiveState* w;
-    int ghosts;
+    int ghosts, nx, ny, nz;
     
     void advanceX(double dt);
     void advanceY(double dt);

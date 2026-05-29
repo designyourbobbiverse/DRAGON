@@ -8,6 +8,8 @@
 #ifndef Config_h
 #define Config_h
 
+#define TESTMODE
+
 //MARK: Algorithm Choices
 #define CHOOSE_RUNTIME -1
 

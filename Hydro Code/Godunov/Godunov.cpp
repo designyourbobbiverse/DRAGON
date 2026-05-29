@@ -26,7 +26,8 @@ const PrimitiveState& Grid1D::operator[](int k) const {
     assert(k + ghosts >= 0 && k < size+ghosts);
     return w[k+ghosts];
 }
-
+int Grid1D::getSize(){ return size; }
+int Grid1D::getGhosts(){ return ghosts; }
 Grid1D::~Grid1D(){ delete[] w; }
 
 

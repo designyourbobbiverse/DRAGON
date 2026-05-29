@@ -16,18 +16,24 @@ Grid2D::Grid2D(int nx, int ny, int ghosts){
     w = new PrimitiveState[(nx+2*ghosts)*(ny+2*ghosts)];
 }
 PrimitiveState& Grid2D::operator[](int i, int j) {
+#ifdef TESTMODE
     assert(i + ghosts >= 0 && i < nx+ghosts);
     assert(j + ghosts >= 0 && j < ny+ghosts);
+#endif
     int m = (i+ghosts)*(ny+2*ghosts) + (j+ghosts);
     return w[m];
 }
 const PrimitiveState& Grid2D::operator[](int i, int j) const {
+#ifdef TESTMODE
     assert(i + ghosts >= 0 && i < nx+ghosts);
     assert(j + ghosts >= 0 && j < ny+ghosts);
+#endif
     int m = (i+ghosts)*(ny+2*ghosts) + (j+ghosts);
     return w[m];
 }
-
+int Grid2D::getSizeX(){ return nx; }
+int Grid2D::getSizeY(){ return ny; }
+int Grid2D::getGhosts(){ return ghosts; }
 Grid2D::~Grid2D(){ delete[] w; }
 
 
@@ -75,20 +81,27 @@ Grid3D::Grid3D(int nx, int ny, int nz, int ghosts){
     w = new PrimitiveState[(nx+2*ghosts)*(ny+2*ghosts)*(nz+2*ghosts)];
 }
 PrimitiveState& Grid3D::operator[](int i, int j, int k) {
+#ifdef TESTMODE
     assert(i + ghosts >= 0 && i < nx+ghosts);
     assert(j + ghosts >= 0 && j < ny+ghosts);
     assert(k + ghosts >= 0 && k < nz+ghosts);
+#endif
     int m = ((i+ghosts)*(ny+2*ghosts) + (j+ghosts)) * (nz+2*ghosts) + (k+ghosts);
     return w[m];
 }
 const PrimitiveState& Grid3D::operator[](int i, int j, int k) const {
+#ifdef TESTMODE
     assert(i + ghosts >= 0 && i < nx+ghosts);
     assert(j + ghosts >= 0 && j < ny+ghosts);
     assert(k + ghosts >= 0 && k < nz+ghosts);
+#endif
     int m = ((i+ghosts)*(ny+2*ghosts) + (j+ghosts)) * (nz+2*ghosts) + (k+ghosts);
     return w[m];
 }
-
+int Grid3D::getSizeX(){ return nx; }
+int Grid3D::getSizeY(){ return ny; }
+int Grid3D::getSizeZ(){ return nz; }
+int Grid3D::getGhosts(){ return ghosts; }
 Grid3D::~Grid3D(){ delete[] w; }
 
 

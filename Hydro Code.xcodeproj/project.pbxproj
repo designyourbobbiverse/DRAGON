@@ -45,6 +45,10 @@
 		F77A71642FB415B4006C2776 /* Exceptions for "Hydro Code" folder in "DRAGON_TESTS" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				Boundary/FixedBoundary.cpp,
+				Boundary/Outflow.cpp,
+				Boundary/Periodic.cpp,
+				Boundary/Reflective.cpp,
 				FluidElement/FluidElement.cpp,
 				Godunov/Godunov.cpp,
 				Godunov/Splitting.cpp,
