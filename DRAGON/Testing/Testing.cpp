@@ -1,6 +1,6 @@
 //
 //  Testing.cpp
-//  Hydro Code
+//  DRAGON/Testing
 //
 //  Created by Bobbie Markwick on 12/05/2026.
 //
@@ -36,7 +36,7 @@ int main() {
     verify_hll_manual_wave_speeds();
     verify_hllc_manual_wave_speeds();
 
-    std::cout << "HLL Riemann Solver tests passed.\n";
+    std::cout << "HLL/C Riemann Solver tests passed.\n";
 
 
     //Roe Tests

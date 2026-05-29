@@ -1,6 +1,6 @@
 //
 //  Godunov.cpp
-//  Hydro Code
+//  DRAGON
 //
 //  Created by Bobbie Markwick on 12/05/2026.
 //

@@ -1,5 +1,5 @@
-//  fluid solver
-//  Created by Bobbie Markwick on 21/07/21.
+//  DRAGON
+//  Created by Bobbie Markwick
 //
 
 #include <iostream>
@@ -264,45 +264,12 @@ int main(int argc, const char * argv[]) {
     ExactRiemann(wLE, wRE, &starLE, &starRE);
     std::cout <<  ( wL.u + wR.u + f(starLE.p,wL) - f(starRE.p,wR))/2.0 <<"\n";
     std::cout <<  ( starLE.p) <<"\n";
-
+    
     state ans = riemannSample(wR, starRE, 980.0*60/2.0);
     std::cout<< starLE.rho << ","<< starLE.u << ","<< starLE.p<<"\n";
     std::cout<< starRE.rho << ","<< starRE.u << ","<< starRE.p<<"\n";
     
     std::cout<< ans.rho << ","<< ans.u << ","<< ans.p<<"\n";
     std::cout<< (ans.rho*(ans.u - 981*60))<<"\n";
-    return 0;
-    
-    
-  //  wL.u /= sqrt(2); wL.v = wL.u; wR.v = wR.u;
-    /* Riemann Solver
-    state starL, starR;
-    ANRS(wL, wR, &starL, &starR);
-    for(int i=0; i<101; i++){
-        double x_t = (i*stepSize - x0)/tFinal;
-        
-        state w = riemannSample( (x_t > starL.u ? wR : wL), (x_t >  starL.u ? starR : starL),  x_t);
-        state wE = riemannSample( (x_t > starLE.u ? wR : wL),  (x_t >  starLE.u ? starRE : starLE),  x_t);
-
-        std::cout << i*stepSize<<","<<w.rho<<","<<wE.rho<<","<<w.u<<","<<wE.u<<","<<w.p<<","<<wE.p<<"\n";
-    }
-     //*/
-    //* Godunov Method
-    int sizex=100, sizey=100;
-    state** w = (state**) malloc(sizeof(state*) * sizey);
-    for(int j=0;j<sizey;j++){
-        w[j] = (state*) malloc(sizeof(state) * sizex);
-        for(int i=0;i<sizex;i++) w[j][i] = (i+j)/2 < x0/stepSize ? wL : wR;
-    }
-    
-    for(double t = 0; t<tFinal;t+=timeStep) advance2D(w, sizex,sizey, timeStep);
-    for(int i=0;i<100;i++){
-        double x_t = sqrt(2)*(i*stepSize-x0) / tFinal;
-        state exact = riemannSample( (x_t > starLE.u ? wRE : wLE),  (x_t >  starLE.u ? starRE : starLE),  x_t);
-        //std::cout << x_t<<","<<w.rho<<","<<w.u<<","<<w.p<<"\n";
-
-        std::cout << i*stepSize<<","<<w[i][i].rho<<","<<exact.rho<<","<<w[i][i].u<<","<<exact.u<<","<<w[i][i].p<<","<<exact.p<<"\n";
-    }
-    //*/
     return 0;
 }

@@ -1,6 +1,6 @@
 //
 //  Riemann_Tests.cpp
-//  Hydro Code
+//  DRAGON/Testing
 //
 //  Created by Bobbie Markwick on 12/05/2026.
 //

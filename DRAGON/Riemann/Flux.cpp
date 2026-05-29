@@ -1,6 +1,6 @@
 //
-//  Flux.cpp
-//  Hydro Code
+//  Riemann/Flux.cpp
+//  DRAGON
 //
 //  Created by Bobbie Markwick on 12/05/2026.
 //

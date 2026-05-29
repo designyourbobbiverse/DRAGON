@@ -1,14 +1,12 @@
 //
-//  OtherSolvers.cpp
-//  Hydro Code
+//  Riemann/StateSolvers.cpp
+//  DRAGON
 //
 //  Created by Bobbie Markwick on 29/04/2026.
 //
 #include "Riemann.hpp"
 #include <math.h>
 #include "Constants.h"
-
-
 
 
 //MARK: Primative Variable

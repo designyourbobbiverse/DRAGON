@@ -1,6 +1,6 @@
 //
-//  Untitled.hpp
-//  Hydro Code
+//  Godunov/Splitting.hpp
+//  DRAGON
 //
 //  Created by Bobbie Markwick on 16/05/2026.
 //

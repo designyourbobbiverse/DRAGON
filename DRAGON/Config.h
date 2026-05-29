@@ -1,6 +1,6 @@
 //
-//  Constants.h
-//  Hydro Code
+//  Config.h
+//  DRAGON
 //
 //  Created by Bobbie Markwick on 28/04/2026.
 //

@@ -1,6 +1,6 @@
 //
-//  HLL.cpp
-//  Hydro Code
+//  Riemann/HLL.cpp
+//  DRAGON
 //
 //  Created by Bobbie Markwick on 29/04/2026.
 //

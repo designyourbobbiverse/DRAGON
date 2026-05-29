@@ -33,7 +33,7 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		F77A71572FB4153A006C2776 /* Exceptions for "Hydro Code" folder in "Hydro Code" target */ = {
+		F77A71572FB4153A006C2776 /* Exceptions for "DRAGON" folder in "Hydro Code" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Testing/FluidElement_Tests.cpp,
@@ -42,7 +42,7 @@
 			);
 			target = F70D18F22FA12B5A00A2B235 /* Hydro Code */;
 		};
-		F77A71642FB415B4006C2776 /* Exceptions for "Hydro Code" folder in "DRAGON_TESTS" target */ = {
+		F77A71642FB415B4006C2776 /* Exceptions for "DRAGON" folder in "DRAGON_TESTS" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Boundary/BoundarySet.cpp,
@@ -50,6 +50,7 @@
 				Boundary/Outflow.cpp,
 				Boundary/Periodic.cpp,
 				Boundary/Reflective.cpp,
+				FluidElement/Arithmetic.cpp,
 				FluidElement/FluidElement.cpp,
 				Godunov/Godunov.cpp,
 				Godunov/Splitting.cpp,
@@ -67,13 +68,13 @@
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		F70D18F52FA12B5A00A2B235 /* Hydro Code */ = {
+		F70D18F52FA12B5A00A2B235 /* DRAGON */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
-				F77A71572FB4153A006C2776 /* Exceptions for "Hydro Code" folder in "Hydro Code" target */,
-				F77A71642FB415B4006C2776 /* Exceptions for "Hydro Code" folder in "DRAGON_TESTS" target */,
+				F77A71572FB4153A006C2776 /* Exceptions for "DRAGON" folder in "Hydro Code" target */,
+				F77A71642FB415B4006C2776 /* Exceptions for "DRAGON" folder in "DRAGON_TESTS" target */,
 			);
-			path = "Hydro Code";
+			path = DRAGON;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -99,7 +100,7 @@
 		F70D18EA2FA12B5A00A2B235 = {
 			isa = PBXGroup;
 			children = (
-				F70D18F52FA12B5A00A2B235 /* Hydro Code */,
+				F70D18F52FA12B5A00A2B235 /* DRAGON */,
 				F70D18F42FA12B5A00A2B235 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -129,7 +130,7 @@
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
-				F70D18F52FA12B5A00A2B235 /* Hydro Code */,
+				F70D18F52FA12B5A00A2B235 /* DRAGON */,
 			);
 			name = "Hydro Code";
 			packageProductDependencies = (
