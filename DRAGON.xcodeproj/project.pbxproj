@@ -28,20 +28,11 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		F70D18F32FA12B5A00A2B235 /* Hydro Code */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "Hydro Code"; sourceTree = BUILT_PRODUCTS_DIR; };
+		F70D18F32FA12B5A00A2B235 /* DRAGON */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = DRAGON; sourceTree = BUILT_PRODUCTS_DIR; };
 		F77A715C2FB415A5006C2776 /* DRAGON_TESTS */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = DRAGON_TESTS; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		F77A71572FB4153A006C2776 /* Exceptions for "DRAGON" folder in "Hydro Code" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				Testing/FluidElement_Tests.cpp,
-				Testing/Riemann_Tests.cpp,
-				Testing/Testing.cpp,
-			);
-			target = F70D18F22FA12B5A00A2B235 /* Hydro Code */;
-		};
 		F77A71642FB415B4006C2776 /* Exceptions for "DRAGON" folder in "DRAGON_TESTS" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
@@ -59,9 +50,24 @@
 				Riemann/HLL.cpp,
 				Riemann/Roe.cpp,
 				Riemann/StateSolvers.cpp,
-				Testing/FluidElement_Tests.cpp,
-				Testing/Riemann_Tests.cpp,
-				Testing/Testing.cpp,
+			);
+			target = F77A715B2FB415A5006C2776 /* DRAGON_TESTS */;
+		};
+		F790CF812FC9F8D90094987D /* Exceptions for "Testing" folder in "DRAGON" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				FluidElement_Tests.cpp,
+				Riemann_Tests.cpp,
+				Testing.cpp,
+			);
+			target = F70D18F22FA12B5A00A2B235 /* DRAGON */;
+		};
+		F790CF822FC9F8D90094987D /* Exceptions for "Testing" folder in "DRAGON_TESTS" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				FluidElement_Tests.cpp,
+				Riemann_Tests.cpp,
+				Testing.cpp,
 			);
 			target = F77A715B2FB415A5006C2776 /* DRAGON_TESTS */;
 		};
@@ -71,10 +77,18 @@
 		F70D18F52FA12B5A00A2B235 /* DRAGON */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
-				F77A71572FB4153A006C2776 /* Exceptions for "DRAGON" folder in "Hydro Code" target */,
 				F77A71642FB415B4006C2776 /* Exceptions for "DRAGON" folder in "DRAGON_TESTS" target */,
 			);
 			path = DRAGON;
+			sourceTree = "<group>";
+		};
+		F790CF7D2FC9F8D80094987D /* Testing */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				F790CF812FC9F8D90094987D /* Exceptions for "Testing" folder in "DRAGON" target */,
+				F790CF822FC9F8D90094987D /* Exceptions for "Testing" folder in "DRAGON_TESTS" target */,
+			);
+			path = Testing;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -100,6 +114,7 @@
 		F70D18EA2FA12B5A00A2B235 = {
 			isa = PBXGroup;
 			children = (
+				F790CF7D2FC9F8D80094987D /* Testing */,
 				F70D18F52FA12B5A00A2B235 /* DRAGON */,
 				F70D18F42FA12B5A00A2B235 /* Products */,
 			);
@@ -108,7 +123,7 @@
 		F70D18F42FA12B5A00A2B235 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				F70D18F32FA12B5A00A2B235 /* Hydro Code */,
+				F70D18F32FA12B5A00A2B235 /* DRAGON */,
 				F77A715C2FB415A5006C2776 /* DRAGON_TESTS */,
 			);
 			name = Products;
@@ -117,9 +132,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		F70D18F22FA12B5A00A2B235 /* Hydro Code */ = {
+		F70D18F22FA12B5A00A2B235 /* DRAGON */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = F70D18FA2FA12B5A00A2B235 /* Build configuration list for PBXNativeTarget "Hydro Code" */;
+			buildConfigurationList = F70D18FA2FA12B5A00A2B235 /* Build configuration list for PBXNativeTarget "DRAGON" */;
 			buildPhases = (
 				F70D18EF2FA12B5A00A2B235 /* Sources */,
 				F70D18F02FA12B5A00A2B235 /* Frameworks */,
@@ -131,12 +146,13 @@
 			);
 			fileSystemSynchronizedGroups = (
 				F70D18F52FA12B5A00A2B235 /* DRAGON */,
+				F790CF7D2FC9F8D80094987D /* Testing */,
 			);
-			name = "Hydro Code";
+			name = DRAGON;
 			packageProductDependencies = (
 			);
 			productName = "Hydro Code";
-			productReference = F70D18F32FA12B5A00A2B235 /* Hydro Code */;
+			productReference = F70D18F32FA12B5A00A2B235 /* DRAGON */;
 			productType = "com.apple.product-type.tool";
 		};
 		F77A715B2FB415A5006C2776 /* DRAGON_TESTS */ = {
@@ -175,7 +191,7 @@
 					};
 				};
 			};
-			buildConfigurationList = F70D18EE2FA12B5A00A2B235 /* Build configuration list for PBXProject "Hydro Code" */;
+			buildConfigurationList = F70D18EE2FA12B5A00A2B235 /* Build configuration list for PBXProject "DRAGON" */;
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
@@ -189,7 +205,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				F70D18F22FA12B5A00A2B235 /* Hydro Code */,
+				F70D18F22FA12B5A00A2B235 /* DRAGON */,
 				F77A715B2FB415A5006C2776 /* DRAGON_TESTS */,
 			);
 		};
@@ -385,7 +401,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		F70D18EE2FA12B5A00A2B235 /* Build configuration list for PBXProject "Hydro Code" */ = {
+		F70D18EE2FA12B5A00A2B235 /* Build configuration list for PBXProject "DRAGON" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				F70D18F82FA12B5A00A2B235 /* Debug */,
@@ -394,7 +410,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		F70D18FA2FA12B5A00A2B235 /* Build configuration list for PBXNativeTarget "Hydro Code" */ = {
+		F70D18FA2FA12B5A00A2B235 /* Build configuration list for PBXNativeTarget "DRAGON" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				F70D18FB2FA12B5A00A2B235 /* Debug */,
