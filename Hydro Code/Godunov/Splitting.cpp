@@ -6,13 +6,14 @@
 //
 
 #include "Godunov.hpp"
+#include "Boundary.hpp"
 #include <cassert>
 
 
 //MARK: 2D Array
 
-Grid2D::Grid2D(int nx, int ny, int ghosts){
-    this->nx = nx; this->ny = ny; this->ghosts = ghosts;
+Grid2D::Grid2D(int nx_, int ny_, double dx_, double dy_, int g_):
+    nx(nx_), ny(ny_), dx(dx_), dy(dy_), ghosts(g_) {
     w = new PrimitiveState[(nx+2*ghosts)*(ny+2*ghosts)];
 }
 PrimitiveState& Grid2D::operator[](int i, int j) {
@@ -47,23 +48,27 @@ void Grid2D::advance(double dt){
 }
 
 void Grid2D::advanceX(double dt){
-    Grid1D W(nx,ghosts), _B1(nx,ghosts), _B2(nx,ghosts);
+    if(boundary) boundary->apply(*this);
+    
+    Grid1D W(nx, dx, ghosts), _B1(nx, dx, ghosts), _B2(nx, dx, ghosts);
     for(int j=-ghosts; j<ny+ghosts; j++){
         for(int i=-ghosts; i<nx+ghosts; i++) W[i] = (*this)[i,j];
 
-        W.advance(dt, dx, _B1, _B2);
+        W.god_sweep(dt, _B1, _B2);
         
         for(int i=-ghosts; i<nx+ghosts; i++) (*this)[i,j] = W[i];
     }
 }
 void Grid2D::advanceY(double dt){
-    Grid1D W(ny,ghosts), _B1(ny,ghosts), _B2(ny,ghosts);
+    if(boundary) boundary->apply(*this);
+
+    Grid1D W(ny, dy, ghosts), _B1(ny, dy, ghosts), _B2(ny,dy, ghosts);
     for(int i=-ghosts; i<nx+ghosts; i++){
         for(int j=-ghosts; j<ny+ghosts; j++) {
             W[j] = (*this)[i,j];
             W[j].swapXY();
         }
-        W.advance(dt, dy, _B1, _B2);
+        W.god_sweep(dt, _B1, _B2);
         for(int j=-ghosts; j<ny+ghosts; j++) {
             W[j].swapXY();
             (*this)[i,j] = W[j];
@@ -76,8 +81,8 @@ void Grid2D::advanceY(double dt){
 
 //MARK: 3D Array
 
-Grid3D::Grid3D(int nx, int ny, int nz, int ghosts){
-    this->nx = nx; this->ny = ny; this->nz = nz; this->ghosts = ghosts;
+Grid3D::Grid3D(int nx_, int ny_, int nz_, double dx_, double dy_, double dz_, int g_):
+    nx(nx_), ny(ny_), nz(nz_), dx(dx_), dy(dy_), dz(dz_), ghosts(g_) {
     w = new PrimitiveState[(nx+2*ghosts)*(ny+2*ghosts)*(nz+2*ghosts)];
 }
 PrimitiveState& Grid3D::operator[](int i, int j, int k) {
@@ -116,26 +121,30 @@ void Grid3D::advance(double dt){
 }
 
 void Grid3D::advanceX(double dt){
-    Grid1D W(nx,ghosts), _B1(nx,ghosts), _B2(nx,ghosts);
+    if(boundary) boundary->apply(*this);
+
+    Grid1D W(nx,dx,ghosts), _B1(nx,dx,ghosts), _B2(nx,dx,ghosts);
     for(int k=-ghosts; k<nz+ghosts; k++){
         for(int j=-ghosts; j<ny+ghosts; j++){
             for(int i=-ghosts; i<nx+ghosts; i++) W[i] = (*this)[i,j,k];
             
-            W.advance(dt, dx, _B1, _B2);
+            W.god_sweep(dt, _B1, _B2);
             
             for(int i=-ghosts; i<nx+ghosts; i++) (*this)[i,j,k] = W[i];
         }
     }
 }
 void Grid3D::advanceY(double dt){
-    Grid1D W(ny,ghosts), _B1(ny,ghosts), _B2(ny,ghosts);
+    if(boundary) boundary->apply(*this);
+
+    Grid1D W(ny,dy,ghosts), _B1(ny,dy,ghosts), _B2(ny,dy,ghosts);
     for(int k=-ghosts; k<nz+ghosts; k++){
         for(int i=-ghosts; i<nx+ghosts; i++) {
             for(int j=-ghosts; j<ny+ghosts; j++) {
                 W[j] = (*this)[i,j,k];
                 W[j].swapXY();
             }
-            W.advance(dt, dy, _B1, _B2);
+            W.god_sweep(dt, _B1, _B2);
             for(int j=-ghosts; j<ny+ghosts; j++) {
                 W[j].swapXY();
                 (*this)[i,j,k] = W[j];
@@ -144,14 +153,16 @@ void Grid3D::advanceY(double dt){
     }
 }
 void Grid3D::advanceZ(double dt){
-    Grid1D W(nz,ghosts), _B1(nz,ghosts), _B2(nz,ghosts);
+    if(boundary) boundary->apply(*this);
+
+    Grid1D W(nz,dz,ghosts), _B1(nz,dz,ghosts), _B2(nz,dz,ghosts);
     for(int i=-ghosts; i<nx+ghosts; i++) {
         for(int j=-ghosts; j<ny+ghosts; j++) {
             for(int k=-ghosts; k<nz+ghosts; k++){
                 W[k] = (*this)[i,j,k];
                 W[k].swapXZ();
             }
-            W.advance(dt, dz, _B1, _B2);
+            W.god_sweep(dt, _B1, _B2);
             for(int k=-ghosts; k<nz+ghosts; k++){
                 W[k].swapXZ();
                 (*this)[i,j,k] = W[k];

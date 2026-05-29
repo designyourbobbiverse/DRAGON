@@ -9,14 +9,16 @@
 #include "Constants.h"
 #include "Config.h"
 #include "Riemann.hpp"
+#include "Boundary.hpp"
 #include <math.h>
 #include <cassert>
 
 //MARK: 1D array
 
-Grid1D::Grid1D(int size, int ghosts){
+Grid1D::Grid1D(int size, double dx_, int ghosts): dx(dx_) {
     w = new PrimitiveState[size+2*ghosts];
     this->size = size; this->ghosts = ghosts;
+    
 }
 PrimitiveState& Grid1D::operator[](int k) {
     assert(k + ghosts >= 0 && k < size+ghosts);
@@ -51,11 +53,13 @@ PrimitiveState minmod(const PrimitiveState& a, const PrimitiveState& b) {
 
 
 //MARK: 1D Godunov Advance
-void Grid1D::advance(double dt, double dx){
+void Grid1D::advance(double dt){
     Grid1D _L(size,ghosts), _R(size,ghosts);
-    advance(dt, dx,_L,_R);
+    
+    if(boundary) boundary->apply(*this);
+    god_sweep(dt,_L,_R);
 }
-void Grid1D::advance(double dt, double dx, Grid1D& _L, Grid1D& _R){
+void Grid1D::god_sweep(double dt, Grid1D& _L, Grid1D& _R){
     for(int i=-ghosts; i<size+ghosts; i++) {
 #ifdef MUSCL_Hancock
         if(i==-ghosts || i == size+ghosts-1){
@@ -79,7 +83,7 @@ void Grid1D::advance(double dt, double dx, Grid1D& _L, Grid1D& _R){
         }
     }
     //Compute Fluxes
-    ConservativeState fL = ConservativeState(), fR;//TODO: Initialize fL based on left boundary condition
+    ConservativeState fL = (ghosts > 0 ? _R[-1] : _L[0]), fR;
     for(int i=0; i<size; i++) {
         fR = Riemann(_R[i], _L[i+1]).flux();
         (*this)[i] += (fL - fR) * (dt/dx);

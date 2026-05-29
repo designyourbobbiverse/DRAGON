@@ -10,46 +10,52 @@
 
 #include "FluidElement.hpp"
 
-class BoundaryType;
+namespace Boundary{class BoundaryType;};
 
 struct Grid1D{
-    Grid1D(int size, int ghosts=0);
+    Grid1D(int size, double dx, int ghosts=0);
     ~Grid1D();
     Grid1D(const Grid1D&) = delete; //No copying
     Grid1D& operator=(const Grid1D&) = delete;
     
     //Advance forward in time
-    void advance(double dt, double dx);
-    void advance(double dt, double dx, Grid1D& _L, Grid1D& _R);
+    void advance(double dt);
+    void god_sweep(double dt, Grid1D& _L, Grid1D& _R);
 
     //Grid access
     PrimitiveState& operator[](int k);
     const PrimitiveState& operator[](int k) const;
     int getSize(), getGhosts();
-    
-    
+    //Boundary
+    Boundary::BoundaryType* boundary = nullptr;
 private:
     PrimitiveState* w;
     int ghosts, size;
+    double dx;
 };
 
 struct Grid2D{
-    double dx, dy;
 
-    Grid2D(int nx, int ny, int ghosts=0);
+    Grid2D(int nx, int ny, double dx, double dy, int ghosts=0);
     ~Grid2D();
     Grid2D(const Grid2D&) = delete; //No copying
     Grid2D& operator=(const Grid2D&) = delete;
-        
+    
+    //Advance Forward in time
+    void advance(double dt);
+    
+    //Grid access
     PrimitiveState& operator[](int i,int j);
     const PrimitiveState& operator[](int i,int j) const;
     int getSizeX(), getSizeY(), getGhosts();
-
-    void advance(double dt);
+    
+    //Boundary
+    Boundary::BoundaryType* boundary = nullptr;
 
 private:
     PrimitiveState* w;
     int ghosts, nx, ny;
+    double dx, dy;
 
     void advanceX(double dt);
     void advanceY(double dt);
@@ -57,22 +63,24 @@ private:
 };
 
 struct Grid3D{
-    double dx, dy, dz;
-    
-    Grid3D(int nx, int ny, int nz, int ghosts=0);
+    Grid3D(int nx, int ny, int nz, double dx, double dy, double dz, int ghosts=0);
     ~Grid3D();
     Grid3D(const Grid3D&) = delete; //No copying
     Grid3D& operator=(const Grid3D&) = delete;
+
+    //Advance Forward in time
+    void advance(double dt);
 
     PrimitiveState& operator[](int i,int j,int k);
     const PrimitiveState& operator[](int i,int j,int k) const;
     int getSizeX(), getSizeY(), getSizeZ(), getGhosts();
 
-    void advance(double dt);
-    
+    //Boundary
+    Boundary::BoundaryType* boundary = nullptr;
 private:
     PrimitiveState* w;
     int ghosts, nx, ny, nz;
+    double dx, dy, dz;
     
     void advanceX(double dt);
     void advanceY(double dt);
