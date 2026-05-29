@@ -53,15 +53,6 @@
 			);
 			target = F77A715B2FB415A5006C2776 /* DRAGON_TESTS */;
 		};
-		F790CF812FC9F8D90094987D /* Exceptions for "Testing" folder in "DRAGON" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				FluidElement_Tests.cpp,
-				Riemann_Tests.cpp,
-				Testing.cpp,
-			);
-			target = F70D18F22FA12B5A00A2B235 /* DRAGON */;
-		};
 		F790CF822FC9F8D90094987D /* Exceptions for "Testing" folder in "DRAGON_TESTS" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
@@ -73,11 +64,30 @@
 		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
+/* Begin PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
+		F7DC02FE2FCA0E430009524D /* Exceptions for "DRAGON" folder in "Compile Sources" phase from "DRAGON" target */ = {
+			isa = PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet;
+			buildPhase = F70D18EF2FA12B5A00A2B235 /* Sources */;
+			membershipExceptions = (
+				Boundary/BoundarySet.tpp,
+			);
+		};
+		F7DC02FF2FCA0E430009524D /* Exceptions for "DRAGON" folder in "Compile Sources" phase from "DRAGON_TESTS" target */ = {
+			isa = PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet;
+			buildPhase = F77A71582FB415A5006C2776 /* Sources */;
+			membershipExceptions = (
+				Boundary/BoundarySet.tpp,
+			);
+		};
+/* End PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		F70D18F52FA12B5A00A2B235 /* DRAGON */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
+				F7DC02FE2FCA0E430009524D /* Exceptions for "DRAGON" folder in "Compile Sources" phase from "DRAGON" target */,
 				F77A71642FB415B4006C2776 /* Exceptions for "DRAGON" folder in "DRAGON_TESTS" target */,
+				F7DC02FF2FCA0E430009524D /* Exceptions for "DRAGON" folder in "Compile Sources" phase from "DRAGON_TESTS" target */,
 			);
 			path = DRAGON;
 			sourceTree = "<group>";
@@ -85,7 +95,6 @@
 		F790CF7D2FC9F8D80094987D /* Testing */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
-				F790CF812FC9F8D90094987D /* Exceptions for "Testing" folder in "DRAGON" target */,
 				F790CF822FC9F8D90094987D /* Exceptions for "Testing" folder in "DRAGON_TESTS" target */,
 			);
 			path = Testing;
@@ -114,8 +123,8 @@
 		F70D18EA2FA12B5A00A2B235 = {
 			isa = PBXGroup;
 			children = (
-				F790CF7D2FC9F8D80094987D /* Testing */,
 				F70D18F52FA12B5A00A2B235 /* DRAGON */,
+				F790CF7D2FC9F8D80094987D /* Testing */,
 				F70D18F42FA12B5A00A2B235 /* Products */,
 			);
 			sourceTree = "<group>";

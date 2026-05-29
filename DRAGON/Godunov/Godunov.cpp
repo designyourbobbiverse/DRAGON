@@ -54,7 +54,7 @@ PrimitiveState minmod(const PrimitiveState& a, const PrimitiveState& b) {
 
 //MARK: 1D Godunov Advance
 void Grid1D::advance(double dt){
-    Grid1D _L(size,ghosts), _R(size,ghosts);
+    Grid1D _L(size,dx,ghosts), _R(size,dx,ghosts);
     
     if(boundary) boundary->apply(*this);
     god_sweep(dt,_L,_R);
@@ -75,12 +75,10 @@ void Grid1D::god_sweep(double dt, Grid1D& _L, Grid1D& _R){
         _L[i] = PrimitiveState(UL - correction);
         _R[i] = PrimitiveState(UR - correction);
         
-        if(!_L[i].isPhysical() || !_R[i].isPhysical() ) //Check to make sure this is physical, fallback to First order if not
+        if(_L[i].isPhysical() && _R[i].isPhysical() ) continue; //Check to make sure this is physical, fallback to First order if not
 #endif
-        {
-            _L[i] = (*this)[i];
-            _R[i] = (*this)[i];
-        }
+        _L[i] = (*this)[i];
+        _R[i] = (*this)[i];
     }
     //Compute Fluxes
     ConservativeState fL = (ghosts > 0 ? _R[-1] : _L[0]), fR;

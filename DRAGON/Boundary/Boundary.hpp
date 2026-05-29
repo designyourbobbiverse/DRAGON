@@ -11,6 +11,9 @@
 #include "Godunov.hpp"
 #include <vector>
 #include <memory>
+#include <concepts>
+#include <type_traits>
+#include <utility>
 
 namespace Boundary{
 
@@ -32,7 +35,7 @@ class BoundaryType {
 public:
     explicit BoundaryType(int faces_, bool corner_ghosts) : faces(faces_), corners(corner_ghosts) {}
     virtual ~BoundaryType() = default;
-    int get_faces();
+    int get_faces() const;
     
     virtual void apply(Grid1D& grid) const = 0;
     virtual void apply(Grid2D& grid) const = 0;
@@ -42,13 +45,13 @@ protected:
     bool corners;
 };
 
+
 //A collection of boundary conditions
 //The conditions will be applied in order, with later conditions overriding prior conditions for overlapping cells
 //When initializing, Outflow(missing_faces) will be added at the beginning if any faces are missing.
 class BoundarySet : public BoundaryType {
 public:
     template<typename... Bs> BoundarySet(Bs&&... bs);
-
     
     void apply(Grid1D& grid) const override;
     void apply(Grid2D& grid) const override;
@@ -116,8 +119,9 @@ public:
 };
 
 
+}
 
+#include "BoundarySet.tpp"
 
-};
 
 #endif
