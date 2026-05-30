@@ -19,6 +19,7 @@ Boundary::Periodic::Periodic(): Periodic(X|Y|Z) {}
 
 //MARK: 1D
 void Boundary::Periodic::apply(Grid1D& grid) const {
+    if((faces & X) == 0) return;
     int ng = grid.getGhosts(), nx = grid.getSize();
     for(int g = 1; g <= ng; g++){
         grid[-g] = grid[nx-g];

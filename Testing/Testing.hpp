@@ -64,6 +64,43 @@ void verify_roe_stationary_contact();
 void verify_roe_supersonic_upwind();
 //Finiteness
 void verify_approximate_solver_finiteness();
+
+
+//MARK: Boundary Conditions
+void verify_boundary();
+//Constructors
+void verify_boundary_constructors();
+//Outflow
+void verify_boundary_outflow();
+void verify_boundary_outflow_1D();
+void verify_boundary_outflow_2D();
+void verify_boundary_outflow_3D();
+void verify_boundary_outflow_1D_gated();
+void verify_boundary_outflow_2D_gated();
+void verify_boundary_outflow_3D_gated_X();
+void verify_boundary_outflow_3D_gated_Y();
+void verify_boundary_outflow_3D_gated_Z();
+//Reflective
+void verify_boundary_reflective();
+void verify_boundary_reflective_1D();
+void verify_boundary_reflective_2D();
+void verify_boundary_reflective_3D();
+//Periodic
+void verify_boundary_periodic();
+void verify_boundary_periodic_1D();
+void verify_boundary_periodic_2D();
+void verify_boundary_periodic_3D();
+//Fixed
+void verify_boundary_fixed();
+void verify_boundary_fixed_1D();
+void verify_boundary_fixed_2D();
+void verify_boundary_fixed_3D();
+//Composition
+void verify_boundary_composition();
+void verify_boundary_set_missing_faces_outflow_2D();
+void verify_boundary_composition_3D();
+void verify_boundary_composition_order();
+
 }
 
 

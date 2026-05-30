@@ -12,10 +12,9 @@ using namespace DRAGON_Test;
 int main() {
     //MARK: Fluid Element
     verify_fluid_element();
-    std::cout << "Fluid Element tests passed.\n";
+    std::cout << "Fluid Arithmetic tests passed.\n\n";
 
     //MARK: Riemann Solvers
-    verify_riemann();
     // Riemann construction / solution setup
     verify_riemann_constructor();
     verify_riemann_solution_constructor();
@@ -48,5 +47,33 @@ int main() {
 
     //Finiteness
     verify_approximate_solver_finiteness();
+    std::cout << "All Riemann Solver tests passed.\n\n";
+
+    
+    //MARK: Boundary Conditions
+    verify_boundary_constructors();
+    //Outflow
+    verify_boundary_outflow();
+    std::cout << "Outflow Boundary tests passed.\n";
+    //Reflective
+    verify_boundary_reflective();
+    std::cout << "Reflective Boundary tests passed.\n";
+    //Periodic
+    verify_boundary_periodic();
+    std::cout << "Periodic Boundary tests passed.\n";
+    //Fixed
+    verify_boundary_fixed();
+    std::cout << "Fixed State Boundary tests passed.\n";
+    //Composition
+    verify_boundary_composition();
+    std::cout << "Boundary Composition tests passed.\n";
+
+    std::cout << "All Boundary Condition tests passed.\n\n";
+
+    
+    
     std::cout << "All tests passed.\n";
+
+    
+    
 }

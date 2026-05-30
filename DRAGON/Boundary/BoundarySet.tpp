@@ -15,8 +15,8 @@ namespace Boundary {
         int uncoveredFaces = X | Y | Z;
         for (auto& b : boundaries)  uncoveredFaces &= ~b->get_faces();
 
-        if (uncoveredFaces) {//TODO: Make this at the beginning
-            addBoundary(Outflow(uncoveredFaces));
+        if (uncoveredFaces) {
+            boundaries.insert(boundaries.begin(), std::make_unique<Outflow>(uncoveredFaces) );
         }
     }
 
