@@ -10,14 +10,14 @@
 
 
 using namespace Boundary;
-int Boundary::BoundaryType::get_faces() const { return faces; }
+int ::GhostFill::get_faces() const { return faces; }
 
-void Boundary::BoundarySet::apply(Grid1D &grid) const{
+void Boundary::Boundaries::apply(Grid1D &grid) const{
     for (auto& b : boundaries)  b->apply(grid);
 }
-void Boundary::BoundarySet::apply(Grid2D &grid) const{
+void Boundary::Boundaries::apply(Grid2D &grid) const{
     for (auto& b : boundaries)  b->apply(grid);
 }
-void Boundary::BoundarySet::apply(Grid3D &grid) const{
+void Boundary::Boundaries::apply(Grid3D &grid) const{
     for (auto& b : boundaries)  b->apply(grid);
 }

@@ -15,6 +15,24 @@
 #include <type_traits>
 #include <utility>
 
+
+class GhostFill {
+public:
+    virtual ~GhostFill() = default;
+    int get_faces() const;
+    
+    virtual void apply(Grid1D& grid) const = 0;
+    virtual void apply(Grid2D& grid) const = 0;
+    virtual void apply(Grid3D& grid) const = 0;
+protected:
+    int faces;
+    bool corners;
+    explicit GhostFill(int faces_, bool corner_ghosts) : faces(faces_), corners(corner_ghosts) {}
+};
+
+
+
+
 namespace Boundary{
 
 constexpr int X_negative = 1 << 0;
@@ -31,39 +49,26 @@ constexpr int Z = Z_negative | Z_positive;
 
 
 
-class BoundaryType {
-public:
-    explicit BoundaryType(int faces_, bool corner_ghosts) : faces(faces_), corners(corner_ghosts) {}
-    virtual ~BoundaryType() = default;
-    int get_faces() const;
-    
-    virtual void apply(Grid1D& grid) const = 0;
-    virtual void apply(Grid2D& grid) const = 0;
-    virtual void apply(Grid3D& grid) const = 0;
-protected:
-    int faces;
-    bool corners;
-};
 
 
 //A collection of boundary conditions
 //The conditions will be applied in order, with later conditions overriding prior conditions for overlapping cells
 //When initializing, Outflow(missing_faces) will be added at the beginning if any faces are missing.
-class BoundarySet : public BoundaryType {
+class Boundaries : public GhostFill {
 public:
-    template<typename... Bs> BoundarySet(Bs&&... bs);
+    template<typename... Bs> Boundaries(Bs&&... bs);
     
     void apply(Grid1D& grid) const override;
     void apply(Grid2D& grid) const override;
     void apply(Grid3D& grid) const override;
 private:
-    std::vector<std::unique_ptr<BoundaryType>>  boundaries;
+    std::vector<std::unique_ptr<GhostFill>>  boundaries;
     template<typename B> void addBoundary(B&& b);
 };
 
 
 
-class Fixed : public BoundaryType {
+class Fixed : public GhostFill {
 public:
     Fixed(PrimitiveState state);
     Fixed(PrimitiveState state, int faces);
@@ -77,7 +82,7 @@ protected:
     PrimitiveState state;
 };
 
-class Outflow : public BoundaryType {
+class Outflow : public GhostFill {
 public:
     Outflow();
     Outflow(int faces);
@@ -94,7 +99,7 @@ public:
     bool gated; //Set to true if you want to ensure no accidental inflow occurs
 };
 
-class Reflective : public BoundaryType {
+class Reflective : public GhostFill {
 public:
     Reflective();
     Reflective(int faces);
@@ -107,7 +112,8 @@ public:
     void apply(Grid3D& grid) const override;
 };
 
-class Periodic : public BoundaryType {
+
+class Periodic : public GhostFill {
 public:
     Periodic();
     Periodic(int faces);
@@ -118,10 +124,9 @@ public:
     void apply(Grid3D& grid) const override;
 };
 
-
 }
 
-#include "BoundarySet.tpp"
+#include "Boundaries.tpp"
 
 
 #endif

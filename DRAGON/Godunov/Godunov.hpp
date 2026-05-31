@@ -10,7 +10,7 @@
 
 #include "FluidElement.hpp"
 
-namespace Boundary{class BoundaryType;};
+class GhostFill;
 
 struct Grid1D{
     Grid1D(int size, double dx, int ghosts=0);
@@ -27,7 +27,7 @@ struct Grid1D{
     const PrimitiveState& operator[](int k) const;
     int getSize(), getGhosts();
     //Boundary
-    Boundary::BoundaryType* boundary = nullptr;
+    GhostFill* boundary = nullptr;
 private:
     PrimitiveState* w;
     int ghosts, size;
@@ -50,7 +50,7 @@ struct Grid2D{
     int getSizeX(), getSizeY(), getGhosts();
     
     //Boundary
-    Boundary::BoundaryType* boundary = nullptr;
+    GhostFill* boundary = nullptr;
 
 private:
     PrimitiveState* w;
@@ -76,7 +76,7 @@ struct Grid3D{
     int getSizeX(), getSizeY(), getSizeZ(), getGhosts();
 
     //Boundary
-    Boundary::BoundaryType* boundary = nullptr;
+    GhostFill* boundary = nullptr;
 private:
     PrimitiveState* w;
     int ghosts, nx, ny, nz;

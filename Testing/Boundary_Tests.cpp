@@ -123,8 +123,8 @@ void DRAGON_Test::verify_boundary_constructors(){
     assert(&f2);
 
     //Composite Boundary Constructors
-    BoundarySet b0(r1, p2, Outflow(Z));
-    BoundarySet b1(Fixed(W, X_negative), Outflow::Gated(X_positive));
+    Boundaries b0(r1, p2, Outflow(Z));
+    Boundaries b1(Fixed(W, X_negative), Outflow::Gated(X_positive));
     assert(&b0);
     assert(&b1);
 
@@ -147,7 +147,7 @@ void DRAGON_Test::verify_boundary_set_missing_faces_outflow_2D() {
 
     Grid2D grid(3, 4, 1.0, 1.0, 1);
     fill_2D(grid);
-    auto boundary = BoundarySet( Reflective(X) );
+    auto boundary = Boundaries( Reflective(X) );
     boundary.apply(grid);
     
     // X should be reflective
@@ -164,7 +164,7 @@ void DRAGON_Test::verify_boundary_composition_3D() {
 
     Grid3D grid(3, 4, 5, 1.0, 1.0,1.0, 1);
     fill_3D(grid);
-    auto boundary = BoundarySet( Reflective(Z), Periodic(Y) );
+    auto boundary = Boundaries( Reflective(Z), Periodic(Y) );
     boundary.apply(grid);
     
 
@@ -186,7 +186,7 @@ void DRAGON_Test::verify_boundary_composition_3D() {
 void DRAGON_Test::verify_boundary_composition_order() {
     Grid3D grid(3, 4, 5, 1.0, 1.0,1.0, 1);
     fill_3D(grid);
-    auto boundary = BoundarySet( Reflective(), Periodic(Y) );
+    auto boundary = Boundaries( Reflective(), Periodic(Y) );
     boundary.apply(grid);
     
     // Y should be Periodic

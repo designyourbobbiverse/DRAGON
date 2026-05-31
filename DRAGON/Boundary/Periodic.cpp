@@ -10,7 +10,7 @@
 using namespace Boundary;
 
 //MARK: Constructors
-Boundary::Periodic::Periodic(int faces_, bool corners) : BoundaryType(
+Boundary::Periodic::Periodic(int faces_, bool corners) : GhostFill(
     ((faces_ & X) ? X : 0) | ((faces_ & Y) ? Y : 0) | ((faces_ & Z) ? Z : 0)
 , corners){} //Ensure that periodic boundaries have matching edges
 Boundary::Periodic::Periodic(int faces_) : Periodic(faces_,true) {}

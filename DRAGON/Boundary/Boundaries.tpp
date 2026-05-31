@@ -9,7 +9,7 @@
 
 namespace Boundary {
 
-    template<typename... Bs> BoundarySet::BoundarySet(Bs&&... bs) : BoundaryType(X | Y | Z, true) {
+    template<typename... Bs> Boundaries::Boundaries(Bs&&... bs) : GhostFill(X | Y | Z, true) {
         (addBoundary(std::forward<Bs>(bs)), ...);
 
         int uncoveredFaces = X | Y | Z;
@@ -20,8 +20,8 @@ namespace Boundary {
         }
     }
 
-    template<typename B> void BoundarySet::addBoundary(B&& b) {
-        static_assert(std::derived_from<std::decay_t<B>, BoundaryType>);
+    template<typename B> void Boundaries::addBoundary(B&& b) {
+        static_assert(std::derived_from<std::decay_t<B>, GhostFill>);
         boundaries.push_back(std::make_unique<std::decay_t<B>>(std::forward<B>(b)));
     }
 

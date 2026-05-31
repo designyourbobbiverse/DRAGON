@@ -36,7 +36,7 @@
 		F77A71642FB415B4006C2776 /* Exceptions for "DRAGON" folder in "DRAGON_TESTS" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				Boundary/BoundarySet.cpp,
+				Boundary/Boundaries.cpp,
 				Boundary/Fixed.cpp,
 				Boundary/Outflow.cpp,
 				Boundary/Periodic.cpp,
@@ -57,6 +57,9 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Boundary_Tests.cpp,
+				FluidElement_Tests.cpp,
+				Riemann_Tests.cpp,
+				Testing.cpp,
 			);
 			target = F70D18F22FA12B5A00A2B235 /* DRAGON */;
 		};
@@ -352,10 +355,12 @@
 		F70D18FB2FA12B5A00A2B235 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++23";
 				CODE_SIGN_STYLE = Automatic;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = UR2T3Z854C;
 				ENABLE_HARDENED_RUNTIME = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu23;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -363,10 +368,12 @@
 		F70D18FC2FA12B5A00A2B235 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++23";
 				CODE_SIGN_STYLE = Automatic;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = UR2T3Z854C;
 				ENABLE_HARDENED_RUNTIME = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu23;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;

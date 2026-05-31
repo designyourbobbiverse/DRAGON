@@ -10,7 +10,7 @@
 using namespace Boundary;
 
 //MARK: Constructors
-Boundary::Outflow::Outflow(int faces_, bool corners, bool gated_):  BoundaryType(faces_, corners), gated(gated_) {}
+Boundary::Outflow::Outflow(int faces_, bool corners, bool gated_):  GhostFill(faces_, corners), gated(gated_) {}
 Boundary::Outflow::Outflow(int faces_, bool corners): Outflow(faces_,corners,false) {}
 Boundary::Outflow::Outflow(int faces_) : Outflow(faces_,true) {}
 Boundary::Outflow::Outflow(): Outflow(X|Y|Z) {}

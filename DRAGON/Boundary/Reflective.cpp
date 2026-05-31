@@ -10,7 +10,7 @@
 using namespace Boundary;
 
 //MARK: Constructors
-Boundary::Reflective::Reflective(int faces_, bool corners):  BoundaryType(faces_, corners) {}
+Boundary::Reflective::Reflective(int faces_, bool corners):  GhostFill(faces_, corners) {}
 Boundary::Reflective::Reflective(int faces_) : Reflective(faces_,true) {}
 Boundary::Reflective::Reflective(): Reflective(X|Y|Z) {}
 
