@@ -11,8 +11,7 @@ using namespace Boundary;
 
 //MARK: Constructors
 Boundary::Fixed::Fixed(PrimitiveState w_, int faces_, bool corners):  GhostFill(faces_, corners), state(w_) {}
-Boundary::Fixed::Fixed(PrimitiveState w_,int faces_) : Fixed(w_,faces_,true) {}
-Boundary::Fixed::Fixed(PrimitiveState w_): Fixed(w_,X|Y|Z) {}
+Boundary::Fixed::Fixed(PrimitiveState w_,std::string s,bool corners) : Fixed(w_,face_mask(s),corners) {}
 
 //MARK: 1D
 void Boundary::Fixed::apply(Grid1D& grid) const {

@@ -9,10 +9,8 @@
 
 using namespace Boundary;
 
-//MARK: Constructors
 Boundary::Reflective::Reflective(int faces_, bool corners):  GhostFill(faces_, corners) {}
-Boundary::Reflective::Reflective(int faces_) : Reflective(faces_,true) {}
-Boundary::Reflective::Reflective(): Reflective(X|Y|Z) {}
+Boundary::Reflective::Reflective(std::string s, bool corners) : Reflective(face_mask(s),corners) {}
 
 //MARK: 1D
 void Boundary::Reflective::apply(Grid1D& grid) const {

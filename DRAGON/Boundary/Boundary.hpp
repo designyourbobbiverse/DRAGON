@@ -48,7 +48,11 @@ constexpr int Z_positive = 1 << 5;
 constexpr int Z = Z_negative | Z_positive;
 
 
-
+//Intialization from a string
+//X = X, Y = Y, Z = Z
+//- after XYZ means only the negative, + after XYZ means only the positive
+//Example: XYZ+ is everyting except negative Z
+int face_mask(std::string s);
 
 
 //A collection of boundary conditions
@@ -70,9 +74,8 @@ private:
 
 class Fixed : public GhostFill {
 public:
-    Fixed(PrimitiveState state);
-    Fixed(PrimitiveState state, int faces);
-    Fixed(PrimitiveState state, int faces, bool corner_ghosts);
+    Fixed(PrimitiveState state, std::string faces, bool corner_ghosts=true);
+    Fixed(PrimitiveState state, int faces = X|Y|Z, bool corner_ghosts=true);
     ~Fixed() = default;
     
     void apply(Grid1D& grid) const override;
@@ -84,13 +87,11 @@ protected:
 
 class Outflow : public GhostFill {
 public:
-    Outflow();
-    Outflow(int faces);
-    Outflow(int faces, bool corner_ghosts);
-    Outflow(int faces, bool corner_ghosts,bool gated);
-    static Outflow Gated();
-    static Outflow Gated(int faces);
-    static Outflow Gated(int faces, bool corner_ghosts);
+   
+    Outflow(std::string faces, bool corner_ghosts=true, bool gated=false);
+    Outflow(int faces = X|Y|Z, bool corner_ghosts=true, bool gated=false);
+    static Outflow Gated(std::string faces, bool corner_ghosts=true);
+    static Outflow Gated(int faces = X|Y|Z, bool corner_ghosts=true);
     
     void apply(Grid1D& grid) const override;
     void apply(Grid2D& grid) const override;
@@ -101,9 +102,8 @@ public:
 
 class Reflective : public GhostFill {
 public:
-    Reflective();
-    Reflective(int faces);
-    Reflective(int faces, bool corner_ghosts);
+    Reflective(std::string faces, bool corner_ghosts = true);
+    Reflective(int faces = X|Y|Z, bool corner_ghosts = true);
 
     
     
@@ -115,9 +115,8 @@ public:
 
 class Periodic : public GhostFill {
 public:
-    Periodic();
-    Periodic(int faces);
-    Periodic(int faces, bool corner_ghosts);
+    Periodic(std::string faces, bool corner_ghosts=true);
+    Periodic(int faces = X|Y|Z, bool corner_ghosts=true);
     
     void apply(Grid1D& grid) const override;
     void apply(Grid2D& grid) const override;

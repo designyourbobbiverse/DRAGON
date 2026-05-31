@@ -11,12 +11,9 @@ using namespace Boundary;
 
 //MARK: Constructors
 Boundary::Outflow::Outflow(int faces_, bool corners, bool gated_):  GhostFill(faces_, corners), gated(gated_) {}
-Boundary::Outflow::Outflow(int faces_, bool corners): Outflow(faces_,corners,false) {}
-Boundary::Outflow::Outflow(int faces_) : Outflow(faces_,true) {}
-Boundary::Outflow::Outflow(): Outflow(X|Y|Z) {}
-Outflow Boundary::Outflow::Gated(){ return Outflow(X|Y|Z,true,true); }
-Outflow Boundary::Outflow::Gated(int faces){ return Outflow(faces,true,true);}
+Boundary::Outflow::Outflow(std::string s, bool corners, bool gated): Outflow(face_mask(s),corners,gated) {}
 Outflow Boundary::Outflow::Gated(int faces, bool corner_ghosts){ return Outflow(faces, corner_ghosts,true); }
+Outflow Boundary::Outflow::Gated(std::string s, bool corners){ return Outflow(s,corners,true);}
 
 //MARK: 1D
 void Boundary::Outflow::apply(Grid1D& grid) const {
