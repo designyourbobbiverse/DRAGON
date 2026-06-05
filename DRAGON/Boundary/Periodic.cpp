@@ -16,7 +16,7 @@ Boundary::Periodic::Periodic(int faces_, bool corners) : GhostFill(
 Boundary::Periodic::Periodic(std::string s, bool corners) : Periodic(face_mask(s),corners) {}
 
 //MARK: 1D
-void Boundary::Periodic::apply(Grid1D& grid) const {
+void Boundary::Periodic::apply(Grid1D& grid) {
     if((faces & X) == 0) return;
     int ng = grid.getGhosts(), nx = grid.getSize();
     for(int g = 1; g <= ng; g++){
@@ -26,7 +26,7 @@ void Boundary::Periodic::apply(Grid1D& grid) const {
 }
 
 //MARK: 2D
-void Boundary::Periodic::apply(Grid2D& grid) const {
+void Boundary::Periodic::apply(Grid2D& grid) {
     int ng = grid.getGhosts(), nx = grid.getSizeX(), ny = grid.getSizeY();
     int i0 = (corners ? -ng : 0), in = (corners ? nx + ng : nx);
     int j0 = i0, jn = (corners ? ny + ng : ny);
@@ -49,7 +49,7 @@ void Boundary::Periodic::apply(Grid2D& grid) const {
     }
 }
 //MARK: 3D
-void Boundary::Periodic::apply(Grid3D& grid) const {
+void Boundary::Periodic::apply(Grid3D& grid) {
     int ng = grid.getGhosts(), nx = grid.getSizeX(), ny = grid.getSizeY(), nz = grid.getSizeZ();
     int i0 = (corners ? -ng : 0), in = (corners ? nx + ng : nx);
     int j0 = i0, jn = (corners ? ny + ng : ny);

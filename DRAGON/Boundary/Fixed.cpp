@@ -14,7 +14,7 @@ Boundary::Fixed::Fixed(PrimitiveState w_, int faces_, bool corners):  GhostFill(
 Boundary::Fixed::Fixed(PrimitiveState w_,std::string s,bool corners) : Fixed(w_,face_mask(s),corners) {}
 
 //MARK: 1D
-void Boundary::Fixed::apply(Grid1D& grid) const {
+void Boundary::Fixed::apply(Grid1D& grid) {
     int ng = grid.getGhosts();
     if (faces & X_negative){
         for(int g = 1; g <= ng; g++){
@@ -30,7 +30,7 @@ void Boundary::Fixed::apply(Grid1D& grid) const {
 }
 
 //MARK: 2D
-void Boundary::Fixed::apply(Grid2D& grid) const {
+void Boundary::Fixed::apply(Grid2D& grid) {
     int ng = grid.getGhosts(), nx = grid.getSizeX(), ny = grid.getSizeY();
     int i0 = (corners ? -ng : 0), in = (corners ? nx + ng : nx);
     int j0 = i0, jn = (corners ? ny + ng : ny);
@@ -65,7 +65,7 @@ void Boundary::Fixed::apply(Grid2D& grid) const {
     }
 }
 //MARK: 3D
-void Boundary::Fixed::apply(Grid3D& grid) const {
+void Boundary::Fixed::apply(Grid3D& grid) {
     int ng = grid.getGhosts(), nx = grid.getSizeX(), ny = grid.getSizeY(), nz = grid.getSizeZ();
     int i0 = (corners ? -ng : 0), in = (corners ? nx + ng : nx);
     int j0 = i0, jn = (corners ? ny + ng : ny);

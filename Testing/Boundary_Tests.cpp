@@ -91,47 +91,58 @@ void DRAGON_Test::verify_boundary_constructors(){
     //Outflow Constructors
     Outflow o0;
     Outflow o1(X);
-    Outflow o2(X, false);
-    Outflow o3(X_positive, true, true);
+    Outflow o2("X");
+    Outflow o3(X, false);
+    Outflow o4(X_positive, true, true);
+    Outflow o5("X+", true, true);
     assert(&o0);
     assert(&o1);
     assert(&o2);
     assert(&o3);
+    assert(&o4);
+    assert(&o5);
 
     //Gated Outflow shorthand
     Outflow og0 = Outflow::Gated();
     Outflow og1 = Outflow::Gated(X_positive);
     Outflow og2 = Outflow::Gated(X_positive, false);
+    Outflow og3 = Outflow::Gated("X+", false);
     assert(&og0);
     assert(&og1);
     assert(&og2);
+    assert(&og3);
 
     //Periodic Constructors
     Periodic p0;
     Periodic p1(X);
     Periodic p2(Y, false);
+    Periodic p3("Z");
     assert(&p0);
     assert(&p1);
     assert(&p2);
+    assert(&p3);
+
 
     //Fixed State Constructors
     Fixed f0(W);
     Fixed f1(W, X);
     Fixed f2(W, Y, false);
+    Fixed f3(W, "YZ");
     assert(&f0);
     assert(&f1);
     assert(&f2);
+    assert(&f3);
 
     //Composite Boundary Constructors
     Boundaries b0(r1, p2, Outflow(Z));
-    Boundaries b1(Fixed(W, X_negative), Outflow::Gated(X_positive));
+    Boundaries b1(Fixed(W, "X-"), Outflow::Gated(X_positive));
     assert(&b0);
     assert(&b1);
 
     //Test that faces are intiallized properly and also test get_faces()
     assert(Reflective(X).get_faces() == X);
-    assert(Reflective(X_negative).get_faces() == X_negative);
-    assert(Reflective(X_positive).get_faces() == X_positive);
+    assert(Reflective("X-").get_faces() == X_negative);
+    assert(Reflective("X+").get_faces() == X_positive);
     assert(Reflective(X | Y).get_faces() == (X | Y));
     assert(Periodic(Y).get_faces() == Y);
     assert(Outflow(Z_negative | Z_positive).get_faces() == Z);
@@ -186,7 +197,7 @@ void DRAGON_Test::verify_boundary_composition_3D() {
 void DRAGON_Test::verify_boundary_composition_order() {
     Grid3D grid(3, 4, 5, 1.0, 1.0,1.0, 1);
     fill_3D(grid);
-    auto boundary = Boundaries( Reflective(), Periodic(Y) );
+    auto boundary = Boundaries( Reflective(), Periodic("Y") );
     boundary.apply(grid);
     
     // Y should be Periodic
@@ -223,14 +234,14 @@ void DRAGON_Test::verify_boundary_fixed_1D() {
     expect_close(grid[5], W);
     //Single face filling: Left
     fill_1D(grid);
-    Boundary::Fixed(W,X_negative).apply(grid);
+    Boundary::Fixed(W,"X-").apply(grid);
     expect_close(grid[-1], W);
     expect_close(grid[-2], W);
     expect_close(grid[4], G);
     expect_close(grid[5], G);
     //Single face filling: Right
     fill_1D(grid);
-    Boundary::Fixed(W,X_positive).apply(grid);
+    Boundary::Fixed(W,"X+").apply(grid);
     expect_close(grid[-1], G);
     expect_close(grid[-2], G);
     expect_close(grid[4], W);
@@ -252,7 +263,7 @@ void DRAGON_Test::verify_boundary_fixed_2D() {
     expect_close(grid[-1,-1],G);
     //Y
     fill_2D(grid);
-    Boundary::Fixed(W,Y).apply(grid);
+    Boundary::Fixed(W,"Y").apply(grid);
     for (int i = 0; i < grid.getSizeX(); i++) {
         expect_close(grid[i,-1], W);
         expect_close(grid[i,4],  W);
@@ -269,7 +280,7 @@ void DRAGON_Test::verify_boundary_fixed_3D() {
 
     //X
     fill_3D(grid);
-    Boundary::Fixed(W,X).apply(grid);
+    Boundary::Fixed(W,"X").apply(grid);
     for (int j = 0; j < grid.getSizeY(); j++) {
         for (int k = 0; k < grid.getSizeZ(); k++) {
             expect_close(grid[-1, j,k], W);
@@ -278,7 +289,7 @@ void DRAGON_Test::verify_boundary_fixed_3D() {
     }
     //Y
     fill_3D(grid);
-    Boundary::Fixed(W,Y,false).apply(grid);
+    Boundary::Fixed(W,"Y",false).apply(grid);
     for (int i = 0; i < grid.getSizeX(); i++) {
         for (int k = 0; k < grid.getSizeZ(); k++) {
             expect_close(grid[i,-1, k], W);
@@ -289,7 +300,7 @@ void DRAGON_Test::verify_boundary_fixed_3D() {
     expect_close(grid[-1,-1,1],G);
     //Z
     fill_3D(grid);
-    Boundary::Fixed(W,Z).apply(grid);
+    Boundary::Fixed(W,"Z").apply(grid);
     for (int i = 0; i < grid.getSizeX(); i++) {
         for (int j = 0; j < grid.getSizeY(); j++) {
             expect_close(grid[i,j,-1], W);
@@ -326,14 +337,14 @@ void DRAGON_Test::verify_boundary_outflow_1D() {
     expect_close(grid[5], grid[3]);
     //Single face filling: Left
     fill_1D(grid);
-    Outflow(X_negative).apply(grid);
+    Outflow("X-").apply(grid);
     expect_close(grid[-1], grid[0]);
     expect_close(grid[-2], grid[0]);
     expect_close(grid[4], G);
     expect_close(grid[5], G);
     //Single face filling: Right
     fill_1D(grid);
-    Outflow(X_positive).apply(grid);
+    Outflow("X+").apply(grid);
     expect_close(grid[4], grid[3]);
     expect_close(grid[5], grid[3]);
     expect_close(grid[-1], G);
@@ -361,7 +372,7 @@ void DRAGON_Test::verify_boundary_outflow_2D() {
     expect_close(grid[-1,-1],G);
     //Corner
     fill_2D(grid);
-    Outflow(X | Y).apply(grid);
+    Outflow("XY").apply(grid);
     expect_close(grid[-1,-1], grid[0,0]);
 }
 //MARK: Outflow - 3D
@@ -396,7 +407,7 @@ void DRAGON_Test::verify_boundary_outflow_3D() {
     }
     //Z
     fill_3D(grid);
-    Outflow(Z,false).apply(grid);
+    Outflow("Z",false).apply(grid);
     for (int i = 0; i < grid.getSizeX(); i++) {
         for (int j = 0; j < grid.getSizeY(); j++) {
             expect_close(grid[i,j,-1], grid[i,j,0]);
@@ -461,7 +472,7 @@ void DRAGON_Test::verify_boundary_periodic_3D() {
     
     //X
     fill_3D(grid);
-    Periodic(X,false).apply(grid);
+    Periodic("X",false).apply(grid);
     for (int j = 0; j < grid.getSizeY(); j++) {
         for (int k = 0; k < grid.getSizeZ(); k++) {
             expect_close(grid[-1, j,k], grid[2, j,k]);
@@ -481,7 +492,7 @@ void DRAGON_Test::verify_boundary_periodic_3D() {
     }
     //Z
     fill_3D(grid);
-    Periodic(Z).apply(grid);
+    Periodic("Z").apply(grid);
     for (int i = 0; i < grid.getSizeX(); i++) {
         for (int j = 0; j < grid.getSizeY(); j++) {
             expect_close(grid[i,j,-1], grid[i,j,4]);
@@ -518,14 +529,14 @@ void DRAGON_Test::verify_boundary_reflective_1D() {
     expect_close(grid[5], w);
     //Single face filling: Left
     fill_1D(grid);
-    Reflective(X_negative).apply(grid);
+    Reflective("X-").apply(grid);
     w = grid[0]; w.vx *= -1;
     expect_close(grid[-1], w);
     w = grid[1]; w.vx *= -1;
     expect_close(grid[-2], w);
     //Single face filling: Right
     fill_1D(grid);
-    Reflective(X_positive).apply(grid);
+    Reflective("X+").apply(grid);
     w = grid[3]; w.vx *= -1;
     expect_close(grid[4], w);
     w = grid[2]; w.vx *= -1;
@@ -591,7 +602,7 @@ void DRAGON_Test::verify_boundary_reflective_3D(){
     }
     //Z
     fill_3D(grid);
-    Reflective(Z,false).apply(grid);
+    Reflective("Z",false).apply(grid);
     for (int i = 0; i < grid.getSizeX(); i++) {
         for (int j = 0; j < grid.getSizeY(); j++) {
             PrimitiveState w = grid[i,j,0]; w.vz *= -1;
@@ -605,7 +616,7 @@ void DRAGON_Test::verify_boundary_reflective_3D(){
     expect_close(grid[1,-1,-1],G);
     //Corner
     fill_3D(grid);
-    Reflective(X | Y | Z).apply(grid);
+    Reflective().apply(grid);
     auto w = grid[0,0,0]; w.vx *= -1; w.vy *= -1; w.vz *= -1;
     expect_close(grid[-1,-1,-1], w);
 }
@@ -703,7 +714,7 @@ void DRAGON_Test::verify_boundary_outflow_2D_gated(){
     //Y- blocks inflow
     fill_2D(grid);
     for(int i=0;i<grid.getSizeX();i++) grid[i,0].vy = +5.0;
-    Outflow::Gated(Y_negative).apply(grid);
+    Outflow::Gated("Y-").apply(grid);
     for(int i=0;i<grid.getSizeX();i++){
         assert(approx(grid[i,-1].vy, 0.0));
         assert(approx(grid[i,-2].vy, 0.0));
@@ -720,7 +731,7 @@ void DRAGON_Test::verify_boundary_outflow_2D_gated(){
     //Y+ blocks inflow
     fill_2D(grid);
     for(int i=0;i<grid.getSizeX();i++) grid[i,3].vy = -5.0;
-    Outflow::Gated(Y_positive).apply(grid);
+    Outflow::Gated("Y+").apply(grid);
     for(int i=0;i<grid.getSizeX();i++){
         assert(approx(grid[i,4].vy, 0.0));
         assert(approx(grid[i,5].vy, 0.0));
@@ -765,7 +776,7 @@ void DRAGON_Test::verify_boundary_outflow_3D_gated_X(){
     for(int j=0;j<grid.getSizeY();j++){
         for(int k=0;k<grid.getSizeZ();k++) grid[0,j,k].vx = -5.0;
     }
-    Outflow::Gated(X_negative).apply(grid);
+    Outflow::Gated("X-").apply(grid);
     for(int j=0;j<grid.getSizeY();j++){
         for(int k=0;k<grid.getSizeZ();k++){
             assert(approx(grid[-1,j,k].vx, -5));
@@ -790,7 +801,7 @@ void DRAGON_Test::verify_boundary_outflow_3D_gated_X(){
     for(int j=0;j<grid.getSizeY();j++){
         for(int k=0;k<grid.getSizeZ();k++) grid[2,j,k].vx = +5.0;
     }
-    Outflow::Gated(X_positive).apply(grid);
+    Outflow::Gated("X+").apply(grid);
     for(int j=0;j<grid.getSizeY();j++){
         for(int k=0;k<grid.getSizeZ();k++){
             assert(approx(grid[3,j,k].vx, +5));
@@ -888,7 +899,7 @@ void DRAGON_Test::verify_boundary_outflow_3D_gated_Z(){
     for(int i=0;i<grid.getSizeX();i++){
         for(int j=0;j<grid.getSizeY();j++) grid[i,j,0].vz = +5.0;
     }
-    Outflow::Gated(Z_negative).apply(grid);
+    Outflow::Gated("Z-").apply(grid);
     for(int i=0;i<grid.getSizeX();i++){
         for(int j=0;j<grid.getSizeY();j++){
             assert(approx(grid[i,j,-1].vz, 0.0));
@@ -912,14 +923,14 @@ void DRAGON_Test::verify_boundary_outflow_3D_gated_Z(){
     for(int i=0;i<grid.getSizeX();i++) {
         for(int j=0;j<grid.getSizeY();j++) grid[i,j,4].vz = -5.0;
     }
-    Outflow::Gated(Z_positive).apply(grid);
+    Outflow::Gated("Z+").apply(grid);
     for(int i=0;i<grid.getSizeX();i++){
         for(int j=0;j<grid.getSizeY();j++){
             assert(approx(grid[i,j,5].vz, 0.0));
             assert(approx(grid[i,j,6].vz, 0.0));
         }
     }
-    //Y+ allows outflow
+    //Z+ allows outflow
     fill_3D(grid);
     for(int i=0;i<grid.getSizeX();i++) {
         for(int j=0;j<grid.getSizeY();j++) grid[i,j,4].vz = +5.0;

@@ -16,7 +16,7 @@ Outflow Boundary::Outflow::Gated(int faces, bool corner_ghosts){ return Outflow(
 Outflow Boundary::Outflow::Gated(std::string s, bool corners){ return Outflow(s,corners,true);}
 
 //MARK: 1D
-void Boundary::Outflow::apply(Grid1D& grid) const {
+void Boundary::Outflow::apply(Grid1D& grid) {
     int ng = grid.getGhosts();
     if (faces & X_negative){
         for(int g = 1; g <= ng; g++){
@@ -34,7 +34,7 @@ void Boundary::Outflow::apply(Grid1D& grid) const {
 }
 
 //MARK: 2D
-void Boundary::Outflow::apply(Grid2D& grid) const {
+void Boundary::Outflow::apply(Grid2D& grid) {
     int ng = grid.getGhosts(), nx = grid.getSizeX(), ny = grid.getSizeY();
     int i0 = (corners ? -ng : 0), in = (corners ? nx + ng : nx);
     int j0 = i0, jn = (corners ? ny + ng : ny);
@@ -74,7 +74,7 @@ void Boundary::Outflow::apply(Grid2D& grid) const {
     }
 }
 //MARK: 3D
-void Boundary::Outflow::apply(Grid3D& grid) const {
+void Boundary::Outflow::apply(Grid3D& grid) {
     int ng = grid.getGhosts(), nx = grid.getSizeX(), ny = grid.getSizeY(), nz = grid.getSizeZ();
     int i0 = (corners ? -ng : 0), in = (corners ? nx + ng : nx);
     int j0 = i0, jn = (corners ? ny + ng : ny);
