@@ -10,30 +10,8 @@
 
 
 using namespace Boundary;
+
 int ::GhostFill::get_faces() const { return faces; }
-
-void Boundaries::resetImplicit(){
-    int uncoveredFaces = X | Y | Z;
-    for (auto& b : boundaries)  uncoveredFaces &= ~b->get_faces();
-    implicits = Outflow(uncoveredFaces);
-    stale = false;
-}
-
-void Boundary::Boundaries::apply(Grid1D &grid){
-    if(stale) resetImplicit();
-    implicits.apply(grid);
-    for (auto& b : boundaries)  b->apply(grid);
-}
-void Boundary::Boundaries::apply(Grid2D &grid){
-    if(stale) resetImplicit();
-    implicits.apply(grid);
-    for (auto& b : boundaries)  b->apply(grid);
-}
-void Boundary::Boundaries::apply(Grid3D &grid){
-    if(stale) resetImplicit();
-    implicits.apply(grid);
-    for (auto& b : boundaries)  b->apply(grid);
-}
 
 int Boundary::face_mask(std::string s){
     int mask = 0;

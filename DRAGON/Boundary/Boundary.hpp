@@ -32,7 +32,6 @@ protected:
 
 
 
-
 namespace Boundary{
 
 constexpr int X_negative = 1 << 0;
@@ -47,25 +46,14 @@ constexpr int Z_negative = 1 << 4;
 constexpr int Z_positive = 1 << 5;
 constexpr int Z = Z_negative | Z_positive;
 
-
 //Intialization from a string
 //X = X, Y = Y, Z = Z
 //- after XYZ means only the negative, + after XYZ means only the positive
 //Example: XYZ+ is everyting except negative Z
 int face_mask(std::string s);
 
-class Fixed : public GhostFill {
-public:
-    Fixed(PrimitiveState state, std::string faces, bool corner_ghosts=true);
-    Fixed(PrimitiveState state, int faces = X|Y|Z, bool corner_ghosts=true);
-    ~Fixed() = default;
-    
-    void apply(Grid1D& grid) override;
-    void apply(Grid2D& grid) override;
-    void apply(Grid3D& grid) override;
-protected:
-    PrimitiveState state;
-};
+
+//MARK: Predefined types
 
 class Outflow : public GhostFill {
 public:
@@ -82,12 +70,23 @@ public:
     bool gated; //Set to true if you want to ensure no accidental inflow occurs
 };
 
+class Fixed : public GhostFill {
+public:
+    Fixed(PrimitiveState state, std::string faces, bool corner_ghosts=true);
+    Fixed(PrimitiveState state, int faces = X|Y|Z, bool corner_ghosts=true);
+    ~Fixed() = default;
+    
+    void apply(Grid1D& grid) override;
+    void apply(Grid2D& grid) override;
+    void apply(Grid3D& grid) override;
+protected:
+    PrimitiveState state;
+};
+
 class Reflective : public GhostFill {
 public:
     Reflective(std::string faces, bool corner_ghosts = true);
     Reflective(int faces = X|Y|Z, bool corner_ghosts = true);
-
-    
     
     void apply(Grid1D& grid) override;
     void apply(Grid2D& grid) override;
@@ -106,30 +105,51 @@ public:
 };
 
 
+//MARK: Boundary Composition
+class Boundaries;
+template<class T> concept GhostFillLike = std::derived_from<std::decay_t<T>, GhostFill>;
+template<class T> concept BoundariesLike = std::same_as<std::decay_t<T>, Boundaries>;
+template<class T> concept BoundaryElement = !BoundariesLike<T> && GhostFillLike<T>;
 
 //A collection of boundary conditions
 //The conditions will be applied in order, with later conditions overriding prior conditions for overlapping cells
 //When initializing, Outflow(missing_faces) will be added at the beginning if any faces are missing.
 class Boundaries : public GhostFill {
 public:
-    template<typename... Bs> Boundaries(Bs&&... bs);
+    template<BoundaryElement... Bs> Boundaries(Bs&&... bs);
     
+    template<BoundaryElement B> void append(B&& b);
+    void append(Boundaries&& bs);
+    
+    template<BoundaryElement B> void prepend(B&& b);
+    void prepend(Boundaries&& bs);
+
+
     void apply(Grid1D& grid) override;
     void apply(Grid2D& grid) override;
     void apply(Grid3D& grid) override;
 private:
     std::vector<std::unique_ptr<GhostFill>>  boundaries;
-    template<typename B> void addBoundary(B&& b);
-    void resetImplicit();
-    
+
     Outflow implicits;
     bool stale = true;
-    
+    void resetImplicit();
 };
+
+
+
+template<BoundaryElement A, BoundaryElement B> Boundaries operator+(A&& a, B&& b); //Boundaries = Boundary + Boundary
+template<BoundaryElement B> Boundaries operator+(Boundaries a, B&& b); //Boundaries = Boundaries + Boundary
+template<BoundaryElement B> Boundaries& operator+=(Boundaries& lhs, B&& rhs); //Boundaries += Boundary
+template<BoundaryElement A> Boundaries operator+(A&& a, Boundaries b); //Boundaries = Boundary + Boundaries
+inline Boundaries operator+(Boundaries a, Boundaries b); //Boundaries = Boundaries + Boundaries
+inline Boundaries& operator+=(Boundaries& lhs, Boundaries rhs);//Boundaries += Boundaries
+
 
 }
 
-#include "Boundaries.tpp"
+
+#include "Boundaries.hpp"
 
 
 #endif

@@ -175,7 +175,7 @@ void DRAGON_Test::verify_boundary_composition_3D() {
 
     Grid3D grid(3, 4, 5, 1.0, 1.0,1.0, 1);
     fill_3D(grid);
-    auto boundary = Boundaries( Reflective(Z), Periodic(Y) );
+    auto boundary = Reflective(Z_negative) +  Periodic(Y) + Reflective(Z_positive);
     boundary.apply(grid);
     
 
@@ -197,7 +197,8 @@ void DRAGON_Test::verify_boundary_composition_3D() {
 void DRAGON_Test::verify_boundary_composition_order() {
     Grid3D grid(3, 4, 5, 1.0, 1.0,1.0, 1);
     fill_3D(grid);
-    auto boundary = Boundaries( Reflective(), Periodic("Y") );
+    Boundaries boundary = Reflective();
+    boundary += Periodic("Y");
     boundary.apply(grid);
     
     // Y should be Periodic

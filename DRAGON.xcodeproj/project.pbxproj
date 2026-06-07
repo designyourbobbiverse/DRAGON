@@ -36,7 +36,7 @@
 		F77A71642FB415B4006C2776 /* Exceptions for "DRAGON" folder in "DRAGON_TESTS" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				Boundary/Boundaries.cpp,
+				Boundary/Facemask.cpp,
 				Boundary/Fixed.cpp,
 				Boundary/Outflow.cpp,
 				Boundary/Periodic.cpp,
