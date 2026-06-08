@@ -15,6 +15,7 @@
 
 //Riemann Solver
     #define RIEMANN_EXACT 0
+        #define Exact_Rarefactions_Check //Checks for the 2-rarefaction case before attempting an iterative procedure
     #define RIEMANN_HLL 1
     #define RIEMANN_HLLC 2
     #define RIEMANN_ROE 3

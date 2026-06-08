@@ -51,6 +51,11 @@ RiemannSolution Riemann::exact(){
     return exact( (L.p + R.p)/2.0 );
 }
 RiemannSolution Riemann::exact(double pGuess){
+    #ifdef Exact_Rarefactions_Check
+    double p_min = fmin(L.p, R.p);
+    if(f(p_min,L) + f(p_min,R) + R.vx - L.vx >= 0) return TRRS();
+    #endif
+    
     RiemannSolution s = RiemannSolution(*this);
     //Pressure
     s.sL.p = exact_StarP(pGuess);
@@ -88,4 +93,24 @@ double Riemann::exact_StarRho(PrimitiveState w, double p){
 }
 
 
+//MARK: Two-Rarefaction
+RiemannSolution Riemann::TRRS(){
+    double aL = sqrt(_gamma * L.p/L.rho), aR = sqrt(_gamma * R.p/R.rho); // Sound Speeds
+    return TRRS(aL, aR);
+}
+RiemannSolution Riemann::TRRS(double aL, double aR){
+    RiemannSolution s = RiemannSolution(*this);
 
+    double _LR = pow(L.p / R.p, _Ginv) * aR/aL;
+    //Velocity
+    s.sL.vx = (_LR*L.vx + R.vx + _2_Gm1*(_LR*aL-aR)) / (_LR + 1);
+        s.sR.vx = s.sL.vx;
+    //Pressure
+    s.sL.p = L.p * pow(1 - _Gm1_2*(s.sL.vx - L.vx)/aL, _2G_Gm1);
+        s.sR.p = s.sL.p;
+    //Density
+    s.sL.rho = L.rho * pow(s.sL.p / L.p , _Ginv);
+    s.sR.rho = R.rho * pow(s.sR.p / R.p , _Ginv);
+    
+    return s;
+}

@@ -67,9 +67,6 @@ struct Riemann{
     RiemannSolution TSRS(); //Two-Shock Riemann Solver
     
 //MARK: Adaptive Solvers
-    //Two-Rarefaction if conditions met, otherwise pivots to iterative
-    RiemannSolution TRRS_Iter();
-    RiemannSolution TRRS_Iter(double pGuess);
     //Adaptive Iterative Riemann Solver: PVRS if within limits, otherwise pivots to iterative
     RiemannSolution PVRS_Iter();
     //Adaptive Noniterative Riemann Solver: PVRS if within limits, otherwise pivots to TRRS/TSRS

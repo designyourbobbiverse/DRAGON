@@ -9,8 +9,8 @@
 #include "Constants.h"
 
 
-//MARK: Primative Variable
-//Primative Variable Solver
+//MARK: Primitive Variable
+//Primitive Variable Solver
 RiemannSolution Riemann::PVRS(double aL, double aR, double p_pvrs){
     RiemannSolution s = RiemannSolution(*this);
 
@@ -30,28 +30,6 @@ RiemannSolution Riemann::PVRS(double aL, double aR, double p_pvrs){
 RiemannSolution Riemann::PVRS(){
     double aL = sqrt(_gamma * L.p/L.rho), aR = sqrt(_gamma * R.p/R.rho); // Sound Speeds
     return PVRS(aL, aR, 0);
-}
-
-//MARK: Two-Rarefaction
-RiemannSolution Riemann::TRRS(double aL, double aR){
-    RiemannSolution s = RiemannSolution(*this);
-
-    double _LR = pow(L.p / R.p, _Ginv) * aR/aL;
-    //Velocity
-    s.sL.vx = (_LR*L.vx + R.vx + _2_Gm1*(_LR*aL-aR)) / (_LR + 1);
-        s.sR.vx = s.sL.vx;
-    //Pressure
-    s.sL.p = L.p * pow(1 - _Gm1_2*(s.sL.vx - L.vx)/aL, _2G_Gm1);
-        s.sR.p = s.sL.p;
-    //Density
-    s.sL.rho = L.rho * pow(s.sL.p / L.p , _Ginv);
-    s.sR.rho = R.rho * pow(s.sR.p / R.p , _Ginv);
-    
-    return s;
-}
-RiemannSolution Riemann::TRRS(){
-    double aL = sqrt(_gamma * L.p/L.rho), aR = sqrt(_gamma * R.p/R.rho); // Sound Speeds
-    return TRRS(aL, aR);
 }
 
 //MARK: Two-Shock
@@ -108,16 +86,3 @@ RiemannSolution Riemann::PVRS_TXRS(){
     }
 }
     
-
-//TRRS, pivot to iterative exact if conditions not met
-RiemannSolution Riemann::TRRS_Iter(){
-    return TRRS_Iter( (L.p + R.p)/2 );
-}
-RiemannSolution Riemann::TRRS_Iter(double pGuess){
-    double p_min = fmin(L.p, R.p);
-    if(f(p_min,L) + f(p_min,R) + R.vx - L.vx >= 0){
-        return TRRS();
-    } else {
-        return exact(pGuess);
-    }
-}
