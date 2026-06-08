@@ -7,6 +7,7 @@
 
 #include "Testing.hpp"
 #include "Boundary.hpp"
+#include "Grid.hpp"
 #include <iostream>
 
 using namespace DRAGON_Test;
@@ -134,8 +135,8 @@ void DRAGON_Test::verify_boundary_constructors(){
     assert(&f3);
 
     //Composite Boundary Constructors
-    Boundaries b0(r1, p2, Outflow(Z));
-    Boundaries b1(Fixed(W, "X-"), Outflow::Gated(X_positive));
+    BoundaryList b0(r1, p2, Outflow(Z));
+    BoundaryList b1(Fixed(W, "X-"), Outflow::Gated(X_positive));
     assert(&b0);
     assert(&b1);
 
@@ -158,7 +159,7 @@ void DRAGON_Test::verify_boundary_set_missing_faces_outflow_2D() {
 
     Grid2D grid(3, 4, 1.0, 1.0, 1);
     fill_2D(grid);
-    auto boundary = Boundaries( Reflective(X) );
+    auto boundary = BoundaryList( Reflective(X) );
     boundary.apply(grid);
     
     // X should be reflective
@@ -197,7 +198,7 @@ void DRAGON_Test::verify_boundary_composition_3D() {
 void DRAGON_Test::verify_boundary_composition_order() {
     Grid3D grid(3, 4, 5, 1.0, 1.0,1.0, 1);
     fill_3D(grid);
-    Boundaries boundary = Reflective();
+    BoundaryList boundary = Reflective();
     boundary += Periodic("Y");
     boundary.apply(grid);
     

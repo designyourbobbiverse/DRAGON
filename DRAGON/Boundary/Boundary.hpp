@@ -1,6 +1,7 @@
 //
 //  Boundary/Boundary.hpp
 //  DRAGON
+//  User-Facing Header file
 //
 //  Created by Bobbie Markwick on 28/05/2026.
 //
@@ -8,31 +9,30 @@
 #ifndef Boundary_hpp
 #define Boundary_hpp
 
-#include "Godunov.hpp"
-#include <vector>
+#include "GhostFill.hpp"
+#include "FluidElement.hpp"
 #include <memory>
-#include <concepts>
-#include <type_traits>
-#include <utility>
-
-
-class GhostFill {
-public:
-    virtual ~GhostFill() = default;
-    int get_faces() const;
-    
-    virtual void apply(Grid1D& grid) = 0;
-    virtual void apply(Grid2D& grid) = 0;
-    virtual void apply(Grid3D& grid) = 0;
-protected:
-    int faces;
-    bool corners;
-    explicit GhostFill(int faces_, bool corner_ghosts) : faces(faces_), corners(corner_ghosts) {}
-};
-
 
 
 namespace Boundary{
+
+//MARK: Boundary Composition
+//The conditions will be applied in order, with later conditions overriding prior conditions for overlapping cells
+//When applying Outflow(missing_faces) will be added at the beginning if any faces are missing.
+class BoundaryList;
+template<class T> concept BoundaryElement = //Can't put lists inside of lists
+    !std::derived_from<std::decay_t<T>, BoundaryList> && std::derived_from<std::decay_t<T>, GhostFill>;
+
+template<BoundaryElement A, BoundaryElement B> BoundaryList operator+(A&& a, B&& b); //List = Element + Element
+template<BoundaryElement B> BoundaryList operator+(BoundaryList a, B&& b); //List = List + Element
+template<BoundaryElement B> BoundaryList& operator+=(BoundaryList& lhs, B&& rhs); //List += Element
+template<BoundaryElement A> BoundaryList operator+(A&& a, BoundaryList b); //List = Element + List
+inline BoundaryList operator+(BoundaryList a, BoundaryList b); //List = List + List
+inline BoundaryList& operator+=(BoundaryList& lhs, BoundaryList rhs); //List += List
+//List = List and List = Element are also defined within the boundary class
+
+
+//MARK: Faces
 
 constexpr int X_negative = 1 << 0;
 constexpr int X_positive = 1 << 1;
@@ -83,6 +83,7 @@ protected:
     PrimitiveState state;
 };
 
+
 class Reflective : public GhostFill {
 public:
     Reflective(std::string faces, bool corner_ghosts = true);
@@ -104,52 +105,10 @@ public:
     void apply(Grid3D& grid) override;
 };
 
-
-//MARK: Boundary Composition
-class Boundaries;
-template<class T> concept GhostFillLike = std::derived_from<std::decay_t<T>, GhostFill>;
-template<class T> concept BoundariesLike = std::same_as<std::decay_t<T>, Boundaries>;
-template<class T> concept BoundaryElement = !BoundariesLike<T> && GhostFillLike<T>;
-
-//A collection of boundary conditions
-//The conditions will be applied in order, with later conditions overriding prior conditions for overlapping cells
-//When initializing, Outflow(missing_faces) will be added at the beginning if any faces are missing.
-class Boundaries : public GhostFill {
-public:
-    template<BoundaryElement... Bs> Boundaries(Bs&&... bs);
-    
-    template<BoundaryElement B> void append(B&& b);
-    void append(Boundaries&& bs);
-    
-    template<BoundaryElement B> void prepend(B&& b);
-    void prepend(Boundaries&& bs);
-
-
-    void apply(Grid1D& grid) override;
-    void apply(Grid2D& grid) override;
-    void apply(Grid3D& grid) override;
-private:
-    std::vector<std::unique_ptr<GhostFill>>  boundaries;
-
-    Outflow implicits;
-    bool stale = true;
-    void resetImplicit();
-};
-
-
-
-template<BoundaryElement A, BoundaryElement B> Boundaries operator+(A&& a, B&& b); //Boundaries = Boundary + Boundary
-template<BoundaryElement B> Boundaries operator+(Boundaries a, B&& b); //Boundaries = Boundaries + Boundary
-template<BoundaryElement B> Boundaries& operator+=(Boundaries& lhs, B&& rhs); //Boundaries += Boundary
-template<BoundaryElement A> Boundaries operator+(A&& a, Boundaries b); //Boundaries = Boundary + Boundaries
-inline Boundaries operator+(Boundaries a, Boundaries b); //Boundaries = Boundaries + Boundaries
-inline Boundaries& operator+=(Boundaries& lhs, Boundaries rhs);//Boundaries += Boundaries
-
-
 }
 
 
-#include "Boundaries.hpp"
+#include "BoundaryList.hpp"
 
 
 #endif

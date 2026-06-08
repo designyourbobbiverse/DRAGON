@@ -1,6 +1,7 @@
 //
 //  FluidElement.hpp
 //  DRAGON
+//  User-Facing Header file
 //
 //  Created by Bobbie Markwick on 28/04/2026.
 //

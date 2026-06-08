@@ -5,7 +5,7 @@
 //  Created by Bobbie Markwick on 16/05/2026.
 //
 
-#include "Godunov.hpp"
+#include "Grid.hpp"
 #include "Boundary.hpp"
 #include <cassert>
 
@@ -48,7 +48,7 @@ void Grid2D::advance(double dt){
 }
 
 void Grid2D::advanceX(double dt){
-    if(boundary) boundary->apply(*this);
+   boundary.apply(*this);
     
     Grid1D W(nx, dx, ghosts), _B1(nx, dx, ghosts), _B2(nx, dx, ghosts);
     for(int j=-ghosts; j<ny+ghosts; j++){
@@ -60,7 +60,7 @@ void Grid2D::advanceX(double dt){
     }
 }
 void Grid2D::advanceY(double dt){
-    if(boundary) boundary->apply(*this);
+    boundary.apply(*this);
 
     Grid1D W(ny, dy, ghosts), _B1(ny, dy, ghosts), _B2(ny,dy, ghosts);
     for(int i=-ghosts; i<nx+ghosts; i++){
@@ -121,7 +121,7 @@ void Grid3D::advance(double dt){
 }
 
 void Grid3D::advanceX(double dt){
-    if(boundary) boundary->apply(*this);
+    boundary.apply(*this);
 
     Grid1D W(nx,dx,ghosts), _B1(nx,dx,ghosts), _B2(nx,dx,ghosts);
     for(int k=-ghosts; k<nz+ghosts; k++){
@@ -135,7 +135,7 @@ void Grid3D::advanceX(double dt){
     }
 }
 void Grid3D::advanceY(double dt){
-    if(boundary) boundary->apply(*this);
+    boundary.apply(*this);
 
     Grid1D W(ny,dy,ghosts), _B1(ny,dy,ghosts), _B2(ny,dy,ghosts);
     for(int k=-ghosts; k<nz+ghosts; k++){
@@ -153,7 +153,7 @@ void Grid3D::advanceY(double dt){
     }
 }
 void Grid3D::advanceZ(double dt){
-    if(boundary) boundary->apply(*this);
+    boundary.apply(*this);
 
     Grid1D W(nz,dz,ghosts), _B1(nz,dz,ghosts), _B2(nz,dz,ghosts);
     for(int i=-ghosts; i<nx+ghosts; i++) {

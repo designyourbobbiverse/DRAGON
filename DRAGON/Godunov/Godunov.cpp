@@ -5,7 +5,7 @@
 //  Created by Bobbie Markwick on 12/05/2026.
 //
 
-#include "Godunov.hpp"
+#include "Grid.hpp"
 #include "Constants.h"
 #include "Config.h"
 #include "Riemann.hpp"
@@ -56,9 +56,10 @@ PrimitiveState minmod(const PrimitiveState& a, const PrimitiveState& b) {
 void Grid1D::advance(double dt){
     Grid1D _L(size,dx,ghosts), _R(size,dx,ghosts);
     
-    if(boundary) boundary->apply(*this);
+    boundary.apply(*this);
     god_sweep(dt,_L,_R);
 }
+
 void Grid1D::god_sweep(double dt, Grid1D& _L, Grid1D& _R){
     for(int i=-ghosts; i<size+ghosts; i++) {
 #ifdef MUSCL_Hancock

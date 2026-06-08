@@ -1,6 +1,7 @@
 //
 //  Godunov.hpp
 //  DRAGON
+//  User-Facing Header file
 //
 //  Created by Bobbie Markwick on 12/05/2026.
 //
@@ -9,8 +10,8 @@
 #define Godunov_hpp
 
 #include "FluidElement.hpp"
+#include "Boundary.hpp"
 
-class GhostFill;
 
 struct Grid1D{
     Grid1D(int size, double dx, int ghosts=0);
@@ -27,7 +28,7 @@ struct Grid1D{
     const PrimitiveState& operator[](int k) const;
     int getSize(), getGhosts();
     //Boundary
-    GhostFill* boundary = nullptr;
+    Boundary::BoundaryList boundary = Boundary::BoundaryList();
 private:
     PrimitiveState* w;
     int ghosts, size;
@@ -50,7 +51,7 @@ struct Grid2D{
     int getSizeX(), getSizeY(), getGhosts();
     
     //Boundary
-    GhostFill* boundary = nullptr;
+    Boundary::BoundaryList boundary = Boundary::BoundaryList();
 
 private:
     PrimitiveState* w;
@@ -76,7 +77,7 @@ struct Grid3D{
     int getSizeX(), getSizeY(), getSizeZ(), getGhosts();
 
     //Boundary
-    GhostFill* boundary = nullptr;
+    Boundary::BoundaryList boundary = Boundary::BoundaryList();
 private:
     PrimitiveState* w;
     int ghosts, nx, ny, nz;
@@ -88,4 +89,4 @@ private:
 };
 
 
-#endif /* Godunov_hpp */
+#endif

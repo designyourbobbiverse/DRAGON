@@ -6,6 +6,7 @@
 //
 
 #include "Boundary.hpp"
+#include "Grid.hpp"
 
 using namespace Boundary;
 

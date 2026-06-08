@@ -6,10 +6,6 @@
 //
 
 #include "Boundary.hpp"
-#include <algorithm>
-
-
-using namespace Boundary;
 
 int ::GhostFill::get_faces() const { return faces; }
 
