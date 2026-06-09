@@ -55,11 +55,6 @@ struct Riemann{
 //MARK: Roe
     ConservativeState Roe();
     
-    
-#if RIEMANN_DEFAULT == CHOOSE_RUNTIME
-    static int runtimeRiemannChoice = RIEMANN_EXACT;
-#endif
-    
 //MARK: Other Approximate Solvers
     ///Star Region Approximation Solvers (Toro Ch 9)
     RiemannSolution PVRS();//Primative Variable Riemann Solver
@@ -72,8 +67,6 @@ struct Riemann{
     //Adaptive Noniterative Riemann Solver: PVRS if within limits, otherwise pivots to TRRS/TSRS
     RiemannSolution PVRS_TXRS();
     
-    
-
 private:
     //Internal Implementations
     RiemannSolution PVRS(double aL, double aR, double p_pvrs);

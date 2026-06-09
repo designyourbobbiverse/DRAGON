@@ -49,6 +49,10 @@ int main() {
     verify_approximate_solver_finiteness();
     std::cout << "All Riemann Solver tests passed.\n\n";
 
+    //MARK: Grid Structure
+    verify_grid();
+    std::cout << "Grid Structure tests passed.\n\n";
+
     
     //MARK: Boundary Conditions
     verify_boundary_constructors();
@@ -68,7 +72,7 @@ int main() {
     verify_boundary_composition();
     std::cout << "Boundary Composition tests passed.\n";
 
-    std::cout << "All Boundary Condition tests passed.\n\n";
+    std::cout << "All Boundary Setup tests passed.\n\n";
 
     
     

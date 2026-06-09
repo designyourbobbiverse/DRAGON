@@ -7,8 +7,7 @@
 
 #include "Grid.hpp"
 #include "Boundary.hpp"
-#include "Constants.h"
-#include "Config.h"
+#include "CFL.hpp"
 #include <math.h>
 #include <cassert>
 
@@ -36,9 +35,9 @@ const PrimitiveState& Grid2D::operator[](int i, int j) const {
     int m = (i+ghosts)*(ny+2*ghosts) + (j+ghosts);
     return w[m];
 }
-int Grid2D::getSizeX(){ return nx; }
-int Grid2D::getSizeY(){ return ny; }
-int Grid2D::getGhosts(){ return ghosts; }
+int Grid2D::getSizeX() const { return nx; }
+int Grid2D::getSizeY() const { return ny; }
+int Grid2D::getGhosts() const { return ghosts; }
 Grid2D::~Grid2D(){ delete[] w; }
 
 
@@ -67,10 +66,10 @@ const PrimitiveState& Grid3D::operator[](int i, int j, int k) const {
     int m = ((i+ghosts)*(ny+2*ghosts) + (j+ghosts)) * (nz+2*ghosts) + (k+ghosts);
     return w[m];
 }
-int Grid3D::getSizeX(){ return nx; }
-int Grid3D::getSizeY(){ return ny; }
-int Grid3D::getSizeZ(){ return nz; }
-int Grid3D::getGhosts(){ return ghosts; }
+int Grid3D::getSizeX() const { return nx; }
+int Grid3D::getSizeY() const { return ny; }
+int Grid3D::getSizeZ() const { return nz; }
+int Grid3D::getGhosts() const { return ghosts; }
 Grid3D::~Grid3D(){ delete[] w; }
 
 
@@ -79,7 +78,7 @@ Grid3D::~Grid3D(){ delete[] w; }
 void Grid2D::advance(double dt){
     while(dt > Timestep_Tolerance){
         //CFL Time Constraint
-        double t1 = CFL * cfl_time();
+        double t1 = CFL::cfl_time(*this);
         if (t1 >= dt) t1 = dt;
         dt -= t1;
 
@@ -99,7 +98,7 @@ void Grid2D::advance(double dt){
 void Grid3D::advance(double dt){
     while(dt > Timestep_Tolerance){
         //CFL Time Constraint
-        double t1 = CFL * cfl_time();
+        double t1 = CFL::cfl_time(*this);
         if (t1 >= dt) t1 = dt;
         dt -= t1;
         //Advance, rotating step orders
@@ -127,38 +126,6 @@ void Grid3D::advance(double dt){
             break;
         }
     }
-}
-
-
-//MARK: CFL Timestep
-double Grid2D::cfl_time() const{
-    double max_speed = 0;
-    for(int i = 0; i<nx; i++){
-        for(int j = 0; j<nx; j++){
-            const PrimitiveState& W = (*this)[i,j];
-            double a = sqrt(_gamma * W.p / W.rho);
-            double speed =  (fabs(W.vx) + a)/dx + (fabs(W.vy) + a)/dy;
-            max_speed = fmax(max_speed, speed);
-        }
-    }
-    if(max_speed <= 0) throw std::runtime_error("CFL timestep failed: max signal speed is zero");
-    return 1.0 / max_speed;
-}
-
-double Grid3D::cfl_time() const{
-    double max_speed = 0;
-    for(int i = 0; i<nx; i++){
-        for(int j = 0; j<ny; j++){
-            for(int k = 0; k<nz; k++){
-                const PrimitiveState& W = (*this)[i,j,k];
-                double a = sqrt(_gamma * W.p / W.rho);
-                double speed =  (fabs(W.vx) + a)/dx + (fabs(W.vy) + a)/dy + (fabs(W.vz) + a)/dz;
-                max_speed = fmax(max_speed, speed);
-            }
-        }
-    }
-    if(max_speed <= 0) throw std::runtime_error("CFL timestep failed: max signal speed is zero");
-    return 1.0 / max_speed;
 }
 
 

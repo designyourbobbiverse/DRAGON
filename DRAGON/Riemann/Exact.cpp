@@ -73,14 +73,14 @@ RiemannSolution Riemann::exact(double pGuess){
 
 
 double Riemann::exact_StarP(double pGuess){
-    double pStar = pGuess, CHA = 1; int iters = ExactSolver_MaxIters;
+    double pStar = pGuess, CHA = 1; int iters = ExactRiemann_MaxIters;
     do{
         double fp = f(pStar, L) + f(pStar, R) + R.vx - L.vx;
         double dfdp = df(pStar, L) + df(pStar, R);
         double delta = fmin(fp/dfdp, 0.8*pStar);
         pStar -= delta;
         CHA = fabs(delta/(pStar+delta/2));
-    } while(CHA > ExactSolver_Tolerance &&  --iters != 0 );
+    } while(CHA > ExactRiemann_Tolerance &&  --iters != 0 );
     return pStar;
 }
 //v* and rho* given p*

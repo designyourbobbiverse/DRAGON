@@ -14,16 +14,16 @@
 //MARK: Selected Flux algorithm
 //Make sure to set RIEMANN_DEFAULT in Constants.h
 ConservativeState Riemann::flux(){
-#if RIEMANN_DEFAULT == RIEMANN_HLL
+#if RIEMANN_DEFAULT == RIEMANN_EXACT || defined TEST_MODE
+    return exact().flux();
+#elif RIEMANN_DEFAULT == RIEMANN_HLL
     return HLL();
 #elif RIEMANN_DEFAULT == RIEMANN_HLLC
     return HLLC();
 #elif RIEMANN_DEFAULT == RIEMANN_ROE
     return Roe();
-#elif RIEMANN_DEFAULT == RIEMANN_EXACT
-    return exact().flux();
 #elif RIEMANN_DEFAULT == CHOOSE_RUNTIME
-    switch (runtimeRiemannChoice){
+    switch (CONFIG::riemann_choice){
         case RIEMANN_HLL: return HLL();
         case RIEMANN_HLLC: return HLLC();
         case RIEMANN_ROE: return Roe();
@@ -33,8 +33,11 @@ ConservativeState Riemann::flux(){
 }
 
 #if RIEMANN_DEFAULT == CHOOSE_RUNTIME
-static int runtimeRiemannChoice = RIEMANN_EXACT;
+namespace CONFIG {
+    int riemann_choice = RIEMANN_EXACT;
+}
 #endif
+
 
 //MARK: Solution Sampling
 ConservativeState RiemannSolution::flux(){ return flux(0); }

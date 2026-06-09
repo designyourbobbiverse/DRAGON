@@ -11,7 +11,7 @@
 
 #include "FluidElement.hpp"
 #include "Boundary.hpp"
-
+#include "Config.h"
 
 struct Grid1D{
     Grid1D(int size, double dx, int ghosts=0);
@@ -26,15 +26,14 @@ struct Grid1D{
     //Grid access
     PrimitiveState& operator[](int k);
     const PrimitiveState& operator[](int k) const;
-    int getSize(), getGhosts();
+    int getSize() const, getGhosts() const;
+    double dx;
+    
     //Boundary
     Boundary::BoundaryList boundary = Boundary::BoundaryList();
 private:
     PrimitiveState* w;
     int ghosts, size;
-    double dx;
-    
-    double cfl_time() const;
 };
 
 struct Grid2D{
@@ -50,21 +49,19 @@ struct Grid2D{
     //Grid access
     PrimitiveState& operator[](int i,int j);
     const PrimitiveState& operator[](int i,int j) const;
-    int getSizeX(), getSizeY(), getGhosts();
-    
+    int getSizeX() const, getSizeY() const, getGhosts() const;
+    double dx, dy;
+
     //Boundary
     Boundary::BoundaryList boundary = Boundary::BoundaryList();
 
 private:
     PrimitiveState* w;
     int ghosts, nx, ny;
-    double dx, dy;
     int sweep_step = 0;
 
-    double cfl_time() const;
     void advanceX(double dt);
     void advanceY(double dt);
-    
 };
 
 struct Grid3D{
@@ -78,17 +75,17 @@ struct Grid3D{
 
     PrimitiveState& operator[](int i,int j,int k);
     const PrimitiveState& operator[](int i,int j,int k) const;
-    int getSizeX(), getSizeY(), getSizeZ(), getGhosts();
+    int getSizeX() const, getSizeY() const, getSizeZ() const, getGhosts() const;
+    double dx, dy, dz;
 
     //Boundary
     Boundary::BoundaryList boundary = Boundary::BoundaryList();
+    
 private:
     PrimitiveState* w;
     int ghosts, nx, ny, nz;
-    double dx, dy, dz;
     int sweep_step = 0;
 
-    double cfl_time() const;
     void advanceX(double dt);
     void advanceY(double dt);
     void advanceZ(double dt);

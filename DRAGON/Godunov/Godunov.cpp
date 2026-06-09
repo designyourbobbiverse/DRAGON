@@ -6,10 +6,10 @@
 //
 
 #include "Grid.hpp"
-#include "Constants.h"
 #include "Config.h"
 #include "Riemann.hpp"
 #include "Boundary.hpp"
+#include "CFL.hpp"
 #include <math.h>
 #include <cassert>
 
@@ -28,24 +28,14 @@ const PrimitiveState& Grid1D::operator[](int k) const {
     assert(k + ghosts >= 0 && k < size+ghosts);
     return w[k+ghosts];
 }
-int Grid1D::getSize(){ return size; }
-int Grid1D::getGhosts(){ return ghosts; }
-Grid1D::~Grid1D(){ delete[] w; }
+int Grid1D::getSize() const { return size; }
+int Grid1D::getGhosts() const { return ghosts; }
+Grid1D::~Grid1D() { delete[] w; }
 
 
 
 
 //MARK: 1D Godunov Advance
-double Grid1D::cfl_time() const{
-    double max_speed = 0;
-    for(int i = 0; i<size; i++){
-        const PrimitiveState& W = (*this)[i];
-        double speed = fabs(W.vx) + sqrt(_gamma * W.p / W.rho);
-        max_speed = fmax(max_speed, speed);
-    }
-    if(max_speed <= 0) throw std::runtime_error("CFL timestep failed: max signal speed is zero");
-    return dx / max_speed;
-}
 
 void Grid1D::advance(double dt){
     Grid1D _L(size,dx,ghosts), _R(size,dx,ghosts);//Buffer Grids
@@ -53,7 +43,7 @@ void Grid1D::advance(double dt){
         //Apply Boundary Conditions
         boundary.apply(*this);
         //CFL Time Constraint
-        double t1 = CFL * cfl_time();
+        double t1 = CFL::cfl_time(*this);
         if (t1 >= dt) t1 = dt;
         //Execute the Advancemtn
         god_sweep(t1,_L,_R);

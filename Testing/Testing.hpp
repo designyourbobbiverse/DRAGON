@@ -66,6 +66,14 @@ void verify_roe_supersonic_upwind();
 void verify_approximate_solver_finiteness();
 
 
+//MARK: Grid Structure
+void verify_grid();
+void verify_grid1D();
+void verify_grid2D();
+void verify_grid3D();
+PrimitiveState make_tagged_state(double tag);
+
+
 //MARK: Boundary Conditions
 void verify_boundary();
 //Constructors
@@ -100,6 +108,8 @@ void verify_boundary_composition();
 void verify_boundary_set_missing_faces_outflow_2D();
 void verify_boundary_composition_3D();
 void verify_boundary_composition_order();
+
+
 
 }
 

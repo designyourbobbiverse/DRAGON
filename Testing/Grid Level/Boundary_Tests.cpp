@@ -23,15 +23,6 @@ void DRAGON_Test::verify_boundary(){
 }
 
 //MARK: Helpers
-PrimitiveState make_tagged_state(double tag){
-    PrimitiveState W;
-    W.rho = tag;
-    W.vx = tag + 10.0;
-    W.vy = tag + 20.0;
-    W.vz = tag + 30.0;
-    W.p = tag + 40.0;
-    return W;
-}
 const PrimitiveState G = make_tagged_state(-666);
 
 

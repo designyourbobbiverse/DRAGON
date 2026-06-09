@@ -43,6 +43,7 @@
 				Boundary/Reflective.cpp,
 				FluidElement/Arithmetic.cpp,
 				FluidElement/FluidElement.cpp,
+				Godunov/CFL.cpp,
 				Godunov/Godunov.cpp,
 				Godunov/Splitting.cpp,
 				Riemann/Exact.cpp,
@@ -56,9 +57,10 @@
 		F77E4EF82FCB8C180070DBBF /* Exceptions for "Testing" folder in "DRAGON" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				Boundary_Tests.cpp,
-				FluidElement_Tests.cpp,
-				Riemann_Tests.cpp,
+				"Element Level/FluidElement_Tests.cpp",
+				"Element Level/Riemann_Tests.cpp",
+				"Grid Level/Boundary_Tests.cpp",
+				"Grid Level/Grid_Tests.cpp",
 				Testing.cpp,
 			);
 			target = F70D18F22FA12B5A00A2B235 /* DRAGON */;
@@ -66,9 +68,10 @@
 		F790CF822FC9F8D90094987D /* Exceptions for "Testing" folder in "DRAGON_TESTS" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				Boundary_Tests.cpp,
-				FluidElement_Tests.cpp,
-				Riemann_Tests.cpp,
+				"Element Level/FluidElement_Tests.cpp",
+				"Element Level/Riemann_Tests.cpp",
+				"Grid Level/Boundary_Tests.cpp",
+				"Grid Level/Grid_Tests.cpp",
 				Testing.cpp,
 			);
 			target = F77A715B2FB415A5006C2776 /* DRAGON_TESTS */;
