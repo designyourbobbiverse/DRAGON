@@ -34,6 +34,34 @@ Grid1D::~Grid1D(){ delete[] w; }
 
 
 
+
+//MARK: 1D Godunov Advance
+double Grid1D::cfl_time() const{
+    double max_speed = 0;
+    for(int i = 0; i<size; i++){
+        const PrimitiveState& W = (*this)[i];
+        double speed = fabs(W.vx) + sqrt(_gamma * W.p / W.rho);
+        max_speed = fmax(max_speed, speed);
+    }
+    if(max_speed <= 0) throw std::runtime_error("CFL timestep failed: max signal speed is zero");
+    return dx / max_speed;
+}
+
+void Grid1D::advance(double dt){
+    Grid1D _L(size,dx,ghosts), _R(size,dx,ghosts);//Buffer Grids
+    while(dt > Timestep_Tolerance){
+        //Apply Boundary Conditions
+        boundary.apply(*this);
+        //CFL Time Constraint
+        double t1 = CFL * cfl_time();
+        if (t1 >= dt) t1 = dt;
+        //Execute the Advancemtn
+        god_sweep(t1,_L,_R);
+        dt -= t1;
+    }
+}
+
+
 //MARK: TVD
 
 double minmod(double a, double b) {
@@ -52,14 +80,8 @@ PrimitiveState minmod(const PrimitiveState& a, const PrimitiveState& b) {
 }
 
 
-//MARK: 1D Godunov Advance
-void Grid1D::advance(double dt){
-    Grid1D _L(size,dx,ghosts), _R(size,dx,ghosts);
-    
-    boundary.apply(*this);
-    god_sweep(dt,_L,_R);
-}
 
+//MARK: Godunov Sweep
 void Grid1D::god_sweep(double dt, Grid1D& _L, Grid1D& _R){
     for(int i=-ghosts; i<size+ghosts; i++) {
 #ifdef MUSCL_Hancock

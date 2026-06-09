@@ -33,6 +33,8 @@ private:
     PrimitiveState* w;
     int ghosts, size;
     double dx;
+    
+    double cfl_time() const;
 };
 
 struct Grid2D{
@@ -57,7 +59,9 @@ private:
     PrimitiveState* w;
     int ghosts, nx, ny;
     double dx, dy;
+    int sweep_step = 0;
 
+    double cfl_time() const;
     void advanceX(double dt);
     void advanceY(double dt);
     
@@ -82,7 +86,9 @@ private:
     PrimitiveState* w;
     int ghosts, nx, ny, nz;
     double dx, dy, dz;
-    
+    int sweep_step = 0;
+
+    double cfl_time() const;
     void advanceX(double dt);
     void advanceY(double dt);
     void advanceZ(double dt);

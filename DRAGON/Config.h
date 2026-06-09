@@ -33,11 +33,14 @@
 
 
 //MARK: Numerical Parameters
+constexpr double CFL = 0.5;
+constexpr double Timestep_Tolerance = 1e-14;
 
-const double ExactSolver_Tolerance = 1E-12;
-const double ExactSolver_MaxIters = 0; //Use a nonpostiive value for unlimited iterations
 
-const double Adaptive_PVRS_Ratio = 2.0;
+constexpr double ExactSolver_Tolerance = 1E-12;
+constexpr double ExactSolver_MaxIters = 0; //Use a nonpostiive value for unlimited iterations
+
+constexpr double Adaptive_PVRS_Ratio = 2.0;
 
 
 
