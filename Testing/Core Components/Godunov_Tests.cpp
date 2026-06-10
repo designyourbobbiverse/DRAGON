@@ -378,7 +378,7 @@ void DRAGON_Test::verify_2D_X_match_1D(bool split){
     for (int i = 0; i < grid.getSizeX(); i++){
         for (int j = 0; j < grid.getSizeY(); j++){
             //Unsplit uses different reconstruction, so higher tolerance
-            expect_close(grid[i,j], expected[i], split ? 1e-12 : 1e-2);
+            expect_close(grid[i,j], expected[i]);
         }
     }
 
@@ -410,7 +410,7 @@ void DRAGON_Test::verify_2D_Y_match_1D(bool split){
         expected[j].swapXY();
         for (int i = 0; i < grid.getSizeX(); i++){
             //Unsplit uses different reconstruction, so higher tolerance
-            expect_close(grid[i,j], expected[j], split ? 1e-12 : 1e-2);
+            expect_close(grid[i,j], expected[j]);
         }
     }
 
@@ -443,7 +443,7 @@ void DRAGON_Test::verify_3D_X_match_1D(bool split){
         for (int j = 0; j < grid.getSizeY(); j++){
             for (int k = 0; k < grid.getSizeZ(); k++){
                 //Unsplit uses different reconstruction, so higher tolerance
-                expect_close(grid[i,j,k], expected[i], split ? 1e-12 : 1e-2);
+                expect_close(grid[i,j,k], expected[i]);
             }
         }
     }
@@ -479,7 +479,7 @@ void DRAGON_Test::verify_3D_Y_match_1D(bool split){
             for (int k = 0; k < grid.getSizeZ(); k++){
                 expected[j].swapXY();
                 //Unsplit uses different reconstruction, so higher tolerance
-                expect_close(grid[i,j,k], expected[j], split ? 1e-12 : 1e-2);
+                expect_close(grid[i,j,k], expected[j]);
             }
         }
     }
@@ -514,7 +514,7 @@ void DRAGON_Test::verify_3D_Z_match_1D(bool split){
             for (int k = 0; k < grid.getSizeZ(); k++){
                 expected[k].swapXZ();
                 //Unsplit uses different reconstruction, so higher tolerance
-                expect_close(grid[i,j,k], expected[k], split ? 1e-12 : 1e-2);
+                expect_close(grid[i,j,k], expected[k]);
             }
         }
     }

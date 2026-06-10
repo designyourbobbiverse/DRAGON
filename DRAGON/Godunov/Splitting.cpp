@@ -16,6 +16,11 @@
 
 Grid2D::Grid2D(int nx_, int ny_, double dx_, double dy_, int g_):
     nx(nx_), ny(ny_), dx(dx_), dy(dy_), ghosts(g_) {
+#ifdef MUSCL_Hancock
+    if(ghosts < 2) ghosts = 2;
+#else
+    if(ghosts < 1) ghosts = 1;
+#endif
     w = new PrimitiveState[(nx+2*ghosts)*(ny+2*ghosts)];
 }
 PrimitiveState& Grid2D::operator[](int i, int j) {
@@ -44,7 +49,12 @@ Grid2D::~Grid2D(){ delete[] w; }
 //MARK: 3D Array
 
 Grid3D::Grid3D(int nx_, int ny_, int nz_, double dx_, double dy_, double dz_, int g_):
-    nx(nx_), ny(ny_), nz(nz_), dx(dx_), dy(dy_), dz(dz_), ghosts(g_) {
+    nx(nx_), ny(ny_), nz(nz_), dx(dx_), dy(dy_), dz(dz_),ghosts(g_) {
+#ifdef MUSCL_Hancock
+    if(ghosts < 2) ghosts = 2;
+#else
+    if(ghosts < 1) ghosts = 1;
+#endif
     w = new PrimitiveState[(nx+2*ghosts)*(ny+2*ghosts)*(nz+2*ghosts)];
 }
 PrimitiveState& Grid3D::operator[](int i, int j, int k) {

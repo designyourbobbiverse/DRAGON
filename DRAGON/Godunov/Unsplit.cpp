@@ -6,10 +6,10 @@
 //
 
 #include "Grid.hpp"
-#include "Boundary.hpp"
 #include "Riemann.hpp"
+#include "Config.h"
 #include "CFL.hpp"
-#include <math.h>
+#include "TVD.hpp"
 #include <cassert>
 #include <iostream>
 
@@ -127,32 +127,69 @@ void Grid3D::advance_unsplit(double dt){
     }
 }
 
-//MARK: 2D Unsplit Step
-void Grid2D::advanceXY(double dt){
-    FluxGrid2D F_X(nx+1, ny),  F_Y(nx, ny+1);
-    boundary.apply(*this);
-    //Compute X fluxes
-    for(int i=0; i<=nx; i++){
-        for(int j=0; j<ny; j++){
-            if(ghosts == 0 && (i == 0 || i == nx)) { //If no ghosts, fake an outflow boundary
-                F_X[i,j] = (*this)[i == 0 ? i : i-1,j].flux();
-            } else {
-                auto L = (*this)[i-1,j], R = (*this)[i,j];
-                F_X[i,j] = Riemann(L,R).flux();
+//MARK: Unsplit TVD
+
+void Grid2D::computeHalfStates(Grid2D& _L, Grid2D& _R, double dt, int dim){
+    //Dimension
+    int isX = 0, isY = 0;
+    switch(dim % 2){
+        case 0: isX = 1; break;
+        case 1: isY = 1; break;
+    }
+    double dt_dL = dt/(isX*dx + isY*dy);
+    //Cycle
+    for(int i=-ghosts + isX; i<nx+ghosts - isX; i++){
+        for(int j=-ghosts + isY; j<ny+ghosts - isY; j++){
+            auto wL =(*this)[i-isX,j-isY], wR = (*this)[i+isX,j+isY];
+            TVD::MUSCL(wL, _L[i,j], (*this)[i,j], _R[i,j],wR, dt_dL);
+        }
+    }
+}
+void Grid3D::computeHalfStates(Grid3D& _L, Grid3D& _R, double dt, int dim){
+    //Dimension
+    int isX = 0, isY = 0, isZ = 0;
+    switch(dim % 3){
+        case 0: isX = 1; break;
+        case 1: isY = 1; break;
+        case 2: isZ = 1; break;
+    }
+    double dt_dL = dt/(isX*dx + isY*dy + isZ*dz);
+    //Cycle
+    for(int i=-ghosts + isX; i<nx+ghosts - isX; i++){
+        for(int j=-ghosts + isY; j<ny+ghosts - isY; j++){
+            for(int k=-ghosts + isZ; k<nz+ghosts - isZ; k++){
+                auto wL =(*this)[i-isX,j-isY,k-isZ], wR = (*this)[i+isX,j+isY,k+isZ];
+                TVD::MUSCL(wL, _L[i,j,k], (*this)[i,j,k], _R[i,j,k],wR, dt_dL);
             }
         }
     }
+}
+
+
+//MARK: 2D Unsplit Step
+
+void Grid2D::advanceXY(double dt){
+    Grid2D _L(nx,ny,dx,dy,ghosts), _R(nx,ny,dx,dy,ghosts);//Half States
+    FluxGrid2D F_X(nx+1, ny), F_Y(nx, ny+1); //Fluxes
+
+    boundary.apply(*this);
+
+    //Compute X Fluxes
+    computeHalfStates(_L, _R, dt, 0);
+    for(int i=0; i<=nx; i++){
+        for(int j=0; j<ny; j++){
+            auto L = _R[i-1,j], R = _L[i,j];
+            F_X[i,j] = Riemann(L,R).flux();
+        }
+    }
     //Compute Y fluxes
+    computeHalfStates(_L, _R, dt, 1);
     for(int i=0; i<nx; i++){
         for(int j=0; j<=ny; j++){
-            if(ghosts == 0 && (j == 0 || j == ny)) { //If no ghosts, fake an outflow boundary
-                F_Y[i,j] = (*this)[i, j == 0 ? j : j-1].flux();
-            } else {
-                auto L = (*this)[i,j-1], R = (*this)[i,j];
-                L.swapXY(); R.swapXY();
-                F_Y[i,j] = Riemann(L,R).flux();
-                F_Y[i,j].swapXY();
-            }
+            auto L = _R[i,j-1], R = _L[i,j];
+            L.swapXY(); R.swapXY();
+            F_Y[i,j] = Riemann(L,R).flux();
+            F_Y[i,j].swapXY();
         }
     }
     //Apply all Fluxes
@@ -166,51 +203,43 @@ void Grid2D::advanceXY(double dt){
 //MARK: 3D Unsplit Advancement
 
 void Grid3D::advanceXYZ(double dt){
+    Grid3D _L(nx,ny,nz,dx,dy,dz,ghosts), _R(nx,ny,nz,dx,dy,dz,ghosts);
     FluxGrid3D F_X(nx+1, ny,nz), F_Y(nx,ny+1,nz), F_Z(nx,ny,nz+1);
     boundary.apply(*this);
 
     //Compute X fluxes
+    computeHalfStates(_L, _R, dt, 0);
     for(int i=0; i<=nx; i++){
         for(int j=0; j<ny; j++){
             for(int k=0; k<nz; k++){
-                if(ghosts == 0 && (i == 0 || i == nx)) { //If no ghosts, fake an outflow boundary
-                    F_X[i,j,k] = (*this)[i == 0 ? i : i-1,j,k].flux();
-                } else {
-                    auto L = (*this)[i-1,j,k], R = (*this)[i,j,k];
-                    F_X[i,j,k] = Riemann(L,R).flux();
-                }
+                auto L = _R[i-1,j,k], R = _L[i,j,k];
+                F_X[i,j,k] = Riemann(L,R).flux();
             }
         }
         
     }
     //Compute Y fluxes
+    computeHalfStates(_L, _R, dt, 1);
     for(int i=0; i<nx; i++){
         for(int j=0; j<=ny; j++){
             for(int k=0; k<nz; k++){
-                if(ghosts == 0 && (j == 0 || j == ny)) { //If no ghosts, fake an outflow boundary
-                    F_Y[i,j,k] = (*this)[i, j == 0 ? j : j-1,k].flux();
-                } else {
-                    auto L = (*this)[i,j-1,k], R = (*this)[i,j,k];
-                    L.swapXY(); R.swapXY();
-                    F_Y[i,j,k] = Riemann(L,R).flux();
-                    F_Y[i,j,k].swapXY();
-                }
+                auto L = _R[i,j-1,k], R = _L[i,j,k];
+                L.swapXY(); R.swapXY();
+                F_Y[i,j,k] = Riemann(L,R).flux();
+                F_Y[i,j,k].swapXY();
             }
         }
     }
     //Compute Z fluxes
+    computeHalfStates(_L, _R, dt, 2);
     for(int i=0; i<nx; i++){
         for(int j=0; j<ny; j++){
             for(int k=0; k<=nz; k++){
                 //Z
-                if(ghosts == 0 && (k == 0 || k == nz)) { //If no ghosts, fake an outflow boundary
-                    F_Z[i,j,k] = (*this)[i, j, k == 0 ? k : k-1].flux();
-                } else {
-                    auto L = (*this)[i,j,k-1], R = (*this)[i,j,k];
-                    L.swapXZ(); R.swapXZ();
-                    F_Z[i,j,k] = Riemann(L,R).flux();
-                    F_Z[i,j,k].swapXZ();
-                }
+                auto L = _R[i,j,k-1], R = _L[i,j,k];
+                L.swapXZ(); R.swapXZ();
+                F_Z[i,j,k] = Riemann(L,R).flux();
+                F_Z[i,j,k].swapXZ();
             }
         }
     }

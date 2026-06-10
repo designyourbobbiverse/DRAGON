@@ -14,7 +14,7 @@
 #include "Config.h"
 
 struct Grid1D{
-    Grid1D(int size, double dx, int ghosts=0);
+    Grid1D(int size, double dx, int ghosts=2);
     ~Grid1D();
     Grid1D(const Grid1D&) = delete; //No copying
     Grid1D& operator=(const Grid1D&) = delete;
@@ -38,7 +38,7 @@ private:
 
 struct Grid2D{
 
-    Grid2D(int nx, int ny, double dx, double dy, int ghosts=0);
+    Grid2D(int nx, int ny, double dx, double dy, int ghosts=2);
     ~Grid2D();
     Grid2D(const Grid2D&) = delete; //No copying
     Grid2D& operator=(const Grid2D&) = delete;
@@ -65,10 +65,11 @@ private:
     void advanceX(double dt);
     void advanceY(double dt);
     void advanceXY(double dt);
+    void computeHalfStates(Grid2D& _L, Grid2D& _R, double dt, int dim);
 };
 
 struct Grid3D{
-    Grid3D(int nx, int ny, int nz, double dx, double dy, double dz, int ghosts=0);
+    Grid3D(int nx, int ny, int nz, double dx, double dy, double dz, int ghosts=2);
     ~Grid3D();
     Grid3D(const Grid3D&) = delete; //No copying
     Grid3D& operator=(const Grid3D&) = delete;
@@ -87,6 +88,7 @@ struct Grid3D{
     void advance_split(double dt);
     void advance_unsplit(double dt);
     
+    
 private:
     PrimitiveState* w;
     int ghosts, nx, ny, nz;
@@ -96,6 +98,8 @@ private:
     void advanceY(double dt);
     void advanceZ(double dt);
     void advanceXYZ(double dt);
+    void computeHalfStates(Grid3D& _L, Grid3D& _R, double dt, int dim);
+
 };
 
 

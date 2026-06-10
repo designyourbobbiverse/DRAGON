@@ -7,9 +7,8 @@
 
 #include "FluidElement.hpp"
 
-//MARK: Arithmetic
 
-//Arithmetic (+): Add two states together
+//MARK: (+): Add two states together
 ConservativeState operator+(ConservativeState X, const ConservativeState &Y){
     X += Y;
     return X;
@@ -23,7 +22,7 @@ ConservativeState& operator+=(ConservativeState &X, const ConservativeState &Y){
     return X;
 }
 
-//Arithmetic (-): Subtract two states
+//MARK: (-): Subtract two states
 ConservativeState operator-(ConservativeState X, const ConservativeState &Y){
     X -= Y;
     return X;
@@ -36,7 +35,7 @@ ConservativeState& operator-=(ConservativeState &X, const ConservativeState &Y){
     X.E -= Y.E;
     return X;
 }
-//Arithmetic (*): Multiply State by some scalar
+//MARK: (*): Multiply State by scalar
 ConservativeState operator*(const double &a, ConservativeState X){ return X*a; }
 ConservativeState operator*(ConservativeState X, double a){
     X *= a;
@@ -50,7 +49,7 @@ ConservativeState& operator*=(ConservativeState &X, double a){
     X.E *= a;
     return X;
 }
-//Arithmetic (/): Divide state by some scalar
+//MARK: (/): Divide state by scalar
 ConservativeState operator/(ConservativeState X, double a){
     X /= a;
     return X;
