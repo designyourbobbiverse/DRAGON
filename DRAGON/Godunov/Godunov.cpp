@@ -94,7 +94,8 @@ void Grid1D::god_sweep(double dt, Grid1D& _L, Grid1D& _R){
         _R[i] = (*this)[i];
     }
     //Compute Fluxes
-    ConservativeState fL = (ghosts > 0 ? _R[-1] : _L[0]), fR;
+    ConservativeState fL, fR;
+    fL = ghosts > 0 ? Riemann(_R[-1], _L[0]).flux() : _L[0].flux();
     for(int i=0; i<size; i++) {
         fR = Riemann(_R[i], _L[i+1]).flux();
         (*this)[i] += (fL - fR) * (dt/dx);

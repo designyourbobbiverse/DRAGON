@@ -16,6 +16,9 @@ int main() {
     verify_boundary();
     verify_cfl();
     
+    verify_godunov_1D();
+    verify_godunov_2D_Split();
+    verify_godunov_3D_Split();
     std::cout << "All tests passed.\n";
 
     

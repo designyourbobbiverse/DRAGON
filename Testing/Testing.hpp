@@ -147,7 +147,30 @@ void verify_cfl_time_3D_uniform();
 void verify_cfl_time_3D_uses_fastest_cell();
 void verify_cfl_time_3D_ignores_ghost_cells();
 
+//MARK: Godunov Scheme
+//1D
+void verify_godunov_1D(bool output = true);
+void verify_god_uniform_stationary_1D();
+void verify_god_uniform_moving_1D();
+void verify_god_periodic_conservation_1D();
+void verify_god_dt0_1D();
+//2D Split
+void verify_godunov_2D_Split(bool output = true);
+void verify_god_uniform_stationary_2D_Split();
+void verify_god_uniform_moving_2D_Split();
+void verify_god_periodic_conservation_2D_Split();
+void verify_god_dt0_2D_Split();
+void verify_split_2D_X_match_1D();
+void verify_split_2D_Y_match_1D();
+//3D Split
+void verify_godunov_3D_Split(bool output = true);
+void verify_god_uniform_stationary_3D_Split();
+void verify_god_uniform_moving_3D_Split();
+void verify_god_periodic_conservation_3D_Split();
+void verify_god_dt0_3D_Split();
+void verify_split_3D_X_match_1D();
+void verify_split_3D_Y_match_1D();
+void verify_split_3D_Z_match_1D();
+
 }
-
-
 #endif /* Testing_hpp */
