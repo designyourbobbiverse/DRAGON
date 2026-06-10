@@ -12,7 +12,6 @@
 #include <cassert>
 
 
-
 //MARK: 2D Array
 
 Grid2D::Grid2D(int nx_, int ny_, double dx_, double dy_, int g_):
@@ -74,12 +73,13 @@ Grid3D::~Grid3D(){ delete[] w; }
 
 
 
+
 //MARK: 2D Split
-void Grid2D::advance(double dt){
+
+void Grid2D::advance_split(double dt){
     while(dt > Timestep_Tolerance){
         //CFL Time Constraint
-        double t1 = CFL::cfl_time(*this);
-        if (t1 >= dt) t1 = dt;
+        double t1 = std::min(dt, CFL::cfl_time(*this));
         dt -= t1;
 
         //Advance, alternating which step comes first
@@ -95,11 +95,10 @@ void Grid2D::advance(double dt){
     }
 }
 //MARK: 3D Split
-void Grid3D::advance(double dt){
+void Grid3D::advance_split(double dt){
     while(dt > Timestep_Tolerance){
         //CFL Time Constraint
-        double t1 = CFL::cfl_time(*this);
-        if (t1 >= dt) t1 = dt;
+        double t1 = std::min(dt, CFL::cfl_time(*this));
         dt -= t1;
         //Advance, rotating step orders
         switch (sweep_step++ % 3) {

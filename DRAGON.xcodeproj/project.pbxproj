@@ -46,6 +46,7 @@
 				Godunov/CFL.cpp,
 				Godunov/Godunov.cpp,
 				Godunov/Splitting.cpp,
+				Godunov/Unsplit.cpp,
 				Riemann/Exact.cpp,
 				Riemann/Flux.cpp,
 				Riemann/HLL.cpp,

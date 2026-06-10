@@ -14,30 +14,55 @@ using namespace DRAGON_Test;
 using namespace Boundary;
 
 void DRAGON_Test::verify_godunov_1D(bool output){
+    if(output) std::cout<<"1D Godunov Scheme: ";
     verify_god_uniform_stationary_1D();
     verify_god_uniform_moving_1D();
     verify_god_periodic_conservation_1D();
     verify_god_dt0_1D();
-    if(output) std::cout<<"All 1D Godunov Scheme Tests Passed\n";
+    if(output) std::cout<<"All Tests Passed\n";
 }
 void DRAGON_Test::verify_godunov_2D_Split(bool output){
-    verify_god_uniform_stationary_2D_Split();
-    verify_god_uniform_moving_2D_Split();
-    verify_god_periodic_conservation_2D_Split();
-    verify_god_dt0_2D_Split();
-    verify_split_2D_X_match_1D();
-    verify_split_2D_Y_match_1D();
-    if(output) std::cout<<"All 2D Split Scheme Tests Passed\n";
+    if(output) std::cout<<"2D Split Scheme: ";
+    verify_god_uniform_stationary_2D(true);
+    verify_god_uniform_moving_2D(true);
+    verify_god_periodic_conservation_2D(true);
+    verify_god_dt0_2D(true);
+    verify_2D_X_match_1D(true);
+    verify_2D_Y_match_1D(true);
+    if(output) std::cout<<"All Tests Passed\n";
+}
+void DRAGON_Test::verify_godunov_2D_Unsplit(bool output){
+    if(output) std::cout<<"2D Unsplit Scheme: ";
+    verify_god_uniform_stationary_2D(false);
+    verify_god_uniform_moving_2D(false);
+    verify_god_periodic_conservation_2D(false);
+    verify_god_dt0_2D(false);
+    verify_2D_X_match_1D(false);
+    verify_2D_Y_match_1D(false);
+    if(output) std::cout<<"All Tests Passed\n";
 }
 void DRAGON_Test::verify_godunov_3D_Split(bool output){
-    verify_god_uniform_stationary_3D_Split();
-    verify_god_uniform_moving_3D_Split();
-    verify_god_periodic_conservation_3D_Split();
-    verify_god_dt0_3D_Split();
-    verify_split_3D_X_match_1D();
-    verify_split_3D_Y_match_1D();
-    verify_split_3D_Z_match_1D();
-    if(output) std::cout<<"All 3D Split Scheme Tests Passed\n";
+    if(output) std::cout<<"3D Split Scheme: ";
+    verify_god_uniform_stationary_3D(true);
+    verify_god_uniform_moving_3D(true);
+    verify_god_periodic_conservation_3D(true);
+    verify_god_dt0_3D(true);
+    verify_3D_X_match_1D(true);
+    verify_3D_Y_match_1D(true);
+    verify_3D_Z_match_1D(true);
+    if(output) std::cout<<"All Tests Passed\n";
+    
+}
+void DRAGON_Test::verify_godunov_3D_Unsplit(bool output){
+    if(output) std::cout<<"3D Unsplit Scheme: ";
+    verify_god_uniform_stationary_3D(false);
+    verify_god_uniform_moving_3D(false);
+    verify_god_periodic_conservation_3D(false);
+    verify_god_dt0_3D(false);
+    verify_3D_X_match_1D(false);
+    verify_3D_Y_match_1D(false);
+    verify_3D_Z_match_1D(false);
+    if(output) std::cout<<"All Tests Passed\n";
     
 }
 
@@ -59,7 +84,7 @@ void DRAGON_Test::verify_god_uniform_moving_1D(){
     for (int i = 0; i < grid.getSize(); i++) expect_close(grid[i], W);
 }
 
-void DRAGON_Test::verify_god_uniform_stationary_2D_Split(){
+void DRAGON_Test::verify_god_uniform_stationary_2D(bool split){
     Grid2D grid(10,10,1.0, 1.0, 2);
     PrimitiveState W = make_state(1.0, 0.0, 0.0, 0.0, 5.0);
     for (int i = 0; i < grid.getSizeX(); i++){
@@ -68,14 +93,17 @@ void DRAGON_Test::verify_god_uniform_stationary_2D_Split(){
         }
     }
     grid.boundary = Reflective();
-    grid.advance(1.0);
+    
+    if(split) grid.advance_split(1.0);
+    else grid.advance_unsplit(1.0);
+    
     for (int i = 0; i < grid.getSizeX(); i++){
         for (int j = 0; j < grid.getSizeY(); j++){
             expect_close(grid[i,j], W);
         }
     }
 }
-void DRAGON_Test::verify_god_uniform_moving_2D_Split(){
+void DRAGON_Test::verify_god_uniform_moving_2D(bool split){
     Grid2D grid(10,10,1.0, 1.0, 2);
     PrimitiveState W = make_state(1.0, 1.0, 2.0, 3.0, 5.0);
     for (int i = 0; i < grid.getSizeX(); i++){
@@ -85,7 +113,9 @@ void DRAGON_Test::verify_god_uniform_moving_2D_Split(){
     }
     grid.boundary = Outflow();
     
-    grid.advance(1.0);
+    if(split) grid.advance_split(1.0);
+    else grid.advance_unsplit(1.0);
+    
     for (int i = 0; i < grid.getSizeX(); i++){
         for (int j = 0; j < grid.getSizeY(); j++){
             expect_close(grid[i,j], W);
@@ -93,8 +123,8 @@ void DRAGON_Test::verify_god_uniform_moving_2D_Split(){
     }
 }
 
-void DRAGON_Test::verify_god_uniform_stationary_3D_Split(){
-    Grid3D grid(10,10,10,1.0, 1.0,1.0, 2);
+void DRAGON_Test::verify_god_uniform_stationary_3D(bool split){
+    Grid3D grid(10,10,10, 1.0,1.0,1.0, 2);
     PrimitiveState W = make_state(1.0, 0.0, 0.0, 0.0, 5.0);
     for (int i = 0; i < grid.getSizeX(); i++){
         for (int j = 0; j < grid.getSizeY(); j++){
@@ -104,7 +134,10 @@ void DRAGON_Test::verify_god_uniform_stationary_3D_Split(){
         }
     }
     grid.boundary = Reflective();
-    grid.advance(1.0);
+    
+    if(split) grid.advance_split(1.0);
+    else grid.advance_unsplit(1.0);
+    
     for (int i = 0; i < grid.getSizeX(); i++){
         for (int j = 0; j < grid.getSizeY(); j++){
             for(int k=0; k<grid.getSizeZ(); k++){
@@ -113,7 +146,7 @@ void DRAGON_Test::verify_god_uniform_stationary_3D_Split(){
         }
     }
 }
-void DRAGON_Test::verify_god_uniform_moving_3D_Split(){
+void DRAGON_Test::verify_god_uniform_moving_3D(bool split){
     Grid2D grid(10,10,1.0, 1.0, 2);
     PrimitiveState W = make_state(1.0, 1.0, 2.0, 3.0, 5.0);
     for (int i = 0; i < grid.getSizeX(); i++){
@@ -123,7 +156,9 @@ void DRAGON_Test::verify_god_uniform_moving_3D_Split(){
     }
     grid.boundary = Outflow();
     
-    grid.advance(1.0);
+    if(split) grid.advance_split(1.0);
+    else grid.advance_unsplit(1.0);
+    
     for (int i = 0; i < grid.getSizeX(); i++){
         for (int j = 0; j < grid.getSizeY(); j++){
             expect_close(grid[i,j], W);
@@ -150,7 +185,7 @@ void DRAGON_Test::verify_god_periodic_conservation_1D(){
 
 }
 
-void DRAGON_Test::verify_god_periodic_conservation_2D_Split(){
+void DRAGON_Test::verify_god_periodic_conservation_2D(bool split){
     Grid2D grid(10,10,1.0, 1.0, 2);
     grid.boundary = Periodic();
     for (int i = 0; i < grid.getSizeX(); i++){
@@ -165,7 +200,9 @@ void DRAGON_Test::verify_god_periodic_conservation_2D_Split(){
             expected += ConservativeState(grid[i,j]);
         }
     }
-    grid.advance(10.0);
+    
+    if(split) grid.advance_split(10.0);
+    else grid.advance_unsplit(10.0);
     
     ConservativeState got = ConservativeState();
     for (int i = 0; i < grid.getSizeX(); i++){
@@ -176,7 +213,7 @@ void DRAGON_Test::verify_god_periodic_conservation_2D_Split(){
     }
     expect_close(expected, got);
 }
-void DRAGON_Test::verify_god_periodic_conservation_3D_Split(){
+void DRAGON_Test::verify_god_periodic_conservation_3D(bool split){
     Grid3D grid(10,10,10,1.0, 1.0,1.0, 2);
     grid.boundary = Periodic();
     for (int i = 0; i < grid.getSizeX(); i++){
@@ -195,7 +232,9 @@ void DRAGON_Test::verify_god_periodic_conservation_3D_Split(){
             }
         }
     }
-    grid.advance(1.0);
+    
+    if(split) grid.advance_split(1.0);
+    else grid.advance_unsplit(1.0);
     
     ConservativeState got = ConservativeState();
     for (int i = 0; i < grid.getSizeX(); i++){
@@ -226,7 +265,7 @@ void DRAGON_Test::verify_god_dt0_1D(){
 
 }
 
-void DRAGON_Test::verify_god_dt0_2D_Split(){
+void DRAGON_Test::verify_god_dt0_2D(bool split){
     Grid2D grid(10,10,1.0, 1.0, 2), expected(10,10,1.0, 1.0, 2);
     grid.boundary = Periodic();
     for (int i = 0; i < grid.getSizeX(); i++){
@@ -236,7 +275,8 @@ void DRAGON_Test::verify_god_dt0_2D_Split(){
         }
     }
 
-    grid.advance(0.0);
+    if(split) grid.advance_split(0.0);
+    else grid.advance_unsplit(0.0);
     
     for (int i = 0; i < grid.getSizeX(); i++){
         for (int j = 0; j < grid.getSizeY(); j++){
@@ -244,7 +284,7 @@ void DRAGON_Test::verify_god_dt0_2D_Split(){
         }
     }
 }
-void DRAGON_Test::verify_god_dt0_3D_Split(){
+void DRAGON_Test::verify_god_dt0_3D(bool split){
     Grid3D grid(10,10,10,1.0, 1.0,1.0, 2), expected(10,10,10,1.0, 1.0,1.0, 2);
     grid.boundary = Periodic();
     for (int i = 0; i < grid.getSizeX(); i++){
@@ -255,7 +295,8 @@ void DRAGON_Test::verify_god_dt0_3D_Split(){
             }
         }
     }
-    grid.advance(0.0);
+    if(split) grid.advance_split(0.0);
+    else grid.advance_unsplit(0.0);
     
     for (int i = 0; i < grid.getSizeX(); i++){
         for (int j = 0; j < grid.getSizeY(); j++){
@@ -266,8 +307,8 @@ void DRAGON_Test::verify_god_dt0_3D_Split(){
     }
 }
 
-//MARK: Split-scheme Match Tests
-void DRAGON_Test::verify_split_2D_X_match_1D(){
+//MARK: 1D Match Tests
+void DRAGON_Test::verify_2D_X_match_1D(bool split){
     Grid2D grid(10,10,1.0,1.0,2);
     Grid1D expected(10, 1.0, 2);
     grid.boundary = Outflow() + Periodic(Y);
@@ -281,17 +322,23 @@ void DRAGON_Test::verify_split_2D_X_match_1D(){
     }
         
     double dt = 0.01;
-    grid.advance(dt);
-    expected.advance(dt/2);expected.advance(dt/2);
+    if(split){
+        grid.advance_split(dt);
+        expected.advance(dt/2);expected.advance(dt/2);
+    } else{
+        grid.advance_unsplit(dt);
+        expected.advance(dt);
+    }
         
     for (int i = 0; i < grid.getSizeX(); i++){
         for (int j = 0; j < grid.getSizeY(); j++){
-            expect_close(grid[i,j], expected[i]);
+            //Unsplit uses different reconstruction, so higher tolerance
+            expect_close(grid[i,j], expected[i], split ? 1e-12 : 1e-2);
         }
     }
 
 }
-void DRAGON_Test::verify_split_2D_Y_match_1D(){
+void DRAGON_Test::verify_2D_Y_match_1D(bool split){
     Grid2D grid(10,10,1.0,1.0,2);
     Grid1D expected(10, 1.0, 2);
     grid.boundary = Outflow() + Periodic(X);
@@ -306,18 +353,24 @@ void DRAGON_Test::verify_split_2D_Y_match_1D(){
     }
         
     double dt = 0.01;
-    grid.advance(dt);
-    expected.advance(dt);
+    if(split){
+        grid.advance_split(dt);
+        expected.advance(dt);
+    } else{
+        grid.advance_unsplit(dt);
+        expected.advance(dt);
+    }
         
-    for (int i = 0; i < grid.getSizeX(); i++){
-        for (int j = 0; j < grid.getSizeY(); j++){
-            expected[j].swapXY();
-            expect_close(grid[i,j], expected[j]);
+    for (int j = 0; j < grid.getSizeY(); j++){
+        expected[j].swapXY();
+        for (int i = 0; i < grid.getSizeX(); i++){
+            //Unsplit uses different reconstruction, so higher tolerance
+            expect_close(grid[i,j], expected[j], split ? 1e-12 : 1e-2);
         }
     }
 
 }
-void DRAGON_Test::verify_split_3D_X_match_1D(){
+void DRAGON_Test::verify_3D_X_match_1D(bool split){
     Grid3D grid(6,3,3,1.0,1.0,1.0,2);
     Grid1D expected(6, 1.0, 2);
     grid.boundary = Outflow() + Periodic(Y|Z);
@@ -333,19 +386,25 @@ void DRAGON_Test::verify_split_3D_X_match_1D(){
     }
         
     double dt = 0.01;
-    grid.advance(dt);
-    expected.advance(dt/2);expected.advance(dt/2);
+    if(split){
+        grid.advance_split(dt);
+        expected.advance(dt/2);expected.advance(dt/2);
+    } else {
+        grid.advance_unsplit(dt);
+        expected.advance(dt);
+    }
         
     for (int i = 0; i < grid.getSizeX(); i++){
         for (int j = 0; j < grid.getSizeY(); j++){
             for (int k = 0; k < grid.getSizeZ(); k++){
-                expect_close(grid[i,j,k], expected[i]);
+                //Unsplit uses different reconstruction, so higher tolerance
+                expect_close(grid[i,j,k], expected[i], split ? 1e-12 : 1e-2);
             }
         }
     }
 
 }
-void DRAGON_Test::verify_split_3D_Y_match_1D(){
+void DRAGON_Test::verify_3D_Y_match_1D(bool split){
     Grid3D grid(3,6,3,1.0,1.0,1.0,2);
     Grid1D expected(6, 1.0, 2);
     grid.boundary = Outflow() + Periodic(X|Z);
@@ -362,19 +421,25 @@ void DRAGON_Test::verify_split_3D_Y_match_1D(){
     }
         
     double dt = 0.01;
-    grid.advance(dt);
-    expected.advance(dt/2);expected.advance(dt/2);
+    if(split){
+        grid.advance_split(dt);
+        expected.advance(dt/2);expected.advance(dt/2);
+    } else {
+        grid.advance_unsplit(dt);
+        expected.advance(dt);
+    }
         
     for (int i = 0; i < grid.getSizeX(); i++){
         for (int j = 0; j < grid.getSizeY(); j++){
             for (int k = 0; k < grid.getSizeZ(); k++){
                 expected[j].swapXY();
-                expect_close(grid[i,j,k], expected[j]);
+                //Unsplit uses different reconstruction, so higher tolerance
+                expect_close(grid[i,j,k], expected[j], split ? 1e-12 : 1e-2);
             }
         }
     }
 }
-void DRAGON_Test::verify_split_3D_Z_match_1D(){
+void DRAGON_Test::verify_3D_Z_match_1D(bool split){
     Grid3D grid(3,3,6,1.0,1.0,1.0,2);
     Grid1D expected(6, 1.0, 2);
     grid.boundary = Outflow() + Periodic(X|Y);
@@ -391,14 +456,20 @@ void DRAGON_Test::verify_split_3D_Z_match_1D(){
     }
         
     double dt = 0.001;
-    grid.advance(dt);
-    expected.advance(dt);
+    if(split){
+        grid.advance_split(dt);
+        expected.advance(dt);
+    } else {
+        grid.advance_unsplit(dt);
+        expected.advance(dt);
+    }
         
     for (int i = 0; i < grid.getSizeX(); i++){
         for (int j = 0; j < grid.getSizeY(); j++){
             for (int k = 0; k < grid.getSizeZ(); k++){
                 expected[k].swapXZ();
-                expect_close(grid[i,j,k], expected[k]);
+                //Unsplit uses different reconstruction, so higher tolerance
+                expect_close(grid[i,j,k], expected[k], split ? 1e-12 : 1e-2);
             }
         }
     }

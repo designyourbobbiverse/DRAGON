@@ -34,6 +34,8 @@
 #define CFL_CALCULATION CFL_ADD
 
 
+//#define DimensionUnsplit
+
 
 
 //MARK: Choose at Runtime

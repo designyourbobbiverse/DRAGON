@@ -17,20 +17,25 @@ using namespace Boundary;
 void DRAGON_Test::verify_boundary(bool output){
     verify_boundary_constructors();
     //Outflow
+    if(output) std::cout << "Outflow Boundary: ";
     verify_boundary_outflow();
-    if(output) std::cout << "Outflow Boundary tests passed.\n";
+    if(output) std::cout << "All tests passed.\n";
     //Reflective
+    if(output) std::cout << "Reflective Boundary: ";
     verify_boundary_reflective();
-    if(output) std::cout << "Reflective Boundary tests passed.\n";
+    if(output) std::cout << "All tests passed.\n";
     //Periodic
+    if(output) std::cout << "Periodic Boundary: ";
     verify_boundary_periodic();
-    if(output) std::cout << "Periodic Boundary tests passed.\n";
+    if(output) std::cout << "All tests passed.\n";
     //Fixed
+    if(output) std::cout << "Fixed State Boundary: ";
     verify_boundary_fixed();
-    if(output) std::cout << "Fixed State Boundary tests passed.\n";
+    if(output) std::cout << "All tests passed.\n";
     //Composition
+    if(output) std::cout << "Boundary Composition: ";
     verify_boundary_composition();
-    if(output) std::cout << "Boundary Composition tests passed.\n";
+    if(output) std::cout << "All tests passed.\n";
 
     if(output) std::cout << "All Boundary Setup tests passed.\n\n";
 }

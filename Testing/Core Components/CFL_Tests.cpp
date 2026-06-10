@@ -15,6 +15,7 @@
 using namespace DRAGON_Test;
 
 void DRAGON_Test::verify_cfl(bool output){
+    std::cout << "CFL: ";
     //Algorithm Choices
     verify_cfl_max_speed_1D();
     verify_cfl_max_speed_2D();
@@ -38,7 +39,7 @@ void DRAGON_Test::verify_cfl(bool output){
     verify_cfl_time_3D_uniform();
     verify_cfl_time_3D_uses_fastest_cell();
     verify_cfl_time_3D_ignores_ghost_cells();
-    std::cout << "CFL tests passed.\n\n";
+    std::cout << "All tests passed.\n\n";
 
 }
 

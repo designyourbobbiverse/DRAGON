@@ -13,6 +13,7 @@ using namespace DRAGON_Test;
 
 
 void DRAGON_Test::verify_fluid_element(bool output) {
+    if(output) std::cout << "Fluid Arithmetic: ";
     verify_constructors();
     verify_conversion();
     verify_flux();
@@ -24,7 +25,7 @@ void DRAGON_Test::verify_fluid_element(bool output) {
     verify_sub();
     verify_mult();
     verify_div();
-    if(output) std::cout << "Fluid Arithmetic tests passed.\n\n";
+    if(output) std::cout << "All tests passed.\n\n";
 }
 
 

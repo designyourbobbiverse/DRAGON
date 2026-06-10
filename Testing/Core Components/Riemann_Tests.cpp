@@ -12,6 +12,7 @@
 using namespace DRAGON_Test;
 
 void DRAGON_Test::verify_riemann(bool output){
+    if(output) std::cout << "Exact Riemann Solver: ";
     // Riemann construction / solution setup
     verify_riemann_constructor();
     verify_riemann_solution_constructor();
@@ -23,24 +24,26 @@ void DRAGON_Test::verify_riemann(bool output){
     verify_exact_supersonic_upwind();
     verify_exact_sod();
     verify_exact_supersonic_upwind_transverse();
-    if(output) std::cout << "Exact Riemann Solver tests passed.\n";
+    if(output) std::cout << "All tests passed.\n";
 
     // HLL Tests
+    if(output) std::cout << "HLL/C Riemann Solver: ";
     verify_hll_equal_state();
     verify_hll_stationary_contact();
     verify_hll_supersonic_upwind();
     verify_hll_manual_wave_speeds();
     verify_hllc_manual_wave_speeds();
     verify_hll_supersonic_upwind_transverse();
-    if(output) std::cout << "HLL/C Riemann Solver tests passed.\n";
+    if(output) std::cout << "All tests passed.\n";
 
 
     //Roe Tests
+    if(output) std::cout << "Roe Riemann Solver: ";
     verify_roe_equal_state();
     verify_roe_stationary_contact();
     verify_roe_supersonic_upwind();
     verify_roe_supersonic_upwind_transverse();
-    if(output) std::cout << "Roe Riemann Solver tests passed.\n";
+    if(output) std::cout << "All tests passed.\n";
 
     //Finiteness
     verify_approximate_solver_finiteness();

@@ -154,23 +154,25 @@ void verify_god_uniform_stationary_1D();
 void verify_god_uniform_moving_1D();
 void verify_god_periodic_conservation_1D();
 void verify_god_dt0_1D();
-//2D Split
+//2D
 void verify_godunov_2D_Split(bool output = true);
-void verify_god_uniform_stationary_2D_Split();
-void verify_god_uniform_moving_2D_Split();
-void verify_god_periodic_conservation_2D_Split();
-void verify_god_dt0_2D_Split();
-void verify_split_2D_X_match_1D();
-void verify_split_2D_Y_match_1D();
+void verify_godunov_2D_Unsplit(bool output = true);
+void verify_god_uniform_stationary_2D(bool split = true);
+void verify_god_uniform_moving_2D(bool split = true);
+void verify_god_periodic_conservation_2D(bool split = true);
+void verify_god_dt0_2D(bool split = true);
+void verify_2D_X_match_1D(bool split = true);
+void verify_2D_Y_match_1D(bool split = true);
 //3D Split
 void verify_godunov_3D_Split(bool output = true);
-void verify_god_uniform_stationary_3D_Split();
-void verify_god_uniform_moving_3D_Split();
-void verify_god_periodic_conservation_3D_Split();
-void verify_god_dt0_3D_Split();
-void verify_split_3D_X_match_1D();
-void verify_split_3D_Y_match_1D();
-void verify_split_3D_Z_match_1D();
+void verify_godunov_3D_Unsplit(bool output = true);
+void verify_god_uniform_stationary_3D(bool split = true);
+void verify_god_uniform_moving_3D(bool split = true);
+void verify_god_periodic_conservation_3D(bool split = true);
+void verify_god_dt0_3D(bool split = true);
+void verify_3D_X_match_1D(bool split = true);
+void verify_3D_Y_match_1D(bool split = true);
+void verify_3D_Z_match_1D(bool split = true);
 
 }
 #endif /* Testing_hpp */

@@ -43,17 +43,19 @@ struct Grid2D{
     Grid2D(const Grid2D&) = delete; //No copying
     Grid2D& operator=(const Grid2D&) = delete;
     
-    //Advance Forward in time
-    void advance(double dt);
-    
     //Grid access
     PrimitiveState& operator[](int i,int j);
     const PrimitiveState& operator[](int i,int j) const;
     int getSizeX() const, getSizeY() const, getGhosts() const;
     double dx, dy;
-
+    
     //Boundary
     Boundary::BoundaryList boundary = Boundary::BoundaryList();
+    
+    //Advance Forward in time
+    void advance(double dt);
+    void advance_split(double dt);
+    void advance_unsplit(double dt);
 
 private:
     PrimitiveState* w;
@@ -62,6 +64,7 @@ private:
 
     void advanceX(double dt);
     void advanceY(double dt);
+    void advanceXY(double dt);
 };
 
 struct Grid3D{
@@ -70,9 +73,7 @@ struct Grid3D{
     Grid3D(const Grid3D&) = delete; //No copying
     Grid3D& operator=(const Grid3D&) = delete;
 
-    //Advance Forward in time
-    void advance(double dt);
-
+    //Grid Access
     PrimitiveState& operator[](int i,int j,int k);
     const PrimitiveState& operator[](int i,int j,int k) const;
     int getSizeX() const, getSizeY() const, getSizeZ() const, getGhosts() const;
@@ -80,6 +81,11 @@ struct Grid3D{
 
     //Boundary
     Boundary::BoundaryList boundary = Boundary::BoundaryList();
+    
+    //Advance Forward in time
+    void advance(double dt);
+    void advance_split(double dt);
+    void advance_unsplit(double dt);
     
 private:
     PrimitiveState* w;
@@ -89,6 +95,7 @@ private:
     void advanceX(double dt);
     void advanceY(double dt);
     void advanceZ(double dt);
+    void advanceXYZ(double dt);
 };
 
 

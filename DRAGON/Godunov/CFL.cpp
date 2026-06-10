@@ -8,6 +8,7 @@
 #include "Config.h"
 #include "Constants.h"
 #include <math.h>
+#include <iostream>
 
 //MARK: Individual Speeds
 inline double CFL::cfl_max_speed(const PrimitiveState& W, double dx, double dy, double dz){
