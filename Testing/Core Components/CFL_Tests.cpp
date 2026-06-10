@@ -14,7 +14,7 @@
 
 using namespace DRAGON_Test;
 
-void DRAGON_Test::verify_cfl(){
+void DRAGON_Test::verify_cfl(bool output){
     //Algorithm Choices
     verify_cfl_max_speed_1D();
     verify_cfl_max_speed_2D();
@@ -33,11 +33,13 @@ void DRAGON_Test::verify_cfl(){
     verify_cfl_time_1D_uses_fastest_cell();
     verify_cfl_time_1D_ignores_ghost_cells();
     verify_cfl_time_2D_uniform();
-    verify_cfl_time_2D_uses_fastest_cell();
+    verify_cfl_time_2D_visits_last_cell();
     verify_cfl_time_2D_ignores_ghost_cells();
     verify_cfl_time_3D_uniform();
     verify_cfl_time_3D_uses_fastest_cell();
     verify_cfl_time_3D_ignores_ghost_cells();
+    std::cout << "CFL tests passed.\n\n";
+
 }
 
 
@@ -236,21 +238,38 @@ void DRAGON_Test::verify_cfl_time_2D_uniform() {
     assert(approx(got, expected));
 }
 
-void DRAGON_Test::verify_cfl_time_2D_uses_fastest_cell() {
+void DRAGON_Test::verify_cfl_time_2D_visits_last_cell() {
     CONFIG::cfl_choice = CFL_ADD;
-    Grid2D g(3,4, 0.5,0.25, 1);
     PrimitiveState slow = make_state(1.0, 0.1, 0.0, 0.0, 1.0);
     PrimitiveState fast = make_state(1.0, 9.0, 0.0, 0.0, 1.0);
-    for(int i = -1; i < 3 + 1; i++){
-        for(int j = -1; j < 4 + 1; j++){
-            g[i,j] = slow;
+    {
+        Grid2D g(3,4, 0.5,0.25, 1);
+        for(int i = -1; i < 3 + 1; i++){
+            for(int j = -1; j < 4 + 1; j++){
+                g[i,j] = slow;
+            }
         }
+        g[2,3] = fast;
+        
+        double expected = CFL_coeff / ( (9 + sqrt(_gamma)) / g.dx  + (sqrt(_gamma)) / g.dy );
+        double got = CFL::cfl_time(g);
+        assert(approx(got, expected));
     }
-    g[1,1] = fast;
-
-    double expected = CFL_coeff / ( (9 + sqrt(_gamma)) / g.dx  + (sqrt(_gamma)) / g.dy );
-    double got = CFL::cfl_time(g);
-    assert(approx(got, expected));
+    {
+        Grid2D g(4,3, 0.5,0.25, 1);
+        for(int i = -1; i < 4 + 1; i++){
+            for(int j = -1; j < 3 + 1; j++){
+                g[i,j] = slow;
+            }
+        }
+        g[3,2] = fast;
+        
+        double expected = CFL_coeff / ( (9 + sqrt(_gamma)) / g.dx  + (sqrt(_gamma)) / g.dy );
+        double got = CFL::cfl_time(g);
+        assert(approx(got, expected));
+    }
+    
+    
 }
 
 void DRAGON_Test::verify_cfl_time_2D_ignores_ghost_cells() {
@@ -299,7 +318,7 @@ void DRAGON_Test::verify_cfl_time_3D_uses_fastest_cell() {
             }
         }
     }
-    g[2,1,3] = fast;
+    g[2,3,4] = fast;
 
     double expected = CFL_coeff / ( (9 + sqrt(_gamma)) / g.dx  + (sqrt(_gamma)) / g.dy + (sqrt(_gamma)) / g.dz );
     double got = CFL::cfl_time(g);

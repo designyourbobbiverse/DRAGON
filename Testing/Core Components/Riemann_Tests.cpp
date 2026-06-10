@@ -11,30 +11,40 @@
 
 using namespace DRAGON_Test;
 
-void DRAGON_Test::verify_riemann(){
+void DRAGON_Test::verify_riemann(bool output){
+    // Riemann construction / solution setup
     verify_riemann_constructor();
     verify_riemann_solution_constructor();
-    //Exact Solver Component Tests
+    // Exact solver Tests
     verify_riemann_f();
     verify_sample_mirror_restores_state();
-    //Exact Solver Full Tests
     verify_exact_equal_state();
     verify_exact_stationary_contact();
     verify_exact_supersonic_upwind();
     verify_exact_sod();
-    //HLL Tests
-    verify_hll_manual_wave_speeds();
-    verify_hllc_manual_wave_speeds();
+    verify_exact_supersonic_upwind_transverse();
+    if(output) std::cout << "Exact Riemann Solver tests passed.\n";
+
+    // HLL Tests
     verify_hll_equal_state();
     verify_hll_stationary_contact();
     verify_hll_supersonic_upwind();
+    verify_hll_manual_wave_speeds();
+    verify_hllc_manual_wave_speeds();
+    verify_hll_supersonic_upwind_transverse();
+    if(output) std::cout << "HLL/C Riemann Solver tests passed.\n";
+
+
     //Roe Tests
     verify_roe_equal_state();
-    verify_roe_supersonic_upwind();
     verify_roe_stationary_contact();
+    verify_roe_supersonic_upwind();
+    verify_roe_supersonic_upwind_transverse();
+    if(output) std::cout << "Roe Riemann Solver tests passed.\n";
 
-    //Finiteness of Approximate Solvers
+    //Finiteness
     verify_approximate_solver_finiteness();
+    if(output) std::cout << "All Riemann Solver tests passed.\n\n";
 }
 
 
@@ -161,6 +171,46 @@ void DRAGON_Test::verify_sample_mirror_restores_state() {
     expect_close(S.wR, R);
 }
 
+void DRAGON_Test::verify_exact_supersonic_upwind_transverse() {
+    {
+        PrimitiveState L = make_state(1.0, 10.0, 2.0, -3.0, 1.0);
+        PrimitiveState R = make_state(0.125, 10.0, -8.0, 9.0, 0.1);
+        ConservativeState expected = ConservativeState(L).flux(L.vx);
+        expect_close(Riemann(L,R).exact().flux(), expected, 1e-10, 1e-10);
+    }
+
+    {
+        PrimitiveState L = make_state(1.0, -10.0, 2.0, -3.0, 1.0);
+        PrimitiveState R = make_state(0.125, -10.0, -8.0, 9.0, 0.1);
+        ConservativeState expected = ConservativeState(R).flux(R.vx);
+        expect_close(Riemann(L,R).exact().flux(), expected, 1e-10, 1e-10);
+    }
+}
+void DRAGON_Test::verify_hll_supersonic_upwind_transverse() {
+    {
+        PrimitiveState L = make_state(1.0, 10.0, 2.0, -3.0, 1.0);
+        PrimitiveState R = make_state(0.125, 10.0, -8.0, 9.0, 0.1);
+
+        ConservativeState expected = ConservativeState(L).flux(L.vx);
+
+        expect_close(Riemann(L,R).exact().flux(), expected, 1e-10, 1e-10);
+        expect_close(Riemann(L,R).HLL(),          expected, 1e-10, 1e-10);
+        expect_close(Riemann(L,R).HLLC(),         expected, 1e-10, 1e-10);
+        expect_close(Riemann(L,R).Roe(),          expected, 1e-10, 1e-10);
+    }
+
+    {
+        PrimitiveState L = make_state(1.0, -10.0, 2.0, -3.0, 1.0);
+        PrimitiveState R = make_state(0.125, -10.0, -8.0, 9.0, 0.1);
+
+        ConservativeState expected = ConservativeState(R).flux(R.vx);
+
+        expect_close(Riemann(L,R).exact().flux(), expected, 1e-10, 1e-10);
+        expect_close(Riemann(L,R).HLL(),          expected, 1e-10, 1e-10);
+        expect_close(Riemann(L,R).HLLC(),         expected, 1e-10, 1e-10);
+        expect_close(Riemann(L,R).Roe(),          expected, 1e-10, 1e-10);
+    }
+}
 
 //MARK: HLL/HLLC Tests
 void DRAGON_Test::verify_hll_equal_state() {
@@ -272,6 +322,20 @@ void DRAGON_Test::verify_roe_supersonic_upwind() {
         PrimitiveState R = make_state(0.125, -10.0, 0.0, 0.0, 0.1);
         ConservativeState expected = ConservativeState(R).flux(R.vx);
         expect_close(Riemann(L,R).Roe(), expected, 1e-10, 1e-10);
+    }
+}
+void DRAGON_Test::verify_roe_supersonic_upwind_transverse() {
+    {
+        PrimitiveState L = make_state(1.0, 10.0, 2.0, -3.0, 1.0);
+        PrimitiveState R = make_state(0.125, 10.0, -8.0, 9.0, 0.1);
+        ConservativeState expected = ConservativeState(L).flux(L.vx);
+        expect_close(Riemann(L,R).Roe(),          expected, 1e-10, 1e-10);
+    }
+    {
+        PrimitiveState L = make_state(1.0, -10.0, 2.0, -3.0, 1.0);
+        PrimitiveState R = make_state(0.125, -10.0, -8.0, 9.0, 0.1);
+        ConservativeState expected = ConservativeState(R).flux(R.vx);
+        expect_close(Riemann(L,R).Roe(),          expected, 1e-10, 1e-10);
     }
 }
 

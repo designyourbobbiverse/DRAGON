@@ -13,10 +13,11 @@
 using namespace DRAGON_Test;
 using namespace Boundary;
 
-void DRAGON_Test::verify_grid(){
+void DRAGON_Test::verify_grid(bool output){
     verify_grid1D();
     verify_grid2D();
     verify_grid3D();
+    if(output) std::cout << "Grid Structure tests passed.\n\n";
 }
 
 PrimitiveState DRAGON_Test::make_tagged_state(double tag){

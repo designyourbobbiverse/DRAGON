@@ -14,12 +14,25 @@ using namespace DRAGON_Test;
 using namespace Boundary;
 
 
-void DRAGON_Test::verify_boundary(){
+void DRAGON_Test::verify_boundary(bool output){
     verify_boundary_constructors();
-    verify_boundary_reflective();
-    verify_boundary_periodic();
+    //Outflow
     verify_boundary_outflow();
+    if(output) std::cout << "Outflow Boundary tests passed.\n";
+    //Reflective
+    verify_boundary_reflective();
+    if(output) std::cout << "Reflective Boundary tests passed.\n";
+    //Periodic
+    verify_boundary_periodic();
+    if(output) std::cout << "Periodic Boundary tests passed.\n";
+    //Fixed
     verify_boundary_fixed();
+    if(output) std::cout << "Fixed State Boundary tests passed.\n";
+    //Composition
+    verify_boundary_composition();
+    if(output) std::cout << "Boundary Composition tests passed.\n";
+
+    if(output) std::cout << "All Boundary Setup tests passed.\n\n";
 }
 
 //MARK: Helpers

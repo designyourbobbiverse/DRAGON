@@ -24,7 +24,7 @@ void expect_finite(const PrimitiveState& W);
 
 
 //MARK: Fluid Element
-void verify_fluid_element();
+void verify_fluid_element(bool output = true);
 PrimitiveState make_state(double rho, double vx, double vy, double vz, double p);
 //Data Structure & Coversion
 void verify_constructors();
@@ -43,7 +43,7 @@ void verify_div();
 
 
 //MARK: Riemann Solvers
-void verify_riemann();
+void verify_riemann(bool output = true);
 // Riemann construction / solution setup
 void verify_riemann_constructor();
 void verify_riemann_solution_constructor();
@@ -54,61 +54,34 @@ void verify_exact_supersonic_upwind();
 void verify_exact_sod();
 void verify_riemann_f();
 void verify_sample_mirror_restores_state();
+void verify_exact_supersonic_upwind_transverse();
 // HLL Tests
 void verify_hll_equal_state();
 void verify_hll_stationary_contact();
 void verify_hll_supersonic_upwind();
 void verify_hll_manual_wave_speeds();
 void verify_hllc_manual_wave_speeds();
+void verify_hll_supersonic_upwind_transverse();
 //Roe Tests
 void verify_roe_equal_state();
 void verify_roe_stationary_contact();
 void verify_roe_supersonic_upwind();
+void verify_roe_supersonic_upwind_transverse();
 //Finiteness
 void verify_approximate_solver_finiteness();
 
 
 //MARK: Grid Structure
-void verify_grid();
+void verify_grid(bool output = true);
 void verify_grid1D();
 void verify_grid2D();
 void verify_grid3D();
 PrimitiveState make_tagged_state(double tag);
 
-//MARK: CFL
-void verify_cfl();
-//Max Speed
-void verify_cfl_max_speed_1D();
-void verify_cfl_max_speed_2D();
-void verify_cfl_max_speed_3D();
-//Add Speeds
-void verify_cfl_add_speed_1D();
-void verify_cfl_add_speed_2D();
-void verify_cfl_add_speed_3D();
-//L2 norm
-void verify_cfl_pow_speed_1D();
-void verify_cfl_pow_speed_2D();
-void verify_cfl_pow_speed_3D();
-//Dispatch
-void verify_cfl_dispatch_add_3D();
-void verify_cfl_dispatch_max_3D();
-void verify_cfl_dispatch_pow_3D();
-//1D
-void verify_cfl_time_1D_uniform();
-void verify_cfl_time_1D_uses_fastest_cell();
-void verify_cfl_time_1D_ignores_ghost_cells();
-//2D
-void verify_cfl_time_2D_uniform();
-void verify_cfl_time_2D_uses_fastest_cell();
-void verify_cfl_time_2D_ignores_ghost_cells();
-//3D
-void verify_cfl_time_3D_uniform();
-void verify_cfl_time_3D_uses_fastest_cell();
-void verify_cfl_time_3D_ignores_ghost_cells();
 
 
 //MARK: Boundary Conditions
-void verify_boundary();
+void verify_boundary(bool output = true);
 //Constructors
 void verify_boundary_constructors();
 //Outflow
@@ -143,6 +116,36 @@ void verify_boundary_composition_3D();
 void verify_boundary_composition_order();
 
 
+//MARK: CFL
+void verify_cfl(bool output=true);
+//Max Speed
+void verify_cfl_max_speed_1D();
+void verify_cfl_max_speed_2D();
+void verify_cfl_max_speed_3D();
+//Add Speeds
+void verify_cfl_add_speed_1D();
+void verify_cfl_add_speed_2D();
+void verify_cfl_add_speed_3D();
+//L2 norm
+void verify_cfl_pow_speed_1D();
+void verify_cfl_pow_speed_2D();
+void verify_cfl_pow_speed_3D();
+//Dispatch
+void verify_cfl_dispatch_add_3D();
+void verify_cfl_dispatch_max_3D();
+void verify_cfl_dispatch_pow_3D();
+//1D
+void verify_cfl_time_1D_uniform();
+void verify_cfl_time_1D_uses_fastest_cell();
+void verify_cfl_time_1D_ignores_ghost_cells();
+//2D
+void verify_cfl_time_2D_uniform();
+void verify_cfl_time_2D_visits_last_cell();
+void verify_cfl_time_2D_ignores_ghost_cells();
+//3D
+void verify_cfl_time_3D_uniform();
+void verify_cfl_time_3D_uses_fastest_cell();
+void verify_cfl_time_3D_ignores_ghost_cells();
 
 }
 
