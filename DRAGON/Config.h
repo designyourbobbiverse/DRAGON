@@ -10,12 +10,6 @@
 
 #define TESTMODE
 
-#ifdef TESTMODE
-#define TESTACCESSIBLE public
-#else
-#define TESTACCESSIBLE private
-#endif
-
 //MARK: Algorithm Choices
 #define CHOOSE_RUNTIME -1
 
@@ -34,9 +28,9 @@
 #define MUSCL_Hancock
 
 //CFL Limit Calculation
-    #define CFL_MAX 0 //Uses the speed for the largest dimension
     #define CFL_ADD 1 //Adds the speeds for dimension together
-    #define CFL_V2 2 //Combines the speeds using sqrt( (vx+a)^2 / dx^2 + ...)
+    #define CFL_MAX 0 //Uses max[ (|vx|+a)/dx, (|vy|+a)/dy, ... ]
+    //Can set to any other number to use [ ((|vx|+a)/dx)^p + ((|vy|+a)/dy)^p +... ]^(1/p)
 #define CFL_CALCULATION CFL_ADD
 
 
@@ -47,7 +41,9 @@ namespace CONFIG{
 #if RIEMANN_DEFAULT == CHOOSE_RUNTIME
 extern int riemann_choice;
 #endif
-#if CFL_CALCULATION == CHOOSE_RUNTIME || defined TEST_MODE
+#if CFL_CALCULATION == CHOOSE_RUNTIME || defined(TESTMODE)
+//If set to p>0,  CFL uses  speed = [ ((|vx|+a)/dx)^p + ((|vy|+a)/dy)^p +... ]^(1/p)
+//If set to 0, CFL uses max[ (|vx|+a)/dx, (|vy|+a)/dy, ... ]
 extern int cfl_choice;
 #endif
 }

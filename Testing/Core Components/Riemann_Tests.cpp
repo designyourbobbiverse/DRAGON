@@ -41,16 +41,6 @@ void DRAGON_Test::verify_riemann(){
 
 
 //MARK: Constructors
-PrimitiveState make_state(double rho, double vx, double vy, double vz, double p) {
-    PrimitiveState W;
-    W.rho = rho;
-    W.vx = vx;
-    W.vy = vy;
-    W.vz = vz;
-    W.p = p;
-    return W;
-}
-
 void DRAGON_Test::verify_riemann_constructor(){
     PrimitiveState L = make_state(1.0, 2.0, 3.0, 4.0, 5.0);
     PrimitiveState R = make_state(6.0, 7.0, 8.0, 9.0, 10.0);

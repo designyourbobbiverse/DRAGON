@@ -10,7 +10,7 @@
 #include <math.h>
 
 //MARK: Individual Speeds
-double CFL::cfl_max_speed(const PrimitiveState& W, double dx, double dy, double dz){
+inline double CFL::cfl_max_speed(const PrimitiveState& W, double dx, double dy, double dz){
     double a = sqrt(_gamma * W.p / W.rho);
     double speed = 0;
     if (dx > 1e-14) speed = (fabs(W.vx) + a)/dx;
@@ -18,7 +18,7 @@ double CFL::cfl_max_speed(const PrimitiveState& W, double dx, double dy, double 
     if (dz > 1e-14) speed = std::max(speed, (fabs(W.vz) + a)/dz);
     return speed;
 }
-double CFL::cfl_add_speed(const PrimitiveState& W, double dx, double dy, double dz){
+inline double CFL::cfl_add_speed(const PrimitiveState& W, double dx, double dy, double dz){
     double a = sqrt(_gamma * W.p / W.rho);
     double speed = 0;
     if (dx > 1e-14) speed = (fabs(W.vx) + a)/dx;
@@ -26,36 +26,35 @@ double CFL::cfl_add_speed(const PrimitiveState& W, double dx, double dy, double 
     if (dz > 1e-14) speed += (fabs(W.vz) + a)/dz;
     return speed;
 }
-double CFL::cfl_pow_speed(const PrimitiveState& W, double p, double dx, double dy, double dz){
+inline double CFL::cfl_pow_speed(const PrimitiveState& W, double p, double dx, double dy, double dz){
     double a = sqrt(_gamma * W.p / W.rho);
     double speed = 0;
-    if (dx > 1e-14) speed = pow((fabs(W.vx) + a)/dx, 2);
-    if (dy > 1e-14) speed +=  pow((fabs(W.vy) + a)/dy,2);
-    if (dz > 1e-14) speed += pow((fabs(W.vz) + a)/dz,2);
+    if (dx > 1e-14) speed = pow((fabs(W.vx) + a)/dx, p);
+    if (dy > 1e-14) speed +=  pow((fabs(W.vy) + a)/dy,p);
+    if (dz > 1e-14) speed += pow((fabs(W.vz) + a)/dz,p);
     return pow(speed, 1.0/p);
 }
 
 //MARK: Configuration-Control
-#if CFL_CALCULATION == CHOOSE_RUNTIME || defined TESTMODE
+#if CFL_CALCULATION == CHOOSE_RUNTIME || defined(TESTMODE)
 namespace CONFIG {
-    int cflChoice = CFL_ADD;
+    int cfl_choice = CFL_ADD;
 }
 #endif
 
 double CFL::cfl_speed(const PrimitiveState& W, double dx, double dy, double dz){
-#if CFL_CALCULATION == CHOOSE_RUNTIME || defined TESTMODE
-    switch(CONFIG::cflChoice){
-        case CFL_MAX: return cfl_max_speed(W, dx, dy);
-        case CFL_ADD: return cfl_add_speed(W, dx, dy);
-        case CFL_V2: return cfl_pow_speed(W, 2, dx, dy);
-        default: return cfl_pow_speed(W, CONFIG::cflChoice, dx, dy);
+#if CFL_CALCULATION == CHOOSE_RUNTIME || defined(TESTMODE)
+    switch(CONFIG::cfl_choice){
+        case CFL_MAX: return cfl_max_speed(W, dx, dy, dz);
+        case CFL_ADD: return cfl_add_speed(W, dx, dy, dz);
+        default: return cfl_pow_speed(W, CONFIG::cfl_choice, dx, dy, dz);
     }
 #elif CFL_CALCULATION == CFL_MAX
     return cfl_max_speed(W, dx, dy, dz);
 #elif CFL_CALCULATION == CFL_ADD
     return cfl_add_speed(W, dx, dy, dz);
-#elif CFL_CALCULATION == CFL_V2
-    return cfl_pow_speed(W, 2, dx, dy, dz);
+#elif CFL_CALCULATION > 0
+    return cfl_pow_speed(W, CFL_CALCULATION, dx, dy, dz);
 #endif
 }
 

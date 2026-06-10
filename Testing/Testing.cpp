@@ -52,7 +52,6 @@ int main() {
     //MARK: Grid Structure
     verify_grid();
     std::cout << "Grid Structure tests passed.\n\n";
-
     
     //MARK: Boundary Conditions
     verify_boundary_constructors();
@@ -75,6 +74,9 @@ int main() {
     std::cout << "All Boundary Setup tests passed.\n\n";
 
     
+    //MARK: CFL
+    verify_cfl();
+    std::cout << "CFL tests passed.\n\n";
     
     std::cout << "All tests passed.\n";
 

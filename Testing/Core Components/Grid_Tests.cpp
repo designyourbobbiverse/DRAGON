@@ -20,13 +20,7 @@ void DRAGON_Test::verify_grid(){
 }
 
 PrimitiveState DRAGON_Test::make_tagged_state(double tag){
-    PrimitiveState W;
-    W.rho = tag;
-    W.vx = tag + 10.0;
-    W.vy = tag + 20.0;
-    W.vz = tag + 30.0;
-    W.p = tag + 40.0;
-    return W;
+    return make_state(tag, tag + 10, tag + 20, tag + 30, tag + 40);
 }
 
 void DRAGON_Test::verify_grid1D(){

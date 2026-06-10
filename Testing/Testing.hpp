@@ -22,8 +22,10 @@ void expect_close(const PrimitiveState& a, const PrimitiveState& b, double rel =
 void expect_finite(const ConservativeState& U);
 void expect_finite(const PrimitiveState& W);
 
+
 //MARK: Fluid Element
 void verify_fluid_element();
+PrimitiveState make_state(double rho, double vx, double vy, double vz, double p);
 //Data Structure & Coversion
 void verify_constructors();
 void verify_conversion();
@@ -72,6 +74,37 @@ void verify_grid1D();
 void verify_grid2D();
 void verify_grid3D();
 PrimitiveState make_tagged_state(double tag);
+
+//MARK: CFL
+void verify_cfl();
+//Max Speed
+void verify_cfl_max_speed_1D();
+void verify_cfl_max_speed_2D();
+void verify_cfl_max_speed_3D();
+//Add Speeds
+void verify_cfl_add_speed_1D();
+void verify_cfl_add_speed_2D();
+void verify_cfl_add_speed_3D();
+//L2 norm
+void verify_cfl_pow_speed_1D();
+void verify_cfl_pow_speed_2D();
+void verify_cfl_pow_speed_3D();
+//Dispatch
+void verify_cfl_dispatch_add_3D();
+void verify_cfl_dispatch_max_3D();
+void verify_cfl_dispatch_pow_3D();
+//1D
+void verify_cfl_time_1D_uniform();
+void verify_cfl_time_1D_uses_fastest_cell();
+void verify_cfl_time_1D_ignores_ghost_cells();
+//2D
+void verify_cfl_time_2D_uniform();
+void verify_cfl_time_2D_uses_fastest_cell();
+void verify_cfl_time_2D_ignores_ghost_cells();
+//3D
+void verify_cfl_time_3D_uniform();
+void verify_cfl_time_3D_uses_fastest_cell();
+void verify_cfl_time_3D_ignores_ghost_cells();
 
 
 //MARK: Boundary Conditions

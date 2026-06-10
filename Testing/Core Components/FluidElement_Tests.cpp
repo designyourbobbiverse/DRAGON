@@ -27,6 +27,17 @@ void DRAGON_Test::verify_fluid_element() {
 }
 
 
+PrimitiveState DRAGON_Test::make_state(double rho, double vx, double vy, double vz, double p) {
+    PrimitiveState W;
+    W.rho = rho;
+    W.vx = vx;
+    W.vy = vy;
+    W.vz = vz;
+    W.p = p;
+    return W;
+}
+
+
 //MARK: Close enough
 bool DRAGON_Test::approx(double a, double b, double rel, double abs) {
     return fabs(a - b) <= abs + rel * fmax(fabs(a), fabs(b));
@@ -65,12 +76,7 @@ void DRAGON_Test::verify_constructors(){
 }
 
 void DRAGON_Test::verify_conversion(){
-    PrimitiveState W;
-    W.rho = 2.0;
-    W.vx = 3.0;
-    W.vy = 4.0;
-    W.vz = 0.0;
-    W.p = 10.0;
+    PrimitiveState W = make_state(2.0, 3.0, 4.0, 0.0, 10.0);
 
     ConservativeState U(W);
 
@@ -86,12 +92,7 @@ void DRAGON_Test::verify_conversion(){
 }
 
 void DRAGON_Test::verify_flux(){
-    PrimitiveState W;
-    W.rho = 2.0;
-    W.vx = 3.0;
-    W.vy = 4.0;
-    W.vz = 5.0;
-    W.p = 10.0;
+    PrimitiveState W = make_state(2.0, 3.0, 4.0, 5.0, 10.0);
 
     ConservativeState U(W);
     ConservativeState F = U.flux(W.vx);
@@ -103,12 +104,7 @@ void DRAGON_Test::verify_flux(){
     assert(approx(F.E, W.vx * (U.E + W.p)));
 }
 void DRAGON_Test::verify_enthalpy(){
-    PrimitiveState W;
-    W.rho = 2.0;
-    W.vx = 3.0;
-    W.vy = 4.0;
-    W.vz = 0.0;
-    W.p = 10.0;
+    PrimitiveState W = make_state(2.0, 3.0, 4.0, 0.0, 10.0);
     
     assert(approx(W.enthalpy(), 25.0));
 }
@@ -116,10 +112,7 @@ void DRAGON_Test::verify_enthalpy(){
 //MARK: Dimension Swaps
 //Primitive
 void DRAGON_Test::verify_swaps_P(){
-    PrimitiveState W;
-    W.vx = 1;
-    W.vy = 2;
-    W.vz = 3;
+    PrimitiveState W = make_state(2.0, 1.0, 2.0, 3.0, 10.0);
     
     PrimitiveState XY = W.swapXY();
     assert(approx(XY.vx, 2));
@@ -286,12 +279,7 @@ void DRAGON_Test::verify_div(){
 
 }
 void DRAGON_Test::verify_flux_add() {
-    PrimitiveState W;
-    W.rho = 1.0;
-    W.vx = 2.0;
-    W.vy = 3.0;
-    W.vz = 4.0;
-    W.p = 10.0;
+    PrimitiveState W= make_state(1.0, 2.0, 3.0, 4.0, 10.0);
     ConservativeState U0(W);
 
     ConservativeState dU;
