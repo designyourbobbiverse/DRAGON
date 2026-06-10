@@ -15,31 +15,45 @@
 using namespace DRAGON_Test;
 
 void DRAGON_Test::verify_cfl(bool output){
-    std::cout << "CFL: ";
+    std::cout << "CFL: \n";
     //Algorithm Choices
-    verify_cfl_max_speed_1D();
-    verify_cfl_max_speed_2D();
-    verify_cfl_max_speed_3D();
+    std::cout << "- Individual Cell: ";
     verify_cfl_add_speed_1D();
     verify_cfl_add_speed_2D();
     verify_cfl_add_speed_3D();
+    //std::cout << "Passed\n";
+    //std::cout << "- Max Speed Variant: ";
+    verify_cfl_max_speed_1D();
+    verify_cfl_max_speed_2D();
+    verify_cfl_max_speed_3D();
+    //std::cout << "Passed\n";
+    //std::cout << "- Power-Normed Speed: ";
     verify_cfl_pow_speed_1D();
     verify_cfl_pow_speed_2D();
     verify_cfl_pow_speed_3D();
+    //std::cout << "Passed\n";
+    //std::cout << "- Dispatch: ";
     verify_cfl_dispatch_add_3D();
     verify_cfl_dispatch_max_3D();
     verify_cfl_dispatch_pow_3D();
+    std::cout << "Passed\n";
     //Grid
+    std::cout << "- 1D Grid: ";
     verify_cfl_time_1D_uniform();
     verify_cfl_time_1D_uses_fastest_cell();
     verify_cfl_time_1D_ignores_ghost_cells();
+    std::cout << "Passed\n";
+    std::cout << "- 2D Grid: ";
     verify_cfl_time_2D_uniform();
     verify_cfl_time_2D_visits_last_cell();
     verify_cfl_time_2D_ignores_ghost_cells();
+    std::cout << "Passed\n";
+    std::cout << "- 3D Grid: ";
     verify_cfl_time_3D_uniform();
     verify_cfl_time_3D_uses_fastest_cell();
     verify_cfl_time_3D_ignores_ghost_cells();
-    std::cout << "All tests passed.\n\n";
+    std::cout << "Passed\n";
+    std::cout << "All CFL Tests Passed.\n\n";
 
 }
 

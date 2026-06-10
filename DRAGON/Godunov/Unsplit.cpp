@@ -33,8 +33,9 @@ void Grid3D::advance(double dt){
 //MARK: 2D Flux Array
 
 struct FluxGrid2D{
-    FluxGrid2D(int nx_, int ny_): nx(nx_), ny(ny_) {
-        f = new ConservativeState[nx*ny];
+    
+    FluxGrid2D(int nx_, int ny_, int ghosts=0): nx(nx_), ny(ny_), ghosts(ghosts) {
+        f = new ConservativeState[(nx+2*ghosts)*(ny+2*ghosts)];
     }
     ~FluxGrid2D(){ delete[] f; }
     FluxGrid2D(const FluxGrid2D&) = delete; //No copying
@@ -43,29 +44,34 @@ struct FluxGrid2D{
     //Grid access
     ConservativeState& operator[](int i,int j){
     #ifdef TESTMODE
-        assert(i >= 0 && i < nx);
-        assert(j >= 0 && j < ny);
+        assert(i + ghosts >= 0 && i < nx+ghosts);
+        assert(j + ghosts >= 0 && j < ny+ghosts);
     #endif
-        return f[i*ny + j];
+        int m = (i+ghosts)*(ny+2*ghosts) + (j+ghosts);
+        return f[m];
     }
     const ConservativeState& operator[](int i,int j) const{
     #ifdef TESTMODE
-        assert(i >= 0 && i < nx);
-        assert(j >= 0 && j < ny);
+        assert(i + ghosts >= 0 && i < nx+ghosts);
+        assert(j + ghosts >= 0 && j < ny+ghosts);
     #endif
-        return f[i*ny + j];
+        int m = (i+ghosts)*(ny+2*ghosts) + (j+ghosts);
+        return f[m];
     }
+    int getSizeX() const{ return nx; }
+    int getSizeY() const{ return ny; }
+    int getGhosts() const{ return ghosts; }
 private:
     ConservativeState* f;
-    int nx, ny;
+    int ghosts, nx, ny;
 };
 
 //MARK: 3D Flux Array
 
 struct FluxGrid3D{
     
-    FluxGrid3D(int nx_, int ny_, int nz_): nx(nx_), ny(ny_), nz(nz_) {
-        f = new ConservativeState[nx*ny*nz];
+    FluxGrid3D(int nx_, int ny_, int nz_, int ghosts=0): nx(nx_), ny(ny_), nz(nz_), ghosts(ghosts) {
+        f = new ConservativeState[(nx+2*ghosts)*(ny+2*ghosts)*(nz+2*ghosts)];
     }
     ~FluxGrid3D(){ delete[] f; }
     FluxGrid3D(const FluxGrid3D&) = delete; //No copying
@@ -74,23 +80,29 @@ struct FluxGrid3D{
     //Grid access
     ConservativeState& operator[](int i,int j, int k){
     #ifdef TESTMODE
-        assert(i >= 0 && i < nx);
-        assert(j >= 0 && j < ny);
-        assert(k >= 0 && k < nz);
+        assert(i + ghosts >= 0 && i < nx+ghosts);
+        assert(j + ghosts >= 0 && j < ny+ghosts);
+        assert(k + ghosts >= 0 && k < nz+ghosts);
     #endif
-        return f[(i*ny + j) * nz + k];
+        int m = ((i+ghosts)*(ny+2*ghosts) + (j+ghosts)) * (nz+2*ghosts) + (k+ghosts);
+        return f[m];
     }
     const ConservativeState& operator[](int i,int j,int k) const{
     #ifdef TESTMODE
-        assert(i >= 0 && i < nx);
-        assert(j >= 0 && j < ny);
-        assert(k >= 0 && k < nz);
+        assert(i + ghosts >= 0 && i < nx+ghosts);
+        assert(j + ghosts >= 0 && j < ny+ghosts);
+        assert(k + ghosts >= 0 && k < nz+ghosts);
     #endif
-        return f[(i*ny + j) * nz + k];
+        int m = ((i+ghosts)*(ny+2*ghosts) + (j+ghosts)) * (nz+2*ghosts) + (k+ghosts);
+        return f[m];
     }
+    int getSizeX() const{ return nx; }
+    int getSizeY() const{ return ny; }
+    int getSizeZ() const{ return nz; }
+    int getGhosts() const{ return ghosts; }
 private:
     ConservativeState* f;
-    int nx, ny, nz;
+    int ghosts, nx, ny, nz;
 };
     
 

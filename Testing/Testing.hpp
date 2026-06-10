@@ -83,9 +83,9 @@ PrimitiveState make_tagged_state(double tag);
 //MARK: Boundary Conditions
 void verify_boundary(bool output = true);
 //Constructors
-void verify_boundary_constructors();
+void verify_boundary_constructors(bool output = true);
 //Outflow
-void verify_boundary_outflow();
+void verify_boundary_outflow(bool output = true);
 void verify_boundary_outflow_1D();
 void verify_boundary_outflow_2D();
 void verify_boundary_outflow_3D();
@@ -95,22 +95,22 @@ void verify_boundary_outflow_3D_gated_X();
 void verify_boundary_outflow_3D_gated_Y();
 void verify_boundary_outflow_3D_gated_Z();
 //Reflective
-void verify_boundary_reflective();
+void verify_boundary_reflective(bool output = true);
 void verify_boundary_reflective_1D();
 void verify_boundary_reflective_2D();
 void verify_boundary_reflective_3D();
 //Periodic
-void verify_boundary_periodic();
+void verify_boundary_periodic(bool output = true);
 void verify_boundary_periodic_1D();
 void verify_boundary_periodic_2D();
 void verify_boundary_periodic_3D();
 //Fixed
-void verify_boundary_fixed();
+void verify_boundary_fixed(bool output = true);
 void verify_boundary_fixed_1D();
 void verify_boundary_fixed_2D();
 void verify_boundary_fixed_3D();
 //Composition
-void verify_boundary_composition();
+void verify_boundary_composition(bool output = true);
 void verify_boundary_set_missing_faces_outflow_2D();
 void verify_boundary_composition_3D();
 void verify_boundary_composition_order();
@@ -157,22 +157,22 @@ void verify_god_dt0_1D();
 //2D
 void verify_godunov_2D_Split(bool output = true);
 void verify_godunov_2D_Unsplit(bool output = true);
-void verify_god_uniform_stationary_2D(bool split = true);
-void verify_god_uniform_moving_2D(bool split = true);
-void verify_god_periodic_conservation_2D(bool split = true);
-void verify_god_dt0_2D(bool split = true);
-void verify_2D_X_match_1D(bool split = true);
-void verify_2D_Y_match_1D(bool split = true);
+void verify_god_uniform_stationary_2D(bool split);
+void verify_god_uniform_moving_2D(bool split);
+void verify_god_periodic_conservation_2D(bool split);
+void verify_god_dt0_2D(bool split);
+void verify_2D_X_match_1D(bool split);
+void verify_2D_Y_match_1D(bool split);
 //3D Split
 void verify_godunov_3D_Split(bool output = true);
 void verify_godunov_3D_Unsplit(bool output = true);
-void verify_god_uniform_stationary_3D(bool split = true);
-void verify_god_uniform_moving_3D(bool split = true);
-void verify_god_periodic_conservation_3D(bool split = true);
-void verify_god_dt0_3D(bool split = true);
-void verify_3D_X_match_1D(bool split = true);
-void verify_3D_Y_match_1D(bool split = true);
-void verify_3D_Z_match_1D(bool split = true);
+void verify_god_uniform_stationary_3D(bool split);
+void verify_god_uniform_moving_3D(bool split);
+void verify_god_periodic_conservation_3D(bool split);
+void verify_god_dt0_3D(bool split);
+void verify_3D_X_match_1D(bool split);
+void verify_3D_Y_match_1D(bool split);
+void verify_3D_Z_match_1D(bool split);
 
 }
 #endif /* Testing_hpp */

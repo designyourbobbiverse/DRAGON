@@ -12,29 +12,36 @@
 using namespace DRAGON_Test;
 
 void DRAGON_Test::verify_riemann(bool output){
-    if(output) std::cout << "Exact Riemann Solver: ";
+    if(output) std::cout << "Exact Riemann Solver: \n";
     // Riemann construction / solution setup
+    if(output) std::cout << "- Construction: ";
     verify_riemann_constructor();
     verify_riemann_solution_constructor();
+    if(output) std::cout << "Passed\n";
     // Exact solver Tests
+    if(output) std::cout << "- Equation: ";
     verify_riemann_f();
+    if(output) std::cout << "Passed\n";
+    if(output) std::cout << "- Sampler: ";
     verify_sample_mirror_restores_state();
+    if(output) std::cout << "Passed\n";
+    if(output) std::cout << "- Selected Problems: ";
     verify_exact_equal_state();
     verify_exact_stationary_contact();
     verify_exact_supersonic_upwind();
-    verify_exact_sod();
     verify_exact_supersonic_upwind_transverse();
-    if(output) std::cout << "All tests passed.\n";
+    verify_exact_sod();
+    if(output) std::cout << "All Tests Passed\n";
 
     // HLL Tests
     if(output) std::cout << "HLL/C Riemann Solver: ";
     verify_hll_equal_state();
     verify_hll_stationary_contact();
     verify_hll_supersonic_upwind();
+    verify_hll_supersonic_upwind_transverse();
     verify_hll_manual_wave_speeds();
     verify_hllc_manual_wave_speeds();
-    verify_hll_supersonic_upwind_transverse();
-    if(output) std::cout << "All tests passed.\n";
+    if(output) std::cout << "All Tests Passed\n";
 
 
     //Roe Tests
@@ -43,11 +50,13 @@ void DRAGON_Test::verify_riemann(bool output){
     verify_roe_stationary_contact();
     verify_roe_supersonic_upwind();
     verify_roe_supersonic_upwind_transverse();
-    if(output) std::cout << "All tests passed.\n";
+    if(output) std::cout << "All Tests Passed\n";
 
     //Finiteness
+    //if(output) std::cout << "Solver Finiteness: ";
     verify_approximate_solver_finiteness();
-    if(output) std::cout << "All Riemann Solver tests passed.\n\n";
+    //if(output) std::cout << "Passed\n";
+    if(output) std::cout << "All Riemann Solver Tests Passed.\n\n";
 }
 
 

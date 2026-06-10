@@ -11,7 +11,7 @@
 #include <iostream>
 
 //MARK: Individual Speeds
-inline double CFL::cfl_max_speed(const PrimitiveState& W, double dx, double dy, double dz){
+double CFL::cfl_max_speed(const PrimitiveState& W, double dx, double dy, double dz){
     double a = sqrt(_gamma * W.p / W.rho);
     double speed = 0;
     if (dx > 1e-14) speed = (fabs(W.vx) + a)/dx;
@@ -19,7 +19,7 @@ inline double CFL::cfl_max_speed(const PrimitiveState& W, double dx, double dy, 
     if (dz > 1e-14) speed = std::max(speed, (fabs(W.vz) + a)/dz);
     return speed;
 }
-inline double CFL::cfl_add_speed(const PrimitiveState& W, double dx, double dy, double dz){
+double CFL::cfl_add_speed(const PrimitiveState& W, double dx, double dy, double dz){
     double a = sqrt(_gamma * W.p / W.rho);
     double speed = 0;
     if (dx > 1e-14) speed = (fabs(W.vx) + a)/dx;
@@ -27,7 +27,7 @@ inline double CFL::cfl_add_speed(const PrimitiveState& W, double dx, double dy, 
     if (dz > 1e-14) speed += (fabs(W.vz) + a)/dz;
     return speed;
 }
-inline double CFL::cfl_pow_speed(const PrimitiveState& W, double p, double dx, double dy, double dz){
+double CFL::cfl_pow_speed(const PrimitiveState& W, double p, double dx, double dy, double dz){
     double a = sqrt(_gamma * W.p / W.rho);
     double speed = 0;
     if (dx > 1e-14) speed = pow((fabs(W.vx) + a)/dx, p);

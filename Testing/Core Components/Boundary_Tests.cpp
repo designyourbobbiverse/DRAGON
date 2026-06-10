@@ -15,29 +15,25 @@ using namespace Boundary;
 
 
 void DRAGON_Test::verify_boundary(bool output){
+    if(output) std::cout << "Boundary Constrction:\n";
     verify_boundary_constructors();
     //Outflow
-    if(output) std::cout << "Outflow Boundary: ";
+    if(output) std::cout << "Outflow Boundary:\n";
     verify_boundary_outflow();
-    if(output) std::cout << "All tests passed.\n";
     //Reflective
-    if(output) std::cout << "Reflective Boundary: ";
+    if(output) std::cout << "Reflective Boundary:\n";
     verify_boundary_reflective();
-    if(output) std::cout << "All tests passed.\n";
     //Periodic
-    if(output) std::cout << "Periodic Boundary: ";
+    if(output) std::cout << "Periodic Boundary:\n";
     verify_boundary_periodic();
-    if(output) std::cout << "All tests passed.\n";
     //Fixed
-    if(output) std::cout << "Fixed State Boundary: ";
+    if(output) std::cout << "Fixed State Boundary:\n";
     verify_boundary_fixed();
-    if(output) std::cout << "All tests passed.\n";
     //Composition
-    if(output) std::cout << "Boundary Composition: ";
+    if(output) std::cout << "Boundary Composition:\n";
     verify_boundary_composition();
-    if(output) std::cout << "All tests passed.\n";
 
-    if(output) std::cout << "All Boundary Setup tests passed.\n\n";
+    if(output) std::cout << "All Boundary Setup tests passed\n\n";
 }
 
 //MARK: Helpers
@@ -87,18 +83,21 @@ void fill_3D(Grid3D& grid) {
 }
 
 //MARK: Boundary Consturction
-void DRAGON_Test::verify_boundary_constructors(){
+void DRAGON_Test::verify_boundary_constructors(bool output){
     PrimitiveState W = make_tagged_state(999);
 
     //Reflective Constructors
+    if(output) std::cout<<"- Reflective: ";
     Reflective r0;
     Reflective r1(X);
     Reflective r2(X_negative, false);
     assert(&r0);
     assert(&r1);
     assert(&r2);
-    
+    if(output) std::cout<<"Passed\n";
+
     //Outflow Constructors
+    if(output) std::cout<<"- Outflow: ";
     Outflow o0;
     Outflow o1(X);
     Outflow o2("X");
@@ -111,8 +110,11 @@ void DRAGON_Test::verify_boundary_constructors(){
     assert(&o3);
     assert(&o4);
     assert(&o5);
+    if(output) std::cout<<"Passed\n";
+
 
     //Gated Outflow shorthand
+    if(output) std::cout<<"- Gated Outflow: ";
     Outflow og0 = Outflow::Gated();
     Outflow og1 = Outflow::Gated(X_positive);
     Outflow og2 = Outflow::Gated(X_positive, false);
@@ -121,8 +123,10 @@ void DRAGON_Test::verify_boundary_constructors(){
     assert(&og1);
     assert(&og2);
     assert(&og3);
+    if(output) std::cout<<"Passed\n";
 
     //Periodic Constructors
+    if(output) std::cout<<"- Periodic: ";
     Periodic p0;
     Periodic p1(X);
     Periodic p2(Y, false);
@@ -131,9 +135,10 @@ void DRAGON_Test::verify_boundary_constructors(){
     assert(&p1);
     assert(&p2);
     assert(&p3);
-
+    if(output) std::cout<<"Passed\n";
 
     //Fixed State Constructors
+    if(output) std::cout<<"- Fixed State: ";
     Fixed f0(W);
     Fixed f1(W, X);
     Fixed f2(W, Y, false);
@@ -142,8 +147,10 @@ void DRAGON_Test::verify_boundary_constructors(){
     assert(&f1);
     assert(&f2);
     assert(&f3);
+    if(output) std::cout<<"Passed\n";
 
     //Composite Boundary Constructors
+    if(output) std::cout<<"- Composite: ";
     BoundaryList b0(r1, p2, Outflow(Z));
     BoundaryList b1(Fixed(W, "X-"), Outflow::Gated(X_positive));
     assert(&b0);
@@ -156,13 +163,19 @@ void DRAGON_Test::verify_boundary_constructors(){
     assert(Reflective(X | Y).get_faces() == (X | Y));
     assert(Periodic(Y).get_faces() == Y);
     assert(Outflow(Z_negative | Z_positive).get_faces() == Z);
+    if(output) std::cout<<"Passed\n";
+
 }
 
 //MARK: Composition
-void DRAGON_Test::verify_boundary_composition(){
+void DRAGON_Test::verify_boundary_composition(bool output){
+    if(output) std::cout<<"- 2D: ";
     verify_boundary_set_missing_faces_outflow_2D();
+    if(output) std::cout<<"Passed\n";
+    if(output) std::cout<<"- 3D: ";
     verify_boundary_composition_3D();
     verify_boundary_composition_order();
+    if(output) std::cout<<"Passed\n";
 }
 void DRAGON_Test::verify_boundary_set_missing_faces_outflow_2D() {
 
@@ -225,10 +238,16 @@ void DRAGON_Test::verify_boundary_composition_order() {
 }
 
 //MARK: Fixed
-void DRAGON_Test::verify_boundary_fixed(){
+void DRAGON_Test::verify_boundary_fixed(bool output){
+    if(output) std::cout<<"- 1D: ";
     verify_boundary_fixed_1D();
+    if(output) std::cout<<"Passed\n";
+    if(output) std::cout<<"- 2D: ";
     verify_boundary_fixed_2D();
+    if(output) std::cout<<"Passed\n";
+    if(output) std::cout<<"- 3D: ";
     verify_boundary_fixed_3D();
+    if(output) std::cout<<"Passed\n";
 }
 void DRAGON_Test::verify_boundary_fixed_1D() {
     Grid1D grid(4, 1.0, 2);
@@ -325,15 +344,27 @@ void DRAGON_Test::verify_boundary_fixed_3D() {
 }
 
 //MARK: Outflow
-void DRAGON_Test::verify_boundary_outflow(){
+void DRAGON_Test::verify_boundary_outflow(bool output){
+    if(output) std::cout<<"- 1D: ";
     verify_boundary_outflow_1D();
+    if(output) std::cout<<"Passed\n";
+    if(output) std::cout<<"- 2D: ";
     verify_boundary_outflow_2D();
+    if(output) std::cout<<"Passed\n";
+    if(output) std::cout<<"- 3D: ";
     verify_boundary_outflow_3D();
+    if(output) std::cout<<"Passed\n";
+    if(output) std::cout<<"- Gated 1D: ";
     verify_boundary_outflow_1D_gated();
+    if(output) std::cout<<"Passed\n";
+    if(output) std::cout<<"- Gated 2D: ";
     verify_boundary_outflow_2D_gated();
+    if(output) std::cout<<"Passed\n";
+    if(output) std::cout<<"- Gated 3D: ";
     verify_boundary_outflow_3D_gated_X();
     verify_boundary_outflow_3D_gated_Y();
     verify_boundary_outflow_3D_gated_Z();
+    if(output) std::cout<<"Passed\n";
 }
 void DRAGON_Test::verify_boundary_outflow_1D() {
     Grid1D grid(4, 1.0, 2);
@@ -435,10 +466,16 @@ void DRAGON_Test::verify_boundary_outflow_3D() {
 
 
 //MARK: Periodic
-void DRAGON_Test::verify_boundary_periodic(){
+void DRAGON_Test::verify_boundary_periodic(bool output){
+    if(output) std::cout<<"- 1D: ";
     verify_boundary_periodic_1D();
+    if(output) std::cout<<"Passed\n";
+    if(output) std::cout<<"- 2D: ";
     verify_boundary_periodic_2D();
+    if(output) std::cout<<"Passed\n";
+    if(output) std::cout<<"- 3D: ";
     verify_boundary_periodic_3D();
+    if(output) std::cout<<"Passed\n";
 }
 void DRAGON_Test::verify_boundary_periodic_1D() {
     Grid1D grid(4, 1.0, 2);
@@ -517,10 +554,16 @@ void DRAGON_Test::verify_boundary_periodic_3D() {
 }
 
 //MARK: Reflecting
-void DRAGON_Test::verify_boundary_reflective(){
+void DRAGON_Test::verify_boundary_reflective(bool output){
+    if(output) std::cout<<"- 1D: ";
     verify_boundary_reflective_1D();
+    if(output) std::cout<<"Passed\n";
+    if(output) std::cout<<"- 2D: ";
     verify_boundary_reflective_2D();
+    if(output) std::cout<<"Passed\n";
+    if(output) std::cout<<"- 3D: ";
     verify_boundary_reflective_3D();
+    if(output) std::cout<<"Passed\n";
 }
 void DRAGON_Test::verify_boundary_reflective_1D() {
 

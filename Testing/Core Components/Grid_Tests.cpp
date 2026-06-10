@@ -14,11 +14,17 @@ using namespace DRAGON_Test;
 using namespace Boundary;
 
 void DRAGON_Test::verify_grid(bool output){
-    if(output) std::cout << "Grid Structure: ";
+    if(output) std::cout << "Grid Structure:\n";
+    if(output) std::cout << "- 1D: ";
     verify_grid1D();
+    if(output) std::cout << "Passed\n";
+    if(output) std::cout << "- 2D: ";
     verify_grid2D();
+    if(output) std::cout << "Passed\n";
+    if(output) std::cout << "- 3D: ";
     verify_grid3D();
-    if(output) std::cout << "All tests passed.\n\n";
+    if(output) std::cout << "Passed\n";
+    if(output) std::cout << "All Grid Tests Passed.\n\n";
 }
 
 PrimitiveState DRAGON_Test::make_tagged_state(double tag){

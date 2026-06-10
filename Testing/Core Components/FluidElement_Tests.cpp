@@ -13,19 +13,39 @@ using namespace DRAGON_Test;
 
 
 void DRAGON_Test::verify_fluid_element(bool output) {
-    if(output) std::cout << "Fluid Arithmetic: ";
+    if(output) std::cout << "Fluid Arithmetic: \n";
+    if(output) std::cout << "- Element Construction: ";
     verify_constructors();
+    if(output) std::cout << "Passed\n";
+    if(output) std::cout << "- Form Conversion: ";
     verify_conversion();
-    verify_flux();
-    verify_flux_add();
+    if(output) std::cout << "Passed\n";
+    if(output) std::cout << "- Enthalpy: ";
     verify_enthalpy();
+    if(output) std::cout << "Passed\n";
+    if(output) std::cout << "- Axis Swaps: ";
     verify_swaps_P();
     verify_swaps_C();
+    if(output) std::cout << "Passed\n";
+    if(output) std::cout << "- Addition: ";
     verify_add();
+    if(output) std::cout << "Passed\n";
+    if(output) std::cout << "- Subtraction: ";
     verify_sub();
+    if(output) std::cout << "Passed\n";
+    if(output) std::cout << "- Multiplication: ";
     verify_mult();
+    if(output) std::cout << "Passed\n";
+    if(output) std::cout << "- Division: ";
     verify_div();
-    if(output) std::cout << "All tests passed.\n\n";
+    if(output) std::cout << "Passed\n";
+    if(output) std::cout << "- Flux Calculation: ";
+    verify_flux();
+    if(output) std::cout << "Passed\n";
+    if(output) std::cout << "- Flux Addition: ";
+    verify_flux_add();
+    if(output) std::cout << "Passed\n";
+    if(output) std::cout << "All Fluid Arithmetic Tests Passed.\n\n";
 }
 
 

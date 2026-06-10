@@ -14,55 +14,100 @@ using namespace DRAGON_Test;
 using namespace Boundary;
 
 void DRAGON_Test::verify_godunov_1D(bool output){
-    if(output) std::cout<<"1D Godunov Scheme: ";
+    if(output) std::cout<<"1D Godunov Scheme: \n";
+    if(output) std::cout<<"- Uniform Flows: ";
     verify_god_uniform_stationary_1D();
     verify_god_uniform_moving_1D();
+    if(output) std::cout<<"Passed\n";
+    if(output) std::cout<<"- Periodic Conservation: ";
     verify_god_periodic_conservation_1D();
+    if(output) std::cout<<"Passed\n";
+    if(output) std::cout<<"- Zero Time: ";
     verify_god_dt0_1D();
-    if(output) std::cout<<"All Tests Passed\n";
+    if(output) std::cout<<"Passed\n";
 }
 void DRAGON_Test::verify_godunov_2D_Split(bool output){
-    if(output) std::cout<<"2D Split Scheme: ";
+    if(output) std::cout<<"2D Split Scheme: \n";
+    if(output) std::cout<<"- Uniform Flows: ";
     verify_god_uniform_stationary_2D(true);
     verify_god_uniform_moving_2D(true);
+    if(output) std::cout<<"Passed\n";
+    if(output) std::cout<<"- Periodic Conservation: ";
     verify_god_periodic_conservation_2D(true);
+    if(output) std::cout<<"Passed\n";
+    if(output) std::cout<<"- Zero Time: ";
     verify_god_dt0_2D(true);
+    if(output) std::cout<<"Passed\n";
+    if(output) std::cout<<"- 1D Match (X): ";
     verify_2D_X_match_1D(true);
+    if(output) std::cout<<"Passed\n";
+    if(output) std::cout<<"- 1D Match (Y): ";
     verify_2D_Y_match_1D(true);
-    if(output) std::cout<<"All Tests Passed\n";
+    if(output) std::cout<<"Passed\n";
 }
 void DRAGON_Test::verify_godunov_2D_Unsplit(bool output){
-    if(output) std::cout<<"2D Unsplit Scheme: ";
+    if(output) std::cout<<"2D Unsplit Scheme: \n";
+    if(output) std::cout<<"- Uniform Flows: ";
     verify_god_uniform_stationary_2D(false);
     verify_god_uniform_moving_2D(false);
+    if(output) std::cout<<"Passed\n";
+    if(output) std::cout<<"- Periodic Conservation: ";
     verify_god_periodic_conservation_2D(false);
+    if(output) std::cout<<"Passed\n";
+    if(output) std::cout<<"- Zero Time: ";
     verify_god_dt0_2D(false);
+    if(output) std::cout<<"Passed\n";
+    if(output) std::cout<<"- 1D Match (X): ";
     verify_2D_X_match_1D(false);
+    if(output) std::cout<<"Passed\n";
+    if(output) std::cout<<"- 1D Match (Y): ";
     verify_2D_Y_match_1D(false);
-    if(output) std::cout<<"All Tests Passed\n";
+    if(output) std::cout<<"Passed\n";
 }
 void DRAGON_Test::verify_godunov_3D_Split(bool output){
-    if(output) std::cout<<"3D Split Scheme: ";
+    if(output) std::cout<<"3D Split Scheme: \n";
+    if(output) std::cout<<"- Uniform Flows: ";
     verify_god_uniform_stationary_3D(true);
     verify_god_uniform_moving_3D(true);
+    if(output) std::cout<<"Passed\n";
+    if(output) std::cout<<"- Periodic Conservation: ";
     verify_god_periodic_conservation_3D(true);
+    if(output) std::cout<<"Passed\n";
+    if(output) std::cout<<"- Zero Time: ";
     verify_god_dt0_3D(true);
+    if(output) std::cout<<"Passed\n";
+    if(output) std::cout<<"- 1D Match (X): ";
     verify_3D_X_match_1D(true);
+    if(output) std::cout<<"Passed\n";
+    if(output) std::cout<<"- 1D Match (Y): ";
     verify_3D_Y_match_1D(true);
+    if(output) std::cout<<"Passed\n";
+    if(output) std::cout<<"- 1D Match (Z): ";
     verify_3D_Z_match_1D(true);
-    if(output) std::cout<<"All Tests Passed\n";
+    if(output) std::cout<<"Passed\n";
     
 }
 void DRAGON_Test::verify_godunov_3D_Unsplit(bool output){
-    if(output) std::cout<<"3D Unsplit Scheme: ";
+    if(output) std::cout<<"3D Unsplit Scheme: \n";
+    if(output) std::cout<<"- Uniform Flows: ";
     verify_god_uniform_stationary_3D(false);
     verify_god_uniform_moving_3D(false);
+    if(output) std::cout<<"Passed\n";
+    if(output) std::cout<<"- Periodic Conservation: ";
     verify_god_periodic_conservation_3D(false);
+    if(output) std::cout<<"Passed\n";
+    if(output) std::cout<<"- Zero Time: ";
     verify_god_dt0_3D(false);
+    if(output) std::cout<<"Passed\n";
+    if(output) std::cout<<"- 1D Match (X): ";
     verify_3D_X_match_1D(false);
+    if(output) std::cout<<"Passed\n";
+    if(output) std::cout<<"- 1D Match (Y): ";
     verify_3D_Y_match_1D(false);
+    if(output) std::cout<<"Passed\n";
+    if(output) std::cout<<"- 1D Match (Z): ";
     verify_3D_Z_match_1D(false);
-    if(output) std::cout<<"All Tests Passed\n";
+    if(output) std::cout<<"Passed\n";
     
 }
 
@@ -233,8 +278,8 @@ void DRAGON_Test::verify_god_periodic_conservation_3D(bool split){
         }
     }
     
-    if(split) grid.advance_split(1.0);
-    else grid.advance_unsplit(1.0);
+    if(split) grid.advance_split(3.0);
+    else grid.advance_unsplit(3.0);
     
     ConservativeState got = ConservativeState();
     for (int i = 0; i < grid.getSizeX(); i++){
