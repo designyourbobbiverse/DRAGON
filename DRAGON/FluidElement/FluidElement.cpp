@@ -43,15 +43,15 @@ PrimitiveState::PrimitiveState(ConservativeState state){
     p = state.pressure();
 }
 
-double PrimitiveState::energy(){
+double PrimitiveState::energy() const {
     return p/(_gamma - 1.0) + (rho/2)*(vx*vx + vy*vy + vz*vz);
 }
-double ConservativeState::pressure(){
+double ConservativeState::pressure() const {
     return (_gamma - 1.0) * (E - (px*px + py*py + pz*pz) / (2*rho));
 }
 
 //Enthalpy Density
-double PrimitiveState::enthalpy(){
+double PrimitiveState::enthalpy() const {
     return (_G_Gm1*p/rho) + (vx*vx + vy*vy + vz*vz)/2;
 }
 
@@ -62,19 +62,19 @@ double PrimativeState::S(){
 }*/
 
 //MARK: Physical validity
-bool PrimitiveState::isPhysical() {
+bool PrimitiveState::isPhysical() const {
     return isfinite(rho) && isfinite(vx)  && isfinite(vy)  && isfinite(vz)  && isfinite(p)   && rho > 0.0 && p > 0.0;
 }
-bool ConservativeState::isPhysical() {
+bool ConservativeState::isPhysical()  const {
     return isfinite(rho) && isfinite(px)  && isfinite(py)  && isfinite(pz)  && isfinite(E)   && rho > 0.0 && E > 0.0;
 }
 
 
 
 //MARK: Flux
-ConservativeState PrimitiveState::flux(){ return ConservativeState(*this).flux(vx); }
-ConservativeState ConservativeState::flux(){ return flux(px / rho); }
-ConservativeState ConservativeState::flux(double v){
+ConservativeState PrimitiveState::flux() const { return ConservativeState(*this).flux(vx); }
+ConservativeState ConservativeState::flux() const { return flux(px / rho); }
+ConservativeState ConservativeState::flux(double v) const {
     ConservativeState F = ConservativeState();
     double p = pressure();
     F.rho = px;
@@ -96,32 +96,32 @@ PrimitiveState& operator+=(PrimitiveState &W, const ConservativeState &dU){
 
 
 //MARK: 2D + 3D
-PrimitiveState PrimitiveState::swapXY(){
+PrimitiveState PrimitiveState::swapXY() const {
     PrimitiveState wT = *this;
     wT.vx = vy; wT.vy = vx;
     return wT;
 }
-PrimitiveState PrimitiveState::swapXZ(){
+PrimitiveState PrimitiveState::swapXZ() const {
     PrimitiveState wT = *this;
     wT.vx = vz; wT.vz = vx;
     return wT;
 }
-PrimitiveState PrimitiveState::swapYZ(){
+PrimitiveState PrimitiveState::swapYZ() const {
     PrimitiveState wT = *this;
     wT.vz = vy; wT.vy = vz;
     return wT;
 }
-ConservativeState ConservativeState::swapXY(){
+ConservativeState ConservativeState::swapXY() const {
     ConservativeState wT = *this;
     wT.px = py; wT.py = px;
     return wT;
 }
-ConservativeState ConservativeState::swapXZ(){
+ConservativeState ConservativeState::swapXZ() const {
     ConservativeState wT = *this;
     wT.px = pz; wT.pz = px;
     return wT;
 }
-ConservativeState ConservativeState::swapYZ(){
+ConservativeState ConservativeState::swapYZ() const {
     ConservativeState wT = *this;
     wT.pz = py; wT.py = pz;
     return wT;

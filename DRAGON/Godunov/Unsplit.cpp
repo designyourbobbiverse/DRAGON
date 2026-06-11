@@ -66,6 +66,7 @@ private:
     int ghosts, nx, ny;
 };
 
+
 //MARK: 3D Flux Array
 
 struct FluxGrid3D{
@@ -104,7 +105,6 @@ private:
     ConservativeState* f;
     int ghosts, nx, ny, nz;
 };
-    
 
 //MARK: CFL
 
@@ -124,6 +124,118 @@ void Grid3D::advance_unsplit(double dt){
         dt -= t1;
         //Advance
         advanceXYZ(t1);
+    }
+}
+
+//MARK: 2D Unsplit Step
+void computeFlux_X(const Grid2D& _L, const Grid2D& _R, FluxGrid2D& F, int xL, int xR, int yL, int yR);
+void computeFlux_Y(const Grid2D& _L, const Grid2D& _R, FluxGrid2D& F, int xL, int xR, int yL, int yR);
+void computeHalfStates_X(Grid2D& _L, const Grid2D& _W,  Grid2D& _R, double dt);
+void computeHalfStates_Y( Grid2D& _L,const Grid2D& _W, Grid2D& _R, double dt);
+void correctState(Grid2D& _L, Grid2D& _R, const FluxGrid2D& F, double dt_dL, int xL, int xR, int yL, int yR, int dim);
+
+void Grid2D::advanceXY(double dt){
+    Grid2D _xL(nx,ny,dx,dy), _xR(nx,ny,dx,dy);//x Half States
+    Grid2D _yL(nx,ny,dx,dy), _yR(nx,ny,dx,dy);//y Half States
+    FluxGrid2D F_X(nx,ny,1), F_Y(nx,ny,1); //Fluxes
+    
+    boundary.apply(*this);
+
+    //Compute Half States
+    computeHalfStates_X(_xL, (*this), _xR, dt);//_xLR needs (-1...nx, -1...ny)
+    computeHalfStates_Y(_yL, (*this), _yR, dt);//_yLR needs (-1...nx, -1...ny)
+#ifdef CTU
+    //Compute preliminary Fluxes
+    computeFlux_X(_xL, _xR, F_X, 0, nx, -1, ny+1);  //F_X needs (0...nx, -1...ny)
+    computeFlux_Y(_yL, _yR, F_Y, -1, nx+1, 0, ny);  //F_Y needs (-1...nx, 0...ny)
+    //Correct states
+    correctState(_xL, _xR, F_Y, (0.5*dt/dy), -1, nx+1, 0, ny, 1); //_xLR needs (-1...nx, 0...ny-1)
+    correctState(_yL, _yR, F_X, (0.5*dt/dx), 0, nx, -1, ny+1, 0); //_yLR needs (0...nx-1, -1...ny)
+#endif
+    //Compute Fluxes
+    computeFlux_X(_xL, _xR, F_X, 0, nx, 0, ny); //F_X needs (0...nx, 0...ny-1)
+    computeFlux_Y(_yL, _yR, F_Y, 0, nx, 0, ny); //F_Y needs (0...nx-1, 0...ny)
+   
+    //Apply all Fluxes
+    for(int i=0; i<nx; i++){
+        for(int j=0; j<ny; j++){
+            (*this)[i,j] += (dt/dx) * (F_X[i,j] - F_X[i+1,j]);
+            (*this)[i,j] += (dt/dy) * (F_Y[i,j] - F_Y[i,j+1]);
+        }
+    }
+}
+
+//MARK: 3D Unsplit Step
+void computeFlux_X(const Grid3D& _L, const Grid3D& _R, FluxGrid3D& F, int xL, int xR, int yL, int yR, int zL, int zR);
+void computeFlux_Y(const Grid3D& _L, const Grid3D& _R, FluxGrid3D& F, int xL, int xR, int yL, int yR, int zL, int zR);
+void computeFlux_Z(const Grid3D& _L, const Grid3D& _R, FluxGrid3D& F, int xL, int xR, int yL, int yR, int zL, int zR);
+void computeHalfStates_X(Grid3D& _L, const Grid3D& _W, Grid3D& _R, double dt);
+void computeHalfStates_Y(Grid3D& _L, const Grid3D& _W, Grid3D& _R, double dt);
+void computeHalfStates_Z(Grid3D& _L, const Grid3D& _W, Grid3D& _R, double dt);
+void correctState(const Grid3D& _L0, const Grid3D& _R0, Grid3D& _L, Grid3D& _R, const FluxGrid3D& F, double dt_dL, int xL, int xR, int yL, int yR, int zL, int zR, int dim);
+
+void Grid3D::advanceXYZ(double dt){
+    Grid3D _xL(nx,ny,nz,dx,dy,dz), _xR(nx,ny,nz,dx,dy,dz);
+    Grid3D _yL(nx,ny,nz,dx,dy,dz), _yR(nx,ny,nz,dx,dy,dz);
+    Grid3D _zL(nx,ny,nz,dx,dy,dz), _zR(nx,ny,nz,dx,dy,dz);
+    FluxGrid3D F_X(nx, ny,nz,1), F_Y(nx,ny,nz,1), F_Z(nx,ny,nz,1);
+    
+    boundary.apply(*this);
+
+    //Compute Half States
+    computeHalfStates_X(_xL, (*this), _xR, dt);
+    computeHalfStates_Y(_yL, (*this), _yR, dt);
+    computeHalfStates_Z(_zL, (*this), _zR, dt);
+#ifdef CTU
+    //Compute Face Fluxes
+    computeFlux_X(_xL, _xR, F_X, 0, nx, -1, ny+1, -1, nz+1); //F_X needs (0...nx, -1...ny, -1...nz)
+    computeFlux_Y(_yL, _yR, F_Y, -1, nx+1, 0, ny, -1, nz+1); //F_Y needs (-1...nx, 0...ny, -1...nz)
+    computeFlux_Z(_zL, _zR, F_Z, -1, nx+1, -1, ny+1, 0, nz); //F_Z needs (-1...nx, -1...ny, 0...nz)
+    //Compute Edge Corrections
+    Grid3D _xyL(nx,ny,nz,dx,dy,dz), _xyR(nx,ny,nz,dx,dy,dz); //_xyLR needs (-1...nx, 0...ny-1, -1...nz)
+    correctState(_xL, _xR, _xyL, _xyR, F_Y, (0.5*dt/dy) , -1, nx+1, 0, ny, -1, nz+1, 1);
+    Grid3D _xzL(nx,ny,nz,dx,dy,dz), _xzR(nx,ny,nz,dx,dy,dz);//_xzLR needs (-1...nx, -1...ny, 0...nz-1)
+    correctState(_xL, _xR, _xzL, _xzR, F_Z, (0.5*dt/dz) , -1, nx+1, -1, ny+1, 0, nz, 2);
+    Grid3D _yxL(nx,ny,nz,dx,dy,dz), _yxR(nx,ny,nz,dx,dy,dz);//_yxLR needs (0...nx-1, -1...ny, -1...nz)
+    correctState(_yL, _yR, _yxL, _yxR, F_X, (0.5*dt/dx), 0, nx, -1, ny+1, -1, nz+1, 0);
+    Grid3D _yzL(nx,ny,nz,dx,dy,dz), _yzR(nx,ny,nz,dx,dy,dz);//_yzLR needs (-1...nx, -1...ny, 0...nz-1)
+    correctState(_yL, _yR, _yzL, _yzR, F_Z, (0.5*dt/dz), -1, nx+1, -1, ny+1, 0, nz, 2);
+    Grid3D _zxL(nx,ny,nz,dx,dy,dz), _zxR(nx,ny,nz,dx,dy,dz); //_zxLR needs (0...nx-1, -1...ny, -1...nz)
+    correctState(_zL, _zR, _zxL, _zxR, F_X, (0.5*dt/dx), 0, nx, -1, ny+1, -1, nz+1, 0);
+    Grid3D _zyL(nx,ny,nz,dx,dy,dz), _zyR(nx,ny,nz,dx,dy,dz);//_zyLR needs (-1...nx, 0...ny-1, -1...nz)
+    correctState(_zL, _zR, _zyL, _zyR, F_Y, (0.5*dt/dx), -1, nx+1, 0, ny, -1, nz+1, 1);
+    //Compute Edge Fluxes
+    FluxGrid3D F_Xy(nx, ny,nz,1), F_Xz(nx, ny,nz,1);
+    computeFlux_X(_xyL, _xyR, F_Xy, 0, nx, 0, ny, -1,nz+1); //F_Xy needs (0...nx, 0...ny-1, -1...nz)
+    computeFlux_X(_xzL, _xzR, F_Xz, 0, nx, -1, ny+1, 0,nz); //F_Xz needs (0...nx, -1...ny, 0...nz-1)
+    FluxGrid3D F_Yx(nx, ny,nz,1), F_Yz(nx, ny,nz,1);
+    computeFlux_Y(_yxL, _yxR, F_Yx, 0, nx, 0, ny, -1, nz+1); //F_Yx needs (0...nx-1, 0...ny, -1...nz)
+    computeFlux_Y(_yzL, _yzR, F_Yz, -1, nx+1, 0, ny, 0, nz); //F_Yz needs (-1...nx, 0...ny, 0...nz-1)
+    FluxGrid3D F_Zx(nx,ny,nz,1), F_Zy(nx, ny,nz,1);
+    computeFlux_Z(_zxL, _zxR, F_Zx, 0, nx, -1, ny+1, 0, nz); //F_Zx needs (0...nx-1, -1...ny, 0...nz)
+    computeFlux_Z(_zyL, _zyR, F_Zy, -1, nx+1, 0, ny, 0, nz); //F_Zy needs (-1...nx, 0...ny-1, 0...nz)
+    //Apply Corner Corrections
+    correctState(_xL, _xR, _xL,_xR, F_Yz, (0.5*dt/dy), -1, nx+1, 0, ny, 0, nz, 1); //_xLR needs (-1...nx, 0...ny-1, 0...nz-1)
+    correctState(_xL, _xR, _xL,_xR, F_Zy, (0.5*dt/dz), -1, nx+1, 0, ny, 0, nz, 2);
+    correctState(_yL, _yR, _yL,_yR, F_Xz, (0.5*dt/dx), 0, nx, -1, ny+1, 0, nz, 0);//_yLR needs (0...nx-1, -1...ny, 0...nz-1)
+    correctState(_yL, _yR, _yL,_yR, F_Zx, (0.5*dt/dz), 0, nx, -1, ny+1, 0, nz, 2);
+    correctState(_zL, _zR, _zL,_zR, F_Xy, (0.5*dt/dx), 0, nx, 0, ny, -1, nz+1, 0);//_zLR needs (0...nx-1, 0...ny-1, -1...nz)
+    correctState(_zL, _zR, _zL,_zR, F_Yx, (0.5*dt/dy), 0, nx, 0, ny, -1, nz+1, 1);
+#endif
+    //Compute Fluxes
+    computeFlux_X(_xL, _xR, F_X, 0, nx, 0, ny, 0, nz); //F_X needs (0...nx, 0...ny-1, 0...nz-1)
+    computeFlux_Y(_yL, _yR, F_Y, 0, nx, 0, ny, 0, nz); //F_Y needs (0...nx-1, 0...ny, 0...nz-1)
+    computeFlux_Z(_zL, _zR, F_Z, 0, nx, 0, ny, 0, nz); //F_Z needs (0...nx-1, 0...ny-1, 0...nz)
+    
+    //Apply Fluxes
+    for(int i=0; i<nx; i++){
+        for(int j=0; j<ny; j++){
+            for(int k=0; k<nz; k++){
+                (*this)[i,j,k] += (dt/dx) * (F_X[i,j,k] - F_X[i+1,j,k]);
+                (*this)[i,j,k] += (dt/dy) * (F_Y[i,j,k] - F_Y[i,j+1,k]);
+                (*this)[i,j,k] += (dt/dz) * (F_Z[i,j,k] - F_Z[i,j,k+1]);
+            }
+        }
     }
 }
 
@@ -177,57 +289,67 @@ void computeFlux_Z(const Grid3D& _L, const Grid3D& _R, FluxGrid3D& F, int xL, in
 }
 
 //MARK: TVD
-void Grid2D::computeHalfStates_X(Grid2D& _L, Grid2D& _R, double dt){
-    double dt_dL = dt/dx; //Compute once
-    for(int i=-ghosts + 1; i<nx+ghosts - 1; i++){
-        for(int j=-ghosts; j<ny+ghosts; j++){
-            auto wL =(*this)[i-1,j], wR = (*this)[i+1,j];
-            TVD::MUSCL(wL, _L[i,j], (*this)[i,j], _R[i,j], wR, dt_dL);
+void computeHalfStates_X(Grid2D& _L, const Grid2D& _W, Grid2D& _R, double dt){
+    const double dt_dL = dt/_W.dx;//Compute once
+    const int nx = _W.getSizeX(), ny = _W.getSizeY(), g = _W.getGhosts();
+
+    for(int i=-g + 1; i<nx+g - 1; i++){
+        for(int j=-g; j<ny+g; j++){
+            auto wL =_W[i-1,j], wR = _W[i+1,j];
+            TVD::MUSCL(wL, _L[i,j], _W[i,j], _R[i,j], wR, dt_dL);
         }
     }
 }
-void Grid2D::computeHalfStates_Y(Grid2D& _L, Grid2D& _R, double dt){
-    double dt_dL = dt/dy; //Compute once
-    for(int i=-ghosts; i<nx+ghosts; i++){
-        for(int j=-ghosts + 1; j<ny+ghosts - 1; j++){
-            auto wL =(*this)[i,j-1].swapXY(), wR = (*this)[i,j+1].swapXY();
-            TVD::MUSCL(wL, _L[i,j], (*this)[i,j].swapXY(), _R[i,j],wR, dt_dL);
+void computeHalfStates_Y(Grid2D& _L, const Grid2D& _W, Grid2D& _R, double dt){
+    const double dt_dL = dt/_W.dy;//Compute once
+    const int nx = _W.getSizeX(), ny = _W.getSizeY(), g = _W.getGhosts();
+
+    for(int i=-g; i<nx+g; i++){
+        for(int j=-g + 1; j<ny+g - 1; j++){
+            auto wL =_W[i,j-1].swapXY(), wR = _W[i,j+1].swapXY();
+            TVD::MUSCL(wL, _L[i,j], _W[i,j].swapXY(), _R[i,j],wR, dt_dL);
             _L[i,j] = _L[i,j].swapXY();
             _R[i,j] = _R[i,j].swapXY();
         }
     }
 }
-void Grid3D::computeHalfStates_X(Grid3D& _L, Grid3D& _R, double dt){
-    double dt_dL = dt/dx;//Compute once
-    for(int i=-ghosts + 1; i<nx+ghosts - 1; i++){
-        for(int j=-ghosts; j<ny+ghosts; j++){
-            for(int k=-ghosts; k<nz+ghosts; k++){
-                auto wL =(*this)[i-1,j,k], wR = (*this)[i+1,j,k];
-                TVD::MUSCL(wL, _L[i,j,k], (*this)[i,j,k], _R[i,j,k],wR, dt_dL);
+void computeHalfStates_X(Grid3D& _L, const Grid3D& _W, Grid3D& _R, double dt){
+    const double dt_dL = dt/_W.dx;//Compute once
+    const int nx = _W.getSizeX(), ny = _W.getSizeY(),nz = _W.getSizeZ(), g = _W.getGhosts();
+
+    for(int i=-g + 1; i<nx+g - 1; i++){
+        for(int j=-g; j<ny+g; j++){
+            for(int k=-g; k<nz+g; k++){
+                auto wL = _W[i-1,j,k], wR = _W[i+1,j,k];
+                TVD::MUSCL(wL, _L[i,j,k], _W[i,j,k], _R[i,j,k], wR, dt_dL);
             }
         }
     }
 }
-void Grid3D::computeHalfStates_Y(Grid3D& _L, Grid3D& _R, double dt){
-    double dt_dL = dt/dy;//Compute once
-    for(int i=-ghosts; i<nx+ghosts; i++){
-        for(int j=-ghosts + 1; j<ny+ghosts - 1; j++){
-            for(int k=-ghosts; k<nz+ghosts; k++){
-                auto wL =(*this)[i,j-1,k].swapXY(), wR = (*this)[i,j+1,k].swapXY();
-                TVD::MUSCL(wL, _L[i,j,k], (*this)[i,j,k].swapXY(), _R[i,j,k],wR, dt_dL);
+void computeHalfStates_Y(Grid3D& _L, const Grid3D& _W, Grid3D& _R, double dt){
+    const double dt_dL = dt/_W.dy;//Compute once
+    const int nx = _W.getSizeX(), ny = _W.getSizeY(),nz = _W.getSizeZ(), g = _W.getGhosts();
+    
+    for(int i=-g; i<nx+g; i++){
+        for(int j=-g + 1; j<ny+g - 1; j++){
+            for(int k=-g; k<nz+g; k++){
+                auto wL =_W[i,j-1,k].swapXY(), wR = _W[i,j+1,k].swapXY();
+                TVD::MUSCL(wL, _L[i,j,k], _W[i,j,k].swapXY(), _R[i,j,k],wR, dt_dL);
                 _L[i,j,k] = _L[i,j,k].swapXY();
                 _R[i,j,k] = _R[i,j,k].swapXY();
             }
         }
     }
 }
-void Grid3D::computeHalfStates_Z(Grid3D& _L, Grid3D& _R, double dt){
-    double dt_dL = dt/dz;//Compute once
-    for(int i=-ghosts; i<nx+ghosts; i++){
-        for(int j=-ghosts; j<ny+ghosts; j++){
-            for(int k=-ghosts + 1; k<nz+ghosts - 1; k++){
-                auto wL =(*this)[i,j,k-1].swapXZ(), wR = (*this)[i,j,k+1].swapXZ();
-                TVD::MUSCL(wL, _L[i,j,k], (*this)[i,j,k].swapXZ(), _R[i,j,k],wR, dt_dL);
+void computeHalfStates_Z(Grid3D& _L, const Grid3D& _W, Grid3D& _R, double dt){
+    const double dt_dL = dt/_W.dz;//Compute once
+    const int nx = _W.getSizeX(), ny = _W.getSizeY(),nz = _W.getSizeZ(), g = _W.getGhosts();
+    
+    for(int i=-g; i<nx+g; i++){
+        for(int j=-g; j<ny+g; j++){
+            for(int k=-g + 1; k<nz+g - 1; k++){
+                auto wL = _W[i,j,k-1].swapXZ(), wR = _W[i,j,k+1].swapXZ();
+                TVD::MUSCL(wL, _L[i,j,k], _W[i,j,k].swapXZ(), _R[i,j,k],wR, dt_dL);
                 _L[i,j,k] = _L[i,j,k].swapXZ();
                 _R[i,j,k] = _R[i,j,k].swapXZ();
             }
@@ -261,106 +383,6 @@ void correctState(const Grid3D& _L0, const Grid3D& _R0, Grid3D& _L, Grid3D& _R, 
                 auto trans = (F[i+isX, j+isY, k+isZ] - F[i,j,k]) * dt_dL;
                 _L[i,j,k] = _L0[i,j,k] -  trans;
                 _R[i,j,k] = _R0[i,j,k] -  trans;
-            }
-        }
-    }
-}
-
-//MARK: 2D Unsplit Step
-
-void Grid2D::advanceXY(double dt){
-    Grid2D _xL(nx,ny,dx,dy), _xR(nx,ny,dx,dy);//x Half States
-    Grid2D _yL(nx,ny,dx,dy), _yR(nx,ny,dx,dy);//y Half States
-    FluxGrid2D F_X(nx,ny,1), F_Y(nx,ny,1); //Fluxes
-    
-    boundary.apply(*this);
-
-    //Compute Half States
-    computeHalfStates_X(_xL, _xR, dt);//_xLR needs (-1...nx, -1...ny)
-    computeHalfStates_Y(_yL, _yR, dt);//_yLR needs (-1...nx, -1...ny)
-#ifdef CTU
-    //Compute preliminary Fluxes
-    computeFlux_X(_xL, _xR, F_X, 0, nx, -1, ny+1);  //F_X needs (0...nx, -1...ny)
-    computeFlux_Y(_yL, _yR, F_Y, -1, nx+1, 0, ny);  //F_Y needs (-1...nx, 0...ny)
-    //Correct states
-    correctState(_xL, _xR, F_Y, (0.5*dt/dy), -1, nx+1, 0, ny, 1); //_xLR needs (-1...nx, 0...ny-1)
-    correctState(_yL, _yR, F_X, (0.5*dt/dx), 0, nx, -1, ny+1, 0); //_yLR needs (0...nx-1, -1...ny)
-#endif
-    //Compute Fluxes
-    computeFlux_X(_xL, _xR, F_X, 0, nx, 0, ny); //F_X needs (0...nx, 0...ny-1)
-    computeFlux_Y(_yL, _yR, F_Y, 0, nx, 0, ny); //F_Y needs (0...nx-1, 0...ny)
-   
-    //Apply all Fluxes
-    for(int i=0; i<nx; i++){
-        for(int j=0; j<ny; j++){
-            (*this)[i,j] += (dt/dx) * (F_X[i,j] - F_X[i+1,j]);
-            (*this)[i,j] += (dt/dy) * (F_Y[i,j] - F_Y[i,j+1]);
-        }
-    }
-}
-
-//MARK: 3D Unsplit Step
-
-void Grid3D::advanceXYZ(double dt){
-    Grid3D _xL(nx,ny,nz,dx,dy,dz), _xR(nx,ny,nz,dx,dy,dz);
-    Grid3D _yL(nx,ny,nz,dx,dy,dz), _yR(nx,ny,nz,dx,dy,dz);
-    Grid3D _zL(nx,ny,nz,dx,dy,dz), _zR(nx,ny,nz,dx,dy,dz);
-    FluxGrid3D F_X(nx, ny,nz,1), F_Y(nx,ny,nz,1), F_Z(nx,ny,nz,1);
-    
-    boundary.apply(*this);
-
-    //Compute Half States
-    computeHalfStates_X(_xL, _xR, dt);
-    computeHalfStates_Y(_yL, _yR, dt);
-    computeHalfStates_Z(_zL, _zR, dt);
-#ifdef CTU
-    //Compute Face Fluxes
-    computeFlux_X(_xL, _xR, F_X, 0, nx, -1, ny+1, -1, nz+1); //F_X needs (0...nx, -1...ny, -1...nz)
-    computeFlux_Y(_yL, _yR, F_Y, -1, nx+1, 0, ny, -1, nz+1); //F_Y needs (-1...nx, 0...ny, -1...nz)
-    computeFlux_Z(_zL, _zR, F_Z, -1, nx+1, -1, ny+1, 0, nz); //F_Z needs (-1...nx, -1...ny, 0...nz)
-    //Compute Edge Corrections
-    Grid3D _xyL(nx,ny,nz,dx,dy,dz), _xyR(nx,ny,nz,dx,dy,dz); //_xyLR needs (-1...nx, 0...ny-1, -1...nz)
-    correctState(_xL, _xR, _xyL, _xyR, F_Y, (0.5*dt/dy) , -1, nx+1, 0, ny, -1, nz+1, 1);
-    Grid3D _xzL(nx,ny,nz,dx,dy,dz), _xzR(nx,ny,nz,dx,dy,dz);//_xzLR needs (-1...nx, -1...ny, 0...nz-1)
-    correctState(_xL, _xR, _xzL, _xzR, F_Z, (0.5*dt/dz) , -1, nx+1, -1, ny+1, 0, nz, 2);
-    Grid3D _yxL(nx,ny,nz,dx,dy,dz), _yxR(nx,ny,nz,dx,dy,dz);//_yxLR needs (0...nx-1, -1...ny, -1...nz)
-    correctState(_yL, _yR, _yxL, _yxR, F_X, (0.5*dt/dx), 0, nx, -1, ny+1, -1, nz+1, 0);
-    Grid3D _yzL(nx,ny,nz,dx,dy,dz), _yzR(nx,ny,nz,dx,dy,dz);//_yzLR needs (-1...nx, -1...ny, 0...nz-1)
-    correctState(_yL, _yR, _yzL, _yzR, F_Z, (0.5*dt/dz), -1, nx+1, -1, ny+1, 0, nz, 2);
-    Grid3D _zxL(nx,ny,nz,dx,dy,dz), _zxR(nx,ny,nz,dx,dy,dz); //_zxLR needs (0...nx-1, -1...ny, -1...nz)
-    correctState(_zL, _zR, _zxL, _zxR, F_X, (0.5*dt/dx), 0, nx, -1, ny+1, -1, nz+1, 0);
-    Grid3D _zyL(nx,ny,nz,dx,dy,dz), _zyR(nx,ny,nz,dx,dy,dz);//_zyLR needs (-1...nx, 0...ny-1, -1...nz)
-    correctState(_zL, _zR, _zyL, _zyR, F_Y, (0.5*dt/dx), -1, nx+1, 0, ny, -1, nz+1, 1);
-    //Compute Edge Fluxes
-    FluxGrid3D F_Xy(nx, ny,nz,1), F_Xz(nx, ny,nz,1);
-    computeFlux_X(_xyL, _xyR, F_Xy, 0, nx, 0, ny, -1,nz+1); //F_Xy needs (0...nx, 0...ny-1, -1...nz)
-    computeFlux_X(_xzL, _xzR, F_Xz, 0, nx, -1, ny+1, 0,nz); //F_Xz needs (0...nx, -1...ny, 0...nz-1)
-    FluxGrid3D F_Yx(nx, ny,nz,1), F_Yz(nx, ny,nz,1);
-    computeFlux_Y(_yxL, _yxR, F_Yx, 0, nx, 0, ny, -1, nz+1); //F_Yx needs (0...nx-1, 0...ny, -1...nz)
-    computeFlux_Y(_yzL, _yzR, F_Yz, -1, nx+1, 0, ny, 0, nz); //F_Yz needs (-1...nx, 0...ny, 0...nz-1)
-    FluxGrid3D F_Zx(nx,ny,nz,1), F_Zy(nx, ny,nz,1);
-    computeFlux_Z(_zxL, _zxR, F_Zx, 0, nx, -1, ny+1, 0, nz); //F_Zx needs (0...nx-1, -1...ny, 0...nz)
-    computeFlux_Z(_zyL, _zyR, F_Zy, -1, nx+1, 0, ny, 0, nz); //F_Zy needs (-1...nx, 0...ny-1, 0...nz)
-    //Apply Corner Corrections
-    correctState(_xL, _xR, _xL,_xR, F_Yz, (0.5*dt/dy), -1, nx+1, 0, ny, 0, nz, 1); //_xLR needs (-1...nx, 0...ny-1, 0...nz-1)
-    correctState(_xL, _xR, _xL,_xR, F_Zy, (0.5*dt/dz), -1, nx+1, 0, ny, 0, nz, 2);
-    correctState(_yL, _yR, _yL,_yR, F_Xz, (0.5*dt/dx), 0, nx, -1, ny+1, 0, nz, 0);//_yLR needs (0...nx-1, -1...ny, 0...nz-1)
-    correctState(_yL, _yR, _yL,_yR, F_Zx, (0.5*dt/dz), 0, nx, -1, ny+1, 0, nz, 2);
-    correctState(_zL, _zR, _zL,_zR, F_Xy, (0.5*dt/dx), 0, nx, 0, ny, -1, nz+1, 0);//_zLR needs (0...nx-1, 0...ny-1, -1...nz)
-    correctState(_zL, _zR, _zL,_zR, F_Yx, (0.5*dt/dy), 0, nx, 0, ny, -1, nz+1, 1);
-#endif
-    //Compute Fluxes
-    computeFlux_X(_xL, _xR, F_X, 0, nx, 0, ny, 0, nz); //F_X needs (0...nx, 0...ny-1, 0...nz-1)
-    computeFlux_Y(_yL, _yR, F_Y, 0, nx, 0, ny, 0, nz); //F_Y needs (0...nx-1, 0...ny, 0...nz-1)
-    computeFlux_Z(_zL, _zR, F_Z, 0, nx, 0, ny, 0, nz); //F_Z needs (0...nx-1, 0...ny-1, 0...nz)
-    
-    //Apply Fluxes
-    for(int i=0; i<nx; i++){
-        for(int j=0; j<ny; j++){
-            for(int k=0; k<nz; k++){
-                (*this)[i,j,k] += (dt/dx) * (F_X[i,j,k] - F_X[i+1,j,k]);
-                (*this)[i,j,k] += (dt/dy) * (F_Y[i,j,k] - F_Y[i,j+1,k]);
-                (*this)[i,j,k] += (dt/dz) * (F_Z[i,j,k] - F_Z[i,j,k+1]);
             }
         }
     }

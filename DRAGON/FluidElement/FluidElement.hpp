@@ -19,30 +19,30 @@ struct PrimitiveState {
     double rho,  vx, vy, vz,  p;
     PrimitiveState();
     PrimitiveState(ConservativeState state);
-    double energy();
-    double enthalpy();
-    ConservativeState flux();
+    double energy() const;
+    double enthalpy() const;
+    ConservativeState flux() const;
 
-    PrimitiveState swapXY();
-    PrimitiveState swapXZ();
-    PrimitiveState swapYZ();
+    PrimitiveState swapXY() const;
+    PrimitiveState swapXZ() const;
+    PrimitiveState swapYZ() const;
     
-    bool isPhysical();
+    bool isPhysical() const;
 };
 struct ConservativeState {
     double rho,  px, py, pz, E;
     ConservativeState();
     ConservativeState(PrimitiveState prim);
-    double pressure();
+    double pressure() const;
     
-    ConservativeState flux();
-    ConservativeState flux(double v);
+    ConservativeState flux() const;
+    ConservativeState flux(double v) const;
 
-    ConservativeState swapXY();
-    ConservativeState swapXZ();
-    ConservativeState swapYZ();
+    ConservativeState swapXY() const;
+    ConservativeState swapXZ() const;
+    ConservativeState swapYZ() const;
     
-    bool isPhysical();
+    bool isPhysical() const;
 
 };
 

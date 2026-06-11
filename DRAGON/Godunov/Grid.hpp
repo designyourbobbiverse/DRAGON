@@ -65,8 +65,6 @@ private:
     void advanceX(double dt);
     void advanceY(double dt);
     void advanceXY(double dt);
-    void computeHalfStates_X(Grid2D& _L, Grid2D& _R, double dt);
-    void computeHalfStates_Y(Grid2D& _L, Grid2D& _R, double dt);
 };
 
 struct Grid3D{
@@ -99,11 +97,6 @@ private:
     void advanceY(double dt);
     void advanceZ(double dt);
     void advanceXYZ(double dt);
-    void computeHalfStates_X(Grid3D& _L, Grid3D& _R, double dt);
-    void computeHalfStates_Y(Grid3D& _L, Grid3D& _R, double dt);
-    void computeHalfStates_Z(Grid3D& _L, Grid3D& _R, double dt);
-
-
 };
 
 
