@@ -23,18 +23,23 @@
         #define Harten_Hyman // If not using Roe, this line does nothing
 #define RIEMANN_DEFAULT RIEMANN_EXACT
 
-
-//Comment the following line to only use first order Godunov
-#define MUSCL_Hancock
-
 //CFL Limit Calculation
     #define CFL_ADD 1 //Adds the speeds for dimension together
     #define CFL_MAX 0 //Uses max[ (|vx|+a)/dx, (|vy|+a)/dy, ... ]
-    //Can set to any other number to use [ ((|vx|+a)/dx)^p + ((|vy|+a)/dy)^p +... ]^(1/p)
+    //Can set to any p>0 to use [ ((|vx|+a)/dx)^p + ((|vy|+a)/dy)^p +... ]^(1/p)
 #define CFL_CALCULATION CFL_ADD
 
+//Comment the following line to only use first order Godunov
+#define MUSCL_Hancock
+//Default to Unsplit advancement for multidimensional flows
+#define DimensionUnsplit
+//CTU
+#define CTU
 
-//#define DimensionUnsplit
+
+
+
+
 
 
 
@@ -51,7 +56,7 @@ extern int cfl_choice;
 }
 
 //MARK: Numerical Parameters
-constexpr double CFL_coeff = 0.5;
+constexpr double CFL_coeff = 0.3;
 constexpr double Timestep_Tolerance = 1e-14;
 
 constexpr double ExactRiemann_Tolerance = 1E-12;

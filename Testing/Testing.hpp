@@ -163,7 +163,9 @@ void verify_god_periodic_conservation_2D(bool split);
 void verify_god_dt0_2D(bool split);
 void verify_2D_X_match_1D(bool split);
 void verify_2D_Y_match_1D(bool split);
-//3D Split
+void verify_ctu_diagonal_contact_2D();
+void verify_ctu_blast_2D();
+//3D
 void verify_godunov_3D_Split(bool output = true);
 void verify_godunov_3D_Unsplit(bool output = true);
 void verify_god_uniform_stationary_3D(bool split);
@@ -173,6 +175,8 @@ void verify_god_dt0_3D(bool split);
 void verify_3D_X_match_1D(bool split);
 void verify_3D_Y_match_1D(bool split);
 void verify_3D_Z_match_1D(bool split);
+void verify_ctu_diagonal_contact_3D();
+void verify_ctu_blast_3D();
 
 }
 #endif /* Testing_hpp */

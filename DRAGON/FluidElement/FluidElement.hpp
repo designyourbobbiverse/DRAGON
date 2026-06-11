@@ -66,21 +66,4 @@ ConservativeState& operator/=(ConservativeState &X, double a);
 PrimitiveState& operator+=(PrimitiveState &X, const ConservativeState &dU);
 
 
-
-
-
-//Arithmetic operators for primatives
-//Don't do this unless you know what you are doing.
-//If you do need this, Uncomment the next line
-//#define PRIMITIVE_ARITHMETIC_ALLOWED
-
-#ifdef PRIMITIVE_ARITHMETIC_ALLOWED
-PrimitiveState operator+(const PrimitiveState &X, const PrimitiveState &Y);
-PrimitiveState operator-(const PrimitiveState &X, const PrimitiveState &Y);
-PrimitiveState operator*(const PrimitiveState &X, double a);
-PrimitiveState operator*(const double &a, const PrimitiveState &X);
-PrimitiveState operator/(const PrimitiveState &X, double a);
-#endif
-
-
 #endif /* FluidElement_hpp */
