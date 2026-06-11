@@ -35,6 +35,10 @@ struct Riemann{
     
     //Computes the flux using whatever method was selected in Constants.h
     ConservativeState flux();
+    ConservativeState flux_X();
+    ConservativeState flux_Y();
+    ConservativeState flux_Z();
+
     
 //MARK: Exact Riemann Solvers
     RiemannSolution exact();
@@ -54,24 +58,12 @@ struct Riemann{
 
 //MARK: Roe
     ConservativeState Roe();
-    
-//MARK: Other Approximate Solvers
-    ///Star Region Approximation Solvers (Toro Ch 9)
-    RiemannSolution PVRS();//Primative Variable Riemann Solver
-    RiemannSolution TRRS();//Two-Rarefaction Riemann Solver
-    RiemannSolution TSRS(); //Two-Shock Riemann Solver
-    
-//MARK: Adaptive Solvers
-    //Adaptive Iterative Riemann Solver: PVRS if within limits, otherwise pivots to iterative
-    RiemannSolution PVRS_Iter();
-    //Adaptive Noniterative Riemann Solver: PVRS if within limits, otherwise pivots to TRRS/TSRS
-    RiemannSolution PVRS_TXRS();
+
     
 private:
     //Internal Implementations
-    RiemannSolution PVRS(double aL, double aR, double p_pvrs);
+    RiemannSolution TRRS();//Two-Rarefaction Riemann Solver
     RiemannSolution TRRS(double aL, double aR);
-    RiemannSolution TSRS(double aL, double aR, double pGuess);
 };
     
 //MARK: Riemann Solution State

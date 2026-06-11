@@ -385,12 +385,5 @@ void DRAGON_Test::verify_approximate_solver_finiteness() {
         expect_finite(problem.HLL());
         expect_finite(problem.HLLC());
         expect_finite(problem.Roe());
-
-        expect_finite(problem.PVRS().sL);
-        expect_finite(problem.PVRS().sR);
-        expect_finite(problem.PVRS_Iter().sL);
-        expect_finite(problem.PVRS_Iter().sR);
-        expect_finite(problem.PVRS_TXRS().sL);
-        expect_finite(problem.PVRS_TXRS().sR);
     }
 }

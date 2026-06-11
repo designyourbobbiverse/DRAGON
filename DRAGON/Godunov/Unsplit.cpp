@@ -133,7 +133,7 @@ void computeFlux_X(const Grid2D& _L, const Grid2D& _R, FluxGrid2D& F, int xL, in
     for(int i=xL; i<=xR; i++){
         for(int j=yL; j<yR; j++){
             auto L = _R[i-1,j], R = _L[i,j];
-            F[i,j] = Riemann(L,R).flux();
+            F[i,j] = Riemann(L,R).flux_X();
         }
     }
 }
@@ -141,9 +141,7 @@ void computeFlux_Y(const Grid2D& _L, const Grid2D& _R, FluxGrid2D& F, int xL, in
     for(int i=xL; i<xR; i++){
         for(int j=yL; j<=yR; j++){
             auto L = _R[i,j-1], R = _L[i,j];
-            L.swapXY(); R.swapXY();
-            F[i,j] = Riemann(L,R).flux();
-            F[i,j].swapXY();
+            F[i,j] = Riemann(L,R).flux_Y();
         }
     }
 }
@@ -152,7 +150,7 @@ void computeFlux_X(const Grid3D& _L, const Grid3D& _R, FluxGrid3D& F, int xL, in
         for(int j=yL; j<yR; j++){
             for(int k=zL; k<zR; k++){
                 auto L = _R[i-1,j,k], R = _L[i,j,k];
-                F[i,j,k] = Riemann(L,R).flux();
+                F[i,j,k] = Riemann(L,R).flux_X();
             }
         }
     }
@@ -162,9 +160,7 @@ void computeFlux_Y(const Grid3D& _L, const Grid3D& _R, FluxGrid3D& F, int xL, in
         for(int j=yL; j<=yR; j++){
             for(int k=zL; k<zR; k++){
                 auto L = _R[i,j-1,k], R = _L[i,j,k];
-                L.swapXY(); R.swapXY();
-                F[i,j,k] = Riemann(L,R).flux();
-                F[i,j,k].swapXY();
+                F[i,j,k] = Riemann(L,R).flux_Y();
             }
         }
     }
@@ -174,47 +170,66 @@ void computeFlux_Z(const Grid3D& _L, const Grid3D& _R, FluxGrid3D& F, int xL, in
         for(int j=yL; j<yR; j++){
             for(int k=zL; k<=zR; k++){
                 auto L = _R[i,j,k-1], R = _L[i,j,k];
-                L.swapXZ(); R.swapXZ();
-                F[i,j,k] = Riemann(L,R).flux();
-                F[i,j,k].swapXZ();
+                F[i,j,k] = Riemann(L,R).flux_Z();
             }
         }
     }
 }
 
 //MARK: TVD
-inline void dimensionFlags(int dim, int &isX, int &isY){
-    isX = dim%2 == 0 ? 1 : 0;
-    isY = dim%2 == 1 ? 1 : 0;
-}
-inline void dimensionFlags(int dim, int &isX, int &isY, int& isZ){
-    isX = dim%3 == 0 ? 1 : 0;
-    isY = dim%3 == 1 ? 1 : 0;
-    isZ = dim%3 == 2 ? 1 : 0;
-}
-
-void Grid2D::computeHalfStates(Grid2D& _L, Grid2D& _R, double dt, int dim){
-    //Dimension
-    int isX, isY; dimensionFlags(dim, isX, isY);
-    double dt_dL = dt/(isX*dx + isY*dy);
-    //Cycle
-    for(int i=-ghosts + isX; i<nx+ghosts - isX; i++){
-        for(int j=-ghosts + isY; j<ny+ghosts - isY; j++){
-            auto wL =(*this)[i-isX,j-isY], wR = (*this)[i+isX,j+isY];
-            TVD::MUSCL(wL, _L[i,j], (*this)[i,j], _R[i,j],wR, dt_dL);
+void Grid2D::computeHalfStates_X(Grid2D& _L, Grid2D& _R, double dt){
+    double dt_dL = dt/dx; //Compute once
+    for(int i=-ghosts + 1; i<nx+ghosts - 1; i++){
+        for(int j=-ghosts; j<ny+ghosts; j++){
+            auto wL =(*this)[i-1,j], wR = (*this)[i+1,j];
+            TVD::MUSCL(wL, _L[i,j], (*this)[i,j], _R[i,j], wR, dt_dL);
         }
     }
 }
-void Grid3D::computeHalfStates(Grid3D& _L, Grid3D& _R, double dt, int dim){
-    //Dimension
-    int isX, isY,isZ; dimensionFlags(dim, isX, isY,isZ);
-    double dt_dL = dt/(isX*dx + isY*dy + isZ*dz);
-    //Cycle
-    for(int i=-ghosts + isX; i<nx+ghosts - isX; i++){
-        for(int j=-ghosts + isY; j<ny+ghosts - isY; j++){
-            for(int k=-ghosts + isZ; k<nz+ghosts - isZ; k++){
-                auto wL =(*this)[i-isX,j-isY,k-isZ], wR = (*this)[i+isX,j+isY,k+isZ];
+void Grid2D::computeHalfStates_Y(Grid2D& _L, Grid2D& _R, double dt){
+    double dt_dL = dt/dy; //Compute once
+    for(int i=-ghosts; i<nx+ghosts; i++){
+        for(int j=-ghosts + 1; j<ny+ghosts - 1; j++){
+            auto wL =(*this)[i,j-1].swapXY(), wR = (*this)[i,j+1].swapXY();
+            TVD::MUSCL(wL, _L[i,j], (*this)[i,j].swapXY(), _R[i,j],wR, dt_dL);
+            _L[i,j] = _L[i,j].swapXY();
+            _R[i,j] = _R[i,j].swapXY();
+        }
+    }
+}
+void Grid3D::computeHalfStates_X(Grid3D& _L, Grid3D& _R, double dt){
+    double dt_dL = dt/dx;//Compute once
+    for(int i=-ghosts + 1; i<nx+ghosts - 1; i++){
+        for(int j=-ghosts; j<ny+ghosts; j++){
+            for(int k=-ghosts; k<nz+ghosts; k++){
+                auto wL =(*this)[i-1,j,k], wR = (*this)[i+1,j,k];
                 TVD::MUSCL(wL, _L[i,j,k], (*this)[i,j,k], _R[i,j,k],wR, dt_dL);
+            }
+        }
+    }
+}
+void Grid3D::computeHalfStates_Y(Grid3D& _L, Grid3D& _R, double dt){
+    double dt_dL = dt/dy;//Compute once
+    for(int i=-ghosts; i<nx+ghosts; i++){
+        for(int j=-ghosts + 1; j<ny+ghosts - 1; j++){
+            for(int k=-ghosts; k<nz+ghosts; k++){
+                auto wL =(*this)[i,j-1,k].swapXY(), wR = (*this)[i,j+1,k].swapXY();
+                TVD::MUSCL(wL, _L[i,j,k], (*this)[i,j,k].swapXY(), _R[i,j,k],wR, dt_dL);
+                _L[i,j,k] = _L[i,j,k].swapXY();
+                _R[i,j,k] = _R[i,j,k].swapXY();
+            }
+        }
+    }
+}
+void Grid3D::computeHalfStates_Z(Grid3D& _L, Grid3D& _R, double dt){
+    double dt_dL = dt/dz;//Compute once
+    for(int i=-ghosts; i<nx+ghosts; i++){
+        for(int j=-ghosts; j<ny+ghosts; j++){
+            for(int k=-ghosts + 1; k<nz+ghosts - 1; k++){
+                auto wL =(*this)[i,j,k-1].swapXZ(), wR = (*this)[i,j,k+1].swapXZ();
+                TVD::MUSCL(wL, _L[i,j,k], (*this)[i,j,k].swapXZ(), _R[i,j,k],wR, dt_dL);
+                _L[i,j,k] = _L[i,j,k].swapXZ();
+                _R[i,j,k] = _R[i,j,k].swapXZ();
             }
         }
     }
@@ -222,7 +237,10 @@ void Grid3D::computeHalfStates(Grid3D& _L, Grid3D& _R, double dt, int dim){
 
 //MARK: CTU Corrections
 void correctState(Grid2D& _L, Grid2D& _R, const FluxGrid2D& F, double dt_dL, int xL, int xR, int yL, int yR, int dim){
-    int isX, isY; dimensionFlags(dim, isX, isY);
+    //dimension
+    int isX = dim%2 == 0 ? 1 : 0;
+    int isY = dim%2 == 1 ? 1 : 0;
+    //Cycle
     for(int i=xL; i<xR; i++){
         for(int j=yL; j<yR; j++){
             auto trans = (F[i+isX,j+isY] - F[i,j]) * dt_dL;
@@ -232,11 +250,15 @@ void correctState(Grid2D& _L, Grid2D& _R, const FluxGrid2D& F, double dt_dL, int
     }
 }
 void correctState(const Grid3D& _L0, const Grid3D& _R0, Grid3D& _L, Grid3D& _R, const FluxGrid3D& F, double dt_dL, int xL, int xR, int yL, int yR, int zL, int zR, int dim){
-    int isX, isY, isZ; dimensionFlags(dim, isX, isY,isZ);
+    //dimension
+    int isX = dim%3 == 0 ? 1 : 0;
+    int isY = dim%3 == 1 ? 1 : 0;
+    int isZ = dim%3 == 2 ? 1 : 0;
+    //cycle
     for(int i=xL; i<xR; i++){
         for(int j=yL; j<yR; j++){
             for(int k=zL; k<zR; k++){
-                auto trans = (F[i+isX,j+isY,k+isZ] - F[i,j,k]) * dt_dL;
+                auto trans = (F[i+isX, j+isY, k+isZ] - F[i,j,k]) * dt_dL;
                 _L[i,j,k] = _L0[i,j,k] -  trans;
                 _R[i,j,k] = _R0[i,j,k] -  trans;
             }
@@ -254,8 +276,8 @@ void Grid2D::advanceXY(double dt){
     boundary.apply(*this);
 
     //Compute Half States
-    computeHalfStates(_xL, _xR, dt, 0);//_xLR needs (-1...nx, -1...ny)
-    computeHalfStates(_yL, _yR, dt, 1);//_yLR needs (-1...nx, -1...ny)
+    computeHalfStates_X(_xL, _xR, dt);//_xLR needs (-1...nx, -1...ny)
+    computeHalfStates_Y(_yL, _yR, dt);//_yLR needs (-1...nx, -1...ny)
 #ifdef CTU
     //Compute preliminary Fluxes
     computeFlux_X(_xL, _xR, F_X, 0, nx, -1, ny+1);  //F_X needs (0...nx, -1...ny)
@@ -288,9 +310,9 @@ void Grid3D::advanceXYZ(double dt){
     boundary.apply(*this);
 
     //Compute Half States
-    computeHalfStates(_xL, _xR, dt, 0);
-    computeHalfStates(_yL, _yR, dt, 1);
-    computeHalfStates(_zL, _zR, dt, 2);
+    computeHalfStates_X(_xL, _xR, dt);
+    computeHalfStates_Y(_yL, _yR, dt);
+    computeHalfStates_Z(_zL, _zR, dt);
 #ifdef CTU
     //Compute Face Fluxes
     computeFlux_X(_xL, _xR, F_X, 0, nx, -1, ny+1, -1, nz+1); //F_X needs (0...nx, -1...ny, -1...nz)

@@ -157,15 +157,11 @@ void Grid2D::advanceY(double dt){
 
     Grid1D W(ny, dy, ghosts), _B1(ny, dy, ghosts), _B2(ny,dy, ghosts);
     for(int i=-ghosts; i<nx+ghosts; i++){
-        for(int j=-ghosts; j<ny+ghosts; j++) {
-            W[j] = (*this)[i,j];
-            W[j].swapXY();
-        }
+        for(int j=-ghosts; j<ny+ghosts; j++)  W[j] = (*this)[i,j].swapXY();
+
         W.god_sweep(dt, _B1, _B2);
-        for(int j=-ghosts; j<ny+ghosts; j++) {
-            W[j].swapXY();
-            (*this)[i,j] = W[j];
-        }
+        
+        for(int j=-ghosts; j<ny+ghosts; j++)  (*this)[i,j] = W[j].swapXY();
     }
 }
 
@@ -194,13 +190,11 @@ void Grid3D::advanceY(double dt){
     for(int k=-ghosts; k<nz+ghosts; k++){
         for(int i=-ghosts; i<nx+ghosts; i++) {
             for(int j=-ghosts; j<ny+ghosts; j++) {
-                W[j] = (*this)[i,j,k];
-                W[j].swapXY();
+                W[j] = (*this)[i,j,k].swapXY();
             }
             W.god_sweep(dt, _B1, _B2);
             for(int j=-ghosts; j<ny+ghosts; j++) {
-                W[j].swapXY();
-                (*this)[i,j,k] = W[j];
+                (*this)[i,j,k] = W[j].swapXY();
             }
        }
     }
@@ -212,13 +206,11 @@ void Grid3D::advanceZ(double dt){
     for(int i=-ghosts; i<nx+ghosts; i++) {
         for(int j=-ghosts; j<ny+ghosts; j++) {
             for(int k=-ghosts; k<nz+ghosts; k++){
-                W[k] = (*this)[i,j,k];
-                W[k].swapXZ();
+                W[k] = (*this)[i,j,k].swapXZ();
             }
             W.god_sweep(dt, _B1, _B2);
             for(int k=-ghosts; k<nz+ghosts; k++){
-                W[k].swapXZ();
-                (*this)[i,j,k] = W[k];
+                (*this)[i,j,k] = W[k].swapXZ();
             }
        }
     }

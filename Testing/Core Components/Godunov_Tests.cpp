@@ -392,7 +392,6 @@ void DRAGON_Test::verify_2D_X_match_1D(bool split){
         
     for (int i = 0; i < grid.getSizeX(); i++){
         for (int j = 0; j < grid.getSizeY(); j++){
-            //Unsplit uses different reconstruction, so higher tolerance
             expect_close(grid[i,j], expected[i]);
         }
     }
@@ -408,8 +407,7 @@ void DRAGON_Test::verify_2D_Y_match_1D(bool split){
         for (int i = 0; i < grid.getSizeX(); i++){
             grid[i,j] = make_state(1.0+0.1*j, 1.0+0.1*j, -0.1*j, 0.1*j, 10.0-0.1*j);
         }
-        expected[j] = grid[0,j];
-        expected[j].swapXY();
+        expected[j] = grid[0,j].swapXY();
     }
         
     double dt = 0.01;
@@ -422,10 +420,8 @@ void DRAGON_Test::verify_2D_Y_match_1D(bool split){
     }
         
     for (int j = 0; j < grid.getSizeY(); j++){
-        expected[j].swapXY();
         for (int i = 0; i < grid.getSizeX(); i++){
-            //Unsplit uses different reconstruction, so higher tolerance
-            expect_close(grid[i,j], expected[j]);
+            expect_close(grid[i,j], expected[j].swapXY());
         }
     }
 
@@ -457,7 +453,6 @@ void DRAGON_Test::verify_3D_X_match_1D(bool split){
     for (int i = 0; i < grid.getSizeX(); i++){
         for (int j = 0; j < grid.getSizeY(); j++){
             for (int k = 0; k < grid.getSizeZ(); k++){
-                //Unsplit uses different reconstruction, so higher tolerance
                 expect_close(grid[i,j,k], expected[i]);
             }
         }
@@ -476,8 +471,7 @@ void DRAGON_Test::verify_3D_Y_match_1D(bool split){
                 grid[i,j,k] = make_state(1.0+0.1*j, 1.0+0.1*j, -0.1*j, 0.1*j, 10.0-0.1*j);
             }
         }
-        expected[j] = grid[0,j,0];
-        expected[j].swapXY();
+        expected[j] = grid[0,j,0].swapXY();
     }
         
     double dt = 0.01;
@@ -492,9 +486,7 @@ void DRAGON_Test::verify_3D_Y_match_1D(bool split){
     for (int i = 0; i < grid.getSizeX(); i++){
         for (int j = 0; j < grid.getSizeY(); j++){
             for (int k = 0; k < grid.getSizeZ(); k++){
-                expected[j].swapXY();
-                //Unsplit uses different reconstruction, so higher tolerance
-                expect_close(grid[i,j,k], expected[j]);
+                expect_close(grid[i,j,k], expected[j].swapXY());
             }
         }
     }
@@ -511,8 +503,7 @@ void DRAGON_Test::verify_3D_Z_match_1D(bool split){
                 grid[i,j,k] = make_state(1.0+0.1*k, 1.0+0.1*k, -0.1*k, 0.1*k, 10.0-0.1*k);
             }
         }
-        expected[k] = grid[0,0,k];
-        expected[k].swapXZ();
+        expected[k] = grid[0,0,k].swapXZ();
     }
         
     double dt = 0.001;
@@ -527,9 +518,8 @@ void DRAGON_Test::verify_3D_Z_match_1D(bool split){
     for (int i = 0; i < grid.getSizeX(); i++){
         for (int j = 0; j < grid.getSizeY(); j++){
             for (int k = 0; k < grid.getSizeZ(); k++){
-                expected[k].swapXZ();
                 //Unsplit uses different reconstruction, so higher tolerance
-                expect_close(grid[i,j,k], expected[k]);
+                expect_close(grid[i,j,k], expected[k].swapXZ());
             }
         }
     }
@@ -568,10 +558,7 @@ void DRAGON_Test::verify_ctu_diagonal_contact_2D() {
         grid.advance_unsplit(dt);
         for (int i = 0; i < nx; ++i) {
             for (int j = 0; j < ny; ++j) { //Physicality
-                assert(std::isfinite(grid[i,j].rho));
-                assert(std::isfinite(grid[i,j].p));
-                assert( (grid[i,j].rho>0) );
-                assert( (grid[i,j].p>0) );
+                assert((grid[i,j].isPhysical()));
             }
         }
     }
@@ -630,10 +617,7 @@ void DRAGON_Test::verify_ctu_diagonal_contact_3D() {
         for (int i = 0; i < nx; ++i) {
             for (int j = 0; j < ny; ++j) {
                 for (int k = 0; k < nz; ++k) {
-                    assert(std::isfinite(grid[i,j,k].rho));
-                    assert(std::isfinite(grid[i,j,k].p));
-                    assert((grid[i,j,k].rho > 0.0));
-                    assert((grid[i,j,k].p > 0.0));
+                    assert((grid[i,j,k].isPhysical()));
                 }
             }
         }
@@ -672,10 +656,8 @@ void DRAGON_Test::verify_ctu_blast_2D() {
     //Verify Physicality
     for (int i = 0; i < nx; ++i) {
         for (int j = 0; j < ny; ++j) {
-            assert(std::isfinite(grid[i,j].rho));
-            assert(std::isfinite(grid[i,j].p));
-            assert((grid[i,j].rho > 0.0));
-            assert((grid[i,j].p > 0.0));
+            assert((grid[i,j].isPhysical()));
+
         }
     }
     // Mass Conservation
@@ -727,10 +709,7 @@ void DRAGON_Test::verify_ctu_blast_3D() {
     for (int i = 0; i < nx; ++i) {
         for (int j = 0; j < ny; ++j) {
             for (int k = 0; k < nz; ++k) {
-                assert(std::isfinite(grid[i,j,k].rho));
-                assert(std::isfinite(grid[i,j,k].p));
-                assert((grid[i,j,k].rho > 0.0));
-                assert((grid[i,j,k].p > 0.0));
+                assert((grid[i,j,k].isPhysical()));
             }
         }
     }

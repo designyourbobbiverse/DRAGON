@@ -52,7 +52,6 @@
 				Riemann/Flux.cpp,
 				Riemann/HLL.cpp,
 				Riemann/Roe.cpp,
-				Riemann/StateSolvers.cpp,
 			);
 			target = F77A715B2FB415A5006C2776 /* DRAGON_TESTS */;
 		};

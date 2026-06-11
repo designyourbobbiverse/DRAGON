@@ -38,6 +38,11 @@ namespace CONFIG {
 }
 #endif
 
+//MARK: Dimension Convenience
+ConservativeState Riemann::flux_X(){ return flux(); }
+ConservativeState Riemann::flux_Y(){ return Riemann(L.swapXY(),R.swapXY()).flux().swapXY(); }
+ConservativeState Riemann::flux_Z(){ return Riemann(L.swapXZ(),R.swapXZ()).flux().swapXZ(); }
+
 
 //MARK: Solution Sampling
 ConservativeState RiemannSolution::flux(){ return flux(0); }
@@ -63,7 +68,7 @@ PrimitiveState RiemannSolution::sample(double x_t){
     } else{ //Rarefraction
         if ( (x_t-wR.vx) > a ) zone = 1;
         else if ( (x_t-sR.vx) > a ) zone = 2;
-        else if ( (x_t-sR.vx) > a *pow(sR.p/wR.p, _Gm1_2G) ) zone = 2;
+        else if ( (x_t-sR.vx) > a * pow(sR.p/wR.p, _Gm1_2G) ) zone = 2;
         else zone = 3;
     }
     //Calculate the State at x/t
