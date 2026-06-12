@@ -33,6 +33,13 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		F76C27C52FDB955000B706F5 /* Exceptions for "DRAGONWING" folder in "DRAGON_TESTS" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				pthread_parallel.cpp,
+			);
+			target = F77A715B2FB415A5006C2776 /* DRAGON_TESTS */;
+		};
 		F77A71642FB415B4006C2776 /* Exceptions for "DRAGON" folder in "DRAGON_TESTS" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
@@ -96,6 +103,9 @@
 		};
 		F76C27BD2FDB8F6500B706F5 /* DRAGONWING */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				F76C27C52FDB955000B706F5 /* Exceptions for "DRAGONWING" folder in "DRAGON_TESTS" target */,
+			);
 			path = DRAGONWING;
 			sourceTree = "<group>";
 		};

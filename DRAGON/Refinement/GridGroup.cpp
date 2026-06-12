@@ -7,6 +7,7 @@
 
 #include "GridGroup.hpp"
 #include "CFL.hpp"
+#include "Dragon_Wing.hpp"
 
 using namespace Boundary;
 
@@ -73,7 +74,8 @@ void GridGroup2D::advance(double dt){
         dt -= t1;
         //Execute the Advancement
         for(int n=0; n<16; n++){
-            zones[n]->advance(t1,false);
+            DRARGONWING::launchParallel(zones[n].get(), t1);
         }
-    }    
+        DRARGONWING::synchronize();
+    }
 }
