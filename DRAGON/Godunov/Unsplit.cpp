@@ -14,19 +14,19 @@
 #include <iostream>
 
 //MARK: Split vs Unsplit
-void Grid2D::advance(double dt){
+void Grid2D::advance(double dt,bool check_cfl){
 #ifdef DimensionUnsplit
-    advance_unsplit(dt);
+    advance_unsplit(dt,check_cfl);
 #else
-    advance_split(dt);
+    advance_split(dt,check_cfl);
 #endif
 }
 
-void Grid3D::advance(double dt){
+void Grid3D::advance(double dt, bool check_cfl){
 #ifdef DimensionUnsplit
-    advance_unsplit(dt);
+    advance_unsplit(dt,check_cfl);
 #else
-    advance_split(dt);
+    advance_split(dt,check_cfl);
 #endif
 }
 
@@ -108,19 +108,19 @@ private:
 
 //MARK: CFL
 
-void Grid2D::advance_unsplit(double dt){
+void Grid2D::advance_unsplit(double dt, bool check_cfl){
     while(dt > Timestep_Tolerance){
         //CFL Time Constraint
-        double t1 = std::min(dt, CFL::cfl_time(*this));
+        double t1 = check_cfl ? std::min(dt,CFL::cfl_time(*this)) : dt;
         dt -= t1;
         //Advance
         advanceXY(t1);
     }
 }
-void Grid3D::advance_unsplit(double dt){
+void Grid3D::advance_unsplit(double dt, bool check_cfl){
     while(dt > Timestep_Tolerance){
         //CFL Time Constraint
-        double t1 = std::min(dt, CFL::cfl_time(*this));
+        double t1 = check_cfl ? std::min(dt,CFL::cfl_time(*this)) : dt;
         dt -= t1;
         //Advance
         advanceXYZ(t1);

@@ -48,6 +48,7 @@
 				Godunov/Math/TVD.cpp,
 				Godunov/Splitting.cpp,
 				Godunov/Unsplit.cpp,
+				Refinement/GridLink.cpp,
 				Riemann/Exact.cpp,
 				Riemann/Flux.cpp,
 				Riemann/HLL.cpp,
@@ -369,7 +370,7 @@
 				DEVELOPMENT_TEAM = UR2T3Z854C;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu23;
-				GCC_OPTIMIZATION_LEVEL = 3;
+				GCC_OPTIMIZATION_LEVEL = 0;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;

@@ -17,7 +17,7 @@ int main(int argc, const char * argv[]) {
     const double rho0 = 1.0;
     const double p_ambient = 0.1;
     const double p_blast   = 10.0;
-    const double r0 = 1;
+    const double r0 = 0.3;
     
     auto start = std::chrono::system_clock::now();
     
@@ -26,8 +26,8 @@ int main(int argc, const char * argv[]) {
             grid[i,j].rho = rho0;
             grid[i,j].vx = 0; grid[i,j].vy = 0; grid[i,j].vz = 0;
             
-            double x = (i + 0.5) * 0.1 - 5;
-            double y = (j + 0.5) * 0.1 - 5;
+            double x = (i + 0.5 - grid.getSizeX()/2) * grid.dx;
+            double y = (j + 0.5 - grid.getSizeY()/2) * grid.dy;
             double r = sqrt(x*x + y*y);
             grid[i,j].p = (r < r0) ? p_blast : p_ambient;
         }
@@ -41,7 +41,7 @@ int main(int argc, const char * argv[]) {
         //Time
         auto now = std::chrono::system_clock::now();
         std::chrono::duration<double> elapsed_seconds = now - start;
-        int h = floor(elapsed_seconds.count()/3600.0), m = floor((elapsed_seconds.count()-h*60.0)/60.0);
+        int h = floor(elapsed_seconds.count()/3600.0), m = floor((elapsed_seconds.count()-h*3600.0)/60.0);
         double s = round((elapsed_seconds.count() - h*3600 - m*60)*100)/100.0;
         std::cout << "Time: "<< h << "h "<< m <<"m " << s <<"s, ";
         

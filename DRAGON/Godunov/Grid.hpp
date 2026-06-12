@@ -20,7 +20,7 @@ struct Grid1D{
     Grid1D& operator=(const Grid1D&) = delete;
     
     //Advance forward in time
-    void advance(double dt);
+    void advance(double dt, bool check_cfl=true);
     void god_sweep(double dt, Grid1D& _L, Grid1D& _R);
 
     //Grid access
@@ -53,9 +53,9 @@ struct Grid2D{
     Boundary::BoundaryList boundary = Boundary::BoundaryList();
     
     //Advance Forward in time
-    void advance(double dt);
-    void advance_split(double dt);
-    void advance_unsplit(double dt);
+    void advance(double dt, bool check_cfl = true);
+    void advance_split(double dt, bool check_cfl = true);
+    void advance_unsplit(double dt, bool check_cfl = true);
 
 private:
     PrimitiveState* w;
@@ -83,9 +83,9 @@ struct Grid3D{
     Boundary::BoundaryList boundary = Boundary::BoundaryList();
     
     //Advance Forward in time
-    void advance(double dt);
-    void advance_split(double dt);
-    void advance_unsplit(double dt);
+    void advance(double dt, bool check_cfl = true);
+    void advance_split(double dt, bool check_cfl = true);
+    void advance_unsplit(double dt, bool check_cfl = true);
     
     
 private:

@@ -40,13 +40,14 @@ Grid1D::~Grid1D() { delete[] w; }
 
 //MARK: 1D Godunov Advance
 
-void Grid1D::advance(double dt){
+void Grid1D::advance(double dt, bool check_cfl){
     Grid1D _L(size,dx,ghosts), _R(size,dx,ghosts);//Buffer Grids
+    
     while(dt > Timestep_Tolerance){
         //Apply Boundary Conditions
         boundary.apply(*this);
         //CFL Time Constraint
-        double t1 = CFL::cfl_time(*this);
+        double t1 = check_cfl ? std::min(dt,CFL::cfl_time(*this)) : dt;
         if (t1 >= dt) t1 = dt;
         //Execute the Advancemtn
         god_sweep(t1,_L,_R);

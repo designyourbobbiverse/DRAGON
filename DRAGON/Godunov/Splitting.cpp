@@ -86,11 +86,12 @@ Grid3D::~Grid3D(){ delete[] w; }
 
 //MARK: 2D Split
 
-void Grid2D::advance_split(double dt){
+void Grid2D::advance_split(double dt, bool check_cfl){
     while(dt > Timestep_Tolerance){
         //CFL Time Constraint
-        double t1 = std::min(dt, CFL::cfl_time(*this));
+        double t1 = check_cfl ? std::min(dt,CFL::cfl_time(*this)) : dt;
         dt -= t1;
+        
 
         //Advance, alternating which step comes first
         if (sweep_step++ % 2 == 0) {
@@ -105,10 +106,10 @@ void Grid2D::advance_split(double dt){
     }
 }
 //MARK: 3D Split
-void Grid3D::advance_split(double dt){
+void Grid3D::advance_split(double dt, bool check_cfl){
     while(dt > Timestep_Tolerance){
         //CFL Time Constraint
-        double t1 = std::min(dt, CFL::cfl_time(*this));
+        double t1 = check_cfl ? std::min(dt,CFL::cfl_time(*this)) : dt;
         dt -= t1;
         //Advance, rotating step orders
         switch (sweep_step++ % 3) {
