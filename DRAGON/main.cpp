@@ -7,12 +7,12 @@
 #include <fstream>
 #include <chrono>
 
-#include "Grid.hpp"
+#include "GridGroup.hpp"
 
 int main(int argc, const char * argv[]) {
-    
-    Grid2D grid(1000, 1000, 0.01, 0.01);
-    grid.boundary = Boundary::Reflective();
+    double dx = 0.01, dy = 0.01;
+    GridGroup2D grid(1000, 1000, dx, dy);
+   // grid.boundary = Boundary::Reflective();
     
     const double rho0 = 1.0;
     const double p_ambient = 0.1;
@@ -26,8 +26,8 @@ int main(int argc, const char * argv[]) {
             grid[i,j].rho = rho0;
             grid[i,j].vx = 0; grid[i,j].vy = 0; grid[i,j].vz = 0;
             
-            double x = (i + 0.5 - grid.getSizeX()/2) * grid.dx;
-            double y = (j + 0.5 - grid.getSizeY()/2) * grid.dy;
+            double x = (i + 0.5 - grid.getSizeX()/2) * dx;
+            double y = (j + 0.5 - grid.getSizeY()/2) * dy;
             double r = sqrt(x*x + y*y);
             grid[i,j].p = (r < r0) ? p_blast : p_ambient;
         }
