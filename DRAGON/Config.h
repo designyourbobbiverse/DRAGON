@@ -43,14 +43,16 @@ constexpr double Timestep_Tolerance = 1e-14; //Timesteps smaller than this are t
 //MARK: MUSCL Reconstruction
 //Comment the following line to only use a first order Godunov scheme
 #define MUSCL_Hancock // van Leer (1979). https://doi.org/10.1016/0021-9991(79)90145-1
-
-
+        #define LIMITER_MINMOD 0
+        #define LIMITER_MC 1
+        #define LIMITER_VANLEER 2
+        #define LIMITER_SUPERBEE 3
+        #define LIMITER_VANALBADA 4
+    #define MUSCL_DEFAULT_LIMITER LIMITER_MINMOD
 
 //MARK: Multi-dimension
 #define DimensionUnsplit //Use an Unsplit advancement scheme for multidimensional flows
-//#define CTU //Corner Transport Upwind: Colella (1990). https://doi.org/10.1016/0021-9991(90)90233-Q
-
-
+    #define CTU //Corner Transport Upwind.  Colella (1990). https://doi.org/10.1016/0021-9991(90)90233-Q
 
 
 //MARK: Grid Operation
@@ -65,6 +67,9 @@ constexpr int bin_size = 250; //AMRGrid larger than this will split into child g
 namespace CONFIG{
 #if RIEMANN_DEFAULT_HYDRO == CHOOSE_RUNTIME
 extern int riemann_choice;
+#endif
+#if MUSCL_DEFAULT_LIMITER == CHOOSE_RUNTIME
+extern int limiter_choice;
 #endif
 #if CFL_CALCULATION == CHOOSE_RUNTIME || defined(TESTMODE)
 //If set to p>0,  CFL uses  speed = [ ((|vx|+a)/dx)^p + ((|vy|+a)/dy)^p +... ]^(1/p)

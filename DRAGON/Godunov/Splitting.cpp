@@ -113,7 +113,7 @@ void Grid3D::advance_split(double dt, bool check_cfl){
         double t1 = check_cfl ? std::min(dt,CFL::cfl_time(*this)) : dt;
         dt -= t1;
         //Advance, rotating step orders
-        switch (sweep_step++ % 3) {
+        switch (sweep_step++ % 6) {
         case 0:
             advanceX(t1/2);
             advanceY(t1/2);
@@ -122,18 +122,39 @@ void Grid3D::advance_split(double dt, bool check_cfl){
             advanceX(t1/2);
             break;
         case 1:
+            advanceZ(t1/2);
+            advanceX(t1/2);
+            advanceY(t1);
+            advanceX(t1/2);
+            advanceZ(t1/2);
+            break;
+        case 2:
             advanceY(t1/2);
             advanceZ(t1/2);
             advanceX(t1);
             advanceZ(t1/2);
             advanceY(t1/2);
             break;
-        case 2:
+        case 3:
             advanceZ(t1/2);
+            advanceY(t1/2);
+            advanceX(t1);
+            advanceY(t1/2);
+            advanceZ(t1/2);
+            break;
+        case 4:
             advanceX(t1/2);
+            advanceZ(t1/2);
             advanceY(t1);
-            advanceX(t1/2);
             advanceZ(t1/2);
+            advanceX(t1/2);
+            break;
+        case 5:
+            advanceY(t1/2);
+            advanceX(t1/2);
+            advanceZ(t1);
+            advanceX(t1/2);
+            advanceY(t1/2);
             break;
         }
     }

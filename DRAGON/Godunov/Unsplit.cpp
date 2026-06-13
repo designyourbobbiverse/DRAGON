@@ -15,6 +15,7 @@
 #include <cassert>
 #include <iostream>
 
+
 //MARK: Split vs Unsplit
 void Grid2D::advance(double dt,bool check_cfl){
 #ifdef DimensionUnsplit
@@ -360,6 +361,12 @@ void computeHalfStates_Z(Grid3D& _L, const Grid3D& _W, Grid3D& _R, double dt){
 }
 
 //MARK: CTU Corrections
+#ifdef CTU
+#ifndef MUSCL_Hancock
+#error CTU requires MUSCL reconstruction. Please enable MUSCL_Hancock in Config.h
+#endif
+#endif
+
 void correctState(Grid2D& _L, Grid2D& _R, const FluxGrid2D& F, double dt_dL, int xL, int xR, int yL, int yR, int dim){
     //dimension
     int isX = dim%2 == 0 ? 1 : 0;
