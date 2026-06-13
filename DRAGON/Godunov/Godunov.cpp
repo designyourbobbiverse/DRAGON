@@ -65,9 +65,8 @@ void Grid1D::god_sweep(double dt, Grid1D& _L, Grid1D& _R){
     }
     //Compute Fluxes
     ConservativeState fL, fR;
-    int g = ghosts > 1 ? 1 : 0;
-    fL = Riemann(_R[-1-g], _L[-g]).flux_X(dt/dx);
-    for(int i=-g; i<size+g; i++) {
+    fL = Riemann(_R[-ghosts], _L[-ghosts+1]).flux_X(dt/dx);
+    for(int i=-ghosts+1; i<size+ghosts-1; i++) {
         fR = Riemann(_R[i], _L[i+1]).flux_X(dt/dx);
         (*this)[i] += (fL - fR) * (dt/dx);
         fL = fR; //Right flux on this cell must equal Left flux on next cell

@@ -9,7 +9,12 @@
 
 #include "AMRGrid.hpp"
 
-int main(int argc, const char * argv[]) {    
+#ifdef TESTMODE
+#error Test mode was enabled, check your build settings
+#endif
+
+
+int main(int argc, const char * argv[]) {
     double dx = 0.01, dy = 0.01;
     AMRGrid2D grid(1000, 1000, dx, dy);
     grid.boundary = Boundary::Reflective();
