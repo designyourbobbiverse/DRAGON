@@ -43,6 +43,8 @@ struct ConservativeState {
     ConservativeState swapYZ() const;
     
     bool isPhysical() const;
+    bool isFinite() const;
+
 
 };
 

@@ -35,9 +35,9 @@ struct Riemann{
     
     //Computes the flux using whatever method was selected in Constants.h
     ConservativeState flux();
-    ConservativeState flux_X();
-    ConservativeState flux_Y();
-    ConservativeState flux_Z();
+    ConservativeState flux_X(double dt_dx = 0);
+    ConservativeState flux_Y(double dt_dy = 0);
+    ConservativeState flux_Z(double dt_dz = 0);
 
     
 //MARK: Exact Riemann Solvers

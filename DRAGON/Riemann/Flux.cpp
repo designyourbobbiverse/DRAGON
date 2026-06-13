@@ -14,7 +14,7 @@
 //MARK: Selected Flux algorithm
 //Make sure to set RIEMANN_DEFAULT in Constants.h
 ConservativeState Riemann::flux(){
-#if RIEMANN_DEFAULT == RIEMANN_EXACT || defined TEST_MODE
+#if RIEMANN_DEFAULT == RIEMANN_EXACT || defined(TEST_MODE)
     return exact().flux();
 #elif RIEMANN_DEFAULT == RIEMANN_HLL
     return HLL();
@@ -38,10 +38,18 @@ namespace CONFIG {
 }
 #endif
 
-//MARK: Dimension Convenience
-ConservativeState Riemann::flux_X(){ return flux(); }
-ConservativeState Riemann::flux_Y(){ return Riemann(L.swapXY(),R.swapXY()).flux().swapXY(); }
-ConservativeState Riemann::flux_Z(){ return Riemann(L.swapXZ(),R.swapXZ()).flux().swapXZ(); }
+//MARK: Dimension Convenience + Error Checking
+ConservativeState Riemann::flux_X(double dt_dx){
+    auto f = flux();
+    #if RIEMANN_DEFAULT != RIEMANN_EXACT
+    if(dt_dx > 0 && (!(L - f*dt_dx).isPhysical() ||  !(R+f*dt_dx).isPhysical())){
+        f = exact().flux();
+    }
+    #endif
+    return flux();
+}
+ConservativeState Riemann::flux_Y(double dt_dy){  return Riemann(L.swapXY(),R.swapXY()).flux_X(dt_dy).swapXY(); }
+ConservativeState Riemann::flux_Z(double dt_dz){  return Riemann(L.swapXZ(),R.swapXZ()).flux_X(dt_dz).swapXZ(); }
 
 
 //MARK: Solution Sampling

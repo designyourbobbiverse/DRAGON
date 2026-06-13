@@ -8,7 +8,7 @@
 #ifndef Config_h
 #define Config_h
 
-#define TESTMODE
+//#define TESTMODE
 
 //MARK: Algorithm Choices
 #define CHOOSE_RUNTIME -1
@@ -21,7 +21,7 @@
     #define RIEMANN_ROE 3
         // Comment the following line to skip the Harten-Hyman Entropy Fix when using the Roe solver
         #define Harten_Hyman // If not using Roe, this line does nothing
-#define RIEMANN_DEFAULT HLLC
+#define RIEMANN_DEFAULT RIEMANN_HLLC
 
 //CFL Limit Calculation
     #define CFL_ADD 1 //Adds the speeds for dimension together

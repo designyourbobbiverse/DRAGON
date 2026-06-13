@@ -66,9 +66,11 @@ bool PrimitiveState::isPhysical() const {
     return isfinite(rho) && isfinite(vx)  && isfinite(vy)  && isfinite(vz)  && isfinite(p)   && rho > 0.0 && p > 0.0;
 }
 bool ConservativeState::isPhysical()  const {
-    return isfinite(rho) && isfinite(px)  && isfinite(py)  && isfinite(pz)  && isfinite(E)   && rho > 0.0 && E > 0.0;
+    return isfinite(rho) && isfinite(px)  && isfinite(py)  && isfinite(pz)  && isfinite(E)   && rho > 0.0 && pressure() > 0.0;
 }
-
+bool ConservativeState::isFinite()  const {
+    return isfinite(rho) && isfinite(px)  && isfinite(py)  && isfinite(pz)  && isfinite(E);
+}
 
 
 //MARK: Flux
