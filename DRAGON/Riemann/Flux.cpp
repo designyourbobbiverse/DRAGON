@@ -12,7 +12,7 @@
 
 
 //MARK: Selected Flux algorithm
-#if RIEMANN_DEFAULT_HYDRO == CHOOSE_RUNTIME
+#if RIEMANN_DEFAULT_HYDRO == CHOOSE_RUNTIME || defined(TESTMODE)
 namespace CONFIG {
     int riemann_choice = RIEMANN_EXACT;
 }
@@ -20,7 +20,15 @@ namespace CONFIG {
 
 //Make sure to set RIEMANN_DEFAULT in Config.h
 ConservativeState Riemann::flux(double dt_dx){
-#if RIEMANN_DEFAULT_HYDRO == RIEMANN_EXACT || defined(TEST_MODE)
+#if RIEMANN_DEFAULT_HYDRO == CHOOSE_RUNTIME || defined(TESTMODE)
+    ConservativeState flux;
+    switch (CONFIG::riemann_choice){
+        case RIEMANN_HLL: flux =  HLL(); break;
+        case RIEMANN_HLLC: flux =  HLLC(); break;
+        case RIEMANN_ROE: flux =  Roe(); break;
+        default: flux = exact().flux();
+    }
+#elif RIEMANN_DEFAULT_HYDRO == RIEMANN_EXACT
     auto flux = exact().flux();
 #elif RIEMANN_DEFAULT_HYDRO == RIEMANN_HLL
     auto flux =  HLL();
@@ -28,13 +36,6 @@ ConservativeState Riemann::flux(double dt_dx){
     auto flux =  HLLC();
 #elif RIEMANN_DEFAULT_HYDRO == RIEMANN_ROE
     auto flux =  Roe();
-#elif RIEMANN_DEFAULT_HYDRO == CHOOSE_RUNTIME
-    switch (CONFIG::riemann_choice){
-        case RIEMANN_HLL: auto flux =  HLL(); break;
-        case RIEMANN_HLLC: auto flux =  HLLC(); break;
-        case RIEMANN_ROE: auto flux =  Roe(); break;
-        default: auto flux = exact().flux();
-    }
 #endif
 //MARK: Fallback to Exact
 #if RIEMANN_DEFAULT_HYDRO != RIEMANN_EXACT //Verify physicality, fallback to exact if needed

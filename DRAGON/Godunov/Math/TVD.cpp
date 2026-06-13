@@ -27,22 +27,22 @@ void TVD::MUSCL(const PrimitiveState& wL, PrimitiveState& _L, const PrimitiveSta
     
     if(_L.isPhysical() && _R.isPhysical() ) return; //Check to make sure this is physical, fallback to First order if not
 #endif
+    //First order version if MUSCL is disabled or didn't work.
     _L = wC;
     _R = wC;
 }
 
 
 //MARK: Limiter Selection
+
+#if MUSCL_DEFAULT_LIMITER == CHOOSE_RUNTIME || defined(TESTMODE)
+namespace CONFIG {
+    int limiter_choice = LIMITER_MINMOD;
+}
+#endif
+
 PrimitiveState TVD::limit(const PrimitiveState& a, const PrimitiveState& b) {
-#if MUSCL_DEFAULT_LIMITER == LIMITER_MINMOD
-    return TVD::minmod(a, b);
-#elif MUSCL_DEFAULT_LIMITER == LIMITER_MC
-    return TVD::MC(a, b);
-#elif MUSCL_DEFAULT_LIMITER == LIMITER_VANLEER
-    return TVD::vanLeer(a, b);
-#elif MUSCL_DEFAULT_LIMITER == LIMITER_SUPERBEE
-    return TVD::superbee(a, b);
-#elif MUSCL_DEFAULT_LIMITER == CHOOSE_RUNTIME
+#if MUSCL_DEFAULT_LIMITER == CHOOSE_RUNTIME || defined(TESTMODE)
     switch(CONFIG::limiter_choice){
         case LIMITER_MINMOD: return TVD::minmod(a, b);
         case LIMITER_MC: return TVD::MC(a,b);
@@ -51,6 +51,14 @@ PrimitiveState TVD::limit(const PrimitiveState& a, const PrimitiveState& b) {
         case LIMITER_VANALBADA: return TVD::vanAlbada(a, b);
         default: return TVD::minmod(a, b);
     }
+#elif MUSCL_DEFAULT_LIMITER == LIMITER_MINMOD
+    return TVD::minmod(a, b);
+#elif MUSCL_DEFAULT_LIMITER == LIMITER_MC
+    return TVD::MC(a, b);
+#elif MUSCL_DEFAULT_LIMITER == LIMITER_VANLEER
+    return TVD::vanLeer(a, b);
+#elif MUSCL_DEFAULT_LIMITER == LIMITER_SUPERBEE
+    return TVD::superbee(a, b);
 #endif
 }
 

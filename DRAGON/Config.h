@@ -8,8 +8,6 @@
 #ifndef Config_h
 #define Config_h
 
-//#define TESTMODE
-
 #define CHOOSE_RUNTIME -1
 
 //MARK: Riemann Solver
@@ -65,10 +63,10 @@ constexpr int bin_size = 250; //AMRGrid larger than this will split into child g
 
 //MARK: Choose at Runtime
 namespace CONFIG{
-#if RIEMANN_DEFAULT_HYDRO == CHOOSE_RUNTIME
+#if RIEMANN_DEFAULT_HYDRO == CHOOSE_RUNTIME || defined(TESTMODE)
 extern int riemann_choice;
 #endif
-#if MUSCL_DEFAULT_LIMITER == CHOOSE_RUNTIME
+#if MUSCL_DEFAULT_LIMITER == CHOOSE_RUNTIME || defined(TESTMODE)
 extern int limiter_choice;
 #endif
 #if CFL_CALCULATION == CHOOSE_RUNTIME || defined(TESTMODE)
