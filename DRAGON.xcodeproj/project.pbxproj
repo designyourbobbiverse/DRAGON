@@ -45,6 +45,7 @@
 			membershipExceptions = (
 				Boundary/Facemask.cpp,
 				Boundary/Fixed.cpp,
+				Boundary/Ignore.cpp,
 				Boundary/Outflow.cpp,
 				Boundary/Periodic.cpp,
 				Boundary/Reflective.cpp,
@@ -55,8 +56,10 @@
 				Godunov/Math/TVD.cpp,
 				Godunov/Splitting.cpp,
 				Godunov/Unsplit.cpp,
-				Refinement/GridGroup.cpp,
-				Refinement/GridLink.cpp,
+				Refinement/AMRGrid.cpp,
+				"Refinement/Old Attempts/GridGroup.cpp",
+				"Refinement/Old Attempts/GridLink.cpp",
+				"Refinement/Old Attempts/ParentGridFill.cpp",
 				Riemann/Exact.cpp,
 				Riemann/Flux.cpp,
 				Riemann/HLL.cpp,
@@ -415,7 +418,7 @@
 				DEVELOPMENT_TEAM = UR2T3Z854C;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu23;
-				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_OPTIMIZATION_LEVEL = 3;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;

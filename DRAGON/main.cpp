@@ -7,12 +7,12 @@
 #include <fstream>
 #include <chrono>
 
-#include "GridGroup.hpp"
+#include "AMRGrid.hpp"
 
 int main(int argc, const char * argv[]) {
     double dx = 0.01, dy = 0.01;
-    GridGroup2D grid(1000, 1000, dx, dy);
-   // grid.boundary = Boundary::Reflective();
+    AMRGrid2D grid(1000, 1000, dx, dy);
+    grid.boundary = Boundary::Reflective();
     
     const double rho0 = 1.0;
     const double p_ambient = 0.1;
@@ -33,10 +33,10 @@ int main(int argc, const char * argv[]) {
         }
     }
    
-    for(int n = 0; n<1000; n++){
+    for(int n = 0; n<10000; n++){
         if(n>0) grid.advance(0.01);
         
-        auto numStr = std::string(n<100 ? "0" : "") + std::string(n<10 ? "0" : "") +  std::to_string(n);
+        auto numStr = std::string(n<1000 ? "0" : "") + std::string(n<100 ? "0" : "") + std::string(n<10 ? "0" : "") +  std::to_string(n);
         std::cout<<"Frame "<<numStr<<" computed, ";
         //Time
         auto now = std::chrono::system_clock::now();

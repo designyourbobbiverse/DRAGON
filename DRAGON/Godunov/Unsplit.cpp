@@ -135,8 +135,8 @@ void computeHalfStates_Y( Grid2D& _L,const Grid2D& _W, Grid2D& _R, double dt);
 void correctState(Grid2D& _L, Grid2D& _R, const FluxGrid2D& F, double dt_dL, int xL, int xR, int yL, int yR, int dim);
 
 void Grid2D::advanceXY(double dt){
-    Grid2D _xL(nx,ny,dx,dy), _xR(nx,ny,dx,dy);//x Half States
-    Grid2D _yL(nx,ny,dx,dy), _yR(nx,ny,dx,dy);//y Half States
+    Grid2D _xL(nx,ny,dx,dy,ghosts), _xR(nx,ny,dx,dy,ghosts);//x Half States
+    Grid2D _yL(nx,ny,dx,dy,ghosts), _yR(nx,ny,dx,dy,ghosts);//y Half States
     FluxGrid2D F_X(nx,ny,1), F_Y(nx,ny,1); //Fluxes
     
     boundary.apply(*this);
@@ -175,9 +175,9 @@ void computeHalfStates_Z(Grid3D& _L, const Grid3D& _W, Grid3D& _R, double dt);
 void correctState(const Grid3D& _L0, const Grid3D& _R0, Grid3D& _L, Grid3D& _R, const FluxGrid3D& F, double dt_dL, int xL, int xR, int yL, int yR, int zL, int zR, int dim);
 
 void Grid3D::advanceXYZ(double dt){
-    Grid3D _xL(nx,ny,nz,dx,dy,dz), _xR(nx,ny,nz,dx,dy,dz);
-    Grid3D _yL(nx,ny,nz,dx,dy,dz), _yR(nx,ny,nz,dx,dy,dz);
-    Grid3D _zL(nx,ny,nz,dx,dy,dz), _zR(nx,ny,nz,dx,dy,dz);
+    Grid3D _xL(nx,ny,nz,dx,dy,dz,ghosts), _xR(nx,ny,nz,dx,dy,dz,ghosts);
+    Grid3D _yL(nx,ny,nz,dx,dy,dz,ghosts), _yR(nx,ny,nz,dx,dy,dz,ghosts);
+    Grid3D _zL(nx,ny,nz,dx,dy,dz,ghosts), _zR(nx,ny,nz,dx,dy,dz,ghosts);
     FluxGrid3D F_X(nx, ny,nz,1), F_Y(nx,ny,nz,1), F_Z(nx,ny,nz,1);
     
     boundary.apply(*this);

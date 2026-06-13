@@ -105,6 +105,18 @@ public:
     void apply(Grid3D& grid) override;
 };
 
+class Ignore : public GhostFill {
+public:
+    Ignore(std::string faces, bool corner_ghosts = true);
+    Ignore(int faces = X|Y|Z, bool corner_ghosts = true);
+    
+    void apply(Grid1D& grid) override;
+    void apply(Grid2D& grid) override;
+    void apply(Grid3D& grid) override;
+};
+
+
+
 }
 
 

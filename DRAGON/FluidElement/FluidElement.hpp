@@ -48,6 +48,10 @@ struct ConservativeState {
 
 
 
+bool operator==(const PrimitiveState &X, const PrimitiveState &Y);
+bool operator==(const ConservativeState &X, const ConservativeState &Y);
+
+
 //Arithmetic (+): Add two states together
 ConservativeState operator+(ConservativeState X, const ConservativeState &Y);
 ConservativeState& operator+=(ConservativeState &X, const ConservativeState &Y);

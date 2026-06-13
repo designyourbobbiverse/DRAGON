@@ -7,7 +7,7 @@
 
 #include "GridGroup.hpp"
 #include "CFL.hpp"
-#include "Dragon_Wing.hpp"
+#include "DragonWing.hpp"
 
 using namespace Boundary;
 
@@ -37,8 +37,8 @@ void GridGroup2D::reloadLinks(){
     }
     for(int i = 0; i<3; i++){
         for(int j = 0; j<4; j++){
-            (*zones[4*i+j]).boundary += GridLink(zones[4*i+j+4].get(), X_positive);
-            (*zones[4*i+j+4]).boundary += GridLink(zones[4*i+j].get(), X_negative);
+            (*zones[4*i+j]).boundary += GridLink(zones[4*(i+1)+j].get(), X_positive);
+            (*zones[4*(i+1)+j]).boundary += GridLink(zones[4*i+j].get(), X_negative);
         }
     }
 }
@@ -46,13 +46,13 @@ void GridGroup2D::reloadLinks(){
 
 //MARK: Grid Access
 PrimitiveState& GridGroup2D::operator[](int i, int j) {
-    int znx =  (*zones[0]).getSizeX(), zny =  (*zones[0]).getSizeX();
+    int znx =  zones[0]->getSizeX(), zny =  zones[0]->getSizeX();
     int _i = i % znx, zi = i/znx;
     int _j = j % zny, zj = j/zny;
     return (*zones[4*zi + zj])[_i,_j];
 }
 const PrimitiveState& GridGroup2D::operator[](int i, int j) const {
-    int znx =  (*zones[0]).getSizeX(), zny =  (*zones[0]).getSizeX();
+    int znx =  zones[0]->getSizeX(), zny =  zones[0]->getSizeX();
     int _i = i % znx, zi = i/znx;
     int _j = j % zny, zj = j/zny;
     return (*zones[4*zi + zj])[_i,_j];
@@ -74,7 +74,7 @@ void GridGroup2D::advance(double dt){
         dt -= t1;
         //Execute the Advancement
         for(int n=0; n<16; n++){
-            DRARGONWING::launchParallel(zones[n].get(), t1);
+            //DRARGONWING::launchParallel(zones[n].get(), t1);
         }
         DRARGONWING::synchronize();
     }

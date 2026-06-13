@@ -23,7 +23,6 @@ public:
     }
     
     BoundaryList(const BoundaryList&) = delete;
-    BoundaryList& operator=(const BoundaryList&) = delete;
     BoundaryList(BoundaryList&&) noexcept = default;
     BoundaryList& operator=(BoundaryList&&) noexcept = default;
     template<BoundaryElement B> BoundaryList& operator=(B&& b) {
@@ -31,6 +30,7 @@ public:
         append(std::forward<B>(b));
         return *this;
     }
+
     
 //MARK: Append
     template<BoundaryElement B> void append(B&& b) {
@@ -114,6 +114,5 @@ private:
         return lhs;
     }
     
-
     
 }

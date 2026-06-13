@@ -5,15 +5,15 @@
 //  Created by Bobbie Markwick on 11/06/2026.
 //
 
-#include "Dragon_Wing.hpp"
+#include "DragonWing.hpp"
 #include <pthread.h>
 #include <iostream>
 #include <deque>
-#include "Grid.hpp"
+#include "AMRGrid.hpp"
 
 namespace DRARGONWING{
     struct ThreadArgs_Grid2D {
-        Grid2D* grid;
+        AMRGrid2D* grid;
         double dt;
     };
 
@@ -28,7 +28,7 @@ namespace DRARGONWING{
 
 }
 
-void* DRARGONWING::launchParallel(Grid2D* grid, double dt){
+void* DRARGONWING::launchParallel(AMRGrid2D* grid, double dt){
     args.push_back({grid,dt});
     pthread_t thread;
 

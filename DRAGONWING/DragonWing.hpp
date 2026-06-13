@@ -5,9 +5,15 @@
 //  Created by Bobbie Markwick on 11/06/2026.
 //
 
-class Grid2D;
+#ifndef DRAGONWING
+#define DRAGONWING
+
+class AMRGrid2D;
 
 namespace DRARGONWING{
-    void* launchParallel(Grid2D* grid, double dt);
+    void* launchParallel(AMRGrid2D* grid, double dt);
     void synchronize(void* thread = nullptr);
 }
+
+
+#endif

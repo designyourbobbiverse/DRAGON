@@ -8,7 +8,7 @@
 #ifndef Config_h
 #define Config_h
 
-//#define TESTMODE
+#define TESTMODE
 
 //MARK: Algorithm Choices
 #define CHOOSE_RUNTIME -1
@@ -56,6 +56,9 @@ extern int cfl_choice;
 }
 
 //MARK: Numerical Parameters
+
+constexpr int bin_size = 125;
+
 constexpr double CFL_coeff = 0.3;
 constexpr double Timestep_Tolerance = 1e-14;
 

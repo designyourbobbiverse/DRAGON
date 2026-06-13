@@ -39,25 +39,25 @@ GridLink::GridLink(Grid3D* grid_, int face): GhostFill(face, true), ref3D(grid_)
 
 void GridLink::apply(Grid1D& target){
     int nx = target.getSize();
-    size_t g = target.getGhosts();
+    int g = target.getGhosts();
     if(g != ghosts1D.size()) {
         reload1D();
-        if(g > ghosts1D.size()) g = ghosts1D.size();
+        if(g > ghosts1D.size()) g = static_cast<int>(ghosts1D.size());
     }
     
     if(faces & Boundary::X_negative) {
-        for(int i=0; i<g; i++) target[-1-i] = ghosts1D[i];
+        for(int i=0; i < g; i++) target[-1-i] = ghosts1D[i];
     }
     if(faces & Boundary::X_positive) {
-        for(int i=0; i< g; i++) target[nx+i] = ghosts1D[i];
+        for(int i=0; i < g; i++) target[nx+i] = ghosts1D[i];
     }
 }
 void GridLink::apply(Grid2D& target){
     int nx = target.getSizeX(), ny = target.getSizeY();
-    size_t g = target.getGhosts();
+    int g = target.getGhosts();
     if(g != ghosts2D.size()) {
         reload2D();
-        if(g > ghosts2D.size()) g = ghosts2D.size();
+        if(g > ghosts2D.size()) g =  static_cast<int>(ghosts2D.size());
     }
     if(faces & Boundary::X_negative) {
         for(int i=0; i< g; i++){
@@ -65,21 +65,23 @@ void GridLink::apply(Grid2D& target){
                 target[-1-i,j] = ghosts2D[i][j+g];
             }
         }
-           
-    } else if(faces & Boundary::X_positive) {
+    }
+    if(faces & Boundary::X_positive) {
         for(int i=0; i<g; i++){
             for(int j=-g; j<ny+g; j++){
                 target[nx+i,j] = ghosts2D[i][j+g];
             }
         }
-    } else if(faces & Boundary::Y_negative) {
+    }
+    if(faces & Boundary::Y_negative) {
         for(int j=0; j< g; j++){
             for(int i=-g; i<nx+g; i++){
                 target[i,-1-j] = ghosts2D[j][i+g];
             }
         }
            
-    } else if(faces & Boundary::Y_positive) {
+    }
+    if(faces & Boundary::Y_positive) {
         for(int j=0; j< g; j++){
             for(int i=-g; i<nx+g; i++){
                 target[i, ny+j] = ghosts2D[j][i+g];
@@ -91,10 +93,10 @@ void GridLink::apply(Grid2D& target){
 }
 void GridLink::apply(Grid3D& target) {
     int nx = target.getSizeX(), ny = target.getSizeY(), nz = target.getSizeY();
-    size_t g = target.getGhosts();
+    int g = target.getGhosts();
     if(g != ghosts3D.size()) {
         reload3D();
-        if(g > ghosts3D.size()) g = ghosts3D.size();
+        if(g > ghosts3D.size()) g = static_cast<int>(ghosts3D.size());
     }
     if(faces & Boundary::X_negative) {
         for(int i=0; i< g; i++){
@@ -105,7 +107,8 @@ void GridLink::apply(Grid3D& target) {
             }
         }
            
-    } else if(faces & Boundary::X_positive) {
+    }
+    if(faces & Boundary::X_positive) {
         for(int i=0; i<g; i++){
             for(int j=-g; j<ny+g; j++){
                 for(int k=-g; k<nz+g; k++){
@@ -113,7 +116,8 @@ void GridLink::apply(Grid3D& target) {
                 }
             }
         }
-    } else if(faces & Boundary::Y_negative) {
+    }
+    if(faces & Boundary::Y_negative) {
         for(int j=0; j< g; j++){
             for(int i=-g; i<nx+g; i++){
                 for(int k=-g; k<nz+g; k++){
@@ -122,7 +126,8 @@ void GridLink::apply(Grid3D& target) {
             }
         }
            
-    } else if(faces & Boundary::Y_positive) {
+    }
+    if(faces & Boundary::Y_positive) {
         for(int j=0; j< g; j++){
             for(int i=-g; i<nx+g; i++){
                 for(int k=-g; k<nz+g; k++){
@@ -130,7 +135,8 @@ void GridLink::apply(Grid3D& target) {
                 }
             }
         }
-    } else if(faces & Boundary::Z_negative) {
+    }
+    if(faces & Boundary::Z_negative) {
         for(int k=0; k< g; k++){
             for(int i=-g; i<nx+g; i++){
                 for(int j=-g; j<ny+g; j++){
@@ -139,7 +145,8 @@ void GridLink::apply(Grid3D& target) {
             }
         }
            
-    } else if(faces & Boundary::Y_positive) {
+    }
+    if(faces & Boundary::Y_positive) {
         for(int k=0; k< g; k++){
             for(int i=-g; i<nx+g; i++){
                 for(int j=-g; j<ny+g; j++){
