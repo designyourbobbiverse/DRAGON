@@ -3,6 +3,8 @@
 //  DRAGON
 //
 //  Created by Bobbie Markwick on 10/06/2026.
+//  Implementation based in part on  Toro (2009). https://doi.org/10.1007/b79761
+//      Colella (1990). https://doi.org/10.1016/0021-9991(90)90233-Q
 //
 
 #include "Grid.hpp"
@@ -144,7 +146,7 @@ void Grid2D::advanceXY(double dt){
     //Compute Half States
     computeHalfStates_X(_xL, (*this), _xR, dt);//_xLR needs (-1...nx, -1...ny)
     computeHalfStates_Y(_yL, (*this), _yR, dt);//_yLR needs (-1...nx, -1...ny)
-#ifdef CTU
+#ifdef CTU //Colella (1990). https://doi.org/10.1016/0021-9991(90)90233-Q
     //Compute preliminary Fluxes
     computeFlux_X(_xL, _xR, F_X, 0, nx, -1, ny+1, dt/dx);  //F_X needs (0...nx, -1...ny)
     computeFlux_Y(_yL, _yR, F_Y, -1, nx+1, 0, ny, dt/dy);  //F_Y needs (-1...nx, 0...ny)
@@ -186,7 +188,7 @@ void Grid3D::advanceXYZ(double dt){
     computeHalfStates_X(_xL, (*this), _xR, dt);
     computeHalfStates_Y(_yL, (*this), _yR, dt);
     computeHalfStates_Z(_zL, (*this), _zR, dt);
-#ifdef CTU
+#ifdef CTU //Colella (1990). https://doi.org/10.1016/0021-9991(90)90233-Q
     //Compute Face Fluxes
     computeFlux_X(_xL, _xR, F_X, 0, nx, -1, ny+1, -1, nz+1, dt/dx); //F_X needs (0...nx, -1...ny, -1...nz)
     computeFlux_Y(_yL, _yR, F_Y, -1, nx+1, 0, ny, -1, nz+1, dt/dy); //F_Y needs (-1...nx, 0...ny, -1...nz)

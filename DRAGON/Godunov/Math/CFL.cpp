@@ -3,7 +3,10 @@
 //  DRAGON
 //
 //  Created by Bobbie Markwick on 09/06/2026.
+//  Implementation based in part on Toro (2009). https://doi.org/10.1007/b79761
+//      Courant, Friedrichs, and Lewy (1928). https://doi.org/10.1007/BF01448839
 //
+
 #include "CFL.hpp"
 #include "Config.h"
 #include "Constants.h"

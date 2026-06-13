@@ -3,7 +3,12 @@
 //  DRAGON
 //
 //  Created by Bobbie Markwick on 29/04/2026.
+//  Implementation based mostly on Toro (2009). https://doi.org/10.1007/b79761
+//      Roe (1981). https://doi.org/10.1016/0021-9991(81)90128-5
+//      Roe & Pike (1984). Computing Methods in Applied Sciences and Engineering VI, pp. 499–518.
+//      Harten and Hyman (1983). https://doi.org/10.1016/0021-9991(83)90066-9
 //
+
 #include "Riemann.hpp"
 #include <math.h>
 #include "Constants.h"

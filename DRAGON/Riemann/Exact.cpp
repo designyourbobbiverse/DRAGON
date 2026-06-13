@@ -3,6 +3,7 @@
 //  DRAGON
 //
 //  Created by Bobbie Markwick on 28/04/2026.
+//  Based mostly on Toro (2009). https://doi.org/10.1007/b79761
 //
 
 #include "Riemann.hpp"

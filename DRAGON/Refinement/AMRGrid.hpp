@@ -1,6 +1,7 @@
 //
 //  AMRGrid.hpp
 //  DRAGON
+//  User-Facing Header file
 //
 //  Created by Bobbie Markwick on 12/06/2026.
 //

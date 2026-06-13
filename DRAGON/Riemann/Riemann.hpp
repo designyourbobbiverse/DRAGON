@@ -1,8 +1,9 @@
 //
 //  Riemann.hpp
-//  Hydro Code
+//  DRAGON
 //
 //  Created by Bobbie Markwick on 28/04/2026.
+//  Based mostly on Toro (2009). https://doi.org/10.1007/b79761
 //
 
 #ifndef Riemann_hpp
@@ -22,7 +23,11 @@
  Riemann(wL,wR).HLLC()
  Riemann(wL,wR).HLLC(SL,SR)
  Riemann(wL,wR).Roe()
-  
+ 
+ To use the pre-selected solver, use
+ Riemann(wL,wR).flux()
+ or
+ Riemann(wL,wR).flux(dt/dx) //does a safety check, pivot to exact on failure
  */
 
 struct Riemann;
@@ -33,8 +38,9 @@ struct Riemann{
     Riemann(PrimitiveState L, PrimitiveState R);
 
     
-    //Computes the flux using whatever method was selected in Constants.h
-    ConservativeState flux();
+    //Computes the flux using whatever method was selected in Config.h
+    //dt_dx is an optional parameter. If set, verifies physicality of solution, pivoting to exact().flux() on failure
+    ConservativeState flux(double dt_dx = 0);
     ConservativeState flux_X(double dt_dx = 0);
     ConservativeState flux_Y(double dt_dy = 0);
     ConservativeState flux_Z(double dt_dz = 0);
@@ -51,13 +57,13 @@ struct Riemann{
     double exact_StarRho(PrimitiveState L, double pStar);
 
 //MARK: HLL/HLLC
-    ConservativeState HLL();
+    ConservativeState HLL(); // Harten, Lax, & van Leer (1983). https://doi.org/10.1137/1025002
     ConservativeState HLL(double SL, double SR);
-    ConservativeState HLLC();
+    ConservativeState HLLC(); // Toro, Spruce, & Speares (1994). https://doi.org/10.1007/BF01414629
     ConservativeState HLLC(double SL, double SR);
 
 //MARK: Roe
-    ConservativeState Roe();
+    ConservativeState Roe(); // Roe (1981). https://doi.org/10.1016/0021-9991(81)90128-5
 
     
 private:

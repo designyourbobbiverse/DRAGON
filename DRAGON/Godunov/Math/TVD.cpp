@@ -3,7 +3,10 @@
 //  DRAGON
 //
 //  Created by Bobbie Markwick on 10/06/2026.
+//  Implementation based mostly on Toro (2009). https://doi.org/10.1007/b79761
+//      van Leer (1979). https://doi.org/10.1016/0021-9991(79)90145-1
 //
+
 #include "TVD.hpp"
 #include <math.h>
 #include "Config.h"

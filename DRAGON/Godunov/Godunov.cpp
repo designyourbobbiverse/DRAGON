@@ -3,6 +3,8 @@
 //  DRAGON
 //
 //  Created by Bobbie Markwick on 12/05/2026.
+//  Implementation based mostly on Toro (2009). https://doi.org/10.1007/b79761
+//      Godunov (1959). Mat. Sb. 47(89):3, 271–306. https://www.mathnet.ru/eng/sm4873
 //
 
 #include "Grid.hpp"

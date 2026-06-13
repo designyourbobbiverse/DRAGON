@@ -12,47 +12,54 @@
 
 
 //MARK: Selected Flux algorithm
-//Make sure to set RIEMANN_DEFAULT in Constants.h
-ConservativeState Riemann::flux(){
-#if RIEMANN_DEFAULT == RIEMANN_EXACT || defined(TEST_MODE)
-    return exact().flux();
-#elif RIEMANN_DEFAULT == RIEMANN_HLL
-    return HLL();
-#elif RIEMANN_DEFAULT == RIEMANN_HLLC
-    return HLLC();
-#elif RIEMANN_DEFAULT == RIEMANN_ROE
-    return Roe();
-#elif RIEMANN_DEFAULT == CHOOSE_RUNTIME
-    switch (CONFIG::riemann_choice){
-        case RIEMANN_HLL: return HLL();
-        case RIEMANN_HLLC: return HLLC();
-        case RIEMANN_ROE: return Roe();
-        default: return exact().flux();
-    }
-#endif
-}
-
-#if RIEMANN_DEFAULT == CHOOSE_RUNTIME
+#if RIEMANN_DEFAULT_HYDRO == CHOOSE_RUNTIME
 namespace CONFIG {
     int riemann_choice = RIEMANN_EXACT;
 }
 #endif
 
-//MARK: Dimension Convenience + Error Checking
-ConservativeState Riemann::flux_X(double dt_dx){
-    auto f = flux();
-    #if RIEMANN_DEFAULT != RIEMANN_EXACT
-    if(dt_dx > 0 && (!(L - f*dt_dx).isPhysical() ||  !(R+f*dt_dx).isPhysical())){
-        f = exact().flux();
+//Make sure to set RIEMANN_DEFAULT in Config.h
+ConservativeState Riemann::flux(double dt_dx){
+#if RIEMANN_DEFAULT_HYDRO == RIEMANN_EXACT || defined(TEST_MODE)
+    auto flux = exact().flux();
+#elif RIEMANN_DEFAULT_HYDRO == RIEMANN_HLL
+    auto flux =  HLL();
+#elif RIEMANN_DEFAULT_HYDRO == RIEMANN_HLLC
+    auto flux =  HLLC();
+#elif RIEMANN_DEFAULT_HYDRO == RIEMANN_ROE
+    auto flux =  Roe();
+#elif RIEMANN_DEFAULT_HYDRO == CHOOSE_RUNTIME
+    switch (CONFIG::riemann_choice){
+        case RIEMANN_HLL: auto flux =  HLL(); break;
+        case RIEMANN_HLLC: auto flux =  HLLC(); break;
+        case RIEMANN_ROE: auto flux =  Roe(); break;
+        default: auto flux = exact().flux();
     }
-    #endif
-    return flux();
+#endif
+//MARK: Fallback to Exact
+#if RIEMANN_DEFAULT_HYDRO != RIEMANN_EXACT //Verify physicality, fallback to exact if needed
+    if(dt_dx == 0) return flux;
+    dt_dx *= Riemann_ExactFallback_Parameter;
+    if(!(L - flux*dt_dx).isPhysical() ||  !(R+flux*dt_dx).isPhysical()){
+        flux = exact().flux();
+        if(!(L - flux*dt_dx).isPhysical() ||  !(R+flux*dt_dx).isPhysical()){
+            //TODO: Throw Exception
+        }
+    }
+#endif
+    return flux;
 }
-ConservativeState Riemann::flux_Y(double dt_dy){  return Riemann(L.swapXY(),R.swapXY()).flux_X(dt_dy).swapXY(); }
-ConservativeState Riemann::flux_Z(double dt_dz){  return Riemann(L.swapXZ(),R.swapXZ()).flux_X(dt_dz).swapXZ(); }
+
+
+
+//MARK: Dimension Convenience
+ConservativeState Riemann::flux_X(double dt_dx){ return flux(dt_dx); }
+ConservativeState Riemann::flux_Y(double dt_dy){  return Riemann(L.swapXY(),R.swapXY()).flux(dt_dy).swapXY(); }
+ConservativeState Riemann::flux_Z(double dt_dz){  return Riemann(L.swapXZ(),R.swapXZ()).flux(dt_dz).swapXZ(); }
 
 
 //MARK: Solution Sampling
+//  Based mostly on Toro (2009). https://doi.org/10.1007/b79761
 ConservativeState RiemannSolution::flux(){ return flux(0); }
 ConservativeState RiemannSolution::flux(double x_t){
     PrimitiveState w = sample(x_t);

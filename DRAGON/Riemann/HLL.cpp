@@ -3,6 +3,9 @@
 //  DRAGON
 //
 //  Created by Bobbie Markwick on 29/04/2026.
+//  Implementation based mostly on Toro (2009). https://doi.org/10.1007/b79761
+//      Harten, Lax, & van Leer (1983). https://doi.org/10.1137/1025002
+//      Toro, Spruce, & Speares (1994). https://doi.org/10.1007/BF01414629
 //
 
 
