@@ -17,6 +17,9 @@ ConservativeState& operator+=(ConservativeState &X, const ConservativeState &Y){
     X.rho += Y.rho;
     X.p += Y.p;
     X.E += Y.E;
+#ifdef MHD
+    X.B += Y.B;
+#endif
     return X;
 }
 vec3 operator+(vec3 v, const vec3 &w){
@@ -40,6 +43,9 @@ ConservativeState& operator-=(ConservativeState &X, const ConservativeState &Y){
     X.rho -= Y.rho;
     X.p -= Y.p;
     X.E -= Y.E;
+#ifdef MHD
+    X.B -= Y.B;
+#endif
     return X;
 }
 vec3 operator-(vec3 v, const vec3 &w){
@@ -75,6 +81,11 @@ vec3& operator*=(vec3 &v, double a){
     v.z *= a;
     return v;
 }
+//MARK: (*): Dot product
+double operator*(vec3 v, vec3 w){
+    return v.x*w.x + v.y*w.y + v.z*w.z;
+}
+
 
 //MARK: (/): Divide state by scalar
 ConservativeState operator/(ConservativeState X, double a){
@@ -104,14 +115,18 @@ bool operator==(const PrimitiveState &X, const PrimitiveState &Y){
     if(fabs(X.rho - Y.rho) >= 1e-12) return false;
     if(X.v != Y.v) return false;
     if(fabs(X.p - Y.p) >= 1e-12) return false;
-
+#ifdef MHD
+    if(X.B != Y.B) return false;
+#endif
     return true;
 }
 bool operator==(const ConservativeState &X, const ConservativeState &Y){
     if(fabs(X.rho - Y.rho) >= 1e-12) return false;
     if(X.p != Y.p) return false;
     if(fabs(X.E - Y.E) >= 1e-12) return false;
-
+#ifdef MHD
+    if(X.B != Y.B) return false;
+#endif
     return true;
 }
 bool operator==(const vec3 &X, const vec3 &Y){

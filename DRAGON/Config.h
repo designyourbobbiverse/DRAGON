@@ -57,7 +57,7 @@ constexpr double Timestep_Tolerance = 1e-14; //Timesteps smaller than this are t
 
 constexpr int bin_size = 250; //AMRGrid larger than this will split into child grids of this size or smaller
 
-
+#define MHD
 
 
 

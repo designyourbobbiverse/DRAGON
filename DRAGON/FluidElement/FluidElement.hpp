@@ -9,7 +9,7 @@
 #ifndef FluidElement_hpp
 #define FluidElement_hpp
 
-#include <stdio.h>
+#include "Config.h"
 
 struct PrimitiveState;
 struct ConservativeState;
@@ -23,8 +23,12 @@ struct vec3{
 
 
 struct PrimitiveState {
-    double rho,  p;
+    double rho, p;
     vec3 v;
+#ifdef MHD
+    vec3 B;
+#endif
+    
     PrimitiveState();
     PrimitiveState(ConservativeState state);
     double energy() const;
@@ -38,14 +42,17 @@ struct PrimitiveState {
     bool isPhysical() const;
 };
 struct ConservativeState {
-    double rho,  E;
+    double rho, E;
     vec3 p;
+#ifdef MHD
+    vec3 B;
+#endif
+    
     ConservativeState();
     ConservativeState(PrimitiveState prim);
     double pressure() const;
-    
     ConservativeState flux() const;
-    ConservativeState flux(double v) const;
+    ConservativeState flux(vec3 v) const; //More effiecient version if you already know vx
 
     ConservativeState swapXY() const;
     ConservativeState swapXZ() const;
@@ -53,8 +60,6 @@ struct ConservativeState {
     
     bool isPhysical() const;
     bool isFinite() const;
-
-
 };
 
 
@@ -81,6 +86,9 @@ ConservativeState& operator*=(ConservativeState &X, double a);
 vec3 operator*(vec3 v, double a);
 vec3 operator*(const double &a, vec3 v);
 vec3& operator*=(vec3 &v, double a);
+//Arithmetic (*): Dot product
+double operator*(vec3 v, vec3 w);
+
 //Arithmetic (/): Divide state by some scalar
 ConservativeState operator/(ConservativeState X, double a);
 ConservativeState& operator/=(ConservativeState &X, double a);

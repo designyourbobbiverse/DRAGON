@@ -11,17 +11,19 @@
 
 PrimitiveState::PrimitiveState(){
     rho = 0;
-    v.x = 0;
-    v.y = 0;
-    v.z = 0;
+    v = {0,0,0};
     p = 0;
+#ifdef MHD
+    B = {0,0,0};
+#endif
 }
 ConservativeState::ConservativeState(){
     rho = 0;
-    p.x = 0;
-    p.y = 0;
-    p.z = 0;
+    p = {0,0,0};
     E = 0;
+#ifdef MHD
+    B = {0,0,0};
+#endif
 }
 
 //MARK: Type Conversion
@@ -29,61 +31,94 @@ ConservativeState::ConservativeState(){
 
 ConservativeState::ConservativeState(PrimitiveState state){
     rho = state.rho;
-    p.x = rho * state.v.x;
-    p.y = rho * state.v.y;
-    p.z = rho * state.v.z;
+    p = rho * state.v;
     E = state.energy();
+#ifdef MHD
+    B = state.B;
+#endif
 }
 
 PrimitiveState::PrimitiveState(ConservativeState state){
     rho = state.rho;
-    v.x = state.p.x / rho;
-    v.y = state.p.y / rho;
-    v.z = state.p.z / rho;
+    v = state.p / rho;
     p = state.pressure();
+#ifdef MHD
+    B = state.B;
+#endif
 }
 
 double PrimitiveState::energy() const {
-    return p/(_gamma - 1.0) + (rho/2)*(v.x*v.x + v.y*v.y + v.z*v.z);
+    double E =  p/(_gamma - 1.0) + (rho/2)*(v*v);
+#ifdef MHD
+    E += (B*B)/(8*M_PI);
+#endif
+    return E;
 }
 double ConservativeState::pressure() const {
-    return (_gamma - 1.0) * (E - (p.x*p.x + p.y*p.y + p.z*p.z) / (2*rho));
+    double E_thermal = this->E - (p*p)/(2*rho);
+#ifdef MHD
+     E_thermal -= (B*B)/(8*M_PI);
+#endif
+    return  (_gamma - 1.0) * E_thermal;
 }
 
 //enthalpy Density
 double PrimitiveState::enthalpy() const {
-    return (_G_Gm1*p/rho) + (v.x*v.x + v.y*v.y + v.z*v.z)/2;
+    double h = energy() + p;
+#ifdef MHD
+    h += (B*B)/(8*M_PI);
+#endif
+    return h / rho;
 }
-
-/*
-//Speed plus sound speed
-double PrimativeState::S(){
-    return sqrt(v.x*v.x + v.y*v.y + v.z*v.z) + sqrt(gamma * p/rho);
-}*/
 
 //MARK: Physical validity
 bool PrimitiveState::isPhysical() const {
+#ifdef MHD
+    if( !isfinite(B.x) || !isfinite(B.y) || !isfinite(B.z)) return false;
+#endif
     return isfinite(rho) && isfinite(v.x)  && isfinite(v.y)  && isfinite(v.z)  && isfinite(p)   && rho > 0.0 && p > 0.0;
 }
-bool ConservativeState::isPhysical()  const {
-    return isfinite(rho) && isfinite(p.x)  && isfinite(p.y)  && isfinite(p.z)  && isfinite(E)   && rho > 0.0 && pressure() > 0.0;
-}
 bool ConservativeState::isFinite()  const {
+#ifdef MHD
+    if( !isfinite(B.x) || !isfinite(B.y) || !isfinite(B.z)) return false;
+#endif
     return isfinite(rho) && isfinite(p.x)  && isfinite(p.y)  && isfinite(p.z)  && isfinite(E);
 }
+bool ConservativeState::isPhysical()  const {
+    return isFinite() && rho > 0.0 && pressure() > 0.0;
+}
+
 
 
 //MARK: Flux
-ConservativeState PrimitiveState::flux() const { return ConservativeState(*this).flux(v.x); }
-ConservativeState ConservativeState::flux() const { return flux(p.x / rho); }
-ConservativeState ConservativeState::flux(double v) const {
+ConservativeState PrimitiveState::flux() const { return ConservativeState(*this).flux(v); }
+ConservativeState ConservativeState::flux() const {
+#ifdef MHD
+    return flux(p / rho);
+#else //vy and vz are never used in hydro, so don't bother calculating them
+    return flux({p.x / rho, 0 , 0});
+#endif
+}
+ConservativeState ConservativeState::flux(vec3 v) const {
     ConservativeState F = ConservativeState();
     double _p = pressure();
     F.rho = p.x;
-    F.p.x = p.x * v + _p;
-    F.p.y = p.y * v;
-    F.p.z = p.z * v;
-    F.E = v * (E + _p);
+    F.p = p * v.x;
+    F.p.x += _p;
+    F.E =  (E + _p) * v.x;
+#ifdef MHD
+    //Magnetic Pressure
+    double p_mag = B*B / (8*M_PI);
+    F.p.x += p_mag;
+    F.E += p_mag * v.x;
+    //Magnetic Tension
+    vec3 mag_ten = (B.x * B) / (4*M_PI);
+    F.p -= mag_ten;
+    F.E -= v * mag_ten; //Poynting Flux
+    //Magnetic Induction
+    F.B = v.x * B - B.x * v;
+#endif
+    
     return F;
 }
 
@@ -116,31 +151,49 @@ vec3 vec3::swapYZ() const {
 PrimitiveState PrimitiveState::swapXY() const {
     PrimitiveState wT = *this;
     wT.v = v.swapXY();
+#ifdef MHD
+    wT.B = B.swapXY();
+#endif
     return wT;
 }
 PrimitiveState PrimitiveState::swapXZ() const {
     PrimitiveState wT = *this;
     wT.v = v.swapXZ();
+#ifdef MHD
+    wT.B = B.swapXZ();
+#endif
     return wT;
 }
 PrimitiveState PrimitiveState::swapYZ() const {
     PrimitiveState wT = *this;
     wT.v = v.swapYZ();
+#ifdef MHD
+    wT.B = B.swapYZ();
+#endif
     return wT;
 }
 ConservativeState ConservativeState::swapXY() const {
     ConservativeState wT = *this;
     wT.p = p.swapXY();
+#ifdef MHD
+    wT.B = B.swapXY();
+#endif
     return wT;
 }
 ConservativeState ConservativeState::swapXZ() const {
     ConservativeState wT = *this;
     wT.p = p.swapXZ();
+#ifdef MHD
+    wT.B = B.swapXZ();
+#endif
     return wT;
 }
 ConservativeState ConservativeState::swapYZ() const {
     ConservativeState wT = *this;
     wT.p = p.swapYZ();
+#ifdef MHD
+    wT.B = B.swapYZ();
+#endif
     return wT;
 }
 

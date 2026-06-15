@@ -84,18 +84,18 @@ ConservativeState Riemann::Roe(){
     double lambdaL = L.v.x-aL, lambdaLS = SL.p.x/SL.rho - aSL;
     if(lambdaL < 0 &&  lambdaLS > 0 ) {//Left Rarefaction
         double _lambda = lambdaL * (lambda[0] - lambdaLS)/(lambdaL - lambdaLS);
-        return UL.flux(L.v.x) + _lambda*alpha[0]*K[0];
+        return UL.flux(L.v) + _lambda*alpha[0]*K[0];
     }
     ConservativeState SR = UR - alpha[4]*K[4];
     double aR = sqrt(_gamma * R.p/R.rho), aSR = sqrt(_gamma*SR.pressure()/SR.rho);
     double lambdaR = R.v.x+aR, lambdaRS = SR.p.x/SR.rho + aSR;
     if(lambdaR > 0 &&  lambdaRS  < 0) {//Right Rarefaction
         double _lambda = lambdaR * (lambda[4] - lambdaRS)/(lambdaR - lambdaRS);
-        return UR.flux(R.v.x) - _lambda*alpha[4]*K[4];
+        return UR.flux(R.v) - _lambda*alpha[4]*K[4];
     }
 #endif
     //Combine the waves
-    ConservativeState F = (UL.flux(L.v.x) + UR.flux(R.v.x));
+    ConservativeState F = (UL.flux(L.v) + UR.flux(R.v));
     for(int i = 0; i < 5; i++) F -= alpha[i]*fabs(lambda[i])*K[i];
     return F/2;
 }

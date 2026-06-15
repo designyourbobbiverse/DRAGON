@@ -34,13 +34,13 @@ ConservativeState Riemann::HLL(){
 
 ConservativeState Riemann::HLL(double sl, double sr){
     //Outside region
-    if(sl >= 0) return ConservativeState(L).flux(L.v.x);
-    if(sr <= 0) return ConservativeState(R).flux(R.v.x);
+    if(sl >= 0) return ConservativeState(L).flux(L.v);
+    if(sr <= 0) return ConservativeState(R).flux(R.v);
     
     ConservativeState UL = ConservativeState(L);
     ConservativeState UR = ConservativeState(R);
-    ConservativeState FL = UL.flux(L.v.x);
-    ConservativeState FR = UR.flux(R.v.x);
+    ConservativeState FL = UL.flux(L.v);
+    ConservativeState FR = UR.flux(R.v);
 
     return (sr*FL - sl*FR + sl*sr*(UR-UL))/(sr-sl);
 }
@@ -65,8 +65,8 @@ ConservativeState Riemann::HLLC(){
 
 ConservativeState Riemann::HLLC(double sl, double sr){
     //Outside region
-    if(sl >= 0) return ConservativeState(L).flux(L.v.x);
-    if(sr <= 0) return ConservativeState(R).flux(R.v.x);
+    if(sl >= 0) return ConservativeState(L).flux(L.v);
+    if(sr <= 0) return ConservativeState(R).flux(R.v);
     //Calculate the contact wave
     double _pr = R.p + R.rho*R.v.x*(R.v.x - sr), _pl = L.p + L.rho*L.v.x*(L.v.x - sl);
     double sc = (_pr - _pl) / (R.rho*(R.v.x-sr) - L.rho*(L.v.x-sl));
@@ -79,7 +79,7 @@ ConservativeState Riemann::HLLC(double sl, double sr){
     U.p.x = U.rho * sc;
     U.E +=  U.rho*(sc - X.v.x)*(sc + X.p/(X.rho*(sx-X.v.x)) );
     //Compute Flux
-    return UX.flux(X.v.x) + (U - UX) * sx;
+    return UX.flux(X.v) + (U - UX) * sx;
 }
 
 

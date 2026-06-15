@@ -64,7 +64,7 @@ ConservativeState Riemann::flux_Z(double dt_dz){  return Riemann(L.swapXZ(),R.sw
 ConservativeState RiemannSolution::flux(){ return flux(0); }
 ConservativeState RiemannSolution::flux(double x_t){
     PrimitiveState w = sample(x_t);
-    return ConservativeState(w).flux(w.v.x);
+    return ConservativeState(w).flux(w.v);
 }
 
 

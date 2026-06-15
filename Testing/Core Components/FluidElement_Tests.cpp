@@ -117,7 +117,7 @@ void DRAGON_Test::verify_flux(){
     PrimitiveState W = make_state(2.0, 3.0, 4.0, 5.0, 10.0);
 
     ConservativeState U(W);
-    ConservativeState F = U.flux(W.v.x);
+    ConservativeState F = U.flux(W.v);
 
     assert(approx(F.rho, 6.0));
     assert(approx(F.p.x, 28.0));  // rho v.x^2 + p = 2*9 + 10
