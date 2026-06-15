@@ -563,14 +563,14 @@ void DRAGON_Test::verify_ctu_diagonal_contact_2D() {
         }
     }
 
-    // For vx = vy and interface x-y = const,
+    // For v.x = v.y and interface x-y = const,
     // the discontinuity should advect parallel to itself.
     // The exact solution is stationary in this frame because:
-    // d/dt(x-y) = vx - vy = 0
+    // d/dt(x-y) = v.x - v.y = 0
     for (int i = 0; i < nx; ++i) {
         for (int j = 0; j < ny; ++j) {
-            assert(approx(grid[i,j].vx, vx, 1e-10, 1e-10));
-            assert(approx(grid[i,j].vy, vy, 1e-10, 1e-10));
+            assert(approx(grid[i,j].v.x, vx, 1e-10, 1e-10));
+            assert(approx(grid[i,j].v.y, vy, 1e-10, 1e-10));
             assert(approx(grid[i,j].p,  p,  1e-10, 1e-10));
         }
     }

@@ -19,7 +19,7 @@ struct AMRGrid1D{
     
     AMRGrid1D(int nx, double dx, int ghosts=3);
     ~AMRGrid1D();
-    AMRGrid1D(const AMRGrid1D&) = delete; //No copying
+    AMRGrid1D(const AMRGrid1D&) = delete; //No cop.ying
     AMRGrid1D& operator=(const AMRGrid1D&) = delete;
 
     
@@ -49,7 +49,7 @@ struct AMRGrid2D{
     
     AMRGrid2D(int nx, int ny, double dx, double dy, int ghosts=3);
     ~AMRGrid2D();
-    AMRGrid2D(const AMRGrid2D&) = delete; //No copying
+    AMRGrid2D(const AMRGrid2D&) = delete; //No cop.ying
     AMRGrid2D& operator=(const AMRGrid2D&) = delete;
 
     
@@ -79,7 +79,7 @@ struct AMRGrid3D{
     
     AMRGrid3D(int nx, int ny, int nz, double dx, double dy, double dz, int ghosts=3);
     ~AMRGrid3D();
-    AMRGrid3D(const AMRGrid3D&) = delete; //No copying
+    AMRGrid3D(const AMRGrid3D&) = delete; //No cop.ying
     AMRGrid3D& operator=(const AMRGrid3D&) = delete;
 
     

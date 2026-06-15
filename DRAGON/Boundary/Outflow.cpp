@@ -22,14 +22,14 @@ void Boundary::Outflow::apply(Grid1D& grid) {
     if (faces & X_negative){
         for(int g = 1; g <= ng; g++){
             grid[-g] = grid[0];
-            if(gated && grid[-g].vx > 0) grid[-g].vx = 0;
+            if(gated && grid[-g].v.x > 0) grid[-g].v.x = 0;
         }
     }
     if (faces & X_positive){
         int nx = grid.getSize();
         for(int g = 1; g <= ng; g++){
             grid[nx-1+g] = grid[nx-1];
-            if(gated && grid[nx-1+g].vx < 0) grid[nx-1+g].vx = 0;
+            if(gated && grid[nx-1+g].v.x < 0) grid[nx-1+g].v.x = 0;
         }
     }
 }
@@ -44,7 +44,7 @@ void Boundary::Outflow::apply(Grid2D& grid) {
         for(int j = j0 ; j < jn; j++){
             for(int g = 1; g <= ng; g++){
                 grid[-g,j] = grid[0,j];
-                if(gated && grid[-g,j].vx > 0) grid[-g,j].vx = 0;
+                if(gated && grid[-g,j].v.x > 0) grid[-g,j].v.x = 0;
             }
         }
     }
@@ -52,7 +52,7 @@ void Boundary::Outflow::apply(Grid2D& grid) {
         for(int j = j0 ; j < jn; j++){
             for(int g = 1; g <= ng; g++){
                 grid[nx-1+g,j] = grid[nx-1,j];
-                if(gated && grid[nx-1+g,j].vx < 0) grid[nx-1+g,j].vx = 0;
+                if(gated && grid[nx-1+g,j].v.x < 0) grid[nx-1+g,j].v.x = 0;
 
             }
         }
@@ -61,7 +61,7 @@ void Boundary::Outflow::apply(Grid2D& grid) {
         for(int i = i0 ; i < in; i++){
             for(int g = 1; g <= ng; g++){
                 grid[i,-g] = grid[i,0];
-                if(gated && grid[i,-g].vy > 0) grid[i,-g].vy = 0;
+                if(gated && grid[i,-g].v.y > 0) grid[i,-g].v.y = 0;
             }
         }
     }
@@ -69,7 +69,7 @@ void Boundary::Outflow::apply(Grid2D& grid) {
         for(int i = i0 ; i < in; i++){
             for(int g = 1; g <= ng; g++){
                 grid[i,ny-1+g] = grid[i,ny-1];
-                if(gated && grid[i,ny-1+g].vy < 0) grid[i,ny-1+g].vy = 0;
+                if(gated && grid[i,ny-1+g].v.y < 0) grid[i,ny-1+g].v.y = 0;
             }
         }
     }
@@ -86,7 +86,7 @@ void Boundary::Outflow::apply(Grid3D& grid) {
             for(int k = k0 ; k < kn; k++){
                 for(int g = 1; g <= ng; g++){
                     grid[-g,j,k] = grid[0,j,k];
-                    if(gated && grid[-g,j,k].vx > 0) grid[-g,j,k].vx = 0;
+                    if(gated && grid[-g,j,k].v.x > 0) grid[-g,j,k].v.x = 0;
                 }
             }
         }
@@ -96,7 +96,7 @@ void Boundary::Outflow::apply(Grid3D& grid) {
             for(int k = k0 ; k < kn; k++){
                 for(int g = 1; g <= ng; g++){
                     grid[nx-1+g,j,k] = grid[nx-1,j,k];
-                    if(gated && grid[nx-1+g,j,k].vx < 0) grid[nx-1+g,j,k].vx = 0;
+                    if(gated && grid[nx-1+g,j,k].v.x < 0) grid[nx-1+g,j,k].v.x = 0;
                 }
             }
         }
@@ -106,7 +106,7 @@ void Boundary::Outflow::apply(Grid3D& grid) {
             for(int k = k0 ; k < kn; k++){
                 for(int g = 1; g <= ng; g++){
                     grid[i,-g,k] = grid[i,0,k];
-                    if(gated && grid[i,-g,k].vy > 0) grid[i,-g,k].vy = 0;
+                    if(gated && grid[i,-g,k].v.y > 0) grid[i,-g,k].v.y = 0;
 
                 }
             }
@@ -117,7 +117,7 @@ void Boundary::Outflow::apply(Grid3D& grid) {
             for(int k = k0 ; k < kn; k++){
                 for(int g = 1; g <= ng; g++){
                     grid[i,ny-1+g,k] = grid[i,ny-1,k];
-                    if(gated && grid[i,ny-1+g,k].vy < 0) grid[i,ny-1+g,k].vy = 0;
+                    if(gated && grid[i,ny-1+g,k].v.y < 0) grid[i,ny-1+g,k].v.y = 0;
                 }
             }
         }
@@ -127,7 +127,7 @@ void Boundary::Outflow::apply(Grid3D& grid) {
             for(int j = j0 ; j < jn; j++){
                 for(int g = 1; g <= ng; g++){
                     grid[i,j,-g] = grid[i,j,0];
-                    if(gated && grid[i,j,-g].vz > 0) grid[i,j,-g].vz = 0;
+                    if(gated && grid[i,j,-g].v.z > 0) grid[i,j,-g].v.z = 0;
                 }
             }
         }
@@ -137,7 +137,7 @@ void Boundary::Outflow::apply(Grid3D& grid) {
             for(int j = j0 ; j < jn; j++){
                 for(int g = 1; g <= ng; g++){
                     grid[i,j,nz-1+g] = grid[i,j,nz-1];
-                    if(gated && grid[i,j,nz-1+g].vz < 0) grid[i,j,nz-1+g].vz = 0;
+                    if(gated && grid[i,j,nz-1+g].v.z < 0) grid[i,j,nz-1+g].v.z = 0;
                 }
             }
         }

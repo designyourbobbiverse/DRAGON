@@ -19,14 +19,14 @@ void Boundary::Reflective::apply(Grid1D& grid) {
     if (faces & X_negative){
         for(int g = 1; g <= ng; g++){
             grid[-g] = grid[g-1];
-            grid[-g].vx *= -1;
+            grid[-g].v.x *= -1;
         }
     }
     if (faces & X_positive){
         int nx = grid.getSize();
         for(int g = 1; g <= ng; g++){
             grid[nx-1+g] = grid[nx-g];
-            grid[nx-1+g].vx *= -1;
+            grid[nx-1+g].v.x *= -1;
         }
     }
 }
@@ -41,7 +41,7 @@ void Boundary::Reflective::apply(Grid2D& grid) {
         for(int j = j0 ; j < jn; j++){
             for(int g = 1; g <= ng; g++){
                 grid[-g,j] = grid[g-1,j];
-                grid[-g,j].vx *= -1;
+                grid[-g,j].v.x *= -1;
             }
         }
     }
@@ -49,7 +49,7 @@ void Boundary::Reflective::apply(Grid2D& grid) {
         for(int j = j0 ; j < jn; j++){
             for(int g = 1; g <= ng; g++){
                 grid[nx-1+g,j] = grid[nx-g,j];
-                grid[nx-1+g,j].vx *= -1;
+                grid[nx-1+g,j].v.x *= -1;
             }
         }
     }
@@ -57,7 +57,7 @@ void Boundary::Reflective::apply(Grid2D& grid) {
         for(int i = i0 ; i < in; i++){
             for(int g = 1; g <= ng; g++){
                 grid[i,-g] = grid[i,g-1];
-                grid[i,-g].vy *= -1;
+                grid[i,-g].v.y *= -1;
             }
         }
     }
@@ -65,7 +65,7 @@ void Boundary::Reflective::apply(Grid2D& grid) {
         for(int i = i0 ; i < in; i++){
             for(int g = 1; g <= ng; g++){
                 grid[i,ny-1+g] = grid[i,ny-g];
-                grid[i,ny-1+g].vy *= -1;
+                grid[i,ny-1+g].v.y *= -1;
             }
         }
     }
@@ -82,7 +82,7 @@ void Boundary::Reflective::apply(Grid3D& grid) {
             for(int k = k0 ; k < kn; k++){
                 for(int g = 1; g <= ng; g++){
                     grid[-g,j,k] = grid[g-1,j,k];
-                    grid[-g,j,k].vx *= -1;
+                    grid[-g,j,k].v.x *= -1;
                 }
             }
         }
@@ -92,7 +92,7 @@ void Boundary::Reflective::apply(Grid3D& grid) {
             for(int k = k0 ; k < kn; k++){
                 for(int g = 1; g <= ng; g++){
                     grid[nx-1+g,j,k] = grid[nx-g,j,k];
-                    grid[nx-1+g,j,k].vx *= -1;
+                    grid[nx-1+g,j,k].v.x *= -1;
                 }
             }
         }
@@ -102,7 +102,7 @@ void Boundary::Reflective::apply(Grid3D& grid) {
             for(int k = k0 ; k < kn; k++){
                 for(int g = 1; g <= ng; g++){
                     grid[i,-g,k] = grid[i,g-1,k];
-                    grid[i,-g,k].vy *= -1;
+                    grid[i,-g,k].v.y *= -1;
                 }
             }
         }
@@ -112,7 +112,7 @@ void Boundary::Reflective::apply(Grid3D& grid) {
             for(int k = k0 ; k < kn; k++){
                 for(int g = 1; g <= ng; g++){
                     grid[i,ny-1+g,k] = grid[i,ny-g,k];
-                    grid[i,ny-1+g,k].vy *= -1;
+                    grid[i,ny-1+g,k].v.y *= -1;
                 }
             }
         }
@@ -122,7 +122,7 @@ void Boundary::Reflective::apply(Grid3D& grid) {
             for(int j = j0 ; j < jn; j++){
                 for(int g = 1; g <= ng; g++){
                     grid[i,j,-g] = grid[i,j,g-1];
-                    grid[i,j,-g].vz *= -1;
+                    grid[i,j,-g].v.z *= -1;
                 }
             }
         }
@@ -132,7 +132,7 @@ void Boundary::Reflective::apply(Grid3D& grid) {
             for(int j = j0 ; j < jn; j++){
                 for(int g = 1; g <= ng; g++){
                     grid[i,j,nz-1+g] = grid[i,j,nz-g];
-                    grid[i,j,nz-1+g].vz *= -1;
+                    grid[i,j,nz-1+g].v.z *= -1;
                 }
             }
         }

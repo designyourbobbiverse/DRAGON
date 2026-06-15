@@ -29,7 +29,7 @@ int main(int argc, const char * argv[]) {
     for(int i=0; i<grid.getSizeX(); i++){
         for(int j=0; j<grid.getSizeY(); j++){
             grid[i,j].rho = rho0;
-            grid[i,j].vx = 0; grid[i,j].vy = 0; grid[i,j].vz = 0;
+            grid[i,j].v.x = 0; grid[i,j].v.y = 0; grid[i,j].v.z = 0;
             
             double x = (i + 0.5 - grid.getSizeX()/2) * dx;
             double y = (j + 0.5 - grid.getSizeY()/2) * dy;

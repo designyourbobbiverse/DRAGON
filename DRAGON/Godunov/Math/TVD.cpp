@@ -73,9 +73,9 @@ double TVD::minmod(double a, double b) {
 PrimitiveState TVD::minmod(const PrimitiveState& a, const PrimitiveState& b) {
     PrimitiveState W;
     W.rho = minmod(a.rho,b.rho);
-    W.vx = minmod(a.vx,b.vx);
-    W.vy = minmod(a.vy,b.vy);
-    W.vz = minmod(a.vz,b.vz);
+    W.v.x = minmod(a.v.x,b.v.x);
+    W.v.y = minmod(a.v.y,b.v.y);
+    W.v.z = minmod(a.v.z,b.v.z);
     W.p = minmod(a.p,b.p);
     return W;
 }
@@ -90,9 +90,9 @@ double TVD::MC(double a, double b) {
 PrimitiveState TVD::MC(const PrimitiveState& a, const PrimitiveState& b) {
     PrimitiveState W;
     W.rho = MC(a.rho,b.rho);
-    W.vx = MC(a.vx,b.vx);
-    W.vy = MC(a.vy,b.vy);
-    W.vz = MC(a.vz,b.vz);
+    W.v.x = MC(a.v.x,b.v.x);
+    W.v.y = MC(a.v.y,b.v.y);
+    W.v.z = MC(a.v.z,b.v.z);
     W.p = MC(a.p,b.p);
     return W;
 }
@@ -105,9 +105,9 @@ double TVD::vanLeer(double a, double b) {
 PrimitiveState TVD::vanLeer(const PrimitiveState& a, const PrimitiveState& b) {
     PrimitiveState W;
     W.rho = vanLeer(a.rho,b.rho);
-    W.vx = vanLeer(a.vx,b.vx);
-    W.vy = vanLeer(a.vy,b.vy);
-    W.vz = vanLeer(a.vz,b.vz);
+    W.v.x = vanLeer(a.v.x,b.v.x);
+    W.v.y = vanLeer(a.v.y,b.v.y);
+    W.v.z = vanLeer(a.v.z,b.v.z);
     W.p = vanLeer(a.p,b.p);
     return W;
 }
@@ -123,9 +123,9 @@ double TVD::superbee(double a, double b) {
 PrimitiveState TVD::superbee(const PrimitiveState& a, const PrimitiveState& b) {
     PrimitiveState W;
     W.rho = superbee(a.rho,b.rho);
-    W.vx = superbee(a.vx,b.vx);
-    W.vy = superbee(a.vy,b.vy);
-    W.vz = superbee(a.vz,b.vz);
+    W.v.x = superbee(a.v.x,b.v.x);
+    W.v.y = superbee(a.v.y,b.v.y);
+    W.v.z = superbee(a.v.z,b.v.z);
     W.p = superbee(a.p,b.p);
     return W;
 }
@@ -137,9 +137,9 @@ double TVD::vanAlbada(double a, double b) {
 PrimitiveState TVD::vanAlbada(const PrimitiveState& a, const PrimitiveState& b) {
     PrimitiveState W;
     W.rho = vanAlbada(a.rho,b.rho);
-    W.vx = vanAlbada(a.vx,b.vx);
-    W.vy = vanAlbada(a.vy,b.vy);
-    W.vz = vanAlbada(a.vz,b.vz);
+    W.v.x = vanAlbada(a.v.x,b.v.x);
+    W.v.y = vanAlbada(a.v.y,b.v.y);
+    W.v.z = vanAlbada(a.v.z,b.v.z);
     W.p = vanAlbada(a.p,b.p);
     return W;
 }

@@ -64,7 +64,7 @@ void DRAGON_Test::verify_cfl_add_speed_1D() {
     double dx = 5.0;
     double a = sqrt(_gamma * W.p / W.rho);
     
-    double expected = (std::fabs(W.vx) + a) / dx;
+    double expected = (std::fabs(W.v.x) + a) / dx;
     double got = CFL::cfl_add_speed(W, dx);
     assert(approx(got, expected));
 }
@@ -74,8 +74,8 @@ void DRAGON_Test::verify_cfl_add_speed_2D() {
     double dx = 0.25, dy = 0.10;
     double a = sqrt(_gamma * W.p / W.rho);
 
-    double sx = (std::fabs(W.vx) + a) / dx;
-    double sy = (std::fabs(W.vy) + a) / dy;
+    double sx = (std::fabs(W.v.x) + a) / dx;
+    double sy = (std::fabs(W.v.y) + a) / dy;
     double got = CFL::cfl_add_speed(W, dx, dy);
     assert(approx(got, sx + sy));
 }
@@ -85,9 +85,9 @@ void DRAGON_Test::verify_cfl_add_speed_3D() {
     double dx = 0.25, dy = 0.10, dz  = 0.50;
     double a = sqrt(_gamma * W.p / W.rho);
 
-    double sx = (std::fabs(W.vx) + a) / dx;
-    double sy = (std::fabs(W.vy) + a) / dy;
-    double sz = (std::fabs(W.vz) + a) / dz;
+    double sx = (std::fabs(W.v.x) + a) / dx;
+    double sy = (std::fabs(W.v.y) + a) / dy;
+    double sz = (std::fabs(W.v.z) + a) / dz;
     double expected = sx + sy + sz;
     double got = CFL::cfl_add_speed(W, dx, dy, dz);
 
@@ -99,7 +99,7 @@ void DRAGON_Test::verify_cfl_max_speed_1D() {
     double dx = 0.25;
     double a = sqrt(_gamma * W.p / W.rho);
     
-    double expected = (std::fabs(W.vx) + a) / dx;
+    double expected = (std::fabs(W.v.x) + a) / dx;
     double got = CFL::cfl_max_speed(W, dx);
     assert(approx(got, expected));
 }
@@ -109,8 +109,8 @@ void DRAGON_Test::verify_cfl_max_speed_2D() {
     double dx = 0.25, dy = 0.10;
     double a = sqrt(_gamma * W.p / W.rho);
 
-    double sx = (std::fabs(W.vx) + a) / dx;
-    double sy = (std::fabs(W.vy) + a) / dy;
+    double sx = (std::fabs(W.v.x) + a) / dx;
+    double sy = (std::fabs(W.v.y) + a) / dy;
     double got = CFL::cfl_max_speed(W, dx, dy);
     assert(approx(got, std::max(sx, sy)));
 }
@@ -120,9 +120,9 @@ void DRAGON_Test::verify_cfl_max_speed_3D() {
     double dx = 0.25, dy = 0.10, dz = 0.50;
     double a = sqrt(_gamma * W.p / W.rho);
 
-    double sx = (std::fabs(W.vx) + a) / dx;
-    double sy = (std::fabs(W.vy) + a) / dy;
-    double sz = (std::fabs(W.vz) + a) / dz;
+    double sx = (std::fabs(W.v.x) + a) / dx;
+    double sy = (std::fabs(W.v.y) + a) / dy;
+    double sz = (std::fabs(W.v.z) + a) / dz;
     double expected = std::max(sx, std::max(sy, sz));
     double got = CFL::cfl_max_speed(W, dx, dy, dz);
 
@@ -135,7 +135,7 @@ void DRAGON_Test::verify_cfl_pow_speed_1D() {
     double dx = 5.0;
     double a = sqrt(_gamma * W.p / W.rho);
     
-    double expected = (std::fabs(W.vx) + a) / dx;
+    double expected = (std::fabs(W.v.x) + a) / dx;
     double got = CFL::cfl_pow_speed(W,2, dx);
     assert(approx(got, expected));
 }
@@ -145,8 +145,8 @@ void DRAGON_Test::verify_cfl_pow_speed_2D() {
     double dx = 0.25, dy = 0.10;
     double a = sqrt(_gamma * W.p / W.rho);
 
-    double sx = (std::fabs(W.vx) + a) / dx;
-    double sy = (std::fabs(W.vy) + a) / dy;
+    double sx = (std::fabs(W.v.x) + a) / dx;
+    double sy = (std::fabs(W.v.y) + a) / dy;
     double got = CFL::cfl_pow_speed(W,2, dx, dy);
     assert(approx(got, sqrt(sx*sx + sy*sy)));
 }
@@ -156,9 +156,9 @@ void DRAGON_Test::verify_cfl_pow_speed_3D() {
     double dx = 0.25, dy = 0.10, dz  = 0.50;
     double a = sqrt(_gamma * W.p / W.rho);
 
-    double sx = (std::fabs(W.vx) + a) / dx;
-    double sy = (std::fabs(W.vy) + a) / dy;
-    double sz = (std::fabs(W.vz) + a) / dz;
+    double sx = (std::fabs(W.v.x) + a) / dx;
+    double sy = (std::fabs(W.v.y) + a) / dy;
+    double sz = (std::fabs(W.v.z) + a) / dz;
     double expected = sqrt(sx*sx + sy*sy + sz*sz);
     double got = CFL::cfl_pow_speed(W,2, dx, dy, dz);
 

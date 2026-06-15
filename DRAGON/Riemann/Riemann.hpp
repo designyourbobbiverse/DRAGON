@@ -78,7 +78,7 @@ struct RiemannSolution{
     PrimitiveState sL, sR; //Left and Right Star Regions
     
     //Creates a Riemann Solution from a pair of initial values
-    //Copies the y and z velocities, but does not solve for rho/vx/p
+    //Copies the y and z velocities, but does not solve for rho/v.x/p
     RiemannSolution(Riemann problem);
     
 //MARK: Solution Sampling
@@ -90,7 +90,7 @@ struct RiemannSolution{
     ConservativeState flux();
  
 private:
-    //Swap left and right states, negate all vx.
+    //Swap left and right states, negate all v.x.
     void mirror();
 };
 

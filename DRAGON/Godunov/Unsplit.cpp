@@ -41,7 +41,7 @@ struct FluxGrid2D{
         f = new ConservativeState[(nx+2*ghosts)*(ny+2*ghosts)];
     }
     ~FluxGrid2D(){ delete[] f; }
-    FluxGrid2D(const FluxGrid2D&) = delete; //No copying
+    FluxGrid2D(const FluxGrid2D&) = delete; //No cop.ying
     FluxGrid2D& operator=(const FluxGrid2D&) = delete;
     
     //Grid access
@@ -78,7 +78,7 @@ struct FluxGrid3D{
         f = new ConservativeState[(nx+2*ghosts)*(ny+2*ghosts)*(nz+2*ghosts)];
     }
     ~FluxGrid3D(){ delete[] f; }
-    FluxGrid3D(const FluxGrid3D&) = delete; //No copying
+    FluxGrid3D(const FluxGrid3D&) = delete; //No cop.ying
     FluxGrid3D& operator=(const FluxGrid3D&) = delete;
     
     //Grid access

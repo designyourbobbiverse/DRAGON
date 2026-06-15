@@ -18,11 +18,11 @@ Riemann::Riemann(PrimitiveState _L, PrimitiveState _R){ L = _L; R = _R; }
 RiemannSolution::RiemannSolution(Riemann problem){
     wL = problem.L;
     wR = problem.R;
-    //Copy Transverse Values
-    sL.vy = wL.vy;
-    sR.vy = wR.vy;
-    sL.vz = wL.vz;
-    sR.vz = wR.vz;
+    //Cop.y Transverse Values
+    sL.v.y = wL.v.y;
+    sR.v.y = wR.v.y;
+    sL.v.z = wL.v.z;
+    sR.v.z = wR.v.z;
 }
 
 
@@ -54,7 +54,7 @@ RiemannSolution Riemann::exact(){
 RiemannSolution Riemann::exact(double pGuess){
     #ifdef Exact_Rarefactions_Check
     double p_min = fmin(L.p, R.p);
-    if(f(p_min,L) + f(p_min,R) + R.vx - L.vx >= 0) return TRRS();
+    if(f(p_min,L) + f(p_min,R) + R.v.x - L.v.x >= 0) return TRRS();
     #endif
     
     RiemannSolution s = RiemannSolution(*this);
@@ -62,8 +62,8 @@ RiemannSolution Riemann::exact(double pGuess){
     s.sL.p = exact_StarP(pGuess);
         s.sR.p = s.sL.p;
     //velocity
-    s.sL.vx = exact_StarV(s.sL.p);
-        s.sR.vx = s.sL.vx;
+    s.sL.v.x = exact_StarV(s.sL.p);
+        s.sR.v.x = s.sL.v.x;
     //Density
     s.sL.rho = exact_StarRho(L, s.sL.p);
     s.sR.rho = exact_StarRho(R, s.sR.p);
@@ -76,7 +76,7 @@ RiemannSolution Riemann::exact(double pGuess){
 double Riemann::exact_StarP(double pGuess){
     double pStar = pGuess, CHA = 1; int iters = ExactRiemann_MaxIters;
     do{
-        double fp = f(pStar, L) + f(pStar, R) + R.vx - L.vx;
+        double fp = f(pStar, L) + f(pStar, R) + R.v.x - L.v.x;
         double dfdp = df(pStar, L) + df(pStar, R);
         double delta = fmin(fp/dfdp, 0.8*pStar);
         pStar -= delta;
@@ -86,7 +86,7 @@ double Riemann::exact_StarP(double pGuess){
 }
 //v* and rho* given p*
 double Riemann::exact_StarV(double pStar){
-    return (L.vx + R.vx + f(pStar,R)-f(pStar,L))/2.0;
+    return (L.v.x + R.v.x + f(pStar,R)-f(pStar,L))/2.0;
 }
 double Riemann::exact_StarRho(PrimitiveState w, double p){
     if(p>w.p) return w.rho * (p+_Gm1_Gp1*w.p)/(_Gm1_Gp1*p+w.p);//Shock
@@ -104,10 +104,10 @@ RiemannSolution Riemann::TRRS(double aL, double aR){
 
     double _LR = pow(L.p / R.p, _Ginv) * aR/aL;
     //Velocity
-    s.sL.vx = (_LR*L.vx + R.vx + _2_Gm1*(_LR*aL-aR)) / (_LR + 1);
-        s.sR.vx = s.sL.vx;
+    s.sL.v.x = (_LR*L.v.x + R.v.x + _2_Gm1*(_LR*aL-aR)) / (_LR + 1);
+        s.sR.v.x = s.sL.v.x;
     //Pressure
-    s.sL.p = L.p * pow(1 - _Gm1_2*(s.sL.vx - L.vx)/aL, _2G_Gm1);
+    s.sL.p = L.p * pow(1 - _Gm1_2*(s.sL.v.x - L.v.x)/aL, _2G_Gm1);
         s.sR.p = s.sL.p;
     //Density
     s.sL.rho = L.rho * pow(s.sL.p / L.p , _Ginv);

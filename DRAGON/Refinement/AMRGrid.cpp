@@ -283,7 +283,7 @@ void AMRGrid1D::advance(double dt, bool check_cfl){
         }
         DRARGONWING::synchronize();
         
-        //Copy Back
+        //Cop.y Back
         loadFromChildren();
     }
 }
@@ -310,7 +310,7 @@ void AMRGrid2D::advance(double dt, bool check_cfl){
         }
         DRARGONWING::synchronize();
         
-        //Copy Back
+        //Cop.y Back
         loadFromChildren();
     }
 }
@@ -337,7 +337,7 @@ void AMRGrid3D::advance(double dt, bool check_cfl){
         }
         DRARGONWING::synchronize();
         
-        //Copy Back
+        //Cop.y Back
         loadFromChildren();
     }
 }

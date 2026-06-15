@@ -185,9 +185,9 @@ void DRAGON_Test::verify_boundary_set_missing_faces_outflow_2D() {
     boundary.apply(grid);
     
     // X should be reflective
-    PrimitiveState wxL = grid[0,0]; wxL.vx *= -1;
+    PrimitiveState wxL = grid[0,0]; wxL.v.x *= -1;
     expect_close(grid[-1,0], wxL);
-    PrimitiveState wxR = grid[2,0]; wxR.vx *= -1;
+    PrimitiveState wxR = grid[2,0]; wxR.v.x *= -1;
     expect_close(grid[3,0], wxR);
     // Y should be default outflow
     expect_close(grid[0,-1], grid[0,0]);
@@ -209,12 +209,12 @@ void DRAGON_Test::verify_boundary_composition_3D() {
     expect_close(grid[0,-1,0], grid[0,3,0]);
     expect_close(grid[0, 4,0], grid[0,0,0]);
     // Z should be reflective
-    PrimitiveState wxL = grid[0,0,0]; wxL.vz *= -1;
+    PrimitiveState wxL = grid[0,0,0]; wxL.v.z *= -1;
     expect_close(grid[0,0,-1], wxL);
-    PrimitiveState wxR = grid[0,0,4]; wxR.vz *= -1;
+    PrimitiveState wxR = grid[0,0,4]; wxR.v.z *= -1;
     expect_close(grid[0,0,5], wxR);
     //Corner
-    PrimitiveState w = grid[0,3,0]; w.vz *= -1;
+    PrimitiveState w = grid[0,3,0]; w.v.z *= -1;
     expect_close(grid[-1,-1,-1], w);
 }
 void DRAGON_Test::verify_boundary_composition_order() {
@@ -228,12 +228,12 @@ void DRAGON_Test::verify_boundary_composition_order() {
     expect_close(grid[0,-1,0], grid[0,3,0]);
     expect_close(grid[0, 4,0], grid[0,0,0]);
     // Z should be reflective
-    PrimitiveState wxL = grid[0,0,0]; wxL.vz *= -1;
+    PrimitiveState wxL = grid[0,0,0]; wxL.v.z *= -1;
     expect_close(grid[0,0,-1], wxL);
-    PrimitiveState wxR = grid[0,0,4]; wxR.vz *= -1;
+    PrimitiveState wxR = grid[0,0,4]; wxR.v.z *= -1;
     expect_close(grid[0,0,5], wxR);
     //Corner
-    PrimitiveState w = grid[0,3,0]; w.vx *= -1;w.vz *= -1;
+    PrimitiveState w = grid[0,3,0]; w.v.x *= -1;w.v.z *= -1;
     expect_close(grid[-1,-1,-1], w);
 }
 
@@ -572,28 +572,28 @@ void DRAGON_Test::verify_boundary_reflective_1D() {
 
     Reflective(X).apply(grid);
     //Left
-    PrimitiveState w = grid[0]; w.vx *= -1;
+    PrimitiveState w = grid[0]; w.v.x *= -1;
     expect_close(grid[-1], w);
-    w = grid[1]; w.vx *= -1;
+    w = grid[1]; w.v.x *= -1;
     expect_close(grid[-2], w);
     //Right
-    w = grid[3]; w.vx *= -1;
+    w = grid[3]; w.v.x *= -1;
     expect_close(grid[4], w);
-    w = grid[2]; w.vx *= -1;
+    w = grid[2]; w.v.x *= -1;
     expect_close(grid[5], w);
     //Single face filling: Left
     fill_1D(grid);
     Reflective("X-").apply(grid);
-    w = grid[0]; w.vx *= -1;
+    w = grid[0]; w.v.x *= -1;
     expect_close(grid[-1], w);
-    w = grid[1]; w.vx *= -1;
+    w = grid[1]; w.v.x *= -1;
     expect_close(grid[-2], w);
     //Single face filling: Right
     fill_1D(grid);
     Reflective("X+").apply(grid);
-    w = grid[3]; w.vx *= -1;
+    w = grid[3]; w.v.x *= -1;
     expect_close(grid[4], w);
-    w = grid[2]; w.vx *= -1;
+    w = grid[2]; w.v.x *= -1;
     expect_close(grid[5], w);
 }
 //MARK: Reflecting - 2D
@@ -603,10 +603,10 @@ void DRAGON_Test::verify_boundary_reflective_2D(){
     fill_2D(grid);
     Reflective(X,false).apply(grid);
     for (int j = 0; j < grid.getSizeY(); j++) {
-        PrimitiveState w = grid[0,j]; w.vx *= -1;
+        PrimitiveState w = grid[0,j]; w.v.x *= -1;
         expect_close(grid[-1, j], w);
        
-        w = grid[2,j]; w.vx *= -1;
+        w = grid[2,j]; w.v.x *= -1;
         expect_close(grid[3, j], w);
     }
     //No corners = no corners
@@ -615,16 +615,16 @@ void DRAGON_Test::verify_boundary_reflective_2D(){
     fill_2D(grid);
     Reflective(Y).apply(grid);
     for (int i = 0; i < grid.getSizeX(); i++) {
-        PrimitiveState w = grid[i,0]; w.vy *= -1;
+        PrimitiveState w = grid[i,0]; w.v.y *= -1;
         expect_close(grid[i,-1], w);
        
-        w = grid[i,3]; w.vy *= -1;
+        w = grid[i,3]; w.v.y *= -1;
         expect_close(grid[i,4], w);
     }
     //Corner
     fill_2D(grid);
     Reflective(X | Y).apply(grid);
-    auto w = grid[0,0]; w.vx *= -1; w.vy *= -1;
+    auto w = grid[0,0]; w.v.x *= -1; w.v.y *= -1;
     expect_close(grid[-1,-1], w);
 }
 //MARK: Reflecting - 3D
@@ -635,10 +635,10 @@ void DRAGON_Test::verify_boundary_reflective_3D(){
     Reflective(X).apply(grid);
     for (int j = 0; j < grid.getSizeY(); j++) {
         for (int k = 0; k < grid.getSizeZ(); k++) {
-            PrimitiveState w = grid[0,j,k]; w.vx *= -1;
+            PrimitiveState w = grid[0,j,k]; w.v.x *= -1;
             expect_close(grid[-1, j,k], w);
             
-            w = grid[2,j,k]; w.vx *= -1;
+            w = grid[2,j,k]; w.v.x *= -1;
             expect_close(grid[3, j,k], w);
         }
     }
@@ -647,10 +647,10 @@ void DRAGON_Test::verify_boundary_reflective_3D(){
     Reflective(Y).apply(grid);
     for (int i = 0; i < grid.getSizeX(); i++) {
         for (int k = 0; k < grid.getSizeZ(); k++) {
-            PrimitiveState w = grid[i,0,k]; w.vy *= -1;
+            PrimitiveState w = grid[i,0,k]; w.v.y *= -1;
             expect_close(grid[i,-1,k], w);
             
-            w = grid[i,3,k]; w.vy *= -1;
+            w = grid[i,3,k]; w.v.y *= -1;
             expect_close(grid[i,4,k], w);
         }
     }
@@ -659,10 +659,10 @@ void DRAGON_Test::verify_boundary_reflective_3D(){
     Reflective("Z",false).apply(grid);
     for (int i = 0; i < grid.getSizeX(); i++) {
         for (int j = 0; j < grid.getSizeY(); j++) {
-            PrimitiveState w = grid[i,j,0]; w.vz *= -1;
+            PrimitiveState w = grid[i,j,0]; w.v.z *= -1;
             expect_close(grid[i,j,-1], w);
             
-            w = grid[i,j,4]; w.vz *= -1;
+            w = grid[i,j,4]; w.v.z *= -1;
             expect_close(grid[i,j,5], w);
         }
     }
@@ -671,7 +671,7 @@ void DRAGON_Test::verify_boundary_reflective_3D(){
     //Corner
     fill_3D(grid);
     Reflective().apply(grid);
-    auto w = grid[0,0,0]; w.vx *= -1; w.vy *= -1; w.vz *= -1;
+    auto w = grid[0,0,0]; w.v.x *= -1; w.v.y *= -1; w.v.z *= -1;
     expect_close(grid[-1,-1,-1], w);
 }
 
@@ -683,35 +683,35 @@ void DRAGON_Test::verify_boundary_outflow_1D_gated(){
    
     //Left blocks inflow
     fill_1D(grid);
-    grid[0].vx = +5.0;
+    grid[0].v.x = +5.0;
     Outflow::Gated(X_negative).apply(grid);
-    assert(approx(grid[-1].vx, 0.0));
-    assert(approx(grid[-2].vx, 0.0));
+    assert(approx(grid[-1].v.x, 0.0));
+    assert(approx(grid[-2].v.x, 0.0));
     //Left allows outflow
     fill_1D(grid);
-    grid[0].vx = -5.0;
+    grid[0].v.x = -5.0;
     Outflow::Gated(X_negative).apply(grid);
-    assert(approx(grid[-1].vx, -5));
-    assert(approx(grid[-2].vx, -5));
+    assert(approx(grid[-1].v.x, -5));
+    assert(approx(grid[-2].v.x, -5));
     
     //Right blocks inflow
     fill_1D(grid);
-    grid[3].vx = -5.0;
+    grid[3].v.x = -5.0;
     Outflow::Gated(X_positive).apply(grid);
-    assert(approx(grid[4].vx, 0.0));
-    assert(approx(grid[5].vx, 0.0));
+    assert(approx(grid[4].v.x, 0.0));
+    assert(approx(grid[5].v.x, 0.0));
     //Right allows outflow
     fill_1D(grid);
-    grid[3].vx = +5.0;
+    grid[3].v.x = +5.0;
     Outflow::Gated(X_positive).apply(grid);
-    assert(approx(grid[4].vx, +5));
-    assert(approx(grid[5].vx, +5));
+    assert(approx(grid[4].v.x, +5));
+    assert(approx(grid[5].v.x, +5));
     
-    //Normal components copy
+    //Normal components cop.y
     fill_1D(grid);
-    grid[0].vx = +5.0;
+    grid[0].v.x = +5.0;
     Outflow::Gated(X_negative).apply(grid);
-    PrimitiveState w=grid[-1]; w.vx += grid[0].vx;
+    PrimitiveState w=grid[-1]; w.v.x += grid[0].v.x;
     expect_close(w, grid[0]);
 
 }
@@ -723,88 +723,88 @@ void DRAGON_Test::verify_boundary_outflow_2D_gated(){
     
     //X- blocks inflow
     fill_2D(grid);
-    for(int j=0;j<grid.getSizeY();j++) grid[0,j].vx = +5.0;
+    for(int j=0;j<grid.getSizeY();j++) grid[0,j].v.x = +5.0;
     Outflow::Gated(X_negative).apply(grid);
     for(int j=0;j<grid.getSizeY();j++){
-        assert(approx(grid[-1,j].vx, 0.0));
-        assert(approx(grid[-2,j].vx, 0.0));
+        assert(approx(grid[-1,j].v.x, 0.0));
+        assert(approx(grid[-2,j].v.x, 0.0));
     }
     //X- allows outflow
     fill_2D(grid);
-    for(int j=0;j<grid.getSizeY();j++) grid[0,j].vx = -5.0;
+    for(int j=0;j<grid.getSizeY();j++) grid[0,j].v.x = -5.0;
     Outflow::Gated(X_negative).apply(grid);
     for(int j=0;j<grid.getSizeY();j++){
-        assert(approx(grid[-1,j].vx, -5));
-        assert(approx(grid[-2,j].vx, -5));
+        assert(approx(grid[-1,j].v.x, -5));
+        assert(approx(grid[-2,j].v.x, -5));
     }
     
     //X+ blocks inflow
     fill_2D(grid);
-    for(int j=0;j<grid.getSizeY();j++) grid[2,j].vx = -5.0;
+    for(int j=0;j<grid.getSizeY();j++) grid[2,j].v.x = -5.0;
     Outflow::Gated(X_positive).apply(grid);
     for(int j=0;j<grid.getSizeY();j++){
-        assert(approx(grid[3,j].vx, 0.0));
-        assert(approx(grid[4,j].vx, 0.0));
+        assert(approx(grid[3,j].v.x, 0.0));
+        assert(approx(grid[4,j].v.x, 0.0));
     }
     //X+ allows outflow
     fill_2D(grid);
-    for(int j=0;j<grid.getSizeY();j++) grid[2,j].vx = +5.0;
+    for(int j=0;j<grid.getSizeY();j++) grid[2,j].v.x = +5.0;
     Outflow::Gated(X_positive).apply(grid);
     for(int j=0;j<grid.getSizeY();j++){
-        assert(approx(grid[3,j].vx, +5));
-        assert(approx(grid[4,j].vx, +5));
+        assert(approx(grid[3,j].v.x, +5));
+        assert(approx(grid[4,j].v.x, +5));
     }
     
-    //X - Normal components copy
+    //X - Normal components cop.y
     fill_2D(grid);
-    for(int j=0;j<grid.getSizeY();j++) grid[0,j].vx = +5.0;
+    for(int j=0;j<grid.getSizeY();j++) grid[0,j].v.x = +5.0;
     Outflow::Gated(X_negative).apply(grid);
     for(int j=0;j<grid.getSizeY();j++){
-        PrimitiveState w=grid[-1,j]; w.vx += grid[0,j].vx;
+        PrimitiveState w=grid[-1,j]; w.v.x += grid[0,j].v.x;
         expect_close(w, grid[0,j]);
     }
     
     
     //Y- blocks inflow
     fill_2D(grid);
-    for(int i=0;i<grid.getSizeX();i++) grid[i,0].vy = +5.0;
+    for(int i=0;i<grid.getSizeX();i++) grid[i,0].v.y = +5.0;
     Outflow::Gated("Y-").apply(grid);
     for(int i=0;i<grid.getSizeX();i++){
-        assert(approx(grid[i,-1].vy, 0.0));
-        assert(approx(grid[i,-2].vy, 0.0));
+        assert(approx(grid[i,-1].v.y, 0.0));
+        assert(approx(grid[i,-2].v.y, 0.0));
     }
     //Y- allows outflow
     fill_2D(grid);
-    for(int i=0;i<grid.getSizeX();i++) grid[i,0].vy = -5.0;
+    for(int i=0;i<grid.getSizeX();i++) grid[i,0].v.y = -5.0;
     Outflow::Gated(Y_negative).apply(grid);
     for(int i=0;i<grid.getSizeX();i++){
-        assert(approx(grid[i,-1].vy, -5.0));
-        assert(approx(grid[i,-2].vy, -5.0));
+        assert(approx(grid[i,-1].v.y, -5.0));
+        assert(approx(grid[i,-2].v.y, -5.0));
     }
     
     //Y+ blocks inflow
     fill_2D(grid);
-    for(int i=0;i<grid.getSizeX();i++) grid[i,3].vy = -5.0;
+    for(int i=0;i<grid.getSizeX();i++) grid[i,3].v.y = -5.0;
     Outflow::Gated("Y+").apply(grid);
     for(int i=0;i<grid.getSizeX();i++){
-        assert(approx(grid[i,4].vy, 0.0));
-        assert(approx(grid[i,5].vy, 0.0));
+        assert(approx(grid[i,4].v.y, 0.0));
+        assert(approx(grid[i,5].v.y, 0.0));
     }
     //Y+ allows outflow
     fill_2D(grid);
-    for(int i=0;i<grid.getSizeX();i++) grid[i,3].vy = +5.0;
+    for(int i=0;i<grid.getSizeX();i++) grid[i,3].v.y = +5.0;
     Outflow::Gated(Y_positive).apply(grid);
     for(int i=0;i<grid.getSizeX();i++){
-        assert(approx(grid[i,4].vy, +5));
-        assert(approx(grid[i,5].vy, +5));
+        assert(approx(grid[i,4].v.y, +5));
+        assert(approx(grid[i,5].v.y, +5));
     }
     
-    //Normal components copy
+    //Normal components cop.y
     fill_2D(grid);
-    for(int i=0;i<grid.getSizeX();i++) grid[i,0].vy = +5.0;
+    for(int i=0;i<grid.getSizeX();i++) grid[i,0].v.y = +5.0;
     Outflow::Gated(Y_negative).apply(grid);
     for(int i=0;i<grid.getSizeX();i++){
-        PrimitiveState w=grid[i,-1]; w.vy += grid[i,0].vy;
+        PrimitiveState w=grid[i,-1]; w.v.y += grid[i,0].v.y;
         expect_close(w, grid[i,0]);
     }
 }
@@ -816,62 +816,62 @@ void DRAGON_Test::verify_boundary_outflow_3D_gated_X(){
     //X- blocks inflow
     fill_3D(grid);
     for(int j=0;j<grid.getSizeY();j++){
-        for(int k=0;k<grid.getSizeZ();k++) grid[0,j,k].vx = +5.0;
+        for(int k=0;k<grid.getSizeZ();k++) grid[0,j,k].v.x = +5.0;
     }
     Outflow::Gated(X_negative).apply(grid);
     for(int j=0;j<grid.getSizeY();j++){
         for(int k=0;k<grid.getSizeZ();k++){
-            assert(approx(grid[-1,j,k].vx, 0.0));
-            assert(approx(grid[-2,j,k].vx, 0.0));
+            assert(approx(grid[-1,j,k].v.x, 0.0));
+            assert(approx(grid[-2,j,k].v.x, 0.0));
         }
     }
     //X- allows outflow
     fill_3D(grid);
     for(int j=0;j<grid.getSizeY();j++){
-        for(int k=0;k<grid.getSizeZ();k++) grid[0,j,k].vx = -5.0;
+        for(int k=0;k<grid.getSizeZ();k++) grid[0,j,k].v.x = -5.0;
     }
     Outflow::Gated("X-").apply(grid);
     for(int j=0;j<grid.getSizeY();j++){
         for(int k=0;k<grid.getSizeZ();k++){
-            assert(approx(grid[-1,j,k].vx, -5));
-            assert(approx(grid[-2,j,k].vx, -5));
+            assert(approx(grid[-1,j,k].v.x, -5));
+            assert(approx(grid[-2,j,k].v.x, -5));
         }
     }
     
     //X+ blocks inflow
     fill_3D(grid);
     for(int j=0;j<grid.getSizeY();j++){
-        for(int k=0;k<grid.getSizeZ();k++) grid[2,j,k].vx = -5.0;
+        for(int k=0;k<grid.getSizeZ();k++) grid[2,j,k].v.x = -5.0;
     }
     Outflow::Gated(X_positive).apply(grid);
     for(int j=0;j<grid.getSizeY();j++){
         for(int k=0;k<grid.getSizeZ();k++){
-            assert(approx(grid[3,j,k].vx, 0.0));
-            assert(approx(grid[4,j,k].vx, 0.0));
+            assert(approx(grid[3,j,k].v.x, 0.0));
+            assert(approx(grid[4,j,k].v.x, 0.0));
         }
     }
     //X+ allows outflow
     fill_3D(grid);
     for(int j=0;j<grid.getSizeY();j++){
-        for(int k=0;k<grid.getSizeZ();k++) grid[2,j,k].vx = +5.0;
+        for(int k=0;k<grid.getSizeZ();k++) grid[2,j,k].v.x = +5.0;
     }
     Outflow::Gated("X+").apply(grid);
     for(int j=0;j<grid.getSizeY();j++){
         for(int k=0;k<grid.getSizeZ();k++){
-            assert(approx(grid[3,j,k].vx, +5));
-            assert(approx(grid[4,j,k].vx, +5));
+            assert(approx(grid[3,j,k].v.x, +5));
+            assert(approx(grid[4,j,k].v.x, +5));
         }
     }
     
-    //X - Normal components copy
+    //X - Normal components cop.y
     fill_3D(grid);
     for(int j=0;j<grid.getSizeY();j++) {
-        for(int k=0;k<grid.getSizeZ();k++) grid[0,j,k].vx = +5.0;
+        for(int k=0;k<grid.getSizeZ();k++) grid[0,j,k].v.x = +5.0;
     }
     Outflow::Gated(X_negative).apply(grid);
     for(int j=0;j<grid.getSizeY();j++){
         for(int k=0;k<grid.getSizeZ();k++){
-            PrimitiveState w=grid[-1,j,k]; w.vx += grid[0,j,k].vx;
+            PrimitiveState w=grid[-1,j,k]; w.v.x += grid[0,j,k].v.x;
             expect_close(w, grid[0,j,k]);
         }
     }
@@ -884,62 +884,62 @@ void DRAGON_Test::verify_boundary_outflow_3D_gated_Y(){
     //Y- blocks inflow
     fill_3D(grid);
     for(int i=0;i<grid.getSizeX();i++){
-        for(int k=0;k<grid.getSizeZ();k++) grid[i,0,k].vy = +5.0;
+        for(int k=0;k<grid.getSizeZ();k++) grid[i,0,k].v.y = +5.0;
     }
     Outflow::Gated(Y_negative).apply(grid);
     for(int i=0;i<grid.getSizeX();i++){
         for(int k=0;k<grid.getSizeZ();k++){
-            assert(approx(grid[i,-1,k].vy, 0.0));
-            assert(approx(grid[i,-2,k].vy, 0.0));
+            assert(approx(grid[i,-1,k].v.y, 0.0));
+            assert(approx(grid[i,-2,k].v.y, 0.0));
         }
     }
     //Y- allows outflow
     fill_3D(grid);
     for(int i=0;i<grid.getSizeX();i++){
-        for(int k=0;k<grid.getSizeZ();k++) grid[i,0,k].vy = -5.0;
+        for(int k=0;k<grid.getSizeZ();k++) grid[i,0,k].v.y = -5.0;
     }
     Outflow::Gated(Y_negative).apply(grid);
     for(int i=0;i<grid.getSizeX();i++){
         for(int k=0;k<grid.getSizeZ();k++){
-            assert(approx(grid[i,-1,k].vy, -5.0));
-            assert(approx(grid[i,-2,k].vy, -5.0));
+            assert(approx(grid[i,-1,k].v.y, -5.0));
+            assert(approx(grid[i,-2,k].v.y, -5.0));
         }
     }
     
     //Y+ blocks inflow
     fill_3D(grid);
     for(int i=0;i<grid.getSizeX();i++) {
-        for(int k=0;k<grid.getSizeZ();k++) grid[i,3,k].vy = -5.0;
+        for(int k=0;k<grid.getSizeZ();k++) grid[i,3,k].v.y = -5.0;
     }
     Outflow::Gated(Y_positive).apply(grid);
     for(int i=0;i<grid.getSizeX();i++){
         for(int k=0;k<grid.getSizeZ();k++){
-            assert(approx(grid[i,4,k].vy, 0.0));
-            assert(approx(grid[i,5,k].vy, 0.0));
+            assert(approx(grid[i,4,k].v.y, 0.0));
+            assert(approx(grid[i,5,k].v.y, 0.0));
         }
     }
     //Y+ allows outflow
     fill_3D(grid);
     for(int i=0;i<grid.getSizeX();i++) {
-        for(int k=0;k<grid.getSizeZ();k++) grid[i,3,k].vy = +5.0;
+        for(int k=0;k<grid.getSizeZ();k++) grid[i,3,k].v.y = +5.0;
     }
     Outflow::Gated(Y_positive).apply(grid);
     for(int i=0;i<grid.getSizeX();i++){
         for(int k=0;k<grid.getSizeZ();k++){
-            assert(approx(grid[i,4,k].vy, +5));
-            assert(approx(grid[i,5,k].vy, +5));
+            assert(approx(grid[i,4,k].v.y, +5));
+            assert(approx(grid[i,5,k].v.y, +5));
         }
     }
     
-    //Normal components copy
+    //Normal components cop.y
     fill_3D(grid);
     for(int i=0;i<grid.getSizeX();i++){
-        for(int k=0;k<grid.getSizeZ();k++) grid[i,0,k].vy = +5.0;
+        for(int k=0;k<grid.getSizeZ();k++) grid[i,0,k].v.y = +5.0;
     }
     Outflow::Gated(Y_negative).apply(grid);
     for(int i=0;i<grid.getSizeX();i++){
         for(int k=0;k<grid.getSizeZ();k++){
-            PrimitiveState w=grid[i,-1,k]; w.vy += grid[i,0,k].vy;
+            PrimitiveState w=grid[i,-1,k]; w.v.y += grid[i,0,k].v.y;
             expect_close(w, grid[i,0,k]);
         }
     }
@@ -951,61 +951,61 @@ void DRAGON_Test::verify_boundary_outflow_3D_gated_Z(){
     //Z- blocks inflow
     fill_3D(grid);
     for(int i=0;i<grid.getSizeX();i++){
-        for(int j=0;j<grid.getSizeY();j++) grid[i,j,0].vz = +5.0;
+        for(int j=0;j<grid.getSizeY();j++) grid[i,j,0].v.z = +5.0;
     }
     Outflow::Gated("Z-").apply(grid);
     for(int i=0;i<grid.getSizeX();i++){
         for(int j=0;j<grid.getSizeY();j++){
-            assert(approx(grid[i,j,-1].vz, 0.0));
-            assert(approx(grid[i,j,-2].vz, 0.0));
+            assert(approx(grid[i,j,-1].v.z, 0.0));
+            assert(approx(grid[i,j,-2].v.z, 0.0));
         }
     }
     //Z- allows outflow
     fill_3D(grid);
     for(int i=0;i<grid.getSizeX();i++){
-        for(int j=0;j<grid.getSizeY();j++) grid[i,j,0].vz = -5.0;
+        for(int j=0;j<grid.getSizeY();j++) grid[i,j,0].v.z = -5.0;
     }
     Outflow::Gated(Z_negative).apply(grid);
     for(int i=0;i<grid.getSizeX();i++){
         for(int j=0;j<grid.getSizeY();j++){
-            assert(approx(grid[i,j,-1].vz, -5.0));
-            assert(approx(grid[i,j,-2].vz, -5.0));
+            assert(approx(grid[i,j,-1].v.z, -5.0));
+            assert(approx(grid[i,j,-2].v.z, -5.0));
         }
     }
     //Z+ blocks inflow
     fill_3D(grid);
     for(int i=0;i<grid.getSizeX();i++) {
-        for(int j=0;j<grid.getSizeY();j++) grid[i,j,4].vz = -5.0;
+        for(int j=0;j<grid.getSizeY();j++) grid[i,j,4].v.z = -5.0;
     }
     Outflow::Gated("Z+").apply(grid);
     for(int i=0;i<grid.getSizeX();i++){
         for(int j=0;j<grid.getSizeY();j++){
-            assert(approx(grid[i,j,5].vz, 0.0));
-            assert(approx(grid[i,j,6].vz, 0.0));
+            assert(approx(grid[i,j,5].v.z, 0.0));
+            assert(approx(grid[i,j,6].v.z, 0.0));
         }
     }
     //Z+ allows outflow
     fill_3D(grid);
     for(int i=0;i<grid.getSizeX();i++) {
-        for(int j=0;j<grid.getSizeY();j++) grid[i,j,4].vz = +5.0;
+        for(int j=0;j<grid.getSizeY();j++) grid[i,j,4].v.z = +5.0;
     }
     Outflow::Gated(Z_positive).apply(grid);
     for(int i=0;i<grid.getSizeX();i++){
         for(int j=0;j<grid.getSizeY();j++){
-            assert(approx(grid[i,j,5].vz, +5));
-            assert(approx(grid[i,j,6].vz, +5));
+            assert(approx(grid[i,j,5].v.z, +5));
+            assert(approx(grid[i,j,6].v.z, +5));
         }
     }
     
-    //Normal components copy
+    //Normal components cop.y
     fill_3D(grid);
     for(int i=0;i<grid.getSizeX();i++){
-        for(int j=0;j<grid.getSizeY();j++) grid[i,j,0].vz = +5.0;
+        for(int j=0;j<grid.getSizeY();j++) grid[i,j,0].v.z = +5.0;
     }
     Outflow::Gated(Z_negative).apply(grid);
     for(int i=0;i<grid.getSizeX();i++){
         for(int j=0;j<grid.getSizeY();j++){
-            PrimitiveState w=grid[i,j,-1]; w.vz += grid[i,j,0].vz;
+            PrimitiveState w=grid[i,j,-1]; w.v.z += grid[i,j,0].v.z;
             expect_close(w, grid[i,j,0]);
         }
     }

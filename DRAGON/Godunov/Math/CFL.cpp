@@ -17,25 +17,25 @@
 double CFL::cfl_max_speed(const PrimitiveState& W, double dx, double dy, double dz){
     double a = sqrt(_gamma * W.p / W.rho);
     double speed = 0;
-    if (dx > 1e-14) speed = (fabs(W.vx) + a)/dx;
-    if (dy > 1e-14)  speed = std::max(speed, (fabs(W.vy) + a)/dy);
-    if (dz > 1e-14) speed = std::max(speed, (fabs(W.vz) + a)/dz);
+    if (dx > 1e-14) speed = (fabs(W.v.x) + a)/dx;
+    if (dy > 1e-14)  speed = std::max(speed, (fabs(W.v.y) + a)/dy);
+    if (dz > 1e-14) speed = std::max(speed, (fabs(W.v.z) + a)/dz);
     return speed;
 }
 double CFL::cfl_add_speed(const PrimitiveState& W, double dx, double dy, double dz){
     double a = sqrt(_gamma * W.p / W.rho);
     double speed = 0;
-    if (dx > 1e-14) speed = (fabs(W.vx) + a)/dx;
-    if (dy > 1e-14) speed +=  (fabs(W.vy) + a)/dy;
-    if (dz > 1e-14) speed += (fabs(W.vz) + a)/dz;
+    if (dx > 1e-14) speed = (fabs(W.v.x) + a)/dx;
+    if (dy > 1e-14) speed +=  (fabs(W.v.y) + a)/dy;
+    if (dz > 1e-14) speed += (fabs(W.v.z) + a)/dz;
     return speed;
 }
 double CFL::cfl_pow_speed(const PrimitiveState& W, double p, double dx, double dy, double dz){
     double a = sqrt(_gamma * W.p / W.rho);
     double speed = 0;
-    if (dx > 1e-14) speed = pow((fabs(W.vx) + a)/dx, p);
-    if (dy > 1e-14) speed +=  pow((fabs(W.vy) + a)/dy,p);
-    if (dz > 1e-14) speed += pow((fabs(W.vz) + a)/dz,p);
+    if (dx > 1e-14) speed = pow((fabs(W.v.x) + a)/dx, p);
+    if (dy > 1e-14) speed +=  pow((fabs(W.v.y) + a)/dy,p);
+    if (dz > 1e-14) speed += pow((fabs(W.v.z) + a)/dz,p);
     return pow(speed, 1.0/p);
 }
 
@@ -67,7 +67,7 @@ double CFL::cfl_time(const Grid1D& g){
     double max_speed = 0;
     for(int i = 0; i<g.getSize(); i++){
       const PrimitiveState& W = g[i];
-      double speed = fabs(W.vx) + sqrt(_gamma * W.p / W.rho);
+      double speed = fabs(W.v.x) + sqrt(_gamma * W.p / W.rho);
       max_speed = fmax(max_speed, speed);
     }
     if(max_speed <= 0) throw std::runtime_error("CFL timestep failed: max signal speed is zero");

@@ -15,12 +15,21 @@ ConservativeState operator+(ConservativeState X, const ConservativeState &Y){
 }
 ConservativeState& operator+=(ConservativeState &X, const ConservativeState &Y){
     X.rho += Y.rho;
-    X.px += Y.px;
-    X.py += Y.py;
-    X.pz += Y.pz;
+    X.p += Y.p;
     X.E += Y.E;
     return X;
 }
+vec3 operator+(vec3 v, const vec3 &w){
+    v += w;
+    return v;
+}
+vec3& operator+=(vec3 &v, const vec3 &w){
+    v.x += w.x;
+    v.y += w.y;
+    v.z += w.z;
+    return v;
+}
+
 
 //MARK: (-): Subtract two states
 ConservativeState operator-(ConservativeState X, const ConservativeState &Y){
@@ -29,11 +38,19 @@ ConservativeState operator-(ConservativeState X, const ConservativeState &Y){
 }
 ConservativeState& operator-=(ConservativeState &X, const ConservativeState &Y){
     X.rho -= Y.rho;
-    X.px -= Y.px;
-    X.py -= Y.py;
-    X.pz -= Y.pz;
+    X.p -= Y.p;
     X.E -= Y.E;
     return X;
+}
+vec3 operator-(vec3 v, const vec3 &w){
+    v -= w;
+    return v;
+}
+vec3& operator-=(vec3 &v, const vec3 &w){
+    v.x -= w.x;
+    v.y -= w.y;
+    v.z -= w.z;
+    return v;
 }
 //MARK: (*): Multiply State by scalar
 ConservativeState operator*(const double &a, ConservativeState X){ return X*a; }
@@ -43,12 +60,22 @@ ConservativeState operator*(ConservativeState X, double a){
 }
 ConservativeState& operator*=(ConservativeState &X, double a){
     X.rho *= a;
-    X.px *= a;
-    X.py *= a;
-    X.pz *= a;
+    X.p *= a;
     X.E *= a;
     return X;
 }
+vec3 operator*(const double &a, vec3 v){ return v*a; }
+vec3 operator*(vec3 v, double a){
+    v *= a;
+    return v;
+}
+vec3& operator*=(vec3 &v, double a){
+    v.x *= a;
+    v.y *= a;
+    v.z *= a;
+    return v;
+}
+
 //MARK: (/): Divide state by scalar
 ConservativeState operator/(ConservativeState X, double a){
     X /= a;
@@ -56,30 +83,40 @@ ConservativeState operator/(ConservativeState X, double a){
 }
 ConservativeState& operator/=(ConservativeState &X, double a){
     X.rho /= a;
-    X.px /= a;
-    X.py /= a;
-    X.pz /= a;
+    X.p /= a;
     X.E /= a;
     return X;
 }
+vec3 operator/(vec3 v, double a){
+    v /= a;
+    return v;
+}
+vec3& operator/=(vec3 &v, double a){
+    v.x /= a;
+    v.y /= a;
+    v.z /= a;
+    return v;
+}
+
 
 //MARK: (==) Equality
 bool operator==(const PrimitiveState &X, const PrimitiveState &Y){
     if(fabs(X.rho - Y.rho) >= 1e-12) return false;
-    if(fabs(X.vx - Y.vx) >= 1e-12) return false;
-    if(fabs(X.vy - Y.vy) >= 1e-12) return false;
-    if(fabs(X.vz - Y.vz) >= 1e-12) return false;
+    if(X.v != Y.v) return false;
     if(fabs(X.p - Y.p) >= 1e-12) return false;
 
     return true;
 }
 bool operator==(const ConservativeState &X, const ConservativeState &Y){
     if(fabs(X.rho - Y.rho) >= 1e-12) return false;
-    if(fabs(X.px - Y.px) >= 1e-12) return false;
-    if(fabs(X.py - Y.py) >= 1e-12) return false;
-    if(fabs(X.pz - Y.pz) >= 1e-12) return false;
+    if(X.p != Y.p) return false;
     if(fabs(X.E - Y.E) >= 1e-12) return false;
 
     return true;
 }
-
+bool operator==(const vec3 &X, const vec3 &Y){
+    if(fabs(X.x - Y.x) >= 1e-12) return false;
+    if(fabs(X.y - Y.y) >= 1e-12) return false;
+    if(fabs(X.z - Y.z) >= 1e-12) return false;
+    return true;
+}

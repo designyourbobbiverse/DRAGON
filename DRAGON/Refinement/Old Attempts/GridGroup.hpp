@@ -15,7 +15,7 @@
 struct GridGroup2D{
 
     GridGroup2D(int nx, int ny, double dx, double dy, int ghosts=1);
-    GridGroup2D(const GridGroup2D&) = delete; //No copying
+    GridGroup2D(const GridGroup2D&) = delete; //No cop.ying
     GridGroup2D& operator=(const GridGroup2D&) = delete;
     
     //Grid access

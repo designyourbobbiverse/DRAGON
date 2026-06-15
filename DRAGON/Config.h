@@ -30,9 +30,9 @@
 //MARK: CFL Calculation
 //Courant, Friedrichs, and Lewy (1928). https://doi.org/10.1007/BF01448839
 //The following variants are available for computing the CFL time limit for each cell in a multidimensional grid
-    #define CFL_ADD 1 //Adds the speeds for each dimension together: (|vx|+a)/dx + (|vy|+a)/dy + ...
-    #define CFL_MAX 0 //Uses max[ (|vx|+a)/dx, (|vy|+a)/dy, ...]
-    //Can set to any p>0 to use [ ((|vx|+a)/dx)^p + ((|vy|+a)/dy)^p + ... ]^(1/p)
+    #define CFL_ADD 1 //Adds the speeds for each dimension together: (|v.x|+a)/dx + (|v.y|+a)/dy + ...
+    #define CFL_MAX 0 //Uses max[ (|v.x|+a)/dx, (|v.y|+a)/dy, ...]
+    //Can set to any p>0 to use [ ((|v.x|+a)/dx)^p + ((|v.y|+a)/dy)^p + ... ]^(1/p)
 #define CFL_CALCULATION CFL_ADD
 
 constexpr double CFL_coeff = 0.3; //The Coefficient used together with the above to determine the maximum timestep size
@@ -70,8 +70,8 @@ extern int riemann_choice;
 extern int limiter_choice;
 #endif
 #if CFL_CALCULATION == CHOOSE_RUNTIME || defined(TESTMODE)
-//If set to p>0,  CFL uses  speed = [ ((|vx|+a)/dx)^p + ((|vy|+a)/dy)^p +... ]^(1/p)
-//If set to 0, CFL uses max[ (|vx|+a)/dx, (|vy|+a)/dy, ... ]
+//If set to p>0,  CFL uses  speed = [ ((|v.x|+a)/dx)^p + ((|v.y|+a)/dy)^p +... ]^(1/p)
+//If set to 0, CFL uses max[ (|v.x|+a)/dx, (|v.y|+a)/dy, ... ]
 extern int cfl_choice;
 #endif
 }
