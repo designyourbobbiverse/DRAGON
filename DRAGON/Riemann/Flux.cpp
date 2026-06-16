@@ -12,45 +12,83 @@
 
 
 //MARK: Selected Flux algorithm
-#if RIEMANN_DEFAULT_HYDRO == CHOOSE_RUNTIME || defined(TESTMODE)
+#if RIEMANN_DEFAULT == CHOOSE_RUNTIME || defined(TESTMODE)
 namespace CONFIG {
-    int riemann_choice = RIEMANN_EXACT;
+    int riemann_choice = RIEMANN_HLLD;
 }
 #endif
 
 //Make sure to set RIEMANN_DEFAULT in Config.h
 ConservativeState Riemann::flux(double dt_dx){
-#if RIEMANN_DEFAULT_HYDRO == CHOOSE_RUNTIME || defined(TESTMODE)
+#if defined(TESTMODE)
     ConservativeState flux;
     switch (CONFIG::riemann_choice){
+        case RIEMANN_EXACT: flux = exact().flux();
         case RIEMANN_HLL: flux =  HLL(); break;
         case RIEMANN_HLLC: flux =  HLLC(); break;
+        case RIEMANN_HLLD: flux = HLLD(); break;
+        case RIEMANN_HLLE: flux =  HLLE(); break;
+        case RIEMANN_ROE: flux =  Roe(); break;
+        #ifdef MHD
+        case RIEMANN_HLLX: flux = HLLD();
+        #else
+        case RIEMANN_HLLX: flux = HLLC();
+        #endif
+        default: flux = exact().flux();
+    }
+#elif !defined(MHD) && RIEMANN_DEFAULT == CHOOSE_RUNTIME
+    ConservativeState flux;
+    switch (CONFIG::riemann_choice){
+        case RIEMANN_HLLX:
+        case RIEMANN_HLLC: flux =  HLLC(); break;
+        case RIEMANN_EXACT: flux = exact().flux();
+        case RIEMANN_HLL: flux =  HLL(); break;
+        case RIEMANN_HLLE: flux =  HLLE(); break;
         case RIEMANN_ROE: flux =  Roe(); break;
         default: flux = exact().flux();
     }
-#elif RIEMANN_DEFAULT_HYDRO == RIEMANN_EXACT
+#elif defined(MHD) && RIEMANN_DEFAULT == CHOOSE_RUNTIME
+    ConservativeState flux;
+    switch (CONFIG::riemann_choice){
+        case RIEMANN_HLLX:
+        case RIEMANN_HLLD: flux =  HLLD(); break;
+        case RIEMANN_HLL: flux =  HLL(); break;
+        case RIEMANN_HLLE: flux =  HLLE(); break;
+        default: flux =  HLLD(); break;
+    }
+#elif !defined(MHD) && RIEMANN_DEFAULT == RIEMANN_EXACT
     auto flux = exact().flux();
-#elif RIEMANN_DEFAULT_HYDRO == RIEMANN_HLL
+#elif RIEMANN_DEFAULT == RIEMANN_HLL
     auto flux =  HLL();
-#elif RIEMANN_DEFAULT_HYDRO == RIEMANN_HLLC
+#elif !defined(MHD) && RIEMANN_DEFAULT == RIEMANN_HLLC
     auto flux =  HLLC();
-#elif RIEMANN_DEFAULT_HYDRO == RIEMANN_ROE
+#elif defined(MHD) && RIEMANN_DEFAULT == RIEMANN_HLLD
+    auto flux =  HLLD();
+#elif RIEMANN_DEFAULT == RIEMANN_HLLE
+    auto flux =  HLLE();
+#elif !defined(MHD) && RIEMANN_DEFAULT == RIEMANN_ROE
     auto flux =  Roe();
 #endif
 //MARK: Fallback to Exact
-#if RIEMANN_DEFAULT_HYDRO != RIEMANN_EXACT //Verify physicality, fallback to exact if needed
+ //Verify physicality, fallback to exact if needed
     if(dt_dx == 0) return flux;
     dt_dx *= Riemann_ExactFallback_Parameter;
     if(!(L - flux*dt_dx).isPhysical() ||  !(R+flux*dt_dx).isPhysical()){
-        flux = exact().flux();
+        flux = HLLE();
         if(!(L - flux*dt_dx).isPhysical() ||  !(R+flux*dt_dx).isPhysical()){
+            #if defined(TESTMODE) || (!defined(MHD) && RIEMANN_DEFAULT != RIEMANN_EXACT)
+            flux = exact().flux();
+            if(!(L - flux*dt_dx).isPhysical() ||  !(R+flux*dt_dx).isPhysical()){
+                //TODO: Throw Exception
+                
+            }
+            #else
             //TODO: Throw Exception
+            #endif
         }
     }
-#endif
     return flux;
 }
-
 
 
 //MARK: Dimension Convenience
@@ -118,4 +156,11 @@ void RiemannSolution::mirror(){
     wR.v.x *= -1;
     sL.v.x *= -1;
     sR.v.x *= -1;
+#ifdef MHD
+    wL.B.x *= -1;
+    wR.B.x *= -1;
+    sL.B.x *= -1;
+    sR.B.x *= -1;
+#endif
+    
 }

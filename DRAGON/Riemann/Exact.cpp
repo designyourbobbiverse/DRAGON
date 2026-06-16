@@ -19,10 +19,8 @@ RiemannSolution::RiemannSolution(Riemann problem){
     wL = problem.L;
     wR = problem.R;
     //Cop.y Transverse Values
-    sL.v.y = wL.v.y;
-    sR.v.y = wR.v.y;
-    sL.v.z = wL.v.z;
-    sR.v.z = wR.v.z;
+    sL.v = wL.v;
+    sR.v = wR.v;
 }
 
 

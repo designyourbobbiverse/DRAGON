@@ -14,6 +14,7 @@
 #include "Constants.h"
 #include "Config.h"
 
+#if !defined(MHD) || defined(TESTMODE)
 //MARK: Eigenvectors
 inline ConservativeState _K1(vec3 _v, double _H, double _a){
     ConservativeState K = ConservativeState();
@@ -99,3 +100,7 @@ ConservativeState Riemann::Roe(){
     for(int i = 0; i < 5; i++) F -= alpha[i]*fabs(lambda[i])*K[i];
     return F/2;
 }
+
+#elif RIEMANN_DEFAULT_HYDRO == RIEMANN_ROE
+#error Roe Solver incompatible with MHD
+#endif

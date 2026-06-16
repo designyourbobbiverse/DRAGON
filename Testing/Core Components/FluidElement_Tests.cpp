@@ -6,6 +6,7 @@
 //
 
 #include "Testing.hpp"
+#include "Constants.h"
 #include <math.h>
 #include <iostream>
 
@@ -20,8 +21,11 @@ void DRAGON_Test::verify_fluid_element(bool output) {
     if(output) std::cout << "- Form Conversion: ";
     verify_conversion();
     if(output) std::cout << "Passed\n";
-    if(output) std::cout << "- enthalpy: ";
+    if(output) std::cout << "- Enthalpy: ";
     verify_enthalpy();
+    if(output) std::cout << "Passed\n";
+    if(output) std::cout << "- Wave Speeds: ";
+    verify_wavespeeds();
     if(output) std::cout << "Passed\n";
     if(output) std::cout << "- Axis Swaps: ";
     verify_swaps_P();
@@ -117,6 +121,7 @@ void DRAGON_Test::verify_constructors(){
 #endif
 }
 
+//MARK: Physics Verification
 void DRAGON_Test::verify_conversion(){
     PrimitiveState W = make_state(2.0, 3.0, 4.0, 0.0, 10.0);
 
@@ -185,6 +190,20 @@ void DRAGON_Test::verify_enthalpy(){
     W.B = {1.0,2.0,3.0};
     assert(approx(W.enthalpy(), 25.0 + (14.0)/(8*M_PI) ));
 #endif
+}
+
+void DRAGON_Test::verify_wavespeeds(){
+    PrimitiveState W = make_state(2.0, 3.0, 4.0, 0.0, 10.0);
+    
+    assert(approx(W.cs(), sqrt(_gamma * 5.0)));
+#ifdef MHD
+    W.B = {1,2,3};
+    assert(approx(W.c_alfven(), sqrt(14/(8*M_PI)) ));
+    double c2 = _gamma * 5.0, a2 = 14/(8*M_PI), ax2 = 1/(8*M_PI) ;
+    assert(approx(W.c_fast(), sqrt((c2+a2)/2 + sqrt(pow(c2+a2,2)/4 - ax2*c2))  ));
+
+#endif
+    
 }
 
 //MARK: Dimension Swaps

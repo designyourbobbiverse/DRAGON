@@ -63,6 +63,7 @@
 				Riemann/Exact.cpp,
 				Riemann/Flux.cpp,
 				Riemann/HLL.cpp,
+				Riemann/HLLD.cpp,
 				Riemann/Roe.cpp,
 			);
 			target = F77A715B2FB415A5006C2776 /* DRAGON_TESTS */;

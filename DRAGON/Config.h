@@ -8,21 +8,28 @@
 #ifndef Config_h
 #define Config_h
 
+
+#define MHD
+
+
 #define CHOOSE_RUNTIME -1
 
 //MARK: Riemann Solver
-//DRAGON offers 4 different choices of Riemann Solver in Hydrodynamic mode. MHD always uses HLLD
-#define RIEMANN_EXACT 0 //Produces an exact solution to the Euler Equations using an iterative procedure
+//DRAGON offers several different choices of Riemann Solver in Hydrodynamic mode, and choice of HLL/D/E in MHD
+    #define RIEMANN_EXACT 0 //Produces an exact solution to the Euler Equations using an iterative procedure
         #define Exact_Rarefactions_Check //Checks for the 2-rarefaction case before attempting an iterative procedure
         constexpr double ExactRiemann_Tolerance = 1E-12; //Defines the convergence threshold for the iterative procedure
         constexpr double ExactRiemann_MaxIters = 0; //Use a nonpostiive value for unlimited iterations
     #define RIEMANN_HLL 1 // Harten, Lax, and van Leer (1983). https://doi.org/10.1137/1025002
     #define RIEMANN_HLLC 2 // Toro, Spruce, and Speares (1994). https://doi.org/10.1007/BF01414629
-    #define RIEMANN_ROE 3 // Roe (1981). https://doi.org/10.1016/0021-9991(81)90128-5
+    #define RIEMANN_HLLD 3 // Miyoshi and Kusano (2005). https://doi.org/10.1016/j.jcp.2005.02.017
+    #define RIEMANN_HLLE 4 //Einfeldt (1988). https://doi.org/10.1137/0725021
+    #define RIEMANN_HLLX 5 //HLLC for Pure Hydro, HLLD for MHD
+    #define RIEMANN_ROE 6 // Roe (1981). https://doi.org/10.1016/0021-9991(81)90128-5
         #define Harten_Hyman //Harten and Hyman (1983). https://doi.org/10.1016/0021-9991(83)90066-9
-#define RIEMANN_DEFAULT_HYDRO RIEMANN_HLLC
+#define RIEMANN_DEFAULT RIEMANN_HLLX
 
-//When using an approximate solver, verify that L-F*dt/dx and R+F*dt/dx are physical + recalculate using Exact if not
+//When using an approximate solver, verify that L-F*dt/dx and R+F*dt/dx are physical + recalculate using Exact (or HLLE if MHD) if not
 #define RIEMANN_EXACT_FALLBACK
     constexpr double Riemann_ExactFallback_Parameter = 1.0; //Scales F*dt/dx for the purpose of physicality verificaiton
 
@@ -57,7 +64,7 @@ constexpr double Timestep_Tolerance = 1e-14; //Timesteps smaller than this are t
 
 constexpr int bin_size = 250; //AMRGrid larger than this will split into child grids of this size or smaller
 
-#define MHD
+
 
 
 

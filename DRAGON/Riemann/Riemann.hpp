@@ -9,8 +9,8 @@
 #ifndef Riemann_hpp
 #define Riemann_hpp
 
-#include <stdio.h>
 #include "FluidElement.hpp"
+#include <cmath>
 #include "Config.h"
 
 
@@ -36,7 +36,9 @@ struct RiemannSolution;
 struct Riemann{
     PrimitiveState L, R;
     Riemann(PrimitiveState L, PrimitiveState R);
-
+#ifdef MHD
+    Riemann(PrimitiveState L, PrimitiveState R, double Bx);
+#endif
     
     //Computes the flux using whatever method was selected in Config.h
     //dt_dx is an optional parameter. If set, verifies physicality of solution, pivoting to exact().flux() on failure
@@ -56,20 +58,29 @@ struct Riemann{
     double exact_StarV(double pStar);
     double exact_StarRho(PrimitiveState L, double pStar);
 
-//MARK: HLL/HLLC
+//MARK: Approximate Solvers
     ConservativeState HLL(); // Harten, Lax, & van Leer (1983). https://doi.org/10.1137/1025002
     ConservativeState HLL(double SL, double SR);
+#if !defined(MHD) || defined(TESTMODE)
     ConservativeState HLLC(); // Toro, Spruce, & Speares (1994). https://doi.org/10.1007/BF01414629
     ConservativeState HLLC(double SL, double SR);
-
-//MARK: Roe
+#endif
+#ifdef MHD
+    ConservativeState HLLD(); // Miyoshi and Kusano (2005). https://doi.org/10.1016/j.jcp.2005.02.017
+#endif
+    ConservativeState HLLE(); // Einfeldt (1988). https://doi.org/10.1137/0725021
+#if !defined(MHD) || defined(TESTMODE)
     ConservativeState Roe(); // Roe (1981). https://doi.org/10.1016/0021-9991(81)90128-5
-
+#endif
     
 private:
     //Internal Implementations
     RiemannSolution TRRS();//Two-Rarefaction Riemann Solver
     RiemannSolution TRRS(double aL, double aR);
+    
+#ifdef MHD
+    double Bx = NAN;
+#endif
 };
     
 //MARK: Riemann Solution State

@@ -8,6 +8,7 @@
 #ifndef Constants_h
 #define Constants_h
 
+#include <cmath>
 
 //MARK: Physical Constants
 
@@ -30,5 +31,6 @@ constexpr double _2_Gm1 = 2.0/(_gamma - 1.0);
 constexpr double _2_Gp1 = 2.0/(_gamma + 1.0);
 constexpr double _Gm1_Gp1 = (_gamma - 1.0)/(_gamma + 1.0);
 constexpr double _Ginv = 1.0/_gamma;
+
 
 #endif /* Constants_h */

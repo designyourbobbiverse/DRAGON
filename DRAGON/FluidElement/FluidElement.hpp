@@ -33,6 +33,13 @@ struct PrimitiveState {
     PrimitiveState(ConservativeState state);
     double energy() const;
     double enthalpy() const;
+    
+    double cs();
+#ifdef MHD
+    double c_alfven();
+    double c_fast();
+#endif
+    
     ConservativeState flux() const;
 
     PrimitiveState swapXY() const;
