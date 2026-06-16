@@ -70,10 +70,9 @@ ConservativeState Riemann::flux(double dt_dx){
     auto flux =  Roe();
 #endif
 //MARK: Fallback to Exact
- //Verify physicality, fallback to exact if needed
     if(dt_dx == 0) return flux;
     dt_dx *= Riemann_ExactFallback_Parameter;
-    if(!(L - flux*dt_dx).isPhysical() ||  !(R+flux*dt_dx).isPhysical()){
+    if(!(L - flux*dt_dx).isPhysical() ||  !(R+flux*dt_dx).isPhysical()){ //Verify physicality, fallback if needed
         flux = HLLE();
         if(!(L - flux*dt_dx).isPhysical() ||  !(R+flux*dt_dx).isPhysical()){
             #if defined(TESTMODE) || (!defined(MHD) && RIEMANN_DEFAULT != RIEMANN_EXACT)

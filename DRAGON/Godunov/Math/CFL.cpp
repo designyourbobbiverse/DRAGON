@@ -15,7 +15,11 @@
 
 //MARK: Individual Speeds
 double CFL::cfl_max_speed(const PrimitiveState& W, double dx, double dy, double dz){
-    double a = sqrt(_gamma * W.p / W.rho);
+#ifdef MHD
+    double a = W.c_fast();
+#else
+    double a = W.cs();
+#endif
     double speed = 0;
     if (dx > 1e-14) speed = (fabs(W.v.x) + a)/dx;
     if (dy > 1e-14)  speed = std::max(speed, (fabs(W.v.y) + a)/dy);
@@ -23,7 +27,11 @@ double CFL::cfl_max_speed(const PrimitiveState& W, double dx, double dy, double 
     return speed;
 }
 double CFL::cfl_add_speed(const PrimitiveState& W, double dx, double dy, double dz){
-    double a = sqrt(_gamma * W.p / W.rho);
+#ifdef MHD
+    double a = W.c_fast();
+#else
+    double a = W.cs();
+#endif
     double speed = 0;
     if (dx > 1e-14) speed = (fabs(W.v.x) + a)/dx;
     if (dy > 1e-14) speed +=  (fabs(W.v.y) + a)/dy;
@@ -31,7 +39,11 @@ double CFL::cfl_add_speed(const PrimitiveState& W, double dx, double dy, double 
     return speed;
 }
 double CFL::cfl_pow_speed(const PrimitiveState& W, double p, double dx, double dy, double dz){
-    double a = sqrt(_gamma * W.p / W.rho);
+#ifdef MHD
+    double a = W.c_fast();
+#else
+    double a = W.cs();
+#endif
     double speed = 0;
     if (dx > 1e-14) speed = pow((fabs(W.v.x) + a)/dx, p);
     if (dy > 1e-14) speed +=  pow((fabs(W.v.y) + a)/dy,p);

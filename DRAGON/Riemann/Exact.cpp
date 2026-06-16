@@ -18,7 +18,7 @@ Riemann::Riemann(PrimitiveState _L, PrimitiveState _R){ L = _L; R = _R; }
 RiemannSolution::RiemannSolution(Riemann problem){
     wL = problem.L;
     wR = problem.R;
-    //Cop.y Transverse Values
+    //Copy Transverse Values
     sL.v = wL.v;
     sR.v = wR.v;
 }

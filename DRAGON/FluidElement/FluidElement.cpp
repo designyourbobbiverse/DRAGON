@@ -89,14 +89,14 @@ bool ConservativeState::isPhysical()  const {
 }
 
 //MARK: Wave Speeds
-double PrimitiveState::cs(){
+double PrimitiveState::cs() const {
     return sqrt(_gamma * p / rho);
 }
 #ifdef MHD
-double PrimitiveState::c_alfven(){
+double PrimitiveState::c_alfven() const {
     return sqrt( (B*B) / (4*M_PI*rho) );
 }
-double PrimitiveState::c_fast(){
+double PrimitiveState::c_fast() const {
     double c = cs(), a = c_alfven(), c2 = pow(c,2), a2 = pow(a,2), ax2 = B.x*B.x/(4*M_PI*rho);
     double disc = fmax(0, pow(c2+a2,2)*0.25 - ax2*c2);
     return sqrt( (c2 + a2)*0.5 + sqrt(disc) );

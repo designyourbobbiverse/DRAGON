@@ -34,10 +34,10 @@ struct PrimitiveState {
     double energy() const;
     double enthalpy() const;
     
-    double cs();
+    double cs() const;
 #ifdef MHD
-    double c_alfven();
-    double c_fast();
+    double c_alfven() const;
+    double c_fast() const;
 #endif
     
     ConservativeState flux() const;
