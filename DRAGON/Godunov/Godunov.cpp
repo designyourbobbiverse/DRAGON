@@ -15,35 +15,27 @@
 #include "TVD.hpp"
 #include <cassert>
 
-//MARK: 1D array
-
-Grid1D::Grid1D(int s_, double dx_, int g_): dx(dx_), size(s_), ghosts(g_) {
+static int validGhosts(int g){
 #ifdef MUSCL_Hancock
-    if(ghosts < 2) ghosts = 2;
+    return std::max(g, 2);
 #else
-    if(ghosts < 1) ghosts = 1;
+    return std::max(g, 1);
 #endif
-    w = new PrimitiveState[size+2*ghosts];
 }
-PrimitiveState& Grid1D::operator[](int k) {
-    assert(k + ghosts >= 0 && k < size+ghosts);
-    return w[k+ghosts];
-}
-const PrimitiveState& Grid1D::operator[](int k) const {
-    assert(k + ghosts >= 0 && k < size+ghosts);
-    return w[k+ghosts];
-}
-int Grid1D::getSize() const { return size; }
-int Grid1D::getGhosts() const { return ghosts; }
-Grid1D::~Grid1D() { delete[] w; }
-
-
+//MARK: Array Wrapper
+Grid1D::Grid1D(int s_, double dx_, int g_): w(s_, validGhosts(g_)), dx(dx_) { }
+PrimitiveState& Grid1D::operator[](int k) { return w[k]; }
+const PrimitiveState& Grid1D::operator[](int k) const { return w[k]; }
+int Grid1D::getSize() const { return w.getSize(); }
+int Grid1D::getGhosts() const { return w.getGhosts(); }
+Grid1D::~Grid1D() { w.~ExtendedArray1D(); }
 
 
 //MARK: 1D Godunov Advance
 
 void Grid1D::advance(double dt, bool check_cfl){
-    Grid1D _L(size,dx,ghosts), _R(size,dx,ghosts);//Buffer Grids
+    int size = getSize(), ghosts = getGhosts();
+    ExtendedArray1D<PrimitiveState> _L(size,ghosts), _R(size,ghosts);//Buffer Grids
     
     while(dt > Timestep_Tolerance){
         //Apply Boundary Conditions
@@ -59,7 +51,8 @@ void Grid1D::advance(double dt, bool check_cfl){
 
 
 //MARK: Godunov Sweep
-void Grid1D::god_sweep(double dt, Grid1D& _L, Grid1D& _R){
+void Grid1D::god_sweep(double dt, ExtendedArray1D<PrimitiveState>& _L, ExtendedArray1D<PrimitiveState>& _R){
+    int size = getSize(), ghosts = getGhosts();
     for(int i=-ghosts+1; i<size+ghosts-1; i++) {
         TVD::MUSCL((*this)[i-1], _L[i], (*this)[i], _R[i], (*this)[i+1], dt/dx);
     }

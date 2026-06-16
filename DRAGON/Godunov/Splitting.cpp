@@ -13,76 +13,32 @@
 #include <cassert>
 
 
-//MARK: 2D Array
-
-Grid2D::Grid2D(int nx_, int ny_, double dx_, double dy_, int g_):
-    nx(nx_), ny(ny_), dx(dx_), dy(dy_), ghosts(g_) {
+static int validGhosts(int g){
 #ifdef MUSCL_Hancock
-    if(ghosts < 2) ghosts = 2;
+    return std::max(g, 2);
 #else
-    if(ghosts < 1) ghosts = 1;
+    return std::max(g, 1);
 #endif
-    w = new PrimitiveState[(nx+2*ghosts)*(ny+2*ghosts)];
 }
-PrimitiveState& Grid2D::operator[](int i, int j) {
-#ifdef TESTMODE
-    assert(i + ghosts >= 0 && i < nx+ghosts);
-    assert(j + ghosts >= 0 && j < ny+ghosts);
-#endif
-    int m = (i+ghosts)*(ny+2*ghosts) + (j+ghosts);
-    return w[m];
-}
-const PrimitiveState& Grid2D::operator[](int i, int j) const {
-#ifdef TESTMODE
-    assert(i + ghosts >= 0 && i < nx+ghosts);
-    assert(j + ghosts >= 0 && j < ny+ghosts);
-#endif
-    int m = (i+ghosts)*(ny+2*ghosts) + (j+ghosts);
-    return w[m];
-}
-int Grid2D::getSizeX() const { return nx; }
-int Grid2D::getSizeY() const { return ny; }
-int Grid2D::getGhosts() const { return ghosts; }
-Grid2D::~Grid2D(){ delete[] w; }
+//MARK: Array Wrappers
+Grid2D::Grid2D(int nx_, int ny_, double dx_, double dy_, int g_): dx(dx_), dy(dy_), w(nx_, ny_,validGhosts(g_)) {}
+PrimitiveState& Grid2D::operator[](int i, int j) { return w[i,j]; }
+const PrimitiveState& Grid2D::operator[](int i, int j) const { return w[i,j]; }
+int Grid2D::getSizeX() const { return w.getSizeX(); }
+int Grid2D::getSizeY() const { return w.getSizeY(); }
+int Grid2D::getGhosts() const { return w.getGhosts(); }
+Grid2D::~Grid2D(){ w.~ExtendedArray2D(); }
 
 
-
-//MARK: 3D Array
-
-Grid3D::Grid3D(int nx_, int ny_, int nz_, double dx_, double dy_, double dz_, int g_):
-    nx(nx_), ny(ny_), nz(nz_), dx(dx_), dy(dy_), dz(dz_),ghosts(g_) {
-#ifdef MUSCL_Hancock
-    if(ghosts < 2) ghosts = 2;
-#else
-    if(ghosts < 1) ghosts = 1;
-#endif
-    w = new PrimitiveState[(nx+2*ghosts)*(ny+2*ghosts)*(nz+2*ghosts)];
-}
-PrimitiveState& Grid3D::operator[](int i, int j, int k) {
-#ifdef TESTMODE
-    assert(i + ghosts >= 0 && i < nx+ghosts);
-    assert(j + ghosts >= 0 && j < ny+ghosts);
-    assert(k + ghosts >= 0 && k < nz+ghosts);
-#endif
-    int m = ((i+ghosts)*(ny+2*ghosts) + (j+ghosts)) * (nz+2*ghosts) + (k+ghosts);
-    return w[m];
-}
-const PrimitiveState& Grid3D::operator[](int i, int j, int k) const {
-#ifdef TESTMODE
-    assert(i + ghosts >= 0 && i < nx+ghosts);
-    assert(j + ghosts >= 0 && j < ny+ghosts);
-    assert(k + ghosts >= 0 && k < nz+ghosts);
-#endif
-    int m = ((i+ghosts)*(ny+2*ghosts) + (j+ghosts)) * (nz+2*ghosts) + (k+ghosts);
-    return w[m];
-}
-int Grid3D::getSizeX() const { return nx; }
-int Grid3D::getSizeY() const { return ny; }
-int Grid3D::getSizeZ() const { return nz; }
-int Grid3D::getGhosts() const { return ghosts; }
-Grid3D::~Grid3D(){ delete[] w; }
-
-
+Grid3D::Grid3D(int nx_, int ny_, int nz_, double dx_, double dy_, double dz_, int g_): dx(dx_), dy(dy_), dz(dz_),
+    w(nx_, ny_, nz_, validGhosts(g_)) {}
+PrimitiveState& Grid3D::operator[](int i, int j, int k) { return w[i,j,k]; }
+const PrimitiveState& Grid3D::operator[](int i, int j, int k) const { return w[i,j,k]; }
+int Grid3D::getSizeX() const { return w.getSizeX(); }
+int Grid3D::getSizeY() const { return w.getSizeY(); }
+int Grid3D::getSizeZ() const { return w.getSizeZ(); }
+int Grid3D::getGhosts() const { return w.getGhosts(); }
+Grid3D::~Grid3D(){ w.~ExtendedArray3D(); }
 
 
 //MARK: 2D Split
@@ -166,25 +122,31 @@ void Grid3D::advance_split(double dt, bool check_cfl){
 void Grid2D::advanceX(double dt){
    boundary.apply(*this);
     
-    Grid1D W(nx, dx, ghosts), _B1(nx, dx, ghosts), _B2(nx, dx, ghosts);
+    int nx = w.getSizeX(), ny = w.getSizeY(), ghosts = w.getGhosts();
+    Grid1D _w(nx, dx, ghosts);
+    ExtendedArray1D<PrimitiveState> _B1(nx, ghosts), _B2(nx, ghosts);
+    
     for(int j=-ghosts; j<ny+ghosts; j++){
-        for(int i=-ghosts; i<nx+ghosts; i++) W[i] = (*this)[i,j];
+        for(int i=-ghosts; i<nx+ghosts; i++) _w[i] = w[i,j];
 
-        W.god_sweep(dt, _B1, _B2);
+        _w.god_sweep(dt, _B1, _B2);
         
-        for(int i=-ghosts; i<nx+ghosts; i++) (*this)[i,j] = W[i];
+        for(int i=-ghosts; i<nx+ghosts; i++) w[i,j] = _w[i];
     }
 }
 void Grid2D::advanceY(double dt){
     boundary.apply(*this);
 
-    Grid1D W(ny, dy, ghosts), _B1(ny, dy, ghosts), _B2(ny,dy, ghosts);
+    int nx = w.getSizeX(), ny = w.getSizeY(), ghosts = w.getGhosts();
+    Grid1D _w(ny, dy, ghosts);
+    ExtendedArray1D<PrimitiveState> _B1(ny, ghosts), _B2(ny, ghosts);
+    
     for(int i=-ghosts; i<nx+ghosts; i++){
-        for(int j=-ghosts; j<ny+ghosts; j++)  W[j] = (*this)[i,j].swapXY();
+        for(int j=-ghosts; j<ny+ghosts; j++)  _w[j] = w[i,j].swapXY();
 
-        W.god_sweep(dt, _B1, _B2);
+        _w.god_sweep(dt, _B1, _B2);
         
-        for(int j=-ghosts; j<ny+ghosts; j++)  (*this)[i,j] = W[j].swapXY();
+        for(int j=-ghosts; j<ny+ghosts; j++)  w[i,j] = _w[j].swapXY();
     }
 }
 
@@ -195,46 +157,51 @@ void Grid2D::advanceY(double dt){
 void Grid3D::advanceX(double dt){
     boundary.apply(*this);
 
-    Grid1D W(nx,dx,ghosts), _B1(nx,dx,ghosts), _B2(nx,dx,ghosts);
+    int nx = w.getSizeX(), ny = w.getSizeY(), nz = w.getSizeZ(), ghosts = w.getGhosts();
+    Grid1D _w(nx,dx,ghosts);
+    ExtendedArray1D<PrimitiveState> _B1(nx, ghosts), _B2(nx, ghosts);
+    
     for(int k=-ghosts; k<nz+ghosts; k++){
         for(int j=-ghosts; j<ny+ghosts; j++){
-            for(int i=-ghosts; i<nx+ghosts; i++) W[i] = (*this)[i,j,k];
+            for(int i=-ghosts; i<nx+ghosts; i++) _w[i] = w[i,j,k];
             
-            W.god_sweep(dt, _B1, _B2);
+            _w.god_sweep(dt, _B1, _B2);
             
-            for(int i=-ghosts; i<nx+ghosts; i++) (*this)[i,j,k] = W[i];
+            for(int i=-ghosts; i<nx+ghosts; i++) w[i,j,k] = _w[i];
         }
     }
 }
 void Grid3D::advanceY(double dt){
     boundary.apply(*this);
 
-    Grid1D W(ny,dy,ghosts), _B1(ny,dy,ghosts), _B2(ny,dy,ghosts);
+    int nx = w.getSizeX(), ny = w.getSizeY(), nz = w.getSizeZ(), ghosts = w.getGhosts();
+    Grid1D _w(ny,dy,ghosts);
+    ExtendedArray1D<PrimitiveState> _B1(ny, ghosts), _B2(ny, ghosts);
+    
     for(int k=-ghosts; k<nz+ghosts; k++){
         for(int i=-ghosts; i<nx+ghosts; i++) {
-            for(int j=-ghosts; j<ny+ghosts; j++) {
-                W[j] = (*this)[i,j,k].swapXY();
-            }
-            W.god_sweep(dt, _B1, _B2);
-            for(int j=-ghosts; j<ny+ghosts; j++) {
-                (*this)[i,j,k] = W[j].swapXY();
-            }
+            for(int j=-ghosts; j<ny+ghosts; j++) _w[j] = w[i,j,k].swapXY();
+
+            _w.god_sweep(dt, _B1, _B2);
+            
+            for(int j=-ghosts; j<ny+ghosts; j++) w[i,j,k] = _w[j].swapXY();
        }
     }
 }
 void Grid3D::advanceZ(double dt){
     boundary.apply(*this);
 
-    Grid1D W(nz,dz,ghosts), _B1(nz,dz,ghosts), _B2(nz,dz,ghosts);
+    int nx = w.getSizeX(), ny = w.getSizeY(), nz = w.getSizeZ(), ghosts = w.getGhosts();
+    Grid1D _w(nz,dz,ghosts);
+    ExtendedArray1D<PrimitiveState> _B1(nz, ghosts), _B2(nz, ghosts);
+    
     for(int i=-ghosts; i<nx+ghosts; i++) {
         for(int j=-ghosts; j<ny+ghosts; j++) {
-            for(int k=-ghosts; k<nz+ghosts; k++){
-                W[k] = (*this)[i,j,k].swapXZ();
-            }
-            W.god_sweep(dt, _B1, _B2);
-            for(int k=-ghosts; k<nz+ghosts; k++){
-                (*this)[i,j,k] = W[k].swapXZ();
-            }
+            for(int k=-ghosts; k<nz+ghosts; k++) _w[j] = w[i,j,k].swapXZ();
+            
+            _w.god_sweep(dt, _B1, _B2);
+            
+            for(int k=-ghosts; k<nz+ghosts; k++) w[i,j,k] = _w[j].swapXZ();
        }
     }
 }

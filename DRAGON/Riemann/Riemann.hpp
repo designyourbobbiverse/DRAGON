@@ -78,6 +78,8 @@ private:
     RiemannSolution TRRS();//Two-Rarefaction Riemann Solver
     RiemannSolution TRRS(double aL, double aR);
     
+    void verify_and_fallback(ConservativeState& flux, double dt_dx);
+    
 #ifdef MHD
     double Bx = NAN;
 #endif

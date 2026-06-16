@@ -29,11 +29,11 @@ ConservativeState Riemann::flux(double dt_dx){
         case RIEMANN_HLLD: flux = HLLD(); break;
         case RIEMANN_HLLE: flux =  HLLE(); break;
         case RIEMANN_ROE: flux =  Roe(); break;
-        #ifdef MHD
+#ifdef MHD
         case RIEMANN_HLLX: flux = HLLD();
-        #else
+#else
         case RIEMANN_HLLX: flux = HLLC();
-        #endif
+#endif
         default: flux = exact().flux();
     }
 #elif !defined(MHD) && RIEMANN_DEFAULT == CHOOSE_RUNTIME
@@ -60,33 +60,29 @@ ConservativeState Riemann::flux(double dt_dx){
     auto flux = exact().flux();
 #elif RIEMANN_DEFAULT == RIEMANN_HLL
     auto flux =  HLL();
-#elif !defined(MHD) && RIEMANN_DEFAULT == RIEMANN_HLLC
+#elif !defined(MHD) && (RIEMANN_DEFAULT == RIEMANN_HLLC || RIEMANN_DEFAULT == RIEMANN_HLLX)
     auto flux =  HLLC();
-#elif defined(MHD) && RIEMANN_DEFAULT == RIEMANN_HLLD
+#elif defined(MHD) && (RIEMANN_DEFAULT == RIEMANN_HLLD || RIEMANN_DEFAULT == RIEMANN_HLLX)
     auto flux =  HLLD();
 #elif RIEMANN_DEFAULT == RIEMANN_HLLE
     auto flux =  HLLE();
 #elif !defined(MHD) && RIEMANN_DEFAULT == RIEMANN_ROE
     auto flux =  Roe();
 #endif
-//MARK: Fallback to Exact
-    if(dt_dx == 0) return flux;
-    dt_dx *= Riemann_ExactFallback_Parameter;
-    if(!(L - flux*dt_dx).isPhysical() ||  !(R+flux*dt_dx).isPhysical()){ //Verify physicality, fallback if needed
-        flux = HLLE();
-        if(!(L - flux*dt_dx).isPhysical() ||  !(R+flux*dt_dx).isPhysical()){
-            #if defined(TESTMODE) || (!defined(MHD) && RIEMANN_DEFAULT != RIEMANN_EXACT)
-            flux = exact().flux();
-            if(!(L - flux*dt_dx).isPhysical() ||  !(R+flux*dt_dx).isPhysical()){
-                //TODO: Throw Exception
-                
-            }
-            #else
-            //TODO: Throw Exception
-            #endif
-        }
-    }
+    if(dt_dx > 0) verify_and_fallback(flux, dt_dx);
     return flux;
+}
+//MARK: Fallback to Exact
+void Riemann::verify_and_fallback(ConservativeState& flux, double dt_dx){
+    dt_dx *= Riemann_ExactFallback_Parameter;
+    if((L - flux*dt_dx).isPhysical() &&  (R+flux*dt_dx).isPhysical()) return;
+    flux = HLLE();
+    if((L - flux*dt_dx).isPhysical() &&  (R+flux*dt_dx).isPhysical()) return;
+    #if defined(TESTMODE) || (!defined(MHD) && RIEMANN_DEFAULT != RIEMANN_EXACT)
+    flux = exact().flux();
+    if((L - flux*dt_dx).isPhysical() &&  (R+flux*dt_dx).isPhysical()) return;
+    #endif
+    //TODO: Throw Exception
 }
 
 

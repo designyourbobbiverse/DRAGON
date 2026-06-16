@@ -12,7 +12,7 @@
 #include <math.h>
 #include <cassert>
 
-//MARK: Constructor Helpers
+//MARK: Bin Setup
 int computeChildSize(int nx, int ncx, int i){
     if(nx <= bin_size) return nx;
     int _nx = bin_size;
@@ -30,8 +30,6 @@ static int validGhosts(int g){
     return std::max(g, 2);
 #endif
 }
-
-//MARK: Setup
 AMRGrid1D::AMRGrid1D(int nx, double dx_, int g): size_x(nx*dx_),dx(dx_), ghosts(validGhosts(g)), data(nx, dx_,validGhosts(g)) {
     ncx = (nx / bin_size) + (nx % bin_size == 0 ? 0 : 1);
     

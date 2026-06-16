@@ -90,5 +90,6 @@ ConservativeState Riemann::HLLD(){
         return FsR + (wss-wsR)*SsR;
     }
 }
-
+#elif RIEMANN_DEFAULT_HYDRO == RIEMANN_HLLD
+#error HLLD Solver requires MHD
 #endif
