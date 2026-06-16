@@ -70,13 +70,21 @@ double TVD::minmod(double a, double b) {
     if(fabs(a) < fabs(b)) return a;
     return a < 0 ? -fabs(b) : fabs(b);
 }
+vec3 TVD::minmod(const vec3& a, const vec3& b) {
+    vec3 v;
+    v.x = minmod(a.x,b.x);
+    v.y = minmod(a.y,b.y);
+    v.z = minmod(a.z,b.z);
+    return v;
+}
 PrimitiveState TVD::minmod(const PrimitiveState& a, const PrimitiveState& b) {
     PrimitiveState W;
     W.rho = minmod(a.rho,b.rho);
-    W.v.x = minmod(a.v.x,b.v.x);
-    W.v.y = minmod(a.v.y,b.v.y);
-    W.v.z = minmod(a.v.z,b.v.z);
+    W.v = minmod(a.v,b.v);
     W.p = minmod(a.p,b.p);
+#ifdef MHD
+    W.B = minmod(a.B,b.B);
+#endif
     return W;
 }
 
@@ -87,13 +95,21 @@ double TVD::MC(double a, double b) {
     if(c < 4*fabs(a) && c < 4*fabs(b)) return c/2;
     else return 2*minmod(a, b);
 }
+vec3 TVD::MC(const vec3& a, const vec3& b) {
+    vec3 v;
+    v.x = MC(a.x,b.x);
+    v.y = MC(a.y,b.y);
+    v.z = MC(a.z,b.z);
+    return v;
+}
 PrimitiveState TVD::MC(const PrimitiveState& a, const PrimitiveState& b) {
     PrimitiveState W;
     W.rho = MC(a.rho,b.rho);
-    W.v.x = MC(a.v.x,b.v.x);
-    W.v.y = MC(a.v.y,b.v.y);
-    W.v.z = MC(a.v.z,b.v.z);
+    W.v = MC(a.v,b.v);
     W.p = MC(a.p,b.p);
+#ifdef MHD
+    W.B = MC(a.B,b.B);
+#endif
     return W;
 }
 
@@ -102,13 +118,21 @@ double TVD::vanLeer(double a, double b) {
     if(a*b <= 0) return 0;
     return  2*a*b / (a + b);
 }
+vec3 TVD::vanLeer(const vec3& a, const vec3& b) {
+    vec3 v;
+    v.x = vanLeer(a.x,b.x);
+    v.y = vanLeer(a.y,b.y);
+    v.z = vanLeer(a.z,b.z);
+    return v;
+}
 PrimitiveState TVD::vanLeer(const PrimitiveState& a, const PrimitiveState& b) {
     PrimitiveState W;
     W.rho = vanLeer(a.rho,b.rho);
-    W.v.x = vanLeer(a.v.x,b.v.x);
-    W.v.y = vanLeer(a.v.y,b.v.y);
-    W.v.z = vanLeer(a.v.z,b.v.z);
+    W.v = vanLeer(a.v,b.v);
     W.p = vanLeer(a.p,b.p);
+#ifdef MHD
+    W.B = vanLeer(a.B,b.B);
+#endif
     return W;
 }
 
@@ -120,13 +144,21 @@ double TVD::superbee(double a, double b) {
     double mag = fmax(s1, s2);
     return a < 0 ? -mag : mag;
 }
+vec3 TVD::superbee(const vec3& a, const vec3& b) {
+    vec3 v;
+    v.x = superbee(a.x,b.x);
+    v.y = superbee(a.y,b.y);
+    v.z = superbee(a.z,b.z);
+    return v;
+}
 PrimitiveState TVD::superbee(const PrimitiveState& a, const PrimitiveState& b) {
     PrimitiveState W;
     W.rho = superbee(a.rho,b.rho);
-    W.v.x = superbee(a.v.x,b.v.x);
-    W.v.y = superbee(a.v.y,b.v.y);
-    W.v.z = superbee(a.v.z,b.v.z);
+    W.v = superbee(a.v,b.v);
     W.p = superbee(a.p,b.p);
+#ifdef MHD
+    W.B = superbee(a.B,b.B);
+#endif
     return W;
 }
 //MARK: van Albada
@@ -134,13 +166,21 @@ double TVD::vanAlbada(double a, double b) {
     if(a*b <= 0) return 0;
     return  a*b * (a + b) / (a*a + b*b);
 }
+vec3 TVD::vanAlbada(const vec3& a, const vec3& b) {
+    vec3 v;
+    v.x = vanAlbada(a.x,b.x);
+    v.y = vanAlbada(a.y,b.y);
+    v.z = vanAlbada(a.z,b.z);
+    return v;
+}
 PrimitiveState TVD::vanAlbada(const PrimitiveState& a, const PrimitiveState& b) {
     PrimitiveState W;
     W.rho = vanAlbada(a.rho,b.rho);
-    W.v.x = vanAlbada(a.v.x,b.v.x);
-    W.v.y = vanAlbada(a.v.y,b.v.y);
-    W.v.z = vanAlbada(a.v.z,b.v.z);
+    W.v = vanAlbada(a.v,b.v);
     W.p = vanAlbada(a.p,b.p);
+#ifdef MHD
+    W.B = vanAlbada(a.B,b.B);
+#endif
     return W;
 }
 
