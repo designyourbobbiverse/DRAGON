@@ -68,6 +68,9 @@ ConservativeState& operator*=(ConservativeState &X, double a){
     X.rho *= a;
     X.p *= a;
     X.E *= a;
+#ifdef MHD
+    X.B *= a;
+#endif
     return X;
 }
 vec3 operator*(const double &a, vec3 v){ return v*a; }
@@ -96,6 +99,9 @@ ConservativeState& operator/=(ConservativeState &X, double a){
     X.rho /= a;
     X.p /= a;
     X.E /= a;
+#ifdef MHD
+    X.B /= a;
+#endif
     return X;
 }
 vec3 operator/(vec3 v, double a){
