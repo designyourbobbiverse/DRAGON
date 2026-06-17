@@ -70,42 +70,42 @@ void Grid3D::advance_split(double dt, bool check_cfl){
         dt -= t1;
         //Advance, rotating step orders
         switch (sweep_step++ % 6) {
-        case 0:
+        case 0: //Cyclic XYZ
             advanceX(t1/2);
             advanceY(t1/2);
             advanceZ(t1);
             advanceY(t1/2);
             advanceX(t1/2);
             break;
-        case 1:
+        case 1: //Cyclic ZXY
             advanceZ(t1/2);
             advanceX(t1/2);
             advanceY(t1);
             advanceX(t1/2);
             advanceZ(t1/2);
             break;
-        case 2:
+        case 2: //Cyclic YZX
             advanceY(t1/2);
             advanceZ(t1/2);
             advanceX(t1);
             advanceZ(t1/2);
             advanceY(t1/2);
             break;
-        case 3:
+        case 3: //Anticyclic ZYX
             advanceZ(t1/2);
             advanceY(t1/2);
             advanceX(t1);
             advanceY(t1/2);
             advanceZ(t1/2);
             break;
-        case 4:
+        case 4: //Anticyclic XZY
             advanceX(t1/2);
             advanceZ(t1/2);
             advanceY(t1);
             advanceZ(t1/2);
             advanceX(t1/2);
             break;
-        case 5:
+        case 5: //Anticyclic YXZ
             advanceY(t1/2);
             advanceX(t1/2);
             advanceZ(t1);
@@ -142,11 +142,11 @@ void Grid2D::advanceY(double dt){
     ExtendedArray1D<PrimitiveState> _B1(ny, ghosts), _B2(ny, ghosts);
     
     for(int i=-ghosts; i<nx+ghosts; i++){
-        for(int j=-ghosts; j<ny+ghosts; j++)  _w[j] = w[i,j].swapXY();
+        for(int j=-ghosts; j<ny+ghosts; j++)  _w[j] = w[i,j].swappedXY();
 
         _w.god_sweep(dt, _B1, _B2);
         
-        for(int j=-ghosts; j<ny+ghosts; j++)  w[i,j] = _w[j].swapXY();
+        for(int j=-ghosts; j<ny+ghosts; j++)  w[i,j] = _w[j].swappedXY();
     }
 }
 
@@ -180,11 +180,11 @@ void Grid3D::advanceY(double dt){
     
     for(int k=-ghosts; k<nz+ghosts; k++){
         for(int i=-ghosts; i<nx+ghosts; i++) {
-            for(int j=-ghosts; j<ny+ghosts; j++) _w[j] = w[i,j,k].swapXY();
+            for(int j=-ghosts; j<ny+ghosts; j++) _w[j] = w[i,j,k].swappedXY();
 
             _w.god_sweep(dt, _B1, _B2);
             
-            for(int j=-ghosts; j<ny+ghosts; j++) w[i,j,k] = _w[j].swapXY();
+            for(int j=-ghosts; j<ny+ghosts; j++) w[i,j,k] = _w[j].swappedXY();
        }
     }
 }
@@ -197,11 +197,11 @@ void Grid3D::advanceZ(double dt){
     
     for(int i=-ghosts; i<nx+ghosts; i++) {
         for(int j=-ghosts; j<ny+ghosts; j++) {
-            for(int k=-ghosts; k<nz+ghosts; k++) _w[j] = w[i,j,k].swapXZ();
+            for(int k=-ghosts; k<nz+ghosts; k++) _w[k] = w[i,j,k].swappedXZ();
             
             _w.god_sweep(dt, _B1, _B2);
             
-            for(int k=-ghosts; k<nz+ghosts; k++) w[i,j,k] = _w[j].swapXZ();
+            for(int k=-ghosts; k<nz+ghosts; k++) w[i,j,k] = _w[k].swappedXZ();
        }
     }
 }

@@ -14,7 +14,7 @@
 //MARK: Selected Flux algorithm
 #if RIEMANN_DEFAULT == CHOOSE_RUNTIME || defined(TESTMODE)
 namespace CONFIG {
-    int riemann_choice = RIEMANN_HLLD;
+    int riemann_choice = RIEMANN_EXACT;
 }
 #endif
 
@@ -25,15 +25,15 @@ ConservativeState Riemann::flux(double dt_dx){
     switch (CONFIG::riemann_choice){
         case RIEMANN_EXACT: flux = exact().flux();
         case RIEMANN_HLL: flux =  HLL(); break;
-        case RIEMANN_HLLC: flux =  HLLC(); break;
-        case RIEMANN_HLLD: flux = HLLD(); break;
         case RIEMANN_HLLE: flux =  HLLE(); break;
         case RIEMANN_ROE: flux =  Roe(); break;
 #ifdef MHD
-        case RIEMANN_HLLX: flux = HLLD();
+        case RIEMANN_HLLX:
+        case RIEMANN_HLLD: flux = HLLD(); break;
 #else
-        case RIEMANN_HLLX: flux = HLLC();
+        case RIEMANN_HLLX:
 #endif
+        case RIEMANN_HLLC: flux =  HLLC(); break;
         default: flux = exact().flux();
     }
 #elif !defined(MHD) && RIEMANN_DEFAULT == CHOOSE_RUNTIME
@@ -88,8 +88,20 @@ void Riemann::verify_and_fallback(ConservativeState& flux, double dt_dx){
 
 //MARK: Dimension Convenience
 ConservativeState Riemann::flux_X(double dt_dx){ return flux(dt_dx); }
-ConservativeState Riemann::flux_Y(double dt_dy){  return Riemann(L.swapXY(),R.swapXY()).flux(dt_dy).swapXY(); }
-ConservativeState Riemann::flux_Z(double dt_dz){  return Riemann(L.swapXZ(),R.swapXZ()).flux(dt_dz).swapXZ(); }
+ConservativeState Riemann::flux_Y(double dt_dy){
+    L.swapXY(); R.swapXY();
+    auto f = flux(dt_dy);
+    L.swapXY(); R.swapXY();//Swap Back to be a good citizen, even though 99% of the time we don't actually care
+    f.swapXY();
+    return f;
+}
+ConservativeState Riemann::flux_Z(double dt_dz){
+    L.swapXZ(); R.swapXZ();
+    auto f = flux(dt_dz);
+    L.swapXZ(); R.swapXZ();//Swap Back to be a good citizen, even though 99% of the time we don't actually care
+    f.swapXZ();
+    return f;
+}
 
 
 //MARK: Solution Sampling

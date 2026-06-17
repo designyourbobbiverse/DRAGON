@@ -15,10 +15,10 @@
 template <class T>
 struct ExtendedArray1D{
     
-    ExtendedArray1D(int size, int ghosts=0): size(size), ghosts(ghosts) {
+    ExtendedArray1D(int size, int ghosts=2): size(size), ghosts(ghosts) {
         x = new T[size+2*ghosts];
     }
-    ~ExtendedArray1D(){ delete[] x; }
+    ~ExtendedArray1D(){ }// delete[] x; }
     ExtendedArray1D(const ExtendedArray1D&) = delete; //No cop.ying
     ExtendedArray1D& operator=(const ExtendedArray1D&) = delete;
     
@@ -48,10 +48,10 @@ private:
 template <class T>
 struct ExtendedArray2D{
     
-    ExtendedArray2D(int nx_, int ny_, int ghosts=0): nx(nx_), ny(ny_), ghosts(ghosts) {
+    ExtendedArray2D(int nx_, int ny_, int ghosts=2): nx(nx_), ny(ny_), ghosts(ghosts) {
         x = new T[(nx+2*ghosts)*(ny+2*ghosts)];
     }
-    ~ExtendedArray2D(){ delete[] x; }
+    ~ExtendedArray2D(){ }//delete[] x; }
     ExtendedArray2D(const ExtendedArray2D&) = delete; //No cop.ying
     ExtendedArray2D& operator=(const ExtendedArray2D&) = delete;
     
@@ -85,10 +85,10 @@ private:
 template <class T>
 struct ExtendedArray3D{
     
-    ExtendedArray3D(int nx_, int ny_, int nz_, int ghosts=0): nx(nx_), ny(ny_), nz(nz_), ghosts(ghosts) {
+    ExtendedArray3D(int nx_, int ny_, int nz_, int ghosts=2): nx(nx_), ny(ny_), nz(nz_), ghosts(ghosts) {
         x = new T[(nx+2*ghosts)*(ny+2*ghosts)*(nz+2*ghosts)];
     }
-    ~ExtendedArray3D(){ delete[] x; }
+    ~ExtendedArray3D(){ }//delete[] x; }
     ExtendedArray3D(const ExtendedArray3D&) = delete; //No cop.ying
     ExtendedArray3D& operator=(const ExtendedArray3D&) = delete;
     

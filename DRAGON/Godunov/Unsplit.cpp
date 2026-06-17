@@ -136,7 +136,7 @@ void Grid3D::advanceXYZ(double dt){
     FluidArray3D _zxL(nx,ny,nz), _zxR(nx,ny,nz); //_zxLR needs (0...nx-1, -1...ny, -1...nz)
     correctState(_zL, _zR, _zxL, _zxR, F_X, (0.5*dt/dx), 0, nx, -1, ny+1, -1, nz+1, 0);
     FluidArray3D _zyL(nx,ny,nz), _zyR(nx,ny,nz);//_zyLR needs (-1...nx, 0...ny-1, -1...nz)
-    correctState(_zL, _zR, _zyL, _zyR, F_Y, (0.5*dt/dx), -1, nx+1, 0, ny, -1, nz+1, 1);
+    correctState(_zL, _zR, _zyL, _zyR, F_Y, (0.5*dt/dy), -1, nx+1, 0, ny, -1, nz+1, 1);
     //Compute Edge Fluxes
     FluxArray3D F_Xy(nx, ny,nz,1), F_Xz(nx, ny,nz,1);
     computeFlux_X(_xyL, _xyR, F_Xy, 0, nx, 0, ny, -1,nz+1, dt/dx); //F_Xy needs (0...nx, 0...ny-1, -1...nz)
@@ -239,10 +239,9 @@ void computeHalfStates_Y(FluidArray2D& _L, const Grid2D& _W, FluidArray2D& _R, d
 
     for(int i=-g; i<nx+g; i++){
         for(int j=-g + 1; j<ny+g - 1; j++){
-            auto wL =_W[i,j-1].swapXY(), wR = _W[i,j+1].swapXY();
-            TVD::MUSCL(wL, _L[i,j], _W[i,j].swapXY(), _R[i,j],wR, dt_dL);
-            _L[i,j] = _L[i,j].swapXY();
-            _R[i,j] = _R[i,j].swapXY();
+            auto wL =_W[i,j-1].swappedXY(), wR = _W[i,j+1].swappedXY();
+            TVD::MUSCL(wL, _L[i,j], _W[i,j].swappedXY(), _R[i,j],wR, dt_dL);
+            _L[i,j].swapXY(); _R[i,j].swapXY();
         }
     }
 }
@@ -266,10 +265,9 @@ void computeHalfStates_Y(FluidArray3D& _L, const Grid3D& _W, FluidArray3D& _R, d
     for(int i=-g; i<nx+g; i++){
         for(int j=-g + 1; j<ny+g - 1; j++){
             for(int k=-g; k<nz+g; k++){
-                auto wL =_W[i,j-1,k].swapXY(), wR = _W[i,j+1,k].swapXY();
-                TVD::MUSCL(wL, _L[i,j,k], _W[i,j,k].swapXY(), _R[i,j,k],wR, dt_dL);
-                _L[i,j,k] = _L[i,j,k].swapXY();
-                _R[i,j,k] = _R[i,j,k].swapXY();
+                auto wL =_W[i,j-1,k].swappedXY(), wR = _W[i,j+1,k].swappedXY();
+                TVD::MUSCL(wL, _L[i,j,k], _W[i,j,k].swappedXY(), _R[i,j,k],wR, dt_dL);
+                _L[i,j,k].swapXY(); _R[i,j,k].swapXY();
             }
         }
     }
@@ -281,10 +279,9 @@ void computeHalfStates_Z(FluidArray3D& _L, const Grid3D& _W, FluidArray3D& _R, d
     for(int i=-g; i<nx+g; i++){
         for(int j=-g; j<ny+g; j++){
             for(int k=-g + 1; k<nz+g - 1; k++){
-                auto wL = _W[i,j,k-1].swapXZ(), wR = _W[i,j,k+1].swapXZ();
-                TVD::MUSCL(wL, _L[i,j,k], _W[i,j,k].swapXZ(), _R[i,j,k],wR, dt_dL);
-                _L[i,j,k] = _L[i,j,k].swapXZ();
-                _R[i,j,k] = _R[i,j,k].swapXZ();
+                auto wL = _W[i,j,k-1].swappedXZ(), wR = _W[i,j,k+1].swappedXZ();
+                TVD::MUSCL(wL, _L[i,j,k], _W[i,j,k].swappedXZ(), _R[i,j,k],wR, dt_dL);
+                _L[i,j,k].swapXZ(); _R[i,j,k].swapXZ();
             }
         }
     }

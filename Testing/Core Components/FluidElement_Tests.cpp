@@ -214,7 +214,7 @@ void DRAGON_Test::verify_swaps_P(){
     W.B = {1.0,2.0,3.0};
 #endif
     
-    PrimitiveState XY = W.swapXY();
+    PrimitiveState XY = W.swappedXY();
     assert(approx(XY.v.x, 2));
     assert(approx(XY.v.y, 1));
     assert(approx(XY.v.z, 3));
@@ -224,7 +224,7 @@ void DRAGON_Test::verify_swaps_P(){
     assert(approx(XY.B.z, 3));
 #endif
 
-    PrimitiveState XZ = W.swapXZ();
+    PrimitiveState XZ = W.swappedXZ();
     assert(approx(XZ.v.x, 3));
     assert(approx(XZ.v.y, 2));
     assert(approx(XZ.v.z, 1));
@@ -234,7 +234,7 @@ void DRAGON_Test::verify_swaps_P(){
     assert(approx(XZ.B.z, 1));
 #endif
     
-    PrimitiveState YZ = W.swapYZ();
+    PrimitiveState YZ = W.swappedYZ();
     assert(approx(YZ.v.x, 1));
     assert(approx(YZ.v.y, 3));
     assert(approx(YZ.v.z, 2));
@@ -263,7 +263,7 @@ void DRAGON_Test::verify_swaps_C(){
     U.B = {1,2,3};
 #endif
     
-    ConservativeState _XY = U.swapXY();
+    ConservativeState _XY = U.swappedXY();
     assert(approx(_XY.p.x, 2));
     assert(approx(_XY.p.y, 1));
     assert(approx(_XY.p.z, 3));
@@ -273,7 +273,7 @@ void DRAGON_Test::verify_swaps_C(){
     assert(approx(_XY.B.z, 3));
 #endif
     
-    ConservativeState _XZ = U.swapXZ();
+    ConservativeState _XZ = U.swappedXZ();
     assert(approx(_XZ.p.x, 3));
     assert(approx(_XZ.p.y, 2));
     assert(approx(_XZ.p.z, 1));
@@ -283,7 +283,7 @@ void DRAGON_Test::verify_swaps_C(){
     assert(approx(_XZ.B.z, 1));
 #endif
 
-    ConservativeState _YZ = U.swapYZ();
+    ConservativeState _YZ = U.swappedYZ();
     assert(approx(_YZ.p.x, 1));
     assert(approx(_YZ.p.y, 3));
     assert(approx(_YZ.p.z, 2));
@@ -329,9 +329,11 @@ void DRAGON_Test::verify_add(){
     assert(approx(C.p.y, 33));
     assert(approx(C.p.z, 44));
     assert(approx(C.E, 55));
+#ifdef MHD
     assert(approx(C.B.x, 1.1));
     assert(approx(C.B.y, 2.2));
     assert(approx(C.B.z, 3.3));
+#endif
 
     expect_close(A, _A);   // original unchanged
     expect_close(B, _B);  // original unchanged
@@ -342,9 +344,11 @@ void DRAGON_Test::verify_add(){
     assert(approx(A.p.y, 33));
     assert(approx(A.p.z, 44));
     assert(approx(A.E, 55));
+#ifdef MHD
     assert(approx(A.B.x, 1.1));
     assert(approx(A.B.y, 2.2));
     assert(approx(A.B.z, 3.3));
+#endif
     
 }
 void DRAGON_Test::verify_sub(){
@@ -368,10 +372,12 @@ void DRAGON_Test::verify_sub(){
     assert(approx(C.p.y, 27));
     assert(approx(C.p.z, 36));
     assert(approx(C.E, 45));
+#ifdef MHD
     assert(approx(C.B.x, -0.9));
     assert(approx(C.B.y, -1.8));
     assert(approx(C.B.z, -2.7));
-
+#endif
+    
     expect_close(A, _A);   // original unchanged
     expect_close(B, _B);  // original unchanged
     
@@ -381,9 +387,11 @@ void DRAGON_Test::verify_sub(){
     assert(approx(B.p.y, 27));
     assert(approx(B.p.z, 36));
     assert(approx(B.E, 45));
+#ifdef MHD
     assert(approx(B.B.x, -0.9));
     assert(approx(B.B.y, -1.8));
     assert(approx(B.B.z, -2.7));
+#endif
 }
 void DRAGON_Test::verify_mult(){
     ConservativeState A;
@@ -401,9 +409,11 @@ void DRAGON_Test::verify_mult(){
     assert(approx(C.p.y, 6));
     assert(approx(C.p.z, 8));
     assert(approx(C.E, 10));
+#ifdef MHD
     assert(approx(C.B.x, 2));
     assert(approx(C.B.y, 4));
     assert(approx(C.B.z, 6));
+#endif
     
     C = A * k;
     assert(approx(C.rho, 2));
@@ -411,9 +421,11 @@ void DRAGON_Test::verify_mult(){
     assert(approx(C.p.y, 6));
     assert(approx(C.p.z, 8));
     assert(approx(C.E, 10));
+#ifdef MHD
     assert(approx(C.B.x, 2));
     assert(approx(C.B.y, 4));
     assert(approx(C.B.z, 6));
+#endif
     
     expect_close(A, _A);   // original unchanged
     
@@ -423,9 +435,11 @@ void DRAGON_Test::verify_mult(){
     assert(approx(A.p.y, 6));
     assert(approx(A.p.z, 8));
     assert(approx(A.E, 10));
+#ifdef MHD
     assert(approx(A.B.x, 2));
     assert(approx(A.B.y, 4));
     assert(approx(A.B.z, 6));
+#endif
     assert(approx(k,2));  // original unchanged
 }
 
@@ -445,9 +459,11 @@ void DRAGON_Test::verify_div(){
     assert(approx(C.p.y, 1.5));
     assert(approx(C.p.z, 2.0));
     assert(approx(C.E, 2.5));
+#ifdef MHD
     assert(approx(C.B.x, 0.5));
     assert(approx(C.B.y, 1));
     assert(approx(C.B.z, 1.5));
+#endif
     
     expect_close(A, _A);   // original unchanged
     
@@ -458,9 +474,11 @@ void DRAGON_Test::verify_div(){
     assert(approx(A.p.z, 2.0));
     assert(approx(A.E, 2.5));
     
+#ifdef MHD
     assert(approx(A.B.x, 0.5));
     assert(approx(A.B.y, 1));
     assert(approx(A.B.z, 1.5));
+#endif
     assert(approx(k,2));  // original unchanged
 
 }

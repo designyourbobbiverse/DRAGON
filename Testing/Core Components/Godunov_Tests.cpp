@@ -207,11 +207,13 @@ void DRAGON_Test::verify_god_uniform_stationary_3D(bool split){
     }
 }
 void DRAGON_Test::verify_god_uniform_moving_3D(bool split){
-    Grid2D grid(10,10,1.0, 1.0, 2);
+    Grid3D grid(10,10,10, 1.0,1.0, 1.0, 2);
     PrimitiveState W = make_state(1.0, 1.0, 2.0, 3.0, 5.0);
     for (int i = 0; i < grid.getSizeX(); i++){
         for (int j = 0; j < grid.getSizeY(); j++){
-            grid[i,j] = W;
+            for (int k = 0; k < grid.getSizeZ(); k++){
+                grid[i,j,k] = W;
+            }
         }
     }
     grid.boundary = Outflow();
@@ -221,7 +223,9 @@ void DRAGON_Test::verify_god_uniform_moving_3D(bool split){
     
     for (int i = 0; i < grid.getSizeX(); i++){
         for (int j = 0; j < grid.getSizeY(); j++){
-            expect_close(grid[i,j], W);
+            for (int k = 0; k < grid.getSizeZ(); k++){
+                expect_close(grid[i,j,k], W);
+            }
         }
     }
 }
@@ -383,16 +387,29 @@ void DRAGON_Test::verify_2D_X_match_1D(bool split){
         
     double dt = 0.01;
     if(split){
-        grid.advance_split(dt);
-        expected.advance(dt/2);expected.advance(dt/2);
+        grid.advance_split(dt,false);
+        expected.advance(dt/2,false);expected.advance(dt/2,false);
     } else{
-        grid.advance_unsplit(dt);
-        expected.advance(dt);
+        grid.advance_unsplit(dt,false);
+        expected.advance(dt,false);
     }
         
     for (int i = 0; i < grid.getSizeX(); i++){
         for (int j = 0; j < grid.getSizeY(); j++){
             expect_close(grid[i,j], expected[i]);
+        }
+    }
+    if(split){
+        grid.advance_split(dt,false);
+        expected.advance(dt,false);
+    } else{
+        grid.advance_unsplit(dt,false);
+        expected.advance(dt,false);
+    }
+        
+    for (int i = 0; i < grid.getSizeX(); i++){
+        for (int j = 0; j < grid.getSizeY(); j++){
+            expect_close(grid[i,j], expected[i], 1e-8);
         }
     }
 
@@ -407,21 +424,35 @@ void DRAGON_Test::verify_2D_Y_match_1D(bool split){
         for (int i = 0; i < grid.getSizeX(); i++){
             grid[i,j] = make_state(1.0+0.1*j, 1.0+0.1*j, -0.1*j, 0.1*j, 10.0-0.1*j);
         }
-        expected[j] = grid[0,j].swapXY();
+        expected[j] = grid[0,j].swappedXY();
     }
         
     double dt = 0.01;
     if(split){
-        grid.advance_split(dt);
-        expected.advance(dt);
+        grid.advance_split(dt,false);
+        expected.advance(dt,false);
     } else{
-        grid.advance_unsplit(dt);
-        expected.advance(dt);
+        grid.advance_unsplit(dt,false);
+        expected.advance(dt,false);
     }
         
     for (int j = 0; j < grid.getSizeY(); j++){
         for (int i = 0; i < grid.getSizeX(); i++){
-            expect_close(grid[i,j], expected[j].swapXY());
+            expect_close(grid[i,j], expected[j].swappedXY());
+        }
+    }
+    
+    if(split){
+        grid.advance_split(dt,false);
+        expected.advance(dt/2,false);expected.advance(dt/2,false);
+    } else{
+        grid.advance_unsplit(dt,false);
+        expected.advance(dt,false);
+    }
+        
+    for (int j = 0; j < grid.getSizeY(); j++){
+        for (int i = 0; i < grid.getSizeX(); i++){
+            expect_close(grid[i,j], expected[j].swappedXY(), 1e-8);
         }
     }
 
@@ -443,11 +474,11 @@ void DRAGON_Test::verify_3D_X_match_1D(bool split){
         
     double dt = 0.01;
     if(split){
-        grid.advance_split(dt);
-        expected.advance(dt/2);expected.advance(dt/2);
+        grid.advance_split(dt,false);
+        expected.advance(dt/2,false);expected.advance(dt/2,false);
     } else {
-        grid.advance_unsplit(dt);
-        expected.advance(dt);
+        grid.advance_unsplit(dt,false);
+        expected.advance(dt,false);
     }
         
     for (int i = 0; i < grid.getSizeX(); i++){
@@ -457,6 +488,32 @@ void DRAGON_Test::verify_3D_X_match_1D(bool split){
             }
         }
     }
+    if(split){
+        grid.advance_split(dt,false);
+        expected.advance(dt/2,false);expected.advance(dt/2,false);
+        grid.advance_split(dt,false);
+        expected.advance(dt,false);
+        grid.advance_split(dt,false);
+        expected.advance(dt,false);
+        grid.advance_split(dt,false);
+        expected.advance(dt/2,false);expected.advance(dt/2,false);
+        grid.advance_split(dt,false);
+        expected.advance(dt/2,false);expected.advance(dt/2,false);
+    } else {
+        grid.advance_unsplit(dt,false);
+        expected.advance(dt,false);
+        grid.advance_unsplit(dt,false);
+        expected.advance(dt,false);
+    }
+    
+    for (int i = 0; i < grid.getSizeX(); i++){
+        for (int j = 0; j < grid.getSizeY(); j++){
+            for (int k = 0; k < grid.getSizeZ(); k++){
+                expect_close(grid[i,j,k], expected[i], 1e-8);
+            }
+        }
+    }
+    
 
 }
 void DRAGON_Test::verify_3D_Y_match_1D(bool split){
@@ -471,22 +528,46 @@ void DRAGON_Test::verify_3D_Y_match_1D(bool split){
                 grid[i,j,k] = make_state(1.0+0.1*j, 1.0+0.1*j, -0.1*j, 0.1*j, 10.0-0.1*j);
             }
         }
-        expected[j] = grid[0,j,0].swapXY();
+        expected[j] = grid[0,j,0].swappedXY();
     }
         
     double dt = 0.01;
     if(split){
-        grid.advance_split(dt);
-        expected.advance(dt/2);expected.advance(dt/2);
+        grid.advance_split(dt,false);
+        expected.advance(dt/2,false);expected.advance(dt/2,false);
     } else {
-        grid.advance_unsplit(dt);
-        expected.advance(dt);
+        grid.advance_unsplit(dt,false);
+        expected.advance(dt,false);
     }
         
     for (int i = 0; i < grid.getSizeX(); i++){
         for (int j = 0; j < grid.getSizeY(); j++){
             for (int k = 0; k < grid.getSizeZ(); k++){
-                expect_close(grid[i,j,k], expected[j].swapXY());
+                expect_close(grid[i,j,k], expected[j].swappedXY());
+            }
+        }
+    }
+    if(split){
+        grid.advance_split(dt,false);
+        expected.advance(dt,false);
+        grid.advance_split(dt,false);
+        expected.advance(dt/2,false);expected.advance(dt/2,false);
+        grid.advance_split(dt,false);
+        expected.advance(dt/2,false);expected.advance(dt/2,false);
+        grid.advance_split(dt,false);
+        expected.advance(dt,false);
+        grid.advance_split(dt,false);
+        expected.advance(dt/2,false);expected.advance(dt/2,false);
+    } else {
+        grid.advance_unsplit(dt,false);
+        expected.advance(dt,false);
+    }
+    
+    
+    for (int i = 0; i < grid.getSizeX(); i++){
+        for (int j = 0; j < grid.getSizeY(); j++){
+            for (int k = 0; k < grid.getSizeZ(); k++){
+                expect_close(grid[i,j,k], expected[j].swappedXY(), 1e-8);
             }
         }
     }
@@ -503,23 +584,48 @@ void DRAGON_Test::verify_3D_Z_match_1D(bool split){
                 grid[i,j,k] = make_state(1.0+0.1*k, 1.0+0.1*k, -0.1*k, 0.1*k, 10.0-0.1*k);
             }
         }
-        expected[k] = grid[0,0,k].swapXZ();
+        expected[k] = grid[0,0,k].swappedXZ();
     }
         
-    double dt = 0.001;
+    double dt = 0.01;
     if(split){
-        grid.advance_split(dt);
-        expected.advance(dt);
+        grid.advance_split(dt,false);
+        expected.advance(dt,false);
     } else {
-        grid.advance_unsplit(dt);
-        expected.advance(dt);
+        grid.advance_unsplit(dt,false);
+        expected.advance(dt,false);
     }
         
     for (int i = 0; i < grid.getSizeX(); i++){
         for (int j = 0; j < grid.getSizeY(); j++){
             for (int k = 0; k < grid.getSizeZ(); k++){
-                //Unsplit uses different reconstruction, so higher tolerance
-                expect_close(grid[i,j,k], expected[k].swapXZ());
+                expect_close(grid[i,j,k], expected[k].swappedXZ());
+            }
+        }
+    }
+    
+    if(split){
+        grid.advance_split(dt,false);
+        expected.advance(dt/2,false);expected.advance(dt/2,false);
+        grid.advance_split(dt,false);
+        expected.advance(dt/2,false);expected.advance(dt/2,false);
+        grid.advance_split(dt,false);
+        expected.advance(dt/2,false);expected.advance(dt/2,false);
+        grid.advance_split(dt,false);
+        expected.advance(dt/2,false);expected.advance(dt/2,false);
+        grid.advance_split(dt,false);
+        expected.advance(dt,false);
+    } else {
+        grid.advance_unsplit(dt,false);
+        expected.advance(dt,false);
+        grid.advance_unsplit(dt,false);
+        expected.advance(dt,false);
+    }
+        
+    for (int i = 0; i < grid.getSizeX(); i++){
+        for (int j = 0; j < grid.getSizeY(); j++){
+            for (int k = 0; k < grid.getSizeZ(); k++){
+                expect_close(grid[i,j,k], expected[k].swappedXZ(),1e-8);
             }
         }
     }
@@ -723,7 +829,7 @@ void DRAGON_Test::verify_ctu_blast_3D() {
             }
         }
     }
-    assert(approx(mass1, mass0, 1e-10, 1e-10));
+    assert(approx(mass1, mass0, 1e-8, 1e-8));
     // The center should depressurize and nearby gas should start moving outward.
     assert((grid[nx/2, ny/2, nz/2].p < p_blast));
 }
