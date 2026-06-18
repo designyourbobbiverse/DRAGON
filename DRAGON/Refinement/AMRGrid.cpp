@@ -13,8 +13,8 @@
 
 //MARK: Bin Setup
 //Compute the size of the ith children, given that we have nx cells spread across ncx bins
-int computeChildSize(int nx, int ncx, int i){
-    if(nx <= bin_size) return nx; //Single Bin
+static int computeChildSize(int nx, int ncx, int i){
+    int bin_size = ceil(double(nx)/double(ncx));
     int _nx = bin_size;
     if (i == 0 || i+1 == ncx) { //Reduce bin size if leftmost or rightmost
         _nx -=  (ncx*bin_size - nx)/2;
@@ -31,26 +31,30 @@ static int validGhosts(int g){ //How many ghost cells are needed to do this corr
 #endif
 }
 
-AMRGrid1D::AMRGrid1D(int nx, double dx_, int g): size_x(nx*dx_),dx(dx_), ghosts(validGhosts(g)), data(nx, dx_,validGhosts(g)) {
-    ncx = (nx / bin_size) + (nx % bin_size == 0 ? 0 : 1);
+AMRGrid1D::AMRGrid1D(int nx, double dx_, int g, bool root): size_x(nx*dx_),dx(dx_), ghosts(validGhosts(g)), data(nx, dx_,validGhosts(g)) {
     
+    
+    ncx = root ? core_count : 1;
+
     if (ncx > 1){ //Children
         children.reserve(ncx);
         for(int i = 0; i<ncx; i++){
             int _nx = computeChildSize(nx, ncx, i);
         
-            auto child = std::make_unique<AMRGrid1D>(_nx, dx, ghosts);
+            auto child = std::make_unique<AMRGrid1D>(_nx, dx, ghosts, false);
             children.push_back(std::move(child));
         }
     }
 }
 
-AMRGrid2D::AMRGrid2D(int nx, int ny, double dx_, double dy_, int g):
-    size_x(nx*dx_),size_y(ny*dy_), dx(dx_), dy(dy_), ghosts(validGhosts(g)),
-    data(nx, ny, dx_, dy_, validGhosts(g)) {
+AMRGrid2D::AMRGrid2D(int nx, int ny, double dx_, double dy_, int g, bool root): size_x(nx*dx_),size_y(ny*dy_), dx(dx_), dy(dy_), ghosts(validGhosts(g)), data(nx, ny, dx_, dy_, validGhosts(g)) {
 
-    ncx = (nx / bin_size) + (nx % bin_size == 0 ? 0 : 1);
-    ncy = (ny / bin_size) + (ny % bin_size == 0 ? 0 : 1);
+    if(!root){ ncx = 1; ncy = 1; return;}
+    
+    //Goal: nx/ncx = ny/ncy,  ncx*ncy = core_count
+    ncx = ceil(sqrt( core_count * double(nx)/double(ny)) ); //ncx = core_count / ncy =  core_count * (nx/ny)/ ncx
+    ncy = ceil(sqrt( core_count * double(ny)/double(nx)) ); //ncy = core_count / ncx =  core_count * (ny/nx)/ ncy
+
     
     if (ncx > 1 || ncy > 1){ //Children
         children.reserve(ncx * ncy);
@@ -59,7 +63,7 @@ AMRGrid2D::AMRGrid2D(int nx, int ny, double dx_, double dy_, int g):
             for(int j = 0; j<ncy; j++){
                 int _ny = computeChildSize(ny, ncy, j);
 
-                auto child = std::make_unique<AMRGrid2D>(_nx, _ny, dx, dy, ghosts);
+                auto child = std::make_unique<AMRGrid2D>(_nx, _ny, dx, dy, ghosts, false);
                 children.push_back(std::move(child));
             }
         }
@@ -67,13 +71,16 @@ AMRGrid2D::AMRGrid2D(int nx, int ny, double dx_, double dy_, int g):
         
 }
 
-AMRGrid3D::AMRGrid3D(int nx, int ny, int nz, double dx_, double dy_, double dz_, int g):
+AMRGrid3D::AMRGrid3D(int nx, int ny, int nz, double dx_, double dy_, double dz_, int g, bool root):
     size_x(nx*dx_),size_y(ny*dy_), size_z(nz*dz_), dx(dx_), dy(dy_), dz(dz_), ghosts(validGhosts(g)),
     data(nx, ny, nz, dx_, dy_, dz_, validGhosts(g)) {
 
-    ncx = (nx / bin_size) + (nx % bin_size == 0 ? 0 : 1);
-    ncy = (ny / bin_size) + (ny % bin_size == 0 ? 0 : 1);
-    ncz = (nz / bin_size) + (nz % bin_size == 0 ? 0 : 1);
+    if(!root){ ncx = 1; ncy = 1; return;}
+    //Goal: nx/ncx = ny/ncy = nz/ncz,  ncx*ncy*ncz = core_count
+    double rxy = double(nx)/double(ny), rxz = double(nx)/double(nz), ryz = double(ny)/double(nz);
+    ncx = ceil(pow( core_count * rxy*rxz, 0.3333) ); //ncx = core_count / (ncy*ncz) =  core_count * (nx/ny) * (nx/nz)/ ncx^2
+    ncy = ceil(pow( core_count * ryz/rxy, 0.3333) ); //ncy = core_count / (ncx*ncz) =  core_count * (ny/nx) * (ny/nz)/ ncy^2
+    ncz = ceil(pow( core_count / (rxz*ryz), 0.3333) ); //ncz = core_count / (ncy*ncz) =  core_count * (nz/nx) * (nz/ny)/ ncz^2
 
     if (ncx > 1 || ncy > 1 || ncz > 1){ //Children
         children.reserve(ncx * ncy * ncz);
@@ -84,7 +91,7 @@ AMRGrid3D::AMRGrid3D(int nx, int ny, int nz, double dx_, double dy_, double dz_,
                 for(int k = 0; k<ncz; k++){
                     int _nz = computeChildSize(nz, ncz, k);
                     
-                    auto child = std::make_unique<AMRGrid3D>(_nx, _ny, _nz, dx, dy, dz, ghosts);
+                    auto child = std::make_unique<AMRGrid3D>(_nx, _ny, _nz, dx, dy, dz, ghosts, false);
                     children.push_back(std::move(child));
                 }
             }
