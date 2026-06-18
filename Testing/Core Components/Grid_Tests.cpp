@@ -28,7 +28,11 @@ void DRAGON_Test::verify_grid(bool output){
 }
 
 PrimitiveState DRAGON_Test::make_tagged_state(double tag){
-    return make_state(tag, tag + 10, tag + 20, tag + 30, tag + 40);
+    PrimitiveState W = make_state(tag, tag + 10, tag + 20, tag + 30, tag + 40);
+#ifdef MHD
+    W.B = {tag + 50, tag + 60, tag + 70};
+#endif
+    return W;
 }
 
 void DRAGON_Test::verify_grid1D(){

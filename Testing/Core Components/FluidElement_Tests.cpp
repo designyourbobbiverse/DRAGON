@@ -21,11 +21,12 @@ void DRAGON_Test::verify_fluid_element(bool output) {
     if(output) std::cout << "- Form Conversion: ";
     verify_conversion();
     if(output) std::cout << "Passed\n";
-    if(output) std::cout << "- Enthalpy: ";
-    verify_enthalpy();
-    if(output) std::cout << "Passed\n";
     if(output) std::cout << "- Wave Speeds: ";
+    verify_enthalpy();
     verify_wavespeeds();
+    if(output) std::cout << "Passed\n";
+    if(output) std::cout << "- Physicality: ";
+    verify_physicality();
     if(output) std::cout << "Passed\n";
     if(output) std::cout << "- Axis Swaps: ";
     verify_swaps_P();
@@ -201,6 +202,58 @@ void DRAGON_Test::verify_wavespeeds(){
 
 #endif
     
+}
+
+void DRAGON_Test::verify_physicality(){
+    PrimitiveState W = make_state(1.0, 2.0, -3.0, 4.0, 5.0);
+#ifdef MHD
+    W.B = {0.1, 0.2, 0.3};
+#endif
+    assert(W.isPhysical());
+
+    PrimitiveState badW = W;
+    badW.rho = 0.0;
+    assert(!badW.isPhysical());
+    badW = W;
+    badW.rho = -1.0;
+    assert(!badW.isPhysical());
+    badW = W;
+    badW.p = 0.0;
+    assert(!badW.isPhysical());
+    badW = W;
+    badW.p = -1.0;
+    assert(!badW.isPhysical());
+    badW = W;
+    badW.v.y = NAN;
+    assert(!badW.isPhysical());
+#ifdef MHD
+    badW = W;
+    badW.B.z = INFINITY;
+    assert(!badW.isPhysical());
+#endif
+
+    ConservativeState U(W);
+    assert(U.isFinite());
+    assert(U.isPhysical());
+
+    ConservativeState badU = U;
+    badU.rho = -1.0;
+    assert(badU.isFinite());
+    assert(!badU.isPhysical());
+    badU = U;
+    badU.E = NAN;
+    assert(!badU.isFinite());
+    assert(!badU.isPhysical());
+    badU = U;
+    badU.E = 0.0;
+    assert(badU.isFinite());
+    assert(!badU.isPhysical());
+#ifdef MHD
+    badU = U;
+    badU.B.x = NAN;
+    assert(!badU.isFinite());
+    assert(!badU.isPhysical());
+#endif
 }
 
 //MARK: Dimension Swaps

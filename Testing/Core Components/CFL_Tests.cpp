@@ -36,6 +36,7 @@ void DRAGON_Test::verify_cfl(bool output){
     verify_cfl_dispatch_add_3D();
     verify_cfl_dispatch_max_3D();
     verify_cfl_dispatch_pow_3D();
+    verify_cfl_mhd_speed_3D();
     std::cout << "Passed\n";
     //Grid
     std::cout << "- 1D Grid: ";
@@ -52,6 +53,7 @@ void DRAGON_Test::verify_cfl(bool output){
     verify_cfl_time_3D_uniform();
     verify_cfl_time_3D_uses_fastest_cell();
     verify_cfl_time_3D_ignores_ghost_cells();
+    verify_cfl_mhd_time_3D();
     std::cout << "Passed\n";
     std::cout << "All CFL Tests Passed.\n\n";
 
@@ -170,34 +172,42 @@ void DRAGON_Test::verify_cfl_dispatch_add_3D() {
     PrimitiveState W = make_state(2.0, 3.0, -4.0, 5.0, 5.0);
     double dx = 0.25, dy = 0.10, dz = 0.50;
 
+    int previous = CONFIG::cfl_choice;
     CONFIG::cfl_choice = CFL_ADD;
 
     double expected = CFL::cfl_add_speed(W, dx, dy, dz);
     double got = CFL::cfl_speed(W, dx, dy, dz);
     assert(approx(got, expected));
+    CONFIG::cfl_choice = previous;
 }
 
 void DRAGON_Test::verify_cfl_dispatch_max_3D() {
     PrimitiveState W = make_state(2.0, 3.0, -4.0, 5.0, 5.0);
     double dx = 0.25, dy = 0.10, dz = 0.50;
 
+    int previous = CONFIG::cfl_choice;
     CONFIG::cfl_choice = CFL_MAX;
 
     double expected = CFL::cfl_max_speed(W, dx, dy, dz);
     double got = CFL::cfl_speed(W, dx, dy, dz);
     assert(approx(got, expected));
+    CONFIG::cfl_choice = previous;
 }
 
 void DRAGON_Test::verify_cfl_dispatch_pow_3D() {
     PrimitiveState W = make_state(2.0, 3.0, -4.0, 5.0, 5.0);
     double dx = 0.25, dy = 0.10, dz = 0.50;
 
+    int previous = CONFIG::cfl_choice;
     CONFIG::cfl_choice = 2;
 
     double expected = CFL::cfl_pow_speed(W, 2.0, dx, dy, dz);
     double got = CFL::cfl_speed(W, dx, dy, dz);
     assert(approx(got, expected));
+    CONFIG::cfl_choice = previous;
 }
+
+
 
 //MARK: 1D Grid
 void DRAGON_Test::verify_cfl_time_1D_uniform() {
@@ -356,4 +366,44 @@ void DRAGON_Test::verify_cfl_time_3D_ignores_ghost_cells() {
     double expected = CFL_coeff / ( (0.1 + sqrt(_gamma)) / g.dx  + (sqrt(_gamma)) / g.dy + (sqrt(_gamma)) / g.dz);
     double got = CFL::cfl_time(g);
     assert(approx(got, expected));
+}
+//MARK: MHD
+void DRAGON_Test::verify_cfl_mhd_speed_3D() {
+#ifdef MHD
+    PrimitiveState W = make_state(2.0, 3.0, -4.0, 5.0, 5.0);
+    W.B = {2.0, -1.0, 3.0};
+    double dx = 0.25, dy = 0.10, dz = 0.50;
+    double a = W.c_fast();
+
+    double sx = (std::fabs(W.v.x) + a) / dx;
+    double sy = (std::fabs(W.v.y) + a) / dy;
+    double sz = (std::fabs(W.v.z) + a) / dz;
+
+    assert(approx(CFL::cfl_add_speed(W, dx, dy, dz), sx + sy + sz));
+    assert(approx(CFL::cfl_max_speed(W, dx, dy, dz), std::max(sx, std::max(sy, sz))));
+    assert(approx(CFL::cfl_pow_speed(W, 2, dx, dy, dz), sqrt(sx*sx + sy*sy + sz*sz)));
+#endif
+}
+
+void DRAGON_Test::verify_cfl_mhd_time_3D() {
+#ifdef MHD
+    int previous = CONFIG::cfl_choice;
+    CONFIG::cfl_choice = CFL_ADD;
+
+    Grid3D g(3,4,5, 0.5, 0.25, 5.0, 1);
+    PrimitiveState W = make_state(1.0, 2.0, 3.0, 4.0, 1.0);
+    W.B = {1.0, -2.0, 0.5};
+    for(int i = -1; i < 3 + 1; i++){
+        for(int j = -1; j < 4 + 1; j++){
+            for(int k = -1; k < 5 + 1; k++){
+                g[i,j,k] = W;
+            }
+        }
+    }
+
+    double a = W.c_fast();
+    double speed = (std::fabs(W.v.x) + a) / g.dx + (std::fabs(W.v.y) + a) / g.dy + (std::fabs(W.v.z) + a) / g.dz;
+    assert(approx(CFL::cfl_time(g), CFL_coeff / speed));
+    CONFIG::cfl_choice = previous;
+#endif
 }

@@ -12,8 +12,6 @@ using namespace DRAGON_Test;
 
 //Testing TODOs:
 //AMRGrid
-//TVD Options
-//Fallback to Exact
 //DRAGONWING
 //CFL with MHD
 //HLLD-specific tests with MHD
@@ -27,7 +25,7 @@ int main() {
     verify_boundary();
     verify_tvd();
     verify_cfl();
-    
+
     verify_godunov_1D();
     verify_godunov_2D_Split();
     verify_godunov_2D_Unsplit();

@@ -13,7 +13,6 @@
 
 
 //MARK: MUSCL-Hancock
-
 void TVD::MUSCL(const PrimitiveState& wL, PrimitiveState& _L, const PrimitiveState& wC, PrimitiveState& _R, const PrimitiveState& wR, double dt_dL){
 #ifdef MUSCL_Hancock
     // Reconstruct a limited primitive-variable slope

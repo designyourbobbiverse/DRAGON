@@ -34,6 +34,7 @@ void verify_flux();
 void verify_flux_add();
 void verify_enthalpy();
 void verify_wavespeeds();
+void verify_physicality();
 void verify_swaps_P();//Primitive
 void verify_swaps_C();//Conservative
 //Arithmetic
@@ -57,6 +58,10 @@ void verify_exact_sod();
 void verify_riemann_f();
 void verify_sample_mirror_restores_state();
 void verify_exact_supersonic_upwind_transverse();
+// Flux dispatch and wrappers
+void verify_riemann_flux_dispatch();
+void verify_riemann_flux_safety_check();
+void verify_riemann_flux_dimension_wrappers();
 // HLL Tests
 void verify_hll_equal_state();
 void verify_hll_stationary_contact();
@@ -122,6 +127,7 @@ void verify_boundary_composition(bool output = true);
 void verify_boundary_set_missing_faces_outflow_2D();
 void verify_boundary_composition_3D();
 void verify_boundary_composition_order();
+void verify_boundary_composition_overlap_order();
 
 
 //MARK: CFL
@@ -142,6 +148,8 @@ void verify_cfl_pow_speed_3D();
 void verify_cfl_dispatch_add_3D();
 void verify_cfl_dispatch_max_3D();
 void verify_cfl_dispatch_pow_3D();
+void verify_cfl_mhd_speed_3D();
+void verify_cfl_mhd_time_3D();
 //1D
 void verify_cfl_time_1D_uniform();
 void verify_cfl_time_1D_uses_fastest_cell();
@@ -168,6 +176,7 @@ void verify_tvd_primitive_limiters();
 void verify_tvd_limiter_dispatch();
 void verify_tvd_muscl_constant_state();
 void verify_tvd_muscl_zero_dt_spatial_reconstruction();
+void verify_tvd_muscl_nonzero_dt_predictor();
 void verify_tvd_muscl_falls_back_when_unphysical();
 
 

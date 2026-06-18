@@ -26,7 +26,7 @@ ConservativeState Riemann::flux(double dt_dx){
     //Runnign unit tests, need all solvers to be available
     ConservativeState flux;
     switch (CONFIG::riemann_choice){
-        case RIEMANN_EXACT: flux = exact().flux();
+        case RIEMANN_EXACT: flux = exact().flux(); break;
         case RIEMANN_HLL: flux =  HLL(); break;
         case RIEMANN_HLLE: flux =  HLLE(); break;
         case RIEMANN_ROE: flux =  Roe(); break;

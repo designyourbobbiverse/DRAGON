@@ -51,6 +51,7 @@ void DRAGON_Test::verify_tvd(bool output) {
     if(output) std::cout << "- MUSCL: ";
     verify_tvd_muscl_constant_state();
     verify_tvd_muscl_zero_dt_spatial_reconstruction();
+    verify_tvd_muscl_nonzero_dt_predictor();
     verify_tvd_muscl_falls_back_when_unphysical();
     if(output) std::cout << "Passed\n";
     if(output) std::cout << "All TVD Tests Passed.\n\n";
@@ -105,16 +106,19 @@ void DRAGON_Test::verify_tvd_primitive_limiters() {
     PrimitiveState b = make_tvd_state(4.0, 2.0, -5.0, -3.0, 3.0);
 
     PrimitiveState got = TVD::minmod(a, b);
-    assert(approx(got.rho, 2.0));
-    assert(approx(got.v.x, 2.0));
-    assert(approx(got.v.y, -2.0));
-    assert(approx(got.v.z, 0.0));
-    assert(approx(got.p, 3.0));
-#ifdef MHD
-    assert(approx(got.B.x, 0.2));
-    assert(approx(got.B.y, 0.4));
-    assert(approx(got.B.z, -0.6));
-#endif
+    expect_close(got, make_tvd_state(2.0, 2.0, -2.0, 0.0, 3.0));
+
+    got = TVD::MC(a, b);
+    expect_close(got, make_tvd_state(3.0, 3.0, -3.5, 0.0, 4.5));
+
+    got = TVD::vanLeer(a, b);
+    expect_close(got, make_tvd_state(8.0 / 3.0, 8.0 / 3.0, -20.0 / 7.0, 0.0, 4.0));
+
+    got = TVD::superbee(a, b);
+    expect_close(got, make_tvd_state(4.0, 4.0, -4.0, 0.0, 6.0));
+
+    got = TVD::vanAlbada(a, b);
+    expect_close(got, make_tvd_state(2.4, 2.4, -70.0 / 29.0, 0.0, 3.6));
 }
 
 void DRAGON_Test::verify_tvd_limiter_dispatch() {
@@ -156,6 +160,27 @@ void DRAGON_Test::verify_tvd_muscl_zero_dt_spatial_reconstruction() {
 
     expect_close(L, make_state(1.5, 1.5, 2.5, 3.5, 4.5));
     expect_close(R, make_state(2.5, 2.5, 3.5, 4.5, 5.5));
+}
+
+void DRAGON_Test::verify_tvd_muscl_nonzero_dt_predictor() {
+    CONFIG::limiter_choice = LIMITER_MINMOD;
+    PrimitiveState wL = make_state(1.0, 0.0, 0.0, 0.0, 1.0);
+    PrimitiveState wC = make_state(2.0, 0.0, 0.0, 0.0, 2.0);
+    PrimitiveState wR = make_state(3.0, 0.0, 0.0, 0.0, 3.0);
+    PrimitiveState L, R;
+    double dt_dL = 0.1;
+
+    TVD::MUSCL(wL, L, wC, R, wR, dt_dL);
+
+    PrimitiveState spatialL = make_state(1.5, 0.0, 0.0, 0.0, 1.5);
+    PrimitiveState spatialR = make_state(2.5, 0.0, 0.0, 0.0, 2.5);
+    ConservativeState UL(spatialL), UR(spatialR);
+    ConservativeState correction = (UR.flux() - UL.flux()) * (0.5 * dt_dL);
+    PrimitiveState expectedL = UL - correction;
+    PrimitiveState expectedR = UR - correction;
+
+    expect_close(L, expectedL, 1e-12, 1e-12);
+    expect_close(R, expectedR, 1e-12, 1e-12);
 }
 
 void DRAGON_Test::verify_tvd_muscl_falls_back_when_unphysical() {
