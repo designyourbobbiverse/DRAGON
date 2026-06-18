@@ -54,8 +54,8 @@ struct PrimitiveState {
     double c_fast() const; //Wave speed for the fast magnetosonic mode
 #endif
     
-    //Computes the x component of flux, divided by 1 computational unit of velocity
-    //@return Conservative state equal to [flux] * (1 time unit)/(1 length unit)
+    //Computes the x-direction flux
+    //Flux is stored as a Conservative state equal to [flux] * (1 time unit)/(1 length unit)
     ConservativeState flux() const;
 
     //swapped__() returns a copy with the two specified components swapped
@@ -89,10 +89,10 @@ struct ConservativeState {
     //Computes the pressure, assuming ideal gas EOS
     double pressure() const;
     
-    //Computes the x component of flux
+    //Computes the x-direction flux
     //Flux is stored as a Conservative state equal to [flux] * (1 time unit)/(1 length unit)
     ConservativeState flux() const;
-    ConservativeState flux(vec3 v) const; //More effiecient version if you already know vx
+    ConservativeState flux(vec3 v) const; //More effiecient version if you already know v
 
     //swapped__() returns a copy with the two specified components swapped
     ConservativeState swappedXY() const;

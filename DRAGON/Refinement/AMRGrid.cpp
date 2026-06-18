@@ -25,9 +25,9 @@ int computeChildSize(int nx, int ncx, int i){
 
 static int validGhosts(int g){ //How many ghost cells are needed to do this correctly
 #if defined(MUSCL_Hancock) && !defined(DIMENSION_UNSPLIT)
-    return std::max(g, 3); //Split needs an extra ghost to avoid needing to sync after each substep
+    return std::max(g, 3); //MUSCL Split needs an extra ghost to avoid needing to sync after each substep
 #else
-    return std::max(g, 2); //Unsplit syncs afeter every advance, so it's to use the usual 2
+    return std::max(g, 2); //Unsplit syncs afeter every advance, so it's safe to use the usual 2
 #endif
 }
 

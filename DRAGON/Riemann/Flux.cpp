@@ -80,7 +80,7 @@ ConservativeState Riemann::flux(double dt_dx){
     return flux;
 }
 //MARK: Fallback to HLLE/Exact
-//Verify that the solution produces a physical result, fallback to HLLE if not
+//Verify that the solution produces a physical result, fallback if not
 void Riemann::verify_and_fallback(ConservativeState& flux, double dt_dx){
     dt_dx *= Riemann_ExactFallback_Parameter;//Scale time by the desired amount
     //Check whether both states would still be physical after update
@@ -132,7 +132,7 @@ PrimitiveState RiemannSolution::sample(double x_t){
     bool isLeft = x_t < sR.v.x;
     if(isLeft){ mirror(); x_t=-x_t; }
     
-    //Calculate Sound Speed
+    //Calculate Hydro Sound Speed
     double a = wR.cs();
     //Determine Zone
     int zone = 0; // 1 = outside, 2 = fan, 3 = star

@@ -1,5 +1,5 @@
 //
-//  Godunov/Splitting.hpp
+//  Godunov/Splitting.cpp
 //  DRAGON
 //
 //  Created by Bobbie Markwick on 16/05/2026.

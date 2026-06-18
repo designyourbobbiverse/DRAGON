@@ -63,7 +63,7 @@ double ConservativeState::pressure() const {
     return  (_gamma - 1.0) * E_thermal; //Convert thermal energy density to pressure
 }
 
-//Enthalpy Density
+//Enthalpy per mass
 double PrimitiveState::enthalpy() const {
     double h = energy() + p; //Energy + (Thermal) Pressure
 #ifdef MHD

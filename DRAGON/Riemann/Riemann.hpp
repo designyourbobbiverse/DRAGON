@@ -41,7 +41,7 @@ struct Riemann{
 #endif
     
     //Computes the flux using whatever method was selected in Config.h
-    //dt_dx is an optional parameter. If set, verifies physicality of solution, pivoting to exact().flux() on failure
+    //dt_dx is used in verifying physicality of solution (see RIEMANN_VERIFY_FALLBACK in Config.h)
     ConservativeState flux(double dt_dx = 0);
     ConservativeState flux_X(double dt_dx = 0);
     ConservativeState flux_Y(double dt_dy = 0);

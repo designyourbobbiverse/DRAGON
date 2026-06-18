@@ -9,7 +9,6 @@
 #define Config_h
 
 //How to use this file
-//If something is at root level (and above the do not touch line), you can use it
 //If something is indented once and sits above something else, it is one of the options for the something else
     //For example, RIEMANN default has several choices listed above it, such as RIEMANN_EXACT, RIEMANN_HLLC, RIEMANN_ROE, etc
     //For any of these choice items, you also have this option available, which allows you to choose the option at runtime
@@ -20,10 +19,10 @@
         //If you aren't using the Roe solver, Harten_Hyman doesn't do antying
     //As another example, RIEMANN_VERIFY_FALLBACK has the constant Riemann_ExactFallback_Parameter
         //This constant is used only in the execution of the RIEMANN_VERIFY_FALLBACK procedure
-   
+    //Indented and below generally priority over Indented and above (e.g. ExactRiemann_MaxIters is a parameter for RIEMANN_EXACT, not one of the options for RIEMANN_HLL [which doesn't even have options])
 
 
-#define MHD //Determines whether the simulation is run using MHD or Pure Hydrodynamics
+//#define MHD //Determines whether the simulation is run using MHD or Pure Hydrodynamics
 
 
     
@@ -42,7 +41,8 @@
         #define Harten_Hyman //Entropy Fix: Harten and Hyman (1983). https://doi.org/10.1016/0021-9991(83)90066-9
 #define RIEMANN_DEFAULT RIEMANN_HLLX
 
-//When using an approximate solver, verify that L-F*dt/dx and R+F*dt/dx are physical + recalculate using HLLE or Exact if not
+//When using an approximate solver, verify that L-F*dt/dx and R+F*dt/dx are physical
+//If not physical, recalculate using HLLE, then (hydro only) if that fails, Exact
 #define RIEMANN_VERIFY_FALLBACK
     constexpr double Riemann_ExactFallback_Parameter = 1.0; //Scales F*dt/dx for the purpose of physicality verificaiton
 
@@ -103,4 +103,4 @@ extern int cfl_choice;
 #define HYDRO_AVAILABLE
 #endif
 
-#endif /* Constants_h */
+#endif

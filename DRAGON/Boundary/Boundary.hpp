@@ -18,7 +18,7 @@ namespace Boundary{
 
 //MARK: Boundary Composition
 //The conditions will be applied in order, with later conditions overriding prior conditions for overlapping cells
-//When applying Outflow(missing_faces) will be added at the beginning if any faces are missing.
+//Outflow(missing_faces) will be added at the beginning if any faces are missing.
 class BoundaryList;
 template<class T> concept BoundaryElement = //Can't put lists inside of lists
     !std::derived_from<std::decay_t<T>, BoundaryList> && std::derived_from<std::decay_t<T>, GhostFill>;

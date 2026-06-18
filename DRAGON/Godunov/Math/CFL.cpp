@@ -14,7 +14,7 @@
 #include <iostream>
 
 //MARK: Individual Speeds
-//CFL time = highest (|v|+a)/dL of any one side
+//CFL speed = highest (|v|+a)/dL of any one side
 double CFL::cfl_max_speed(const PrimitiveState& W, double dx, double dy, double dz){
 #ifdef MHD //Use Magnetosonic fast speed for MHD
     double a = W.c_fast();
@@ -28,7 +28,7 @@ double CFL::cfl_max_speed(const PrimitiveState& W, double dx, double dy, double 
     return speed;
 }
 
-//CFL time = sum of (|v|+a)/dL over all applicable sides
+//CFL speed = sum of (|v|+a)/dL over all applicable sides
 double CFL::cfl_add_speed(const PrimitiveState& W, double dx, double dy, double dz){
 #ifdef MHD //Use Magnetosonic fast speed for MHD
     double a = W.c_fast();
@@ -42,7 +42,7 @@ double CFL::cfl_add_speed(const PrimitiveState& W, double dx, double dy, double 
     return speed;
 }
 
-//CFL time = [sum of ((|v|+a)/dL)^p]^(1/p)
+//CFL speed = [sum of ((|v|+a)/dL)^p]^(1/p)
 double CFL::cfl_pow_speed(const PrimitiveState& W, double p, double dx, double dy, double dz){
 #ifdef MHD //Use Magnetosonic fast speed for MHD
     double a = W.c_fast();
@@ -85,8 +85,13 @@ double CFL::cfl_time(const Grid1D& g){
     //Calculate the highest speed over the entire grid
     double max_speed = 0;
     for(int i = 0; i<g.getSize(); i++){
-      const PrimitiveState& W = g[i];
-      double speed = fabs(W.v.x) + sqrt(_gamma * W.p / W.rho);
+        const PrimitiveState& W = g[i];
+        #ifdef MHD //Use Magnetosonic fast speed for MHD
+        double a = W.c_fast();
+        #else //Use sound speed for Hydro
+        double a = W.cs();
+        #endif
+      double speed = fabs(W.v.x) + a;
       max_speed = fmax(max_speed, speed);
     }
     if(max_speed <= 0) throw std::runtime_error("CFL timestep failed: max signal speed is zero");

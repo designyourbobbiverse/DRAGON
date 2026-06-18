@@ -297,7 +297,7 @@ void computeHalfStates_Z(FluidArray3D& _L, const Grid3D& _W, FluidArray3D& _R, d
 #endif
 
 void correctState(FluidArray2D& _L, FluidArray2D& _R, const FluxArray2D& F, double dt_dL, int xL, int xR, int yL, int yR, int dim){
-    //dimension
+    //Extract direction encoding
     int isX = dim%2 == 0 ? 1 : 0;
     int isY = dim%2 == 1 ? 1 : 0;
     //Cycle
@@ -310,7 +310,7 @@ void correctState(FluidArray2D& _L, FluidArray2D& _R, const FluxArray2D& F, doub
     }
 }
 void correctState(const FluidArray3D& _L0, const FluidArray3D& _R0, FluidArray3D& _L, FluidArray3D& _R, const FluxArray3D& F, double dt_dL, int xL, int xR, int yL, int yR, int zL, int zR, int dim){
-    //dimension
+    //Extract direction encoding
     int isX = dim%3 == 0 ? 1 : 0;
     int isY = dim%3 == 1 ? 1 : 0;
     int isZ = dim%3 == 2 ? 1 : 0;

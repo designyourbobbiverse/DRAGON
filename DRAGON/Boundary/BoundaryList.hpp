@@ -91,7 +91,7 @@ private:
     Outflow implicits;
     bool stale = true;//If true, needs to recalculate implicit outflow before applying boundary
     void resetImplicit(){
-        int uncoveredFaces = X | Y | Z; //Determine which faces are not fully covered by one or more elements in the list
+        int uncoveredFaces = X | Y | Z; //Determine which faces are not handled by any elements in the list
         for (auto& b : boundaries)  uncoveredFaces &= ~b->get_faces();
         implicits = Outflow(uncoveredFaces);
         stale = false;//Reset complete
