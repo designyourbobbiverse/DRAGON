@@ -58,11 +58,11 @@ struct PrimitiveState {
     //@return Conservative state equal to [flux] * (1 time unit)/(1 length unit)
     ConservativeState flux() const;
 
-    // Returns a copy with the two specified components swapped
+    //swapped__() returns a copy with the two specified components swapped
     PrimitiveState swappedXY() const;
     PrimitiveState swappedXZ() const;
     PrimitiveState swappedYZ() const;
-    //Swaps the specified components in place.
+    //swap__() swaps the specified components in place.
     void swapXY();
     void swapXZ();
     void swapYZ();

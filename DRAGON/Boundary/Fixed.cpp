@@ -15,6 +15,7 @@ Boundary::Fixed::Fixed(PrimitiveState w_, int faces_, bool corners):  GhostFill(
 Boundary::Fixed::Fixed(PrimitiveState w_,std::string s,bool corners) : Fixed(w_,face_mask(s),corners) {}
 
 //MARK: 1D
+//All applicable ghost cells are set to equal this->state
 void Boundary::Fixed::apply(Grid1D& grid) {
     int ng = grid.getGhosts();
     if (faces & X_negative){
@@ -31,7 +32,9 @@ void Boundary::Fixed::apply(Grid1D& grid) {
 }
 
 //MARK: 2D
+//All applicable ghost cells are set to equal this->state
 void Boundary::Fixed::apply(Grid2D& grid) {
+    //Calculate the bounds ahead of time
     int ng = grid.getGhosts(), nx = grid.getSizeX(), ny = grid.getSizeY();
     int i0 = (corners ? -ng : 0), in = (corners ? nx + ng : nx);
     int j0 = i0, jn = (corners ? ny + ng : ny);
@@ -66,7 +69,9 @@ void Boundary::Fixed::apply(Grid2D& grid) {
     }
 }
 //MARK: 3D
+//All applicable ghost cells are set to equal this->state
 void Boundary::Fixed::apply(Grid3D& grid) {
+    //Calculate the bounds ahead of time
     int ng = grid.getGhosts(), nx = grid.getSizeX(), ny = grid.getSizeY(), nz = grid.getSizeZ();
     int i0 = (corners ? -ng : 0), in = (corners ? nx + ng : nx);
     int j0 = i0, jn = (corners ? ny + ng : ny);

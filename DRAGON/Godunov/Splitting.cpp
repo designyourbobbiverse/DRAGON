@@ -27,7 +27,6 @@ const PrimitiveState& Grid2D::operator[](int i, int j) const { return w[i,j]; }
 int Grid2D::getSizeX() const { return w.getSizeX(); }
 int Grid2D::getSizeY() const { return w.getSizeY(); }
 int Grid2D::getGhosts() const { return w.getGhosts(); }
-Grid2D::~Grid2D(){ w.~ExtendedArray2D(); }
 
 
 Grid3D::Grid3D(int nx_, int ny_, int nz_, double dx_, double dy_, double dz_, int g_): dx(dx_), dy(dy_), dz(dz_),
@@ -38,7 +37,6 @@ int Grid3D::getSizeX() const { return w.getSizeX(); }
 int Grid3D::getSizeY() const { return w.getSizeY(); }
 int Grid3D::getSizeZ() const { return w.getSizeZ(); }
 int Grid3D::getGhosts() const { return w.getGhosts(); }
-Grid3D::~Grid3D(){ w.~ExtendedArray3D(); }
 
 
 //MARK: 2D Split

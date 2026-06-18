@@ -23,17 +23,17 @@ class BoundaryList;
 template<class T> concept BoundaryElement = //Can't put lists inside of lists
     !std::derived_from<std::decay_t<T>, BoundaryList> && std::derived_from<std::decay_t<T>, GhostFill>;
 
+//Addition operators
 template<BoundaryElement A, BoundaryElement B> BoundaryList operator+(A&& a, B&& b); //List = Element + Element
 template<BoundaryElement B> BoundaryList operator+(BoundaryList a, B&& b); //List = List + Element
 template<BoundaryElement B> BoundaryList& operator+=(BoundaryList& lhs, B&& rhs); //List += Element
 template<BoundaryElement A> BoundaryList operator+(A&& a, BoundaryList b); //List = Element + List
 inline BoundaryList operator+(BoundaryList a, BoundaryList b); //List = List + List
 inline BoundaryList& operator+=(BoundaryList& lhs, BoundaryList rhs); //List += List
-//List = List and List = Element are also defined within the boundary class
+//List = List and List = Element are also defined within the BoundaryList class
 
 
 //MARK: Faces
-
 constexpr int X_negative = 1 << 0;
 constexpr int X_positive = 1 << 1;
 constexpr int X = X_negative | X_positive;
@@ -55,11 +55,14 @@ int face_mask(std::string s);
 
 //MARK: Predefined types
 
+//Outflow boundary condition
+//Sets each boundary cell to be equal to the nearest interior cell
 class Outflow : public GhostFill {
 public:
-   
     Outflow(std::string faces, bool corner_ghosts=true, bool gated=false);
     Outflow(int faces = X|Y|Z, bool corner_ghosts=true, bool gated=false);
+    
+    //Variant which overrides any inflow component of velocity to be zero
     static Outflow Gated(std::string faces, bool corner_ghosts=true);
     static Outflow Gated(int faces = X|Y|Z, bool corner_ghosts=true);
     
@@ -67,14 +70,15 @@ public:
     void apply(Grid2D& grid) override;
     void apply(Grid3D& grid) override;
 
-    bool gated; //Set to true if you want to ensure no accidental inflow occurs
+    bool gated; //If True, overrides any inflow component of velocity to be zero
 };
 
+//Fixed Boundary condition
+//Sets each boundary cell to be equal to some specified state
 class Fixed : public GhostFill {
 public:
     Fixed(PrimitiveState state, std::string faces, bool corner_ghosts=true);
     Fixed(PrimitiveState state, int faces = X|Y|Z, bool corner_ghosts=true);
-    ~Fixed() = default;
     
     void apply(Grid1D& grid) override;
     void apply(Grid2D& grid) override;
@@ -83,7 +87,9 @@ protected:
     PrimitiveState state;
 };
 
-
+//Reflective Boundary Condition
+//Sets the boundary cells to be a reflection of the physical cells
+//The velocity component normal to the boundary face will be flipped, transverse velocities preserved
 class Reflective : public GhostFill {
 public:
     Reflective(std::string faces, bool corner_ghosts = true);
@@ -94,9 +100,11 @@ public:
     void apply(Grid3D& grid) override;
 };
 
-
+//Periodic Boundary Condition
+//Sets the boundary cells to match the interior cells at the opposite side of the grid
 class Periodic : public GhostFill {
 public:
+    //Including either X- or X+ in the face mask will automatically include the other, and similarly for other dimensions
     Periodic(std::string faces, bool corner_ghosts=true);
     Periodic(int faces = X|Y|Z, bool corner_ghosts=true);
     
@@ -105,6 +113,9 @@ public:
     void apply(Grid3D& grid) override;
 };
 
+//Ignore Boundary Condition
+//A placeholder which itself does nothing
+//Useful in a BoundaryList if you need to manually fill cells, since any faces specified as part of an Ignore won't be subjected to an implicit Outflow
 class Ignore : public GhostFill {
 public:
     Ignore(std::string faces, bool corner_ghosts = true);

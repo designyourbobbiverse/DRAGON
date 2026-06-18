@@ -11,12 +11,12 @@
 using namespace Boundary;
 
 //MARK: Constructors
-Boundary::Periodic::Periodic(int faces_, bool corners) : GhostFill(
-    ((faces_ & X) ? X : 0) | ((faces_ & Y) ? Y : 0) | ((faces_ & Z) ? Z : 0)
-, corners){} //Ensure that periodic boundaries have matching edges
+Boundary::Periodic::Periodic(int faces_, bool corners) : //Ensure that periodic boundaries have matching edges
+    GhostFill( ((faces_ & X) ? X : 0) | ((faces_ & Y) ? Y : 0) | ((faces_ & Z) ? Z : 0), corners){}
 Boundary::Periodic::Periodic(std::string s, bool corners) : Periodic(face_mask(s),corners) {}
 
 //MARK: 1D
+//Set all ghosts to be the equivalent cell mod nx
 void Boundary::Periodic::apply(Grid1D& grid) {
     if((faces & X) == 0) return;
     int ng = grid.getGhosts(), nx = grid.getSize();
@@ -27,6 +27,7 @@ void Boundary::Periodic::apply(Grid1D& grid) {
 }
 
 //MARK: 2D
+//Set all ghosts to be the equivalent cell mod nx (or ny)
 void Boundary::Periodic::apply(Grid2D& grid) {
     int ng = grid.getGhosts(), nx = grid.getSizeX(), ny = grid.getSizeY();
     int i0 = (corners ? -ng : 0), in = (corners ? nx + ng : nx);
@@ -50,6 +51,7 @@ void Boundary::Periodic::apply(Grid2D& grid) {
     }
 }
 //MARK: 3D
+//Set all ghosts to be the equivalent cell mod nx (or ny or nz)
 void Boundary::Periodic::apply(Grid3D& grid) {
     int ng = grid.getGhosts(), nx = grid.getSizeX(), ny = grid.getSizeY(), nz = grid.getSizeZ();
     int i0 = (corners ? -ng : 0), in = (corners ? nx + ng : nx);

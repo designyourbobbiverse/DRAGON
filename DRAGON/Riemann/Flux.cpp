@@ -69,7 +69,9 @@ ConservativeState Riemann::flux(double dt_dx){
 #elif !defined(MHD) && RIEMANN_DEFAULT == RIEMANN_ROE
     auto flux =  Roe();
 #endif
+#ifdef RIEMANN_VERIFY_FALLBACK
     if(dt_dx > 0) verify_and_fallback(flux, dt_dx);
+#endif
     return flux;
 }
 //MARK: Fallback to Exact

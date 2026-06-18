@@ -29,8 +29,8 @@
         #define Harten_Hyman //Harten and Hyman (1983). https://doi.org/10.1016/0021-9991(83)90066-9
 #define RIEMANN_DEFAULT RIEMANN_HLLX
 
-//When using an approximate solver, verify that L-F*dt/dx and R+F*dt/dx are physical + recalculate using Exact (or HLLE if MHD) if not
-#define RIEMANN_EXACT_FALLBACK
+//When using an approximate solver, verify that L-F*dt/dx and R+F*dt/dx are physical + recalculate using HLLE or Exact if not
+#define RIEMANN_VERIFY_FALLBACK
     constexpr double Riemann_ExactFallback_Parameter = 1.0; //Scales F*dt/dx for the purpose of physicality verificaiton
 
 

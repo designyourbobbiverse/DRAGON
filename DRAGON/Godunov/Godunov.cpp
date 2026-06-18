@@ -28,7 +28,6 @@ PrimitiveState& Grid1D::operator[](int k) { return w[k]; }
 const PrimitiveState& Grid1D::operator[](int k) const { return w[k]; }
 int Grid1D::getSize() const { return w.getSize(); }
 int Grid1D::getGhosts() const { return w.getGhosts(); }
-Grid1D::~Grid1D() { w.~ExtendedArray1D(); }
 
 
 //MARK: 1D Godunov Advance

@@ -9,6 +9,7 @@
 
 int ::GhostFill::get_faces() const { return faces; }
 
+//Convert a String such as "X-" or "YZ" into a bitmask
 int Boundary::face_mask(std::string s){
     int mask = 0;
     s += " ";

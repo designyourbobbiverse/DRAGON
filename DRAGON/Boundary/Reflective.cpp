@@ -14,14 +14,15 @@ Boundary::Reflective::Reflective(int faces_, bool corners):  GhostFill(faces_, c
 Boundary::Reflective::Reflective(std::string s, bool corners) : Reflective(face_mask(s),corners) {}
 
 //MARK: 1D
+//Set each ghost to be a reflection of the cell which is opposite the boundary from it
 void Boundary::Reflective::apply(Grid1D& grid) {
     int ng = grid.getGhosts();
     if (faces & X_negative){
         for(int g = 1; g <= ng; g++){
             grid[-g] = grid[g-1];
-            grid[-g].v.x *= -1;
+            grid[-g].v.x *= -1;//Mirror Normal Velocity
             #ifdef MHD
-            grid[-g].B.x *= -1;
+            grid[-g].B.x *= -1;//Mirror Magnetic Fields
             #endif
         }
     }
@@ -29,15 +30,16 @@ void Boundary::Reflective::apply(Grid1D& grid) {
         int nx = grid.getSize();
         for(int g = 1; g <= ng; g++){
             grid[nx-1+g] = grid[nx-g];
-            grid[nx-1+g].v.x *= -1;
+            grid[nx-1+g].v.x *= -1;//Mirror Normal Velocity
             #ifdef MHD
-            grid[nx-1+g].B.x *= -1;
+            grid[nx-1+g].B.x *= -1;//Mirror Magnetic Fields
             #endif
         }
     }
 }
 
 //MARK: 2D
+//Set each ghost to be a reflection of the cell which is opposite the boundary from it
 void Boundary::Reflective::apply(Grid2D& grid) {
     int ng = grid.getGhosts(), nx = grid.getSizeX(), ny = grid.getSizeY();
     int i0 = (corners ? -ng : 0), in = (corners ? nx + ng : nx);
@@ -47,9 +49,9 @@ void Boundary::Reflective::apply(Grid2D& grid) {
         for(int j = j0 ; j < jn; j++){
             for(int g = 1; g <= ng; g++){
                 grid[-g,j] = grid[g-1,j];
-                grid[-g,j].v.x *= -1;
+                grid[-g,j].v.x *= -1;//Mirror Normal Velocity
                 #ifdef MHD
-                grid[-g,j].B.x *= -1;
+                grid[-g,j].B.x *= -1;//Mirror Magnetic Fields
                 #endif
             }
         }
@@ -58,9 +60,9 @@ void Boundary::Reflective::apply(Grid2D& grid) {
         for(int j = j0 ; j < jn; j++){
             for(int g = 1; g <= ng; g++){
                 grid[nx-1+g,j] = grid[nx-g,j];
-                grid[nx-1+g,j].v.x *= -1;
+                grid[nx-1+g,j].v.x *= -1;//Mirror Normal Velocity
                 #ifdef MHD
-                grid[nx-1+g,j].B.x *= -1;
+                grid[nx-1+g,j].B.x *= -1;//Mirror Magnetic Fields
                 #endif
             }
         }
@@ -69,9 +71,9 @@ void Boundary::Reflective::apply(Grid2D& grid) {
         for(int i = i0 ; i < in; i++){
             for(int g = 1; g <= ng; g++){
                 grid[i,-g] = grid[i,g-1];
-                grid[i,-g].v.y *= -1;
+                grid[i,-g].v.y *= -1;//Mirror Normal Velocity
                 #ifdef MHD
-                grid[i,-g].B.y *= -1;
+                grid[i,-g].B.y *= -1;//Mirror Magnetic Fields
                 #endif
             }
         }
@@ -80,15 +82,16 @@ void Boundary::Reflective::apply(Grid2D& grid) {
         for(int i = i0 ; i < in; i++){
             for(int g = 1; g <= ng; g++){
                 grid[i,ny-1+g] = grid[i,ny-g];
-                grid[i,ny-1+g].v.y *= -1;
+                grid[i,ny-1+g].v.y *= -1;//Mirror Normal Velocity
                 #ifdef MHD
-                grid[i,ny-1+g].B.y *= -1;
+                grid[i,ny-1+g].B.y *= -1;//Mirror Magnetic Fields
                 #endif
             }
         }
     }
 }
 //MARK: 3D
+//Set each ghost to be a reflection of the cell which is opposite the boundary from it
 void Boundary::Reflective::apply(Grid3D& grid) {
     int ng = grid.getGhosts(), nx = grid.getSizeX(), ny = grid.getSizeY(), nz = grid.getSizeZ();
     int i0 = (corners ? -ng : 0), in = (corners ? nx + ng : nx);
@@ -100,9 +103,9 @@ void Boundary::Reflective::apply(Grid3D& grid) {
             for(int k = k0 ; k < kn; k++){
                 for(int g = 1; g <= ng; g++){
                     grid[-g,j,k] = grid[g-1,j,k];
-                    grid[-g,j,k].v.x *= -1;
+                    grid[-g,j,k].v.x *= -1;//Mirror Normal Velocity
                     #ifdef MHD
-                    grid[-g,j,k].B.x *= -1;
+                    grid[-g,j,k].B.x *= -1;//Mirror Magnetic Fields
                     #endif
                 }
             }
@@ -113,9 +116,9 @@ void Boundary::Reflective::apply(Grid3D& grid) {
             for(int k = k0 ; k < kn; k++){
                 for(int g = 1; g <= ng; g++){
                     grid[nx-1+g,j,k] = grid[nx-g,j,k];
-                    grid[nx-1+g,j,k].v.x *= -1;
+                    grid[nx-1+g,j,k].v.x *= -1;//Mirror Normal Velocity
                     #ifdef MHD
-                    grid[nx-1+g,j,k].B.x *= -1;
+                    grid[nx-1+g,j,k].B.x *= -1;//Mirror Magnetic Fields
                     #endif
                 }
             }
@@ -126,9 +129,9 @@ void Boundary::Reflective::apply(Grid3D& grid) {
             for(int k = k0 ; k < kn; k++){
                 for(int g = 1; g <= ng; g++){
                     grid[i,-g,k] = grid[i,g-1,k];
-                    grid[i,-g,k].v.y *= -1;
+                    grid[i,-g,k].v.y *= -1;//Mirror Normal Velocity
                     #ifdef MHD
-                    grid[i,-g,k].B.y *= -1;
+                    grid[i,-g,k].B.y *= -1;//Mirror Magnetic Fields
                     #endif
                 }
             }
@@ -139,9 +142,9 @@ void Boundary::Reflective::apply(Grid3D& grid) {
             for(int k = k0 ; k < kn; k++){
                 for(int g = 1; g <= ng; g++){
                     grid[i,ny-1+g,k] = grid[i,ny-g,k];
-                    grid[i,ny-1+g,k].v.y *= -1;
+                    grid[i,ny-1+g,k].v.y *= -1;//Mirror Normal Velocity
                     #ifdef MHD
-                    grid[i,ny-1+g,k].B.y *= -1;
+                    grid[i,ny-1+g,k].B.y *= -1;//Mirror Magnetic Fields
                     #endif
                 }
             }
@@ -152,9 +155,9 @@ void Boundary::Reflective::apply(Grid3D& grid) {
             for(int j = j0 ; j < jn; j++){
                 for(int g = 1; g <= ng; g++){
                     grid[i,j,-g] = grid[i,j,g-1];
-                    grid[i,j,-g].v.z *= -1;
+                    grid[i,j,-g].v.z *= -1;//Mirror Normal Velocity
                     #ifdef MHD
-                    grid[i,j,-g].B.z *= -1;
+                    grid[i,j,-g].B.z *= -1;//Mirror Magnetic Fields
                     #endif
                 }
             }
@@ -165,9 +168,9 @@ void Boundary::Reflective::apply(Grid3D& grid) {
             for(int j = j0 ; j < jn; j++){
                 for(int g = 1; g <= ng; g++){
                     grid[i,j,nz-1+g] = grid[i,j,nz-g];
-                    grid[i,j,nz-1+g].v.z *= -1;
+                    grid[i,j,nz-1+g].v.z *= -1;//Mirror Normal Velocity
                     #ifdef MHD
-                    grid[i,j,nz-1+g].B.z *= -1;
+                    grid[i,j,nz-1+g].B.z *= -1;//Mirror Magnetic Fields
                     #endif
                 }
             }
