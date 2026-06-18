@@ -19,31 +19,48 @@
 
 //MARK: HLL/E
 ConservativeState Riemann::HLL(){
+    //Roe averages
     double sql = sqrt(L.rho), sqr = sqrt(R.rho);
     PrimitiveState M = (sql*L + sqr*R) / (sql + sqr);
+    //Compute Sound/Fast Speed
 #ifdef MHD
+    //Set Normal Magnetic Fields
+    if(Bx != Bx) Bx = (L.B.x+R.B.x)/2;
+    L.B.x = Bx; R.B.x = Bx;
+    //Calculate Fast Mode
     double aL = L.c_fast(), aR = R.c_fast(), aM = M.c_fast();
 #else
+    //Sound Speed
     double aL = L.cs(), aR = R.cs(), aM = M.cs();
 #endif
+    //Compare to v +- a
     double SL = fmin(L.v.x - aL, M.v.x-aM);
-    double SR = fmin(R.v.x + aR, M.v.x+aM);
+    double SR = fmax(R.v.x + aR, M.v.x+aM);
     
     return HLL(SL, SR);
 }
 ConservativeState Riemann::HLLE(){
     double sql = sqrt(L.rho), sqr = sqrt(R.rho);
 #ifdef MHD
+    //Set Normal Magnetic Fields
+    if(Bx != Bx) Bx = (L.B.x+R.B.x)/2;
+    L.B.x = Bx; R.B.x = Bx;
+    //Calculate Fast Mode
     double aL = L.c_fast(), aR = R.c_fast();
 #else
+    //Sound Speed
     double aL = L.cs(), aR = R.cs();
 #endif
     double _v = (R.v.x-L.v.x) / (sql + sqr);
     double d = (sql*aL*aL + sqr*aR*aR) / (sql + sqr)  +  0.5 * (sql * sqr) * _v * _v;
     d = sqrt(d);
-    double u = 0.5*(R.v.x+L.v.x);
+    double u = 0.5*(sql*R.v.x + sqr*L.v.x) / (sql + sqr);
     
-    return HLL(u-d, u+d);
+    //Compare to v +- a
+    double SL = fmin(L.v.x - aL, u-d);
+    double SR = fmax(R.v.x + aR, u+d);
+    
+    return HLL(SL, SR);
 }
 ConservativeState Riemann::HLL(double sl, double sr){
     //Outside region
@@ -60,30 +77,27 @@ ConservativeState Riemann::HLL(double sl, double sr){
 
 
 
-#if !defined(MHD) || defined(TESTMODE)
+#ifdef HYDRO_AVAILABLE
 
 //MARK: HLLC
 ConservativeState Riemann::HLLC(){
+    double SL = L.cs(), SR = R.cs();//Compute Sound Speeds
     //Estimate the pressure
-    double aL = sqrt(_gamma * L.p/L.rho), aR = sqrt(_gamma * R.p/R.rho); // Sound Speeds
-    double p_pvrs = fmax(0,(L.p + R.p)/2 + (L.rho + R.rho)*(L.v.x - R.v.x)*(aL + aR)/8);
+    double p_pvrs = fmax(0,(L.p + R.p)/2 + (L.rho + R.rho)*(L.v.x - R.v.x)*(SL + SR)/8);
     //Left Speed
-    double SL = aL;
-    if(p_pvrs > L.p) SL *= sqrt(1 + _Gp1_2G*(p_pvrs/L.p - 1));
+    if(p_pvrs > L.p) SL *= sqrt(1 + _Gp1_2G*(p_pvrs/L.p - 1)); //Use Shock Speed if applicable
     SL = L.v.x - SL;
-    if(SL > 0) return L.flux();
+    if(SL >= 0) return L.flux();//Left Exterior Region
     //Right Speed
-    double SR = aR;
-    if(p_pvrs > R.p) SR *= sqrt(1 + _Gp1_2G*(p_pvrs/R.p - 1));
+    if(p_pvrs > R.p) SR *= sqrt(1 + _Gp1_2G*(p_pvrs/R.p - 1)); //Use Shock Speed if applicable
     SR = R.v.x + SR;
-    if(SR < 0) return R.flux();
+    if(SR <= 0) return R.flux();//Right Exterior Region
 
-    
     return HLLC(SL, SR);
 }
 
 ConservativeState Riemann::HLLC(double sl, double sr){
-    //Outside region
+    //Exterior region
     if(sl >= 0) return L.flux();
     if(sr <= 0) return R.flux();
     //Calculate the contact wave
@@ -101,7 +115,7 @@ ConservativeState Riemann::HLLC(double sl, double sr){
     return UX.flux(X.v) + (U - UX) * sx;
 }
 
-#elif RIEMANN_DEFAULT_HYDRO == RIEMANN_HLLC
+#elif RIEMANN_DEFAULT == RIEMANN_HLLC
 #error HLLC Solver incompatible with MHD
 #endif
 

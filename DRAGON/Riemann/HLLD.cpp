@@ -19,8 +19,9 @@
 Riemann::Riemann(PrimitiveState _L, PrimitiveState _R, double _Bx){ L = _L; R = _R; Bx = _Bx; }
 
 void compute_outer_star_transverse(PrimitiveState& wsK, const PrimitiveState& K, double _xK, double SK, double SM, double Bx){
-    double Bx2_4pi = (Bx*Bx)/(4*M_PI);
-    double denom = _xK*(SK - SM) - Bx2_4pi;
+    double Bx2_4pi = (Bx*Bx)/(4*M_PI); // B_x^2 / 4pi
+    double denom = _xK*(SK - SM) - Bx2_4pi; //Denominator of B and v scaling factors
+    //Set transverse components via vector arithmatic, then override x component
     //Magnetic Field
     wsK.B = (fabs(denom)<1e-12) ? K.B : K.B * (_xK*(SK-K.v.x)-Bx2_4pi)/denom;
     wsK.B.x = Bx;
@@ -31,6 +32,7 @@ void compute_outer_star_transverse(PrimitiveState& wsK, const PrimitiveState& K,
 
 
 ConservativeState Riemann::HLLD(){
+    //Set normal magnetic fields
     if(Bx != Bx) Bx = (L.B.x+R.B.x)/2;
     L.B.x = Bx; R.B.x = Bx;
     //Calculate Outer Wave speeds
@@ -75,21 +77,22 @@ ConservativeState Riemann::HLLD(){
     double sqL = sqrt(wsL.rho), sqR = sqrt(wsR.rho);
     double sbx = Bx > 0 ? sqrt(4*M_PI) : (Bx < 0 ? -sqrt(4*M_PI) : 0);
     PrimitiveState wss;
+    //Set transverse components via vector arithmatic, then override x component
     wss.v = (sqL*wsL.v + sqR*wsR.v + sbx*(wsR.B - wsL.B)/(4*M_PI))/(sqL+sqR);
     wss.v.x = SM;
     wss.B = (sqL*wsR.B + sqR*wsL.B + sqL*sqR*sbx*(wsR.v - wsL.v))/(sqL+sqR);
     wss.B.x = Bx;
     wss.p = pT - wss.B*wss.B / (8*M_PI);
     
-    //Left vs Right
-    if(SM >= 0){
+    //Copy density and calculate final flux
+    if(SM >= 0){//Left
         wss.rho = wsL.rho;
         return FsL + (wss-wsL)*SsL;
-    } else {
+    } else {//Right
         wss.rho = wsR.rho;
         return FsR + (wss-wsR)*SsR;
     }
 }
-#elif RIEMANN_DEFAULT_HYDRO == RIEMANN_HLLD
+#elif RIEMANN_DEFAULT == RIEMANN_HLLD
 #error HLLD Solver requires MHD
 #endif

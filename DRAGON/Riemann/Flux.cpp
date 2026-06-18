@@ -3,12 +3,14 @@
 //  DRAGON
 //
 //  Created by Bobbie Markwick on 12/05/2026.
+//  Solution sampling based mostly on Toro (2009). https://doi.org/10.1007/b79761
 //
 
 #include "Riemann.hpp"
 #include <math.h>
 #include "Constants.h"
 #include "Config.h"
+#include <utility>
 
 
 //MARK: Selected Flux algorithm
@@ -21,6 +23,7 @@ namespace CONFIG {
 //Make sure to set RIEMANN_DEFAULT in Config.h
 ConservativeState Riemann::flux(double dt_dx){
 #if defined(TESTMODE)
+    //Runnign unit tests, need all solvers to be available
     ConservativeState flux;
     switch (CONFIG::riemann_choice){
         case RIEMANN_EXACT: flux = exact().flux();
@@ -37,6 +40,7 @@ ConservativeState Riemann::flux(double dt_dx){
         default: flux = exact().flux();
     }
 #elif !defined(MHD) && RIEMANN_DEFAULT == CHOOSE_RUNTIME
+    //Hydro, user wants to choose their Riemann sovler at runtime
     ConservativeState flux;
     switch (CONFIG::riemann_choice){
         case RIEMANN_HLLX:
@@ -48,6 +52,7 @@ ConservativeState Riemann::flux(double dt_dx){
         default: flux = exact().flux();
     }
 #elif defined(MHD) && RIEMANN_DEFAULT == CHOOSE_RUNTIME
+    //MHD, user wants to choose their Riemann solver at runtime
     ConservativeState flux;
     switch (CONFIG::riemann_choice){
         case RIEMANN_HLLX:
@@ -56,17 +61,17 @@ ConservativeState Riemann::flux(double dt_dx){
         case RIEMANN_HLLE: flux =  HLLE(); break;
         default: flux =  HLLD(); break;
     }
-#elif !defined(MHD) && RIEMANN_DEFAULT == RIEMANN_EXACT
+#elif !defined(MHD) && RIEMANN_DEFAULT == RIEMANN_EXACT //Exact Solver (Hydro Only)
     auto flux = exact().flux();
-#elif RIEMANN_DEFAULT == RIEMANN_HLL
+#elif RIEMANN_DEFAULT == RIEMANN_HLL //HLL Solver
     auto flux =  HLL();
-#elif !defined(MHD) && (RIEMANN_DEFAULT == RIEMANN_HLLC || RIEMANN_DEFAULT == RIEMANN_HLLX)
+#elif !defined(MHD) && (RIEMANN_DEFAULT == RIEMANN_HLLC || RIEMANN_DEFAULT == RIEMANN_HLLX) //HLLC Solver (Hydro Only)
     auto flux =  HLLC();
-#elif defined(MHD) && (RIEMANN_DEFAULT == RIEMANN_HLLD || RIEMANN_DEFAULT == RIEMANN_HLLX)
+#elif defined(MHD) && (RIEMANN_DEFAULT == RIEMANN_HLLD || RIEMANN_DEFAULT == RIEMANN_HLLX) //HLLD Solver (MHD Only)
     auto flux =  HLLD();
-#elif RIEMANN_DEFAULT == RIEMANN_HLLE
+#elif RIEMANN_DEFAULT == RIEMANN_HLLE //HLLE Solver
     auto flux =  HLLE();
-#elif !defined(MHD) && RIEMANN_DEFAULT == RIEMANN_ROE
+#elif !defined(MHD) && RIEMANN_DEFAULT == RIEMANN_ROE //Roe Solver (Hydro Only)
     auto flux =  Roe();
 #endif
 #ifdef RIEMANN_VERIFY_FALLBACK
@@ -74,14 +79,20 @@ ConservativeState Riemann::flux(double dt_dx){
 #endif
     return flux;
 }
-//MARK: Fallback to Exact
+//MARK: Fallback to HLLE/Exact
+//Verify that the solution produces a physical result, fallback to HLLE if not
 void Riemann::verify_and_fallback(ConservativeState& flux, double dt_dx){
-    dt_dx *= Riemann_ExactFallback_Parameter;
+    dt_dx *= Riemann_ExactFallback_Parameter;//Scale time by the desired amount
+    //Check whether both states would still be physical after update
     if((L - flux*dt_dx).isPhysical() &&  (R+flux*dt_dx).isPhysical()) return;
+    //If not, try HLLE
     flux = HLLE();
+    //Check whether both states would still be physical after update
     if((L - flux*dt_dx).isPhysical() &&  (R+flux*dt_dx).isPhysical()) return;
-    #if defined(TESTMODE) || (!defined(MHD) && RIEMANN_DEFAULT != RIEMANN_EXACT)
+    //If not, try Exact
+    #if HYDRO_AVAILABLE && RIEMANN_DEFAULT != RIEMANN_EXACT
     flux = exact().flux();
+    //Check whether both states would still be physical after update
     if((L - flux*dt_dx).isPhysical() &&  (R+flux*dt_dx).isPhysical()) return;
     #endif
     //TODO: Throw Exception
@@ -91,38 +102,38 @@ void Riemann::verify_and_fallback(ConservativeState& flux, double dt_dx){
 //MARK: Dimension Convenience
 ConservativeState Riemann::flux_X(double dt_dx){ return flux(dt_dx); }
 ConservativeState Riemann::flux_Y(double dt_dy){
-    L.swapXY(); R.swapXY();
-    auto f = flux(dt_dy);
-    L.swapXY(); R.swapXY();//Swap Back to be a good citizen, even though 99% of the time we don't actually care
-    f.swapXY();
+    L.swapXY(); R.swapXY();//Swaps XY components
+    auto f = flux(dt_dy); //Solve the problem as if it were X
+    f.swapXY();//Swap the output back
+    L.swapXY(); R.swapXY();//Swap Back Inputs to be a good citizen, even though 99% of the time we don't actually care
     return f;
 }
 ConservativeState Riemann::flux_Z(double dt_dz){
-    L.swapXZ(); R.swapXZ();
-    auto f = flux(dt_dz);
-    L.swapXZ(); R.swapXZ();//Swap Back to be a good citizen, even though 99% of the time we don't actually care
-    f.swapXZ();
+    L.swapXZ(); R.swapXZ();//Swaps XZ components
+    auto f = flux(dt_dz); //Solve the problem as if it were X
+    f.swapXY();//Swap the output back
+    L.swapXZ(); R.swapXZ();//Swap Back Inputs to be a good citizen, even though 99% of the time we don't actually care
     return f;
 }
 
 
 //MARK: Solution Sampling
-//  Based mostly on Toro (2009). https://doi.org/10.1007/b79761
+//Convenience methods to sample the solution then get the flux
 ConservativeState RiemannSolution::flux(){ return flux(0); }
 ConservativeState RiemannSolution::flux(double x_t){
     PrimitiveState w = sample(x_t);
     return ConservativeState(w).flux(w.v);
 }
 
-
+//Get the state along any given x/t line
 PrimitiveState RiemannSolution::sample(double x_t){
     PrimitiveState state;
     //Handle left vs Right side
     bool isLeft = x_t < sR.v.x;
     if(isLeft){ mirror(); x_t=-x_t; }
     
-    double a = sqrt(_gamma * wR.p / wR.rho);
-    
+    //Calculate Sound Speed
+    double a = wR.cs();
     //Determine Zone
     int zone = 0; // 1 = outside, 2 = fan, 3 = star
     if (sR.p > wR.p){ //shock
@@ -153,14 +164,10 @@ PrimitiveState RiemannSolution::sample(double x_t){
 }
 
 void RiemannSolution::mirror(){
-    PrimitiveState temp = wL;
-    wL = wR;
-    wR = temp;
-    
-    temp = sL;
-    sL = sR;
-    sR = temp;
-    
+    //Swap corresponding Left and Right States
+    std::swap(wL,wR);
+    std::swap(sL,sR);
+    //Multiply all x components by -1
     wL.v.x *= -1;
     wR.v.x *= -1;
     sL.v.x *= -1;

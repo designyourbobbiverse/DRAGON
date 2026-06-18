@@ -70,7 +70,7 @@ constexpr int bin_size = 250; //AMRGrid larger than this will split into child g
 
 //MARK: Choose at Runtime
 namespace CONFIG{
-#if RIEMANN_DEFAULT_HYDRO == CHOOSE_RUNTIME || defined(TESTMODE)
+#if RIEMANN_DEFAULT == CHOOSE_RUNTIME || defined(TESTMODE)
 extern int riemann_choice;
 #endif
 #if MUSCL_DEFAULT_LIMITER == CHOOSE_RUNTIME || defined(TESTMODE)
@@ -83,7 +83,9 @@ extern int cfl_choice;
 #endif
 }
 
-
-
+//Macro which tells hydro only code to not compile if using MHD, except for unit testing where both modes are needed
+#if !defined(MHD) || defined(TESTMODE)
+#define HYDRO_AVAILABLE
+#endif
 
 #endif /* Constants_h */

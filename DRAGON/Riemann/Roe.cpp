@@ -14,23 +14,19 @@
 #include "Constants.h"
 #include "Config.h"
 
-#if !defined(MHD) || defined(TESTMODE)
+#ifdef HYDRO_AVAILABLE
 //MARK: Eigenvectors
 inline ConservativeState _K1(vec3 _v, double _H, double _a){
     ConservativeState K = ConservativeState();
     K.rho = 1;
-    K.p.x = _v.x - _a;
-    K.p.y = _v.y;
-    K.p.z = _v.z;
+    K.p = _v - vec3{_a,0,0};
     K.E = _H - _v.x*_a;
     return K;
 }
 inline ConservativeState _K2(vec3 _v, double _V2){
     ConservativeState K = ConservativeState();
     K.rho = 1;
-    K.p.x = _v.x;
-    K.p.y = _v.y;
-    K.p.z = _v.z;
+    K.p = _v;
     K.E = _V2/2;
     return K;
 }
@@ -49,9 +45,7 @@ inline ConservativeState _K4(double _vz){
 inline ConservativeState _K5(vec3 _v, double _H, double _a){
     ConservativeState K = ConservativeState();
     K.rho = 1;
-    K.p.x = _v.x + _a;
-    K.p.y = _v.y;
-    K.p.z = _v.z;
+    K.p = _v + vec3{_a,0,0};
     K.E = _H + _v.x*_a;
     return K;
 }
@@ -101,6 +95,6 @@ ConservativeState Riemann::Roe(){
     return F/2;
 }
 
-#elif RIEMANN_DEFAULT_HYDRO == RIEMANN_ROE
+#elif RIEMANN_DEFAULT == RIEMANN_ROE
 #error Roe Solver incompatible with MHD
 #endif
