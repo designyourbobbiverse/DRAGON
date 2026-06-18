@@ -13,9 +13,6 @@ using namespace DRAGON_Test;
 //Testing TODOs:
 //AMRGrid
 //DRAGONWING
-//CFL with MHD
-//HLLD-specific tests with MHD
-//Add magnetic field checks to boundary tests
 
 int main() {
     

@@ -102,5 +102,5 @@ void DRARGONWING::synchronize(void* thread){
         pthread_t _thread = *static_cast<pthread_t*>(thread);
         pthread_join(_thread, nullptr);
     }
-    }
+}
 

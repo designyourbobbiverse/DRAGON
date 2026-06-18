@@ -11,6 +11,15 @@
 
 using namespace DRAGON_Test;
 
+#ifdef MHD
+static PrimitiveState make_mhd_state(double rho, double vx, double vy, double vz, double p,
+                                     double Bx, double By, double Bz) {
+    PrimitiveState W = make_state(rho, vx, vy, vz, p);
+    W.B = {Bx, By, Bz};
+    return W;
+}
+#endif
+
 void DRAGON_Test::verify_riemann(bool output){
     if(output) std::cout << "Exact Riemann Solver: \n";
     // Riemann construction / solution setup
@@ -42,6 +51,15 @@ void DRAGON_Test::verify_riemann(bool output){
     verify_hll_manual_wave_speeds();
     verify_hllc_manual_wave_speeds();
     if(output) std::cout << "All Tests Passed\n";
+#ifdef MHD
+    if(output) std::cout << "HLLD Riemann Solver: ";
+    verify_hlld_equal_state_nonzero_b();
+    verify_hlld_supersonic_exterior_regions();
+    verify_hlld_averages_normal_field();
+    verify_hlld_explicit_normal_field();
+    verify_hlld_star_regions_finite();
+    if(output) std::cout << "All Tests Passed\n";
+#endif
 
 
     //Roe Tests
@@ -50,6 +68,7 @@ void DRAGON_Test::verify_riemann(bool output){
     verify_roe_stationary_contact();
     verify_roe_supersonic_upwind();
     verify_roe_supersonic_upwind_transverse();
+    verify_roe_entropy_fix_rarefactions();
     if(output) std::cout << "All Tests Passed\n";
 
     
@@ -57,6 +76,9 @@ void DRAGON_Test::verify_riemann(bool output){
     verify_riemann_flux_dispatch();
     verify_riemann_flux_safety_check();
     verify_riemann_flux_dimension_wrappers();
+#ifdef MHD
+    verify_riemann_flux_dimension_wrappers_mhd();
+#endif
     if(output) std::cout << "Passed\n";
 
     verify_approximate_solver_finiteness();
@@ -126,6 +148,7 @@ void DRAGON_Test::verify_riemann_flux_dispatch(){
 void DRAGON_Test::verify_riemann_flux_safety_check(){
     PrimitiveState W = make_state(1.0, 0.2, -0.3, 0.4, 1.0);
 
+    int previous = CONFIG::riemann_choice;
     CONFIG::riemann_choice = RIEMANN_HLL;
     ConservativeState unchecked = Riemann(W,W).flux(0.0);
     ConservativeState checked = Riemann(W,W).flux(0.01);
@@ -133,13 +156,33 @@ void DRAGON_Test::verify_riemann_flux_safety_check(){
     expect_close(checked, unchecked, 1e-10, 1e-10);
     assert((ConservativeState(W) - checked*0.01).isPhysical());
     assert((ConservativeState(W) + checked*0.01).isPhysical());
-    CONFIG::riemann_choice = RIEMANN_EXACT;
+
+#ifdef RIEMANN_VERIFY_FALLBACK
+    PrimitiveState L = make_state(1.0, -3.0, 0.2, -0.1, 0.4);
+    PrimitiveState R = make_state(1.0,  3.0, -0.3, 0.4, 0.4);
+    CONFIG::riemann_choice = RIEMANN_HLLC;
+
+    ConservativeState selected = Riemann(L, R).flux(0.0);
+    ConservativeState fallback = Riemann(L, R).flux(1.0);
+
+    bool selectedPhysical = (ConservativeState(L) - selected).isPhysical()
+                         && (ConservativeState(R) + selected).isPhysical();
+    if(!selectedPhysical) {
+        ConservativeState hlle = Riemann(L, R).HLLE();
+        ConservativeState exact = Riemann(L, R).exact().flux();
+        assert(fallback == hlle || fallback == exact);
+    }
+    expect_finite(fallback);
+#endif
+
+    CONFIG::riemann_choice = previous;
 }
 
 void DRAGON_Test::verify_riemann_flux_dimension_wrappers(){
     PrimitiveState L = make_state(1.0, 0.6, -0.2, 0.3, 1.0);
     PrimitiveState R = make_state(0.7, -0.4, 0.5, -0.1, 0.8);
-
+    
+    int previous =  CONFIG::riemann_choice;
     CONFIG::riemann_choice = RIEMANN_HLL;
 
     Riemann xProblem(L, R);
@@ -159,8 +202,41 @@ void DRAGON_Test::verify_riemann_flux_dimension_wrappers(){
     expect_close(zProblem.L, L);
     expect_close(zProblem.R, R);
 
-    CONFIG::riemann_choice = RIEMANN_EXACT;
+    CONFIG::riemann_choice = previous;
 }
+
+#ifdef MHD
+void DRAGON_Test::verify_riemann_flux_dimension_wrappers_mhd(){
+    PrimitiveState L = make_mhd_state(1.0, 0.6, -0.2, 0.3, 1.0, 0.4, -0.3, 0.2);
+    PrimitiveState R = make_mhd_state(0.7, -0.4, 0.5, -0.1, 0.8, 0.4, -0.3, 0.2);
+
+    int previous = CONFIG::riemann_choice;
+    int choices[] = { RIEMANN_HLL, RIEMANN_HLLE, RIEMANN_HLLD, RIEMANN_HLLX };
+
+    for(int choice : choices) {
+        CONFIG::riemann_choice = choice;
+
+        Riemann xProblem(L, R);
+        expect_close(xProblem.flux_X(), Riemann(L,R).flux(), 1e-10, 1e-10);
+        expect_close(xProblem.L, L);
+        expect_close(xProblem.R, R);
+
+        Riemann yProblem(L, R);
+        ConservativeState expectedY = Riemann(L.swappedXY(), R.swappedXY()).flux().swappedXY();
+        expect_close(yProblem.flux_Y(), expectedY, 1e-10, 1e-10);
+        expect_close(yProblem.L, L);
+        expect_close(yProblem.R, R);
+
+        Riemann zProblem(L, R);
+        ConservativeState expectedZ = Riemann(L.swappedXZ(), R.swappedXZ()).flux().swappedXZ();
+        expect_close(zProblem.flux_Z(), expectedZ, 1e-10, 1e-10);
+        expect_close(zProblem.L, L);
+        expect_close(zProblem.R, R);
+    }
+
+    CONFIG::riemann_choice = previous;
+}
+#endif
 
 //MARK: Exact Solver Tests
 void DRAGON_Test::verify_riemann_f() {
@@ -242,6 +318,12 @@ void DRAGON_Test::verify_exact_sod() {
 
     expect_close(S.sample(-100.0), L, 1e-10, 1e-10);
     expect_close(S.sample( 100.0), R, 1e-10, 1e-10);
+
+    PrimitiveState fan = S.sample(-0.5);
+    assert(fan.rho < L.rho && fan.rho > S.sL.rho);
+    assert(fan.p   < L.p   && fan.p   > S.sL.p);
+    assert(fan.v.x > L.v.x && fan.v.x < S.sL.v.x);
+    expect_finite(fan);
 }
 void DRAGON_Test::verify_sample_mirror_restores_state() {
     PrimitiveState L = make_state(1.0,   0.0, 0.0, 0.0, 1.0);
@@ -399,8 +481,92 @@ void DRAGON_Test::verify_hllc_manual_wave_speeds() {
     expect_finite(problem.HLLC(-1.0, 2.0));
 }
 
+#ifdef MHD
+//MARK: HLLD MHD-specific Tests
+
+void DRAGON_Test::verify_hlld_equal_state_nonzero_b() {
+    PrimitiveState W = make_mhd_state(1.0, 0.75, 0.2, -0.1, 1.0, 0.4, -0.3, 0.2);
+    ConservativeState expected = ConservativeState(W).flux(W.v);
+
+    Riemann problem(W, W);
+    ConservativeState F = problem.HLLD();
+
+    expect_close(F, expected, 1e-10, 1e-10);
+    expect_close(problem.L, W);
+    expect_close(problem.R, W);
+    expect_finite(F);
+}
+
+void DRAGON_Test::verify_hlld_supersonic_exterior_regions() {
+    {
+        PrimitiveState L = make_mhd_state(1.0,   10.0, 0.5, -0.3, 1.0, 0.4, -0.3, 0.2);
+        PrimitiveState R = make_mhd_state(0.125, 10.0, -0.2, 0.4, 0.1, 0.4, 0.1, -0.5);
+        ConservativeState expected = ConservativeState(L).flux(L.v);
+
+        expect_close(Riemann(L,R).HLLD(), expected, 1e-10, 1e-10);
+    }
+
+    {
+        PrimitiveState L = make_mhd_state(1.0,   -10.0, 0.5, -0.3, 1.0, 0.4, -0.3, 0.2);
+        PrimitiveState R = make_mhd_state(0.125, -10.0, -0.2, 0.4, 0.1, 0.4, 0.1, -0.5);
+        ConservativeState expected = ConservativeState(R).flux(R.v);
+
+        expect_close(Riemann(L,R).HLLD(), expected, 1e-10, 1e-10);
+    }
+}
+
+void DRAGON_Test::verify_hlld_averages_normal_field() {
+    PrimitiveState L = make_mhd_state(1.0, 0.2, 0.5, -0.3, 1.0, 0.8, -0.3, 0.2);
+    PrimitiveState R = make_mhd_state(0.7, -0.4, -0.2, 0.4, 0.8, -0.2, 0.1, -0.5);
+    double expectedBx = 0.5 * (L.B.x + R.B.x);
+
+    Riemann problem(L, R);
+    ConservativeState F = problem.HLLD();
+
+    assert(approx(problem.L.B.x, expectedBx));
+    assert(approx(problem.R.B.x, expectedBx));
+    assert(approx(F.B.x, 0.0));
+    expect_finite(F);
+}
+
+void DRAGON_Test::verify_hlld_explicit_normal_field() {
+    PrimitiveState L = make_mhd_state(1.0, 0.2, 0.5, -0.3, 1.0, 0.8, -0.3, 0.2);
+    PrimitiveState R = make_mhd_state(0.7, -0.4, -0.2, 0.4, 0.8, -0.2, 0.1, -0.5);
+    double Bx = 0.25;
+
+    Riemann problem(L, R, Bx);
+    ConservativeState F = problem.HLLD();
+
+    assert(approx(problem.L.B.x, Bx));
+    assert(approx(problem.R.B.x, Bx));
+    assert(approx(F.B.x, 0.0));
+    expect_finite(F);
+}
+
+void DRAGON_Test::verify_hlld_star_regions_finite() {
+    PrimitiveState cases[][2] = {
+        { make_mhd_state(1.0,  -0.7, 0.6, -0.2, 1.0,  0.4,  0.3, -0.2),
+          make_mhd_state(0.8,   0.5, -0.4, 0.3, 0.7,  0.4, -0.2,  0.5) },
+        { make_mhd_state(1.0,  -0.7, 0.6, -0.2, 1.0, -0.4,  0.3, -0.2),
+          make_mhd_state(0.8,   0.5, -0.4, 0.3, 0.7, -0.4, -0.2,  0.5) },
+        { make_mhd_state(1.0,  -1.2, 0.1, 0.5, 0.6,  0.0,  0.7, -0.4),
+          make_mhd_state(1.2,   1.0, -0.3, 0.2, 0.9,  0.0, -0.5,  0.3) },
+        { make_mhd_state(5.99924, 19.5975, 0.5, -0.2, 460.894,  1.0,  0.2, -0.6),
+          make_mhd_state(5.99242,-6.19633, -0.4, 0.3, 46.0950,  1.0, -0.3,  0.4) }
+    };
+
+    for(auto& pair : cases) {
+        ConservativeState F = Riemann(pair[0], pair[1]).HLLD();
+
+        expect_finite(F);
+        assert((ConservativeState(pair[0]) - F*0.001).isPhysical());
+        assert((ConservativeState(pair[1]) + F*0.001).isPhysical());
+    }
+}
 
 
+
+#endif
 //MARK: Roe Tests
 void DRAGON_Test::verify_roe_equal_state() {
     PrimitiveState W = make_state(1.0, 0.75, 0.2, -0.1, 1.0);
@@ -451,6 +617,27 @@ void DRAGON_Test::verify_roe_supersonic_upwind_transverse() {
         expect_close(Riemann(L,R).Roe(),          expected, 1e-10, 1e-10);
     }
 }
+void DRAGON_Test::verify_roe_entropy_fix_rarefactions() {
+#ifdef Harten_Hyman
+    {
+        PrimitiveState L = make_state(1.0, -2.0, 0.2, -0.1, 0.4);
+        PrimitiveState R = make_state(1.0,  0.0, -0.3, 0.4, 0.4);
+        ConservativeState F = Riemann(L, R).Roe();
+        expect_finite(F);
+        assert((ConservativeState(L) - F*0.01).isPhysical());
+        assert((ConservativeState(R) + F*0.01).isPhysical());
+    }
+
+    {
+        PrimitiveState L = make_state(1.0,  0.0, 0.2, -0.1, 0.4);
+        PrimitiveState R = make_state(1.0,  2.0, -0.3, 0.4, 0.4);
+        ConservativeState F = Riemann(L, R).Roe();
+        expect_finite(F);
+        assert((ConservativeState(L) - F*0.01).isPhysical());
+        assert((ConservativeState(R) + F*0.01).isPhysical());
+    }
+#endif
+}
 
 //MARK: Verify Finiteness
 void DRAGON_Test::expect_finite(const ConservativeState& U) {
@@ -459,6 +646,11 @@ void DRAGON_Test::expect_finite(const ConservativeState& U) {
     assert(std::isfinite(U.p.y));
     assert(std::isfinite(U.p.z));
     assert(std::isfinite(U.E));
+#ifdef MHD
+    assert(std::isfinite(U.B.x));
+    assert(std::isfinite(U.B.y));
+    assert(std::isfinite(U.B.z));
+#endif
 }
 void DRAGON_Test::expect_finite(const PrimitiveState& W) {
     assert(std::isfinite(W.rho));
@@ -466,6 +658,11 @@ void DRAGON_Test::expect_finite(const PrimitiveState& W) {
     assert(std::isfinite(W.v.y));
     assert(std::isfinite(W.v.z));
     assert(std::isfinite(W.p));
+#ifdef MHD
+    assert(std::isfinite(W.B.x));
+    assert(std::isfinite(W.B.y));
+    assert(std::isfinite(W.B.z));
+#endif
 }
 
 void DRAGON_Test::verify_approximate_solver_finiteness() {
@@ -484,7 +681,27 @@ void DRAGON_Test::verify_approximate_solver_finiteness() {
 
         expect_finite(problem.exact().flux());
         expect_finite(problem.HLL());
+        expect_finite(problem.HLLE());
         expect_finite(problem.HLLC());
         expect_finite(problem.Roe());
     }
+
+#ifdef MHD
+    PrimitiveState mhdCases[][2] = {
+        { make_mhd_state(1.0,   0.0, 0.2, -0.1, 1.0,  0.4,  0.3, -0.2),
+          make_mhd_state(0.125, 0.0, -0.3, 0.4, 0.1, -0.1, -0.2,  0.5) },
+        { make_mhd_state(1.0,  -2.0, 0.4, 0.1, 0.4,  0.2,  0.5, -0.3),
+          make_mhd_state(1.0,   2.0, -0.2, 0.3, 0.4,  0.2, -0.4,  0.1) },
+        { make_mhd_state(5.99924, 19.5975, 0.5, -0.2, 460.894,  1.0,  0.2, -0.6),
+          make_mhd_state(5.99242,-6.19633, -0.4, 0.3, 46.0950, -0.5, -0.3,  0.4) }
+    };
+
+    for (auto& pair : mhdCases) {
+        Riemann problem(pair[0], pair[1]);
+
+        expect_finite(problem.HLL());
+        expect_finite(problem.HLLE());
+        expect_finite(problem.HLLD());
+    }
+#endif
 }
