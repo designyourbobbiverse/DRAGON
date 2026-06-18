@@ -16,12 +16,16 @@
 
 void TVD::MUSCL(const PrimitiveState& wL, PrimitiveState& _L, const PrimitiveState& wC, PrimitiveState& _R, const PrimitiveState& wR, double dt_dL){
 #ifdef MUSCL_Hancock
-    //Compute State
+    // Reconstruct a limited primitive-variable slope
     PrimitiveState dW = TVD::limit(wC - wL, wR - wC);
+    //Spatial half step using the limited slope
     _L = wC - dW/2;
     _R = wC + dW/2;
+    
+    //Time half step (MUSCL-Hancock Predictor)
     ConservativeState UL = ConservativeState(_L), UR = ConservativeState(_R);
     ConservativeState correction = (UR.flux() - UL.flux()) * (0.5 * dt_dL);
+    // Correction is applied in conservative, then automatically converted back to primitive
     _L = UL - correction;
     _R = UR - correction;
     
@@ -43,6 +47,7 @@ namespace CONFIG {
 
 PrimitiveState TVD::limit(const PrimitiveState& a, const PrimitiveState& b) {
 #if MUSCL_DEFAULT_LIMITER == CHOOSE_RUNTIME || defined(TESTMODE)
+    //User wants to choose their limiter at runtime (or is unit testing and needs all of them)
     switch(CONFIG::limiter_choice){
         case LIMITER_MINMOD: return TVD::minmod(a, b);
         case LIMITER_MC: return TVD::MC(a,b);
@@ -70,6 +75,7 @@ double TVD::minmod(double a, double b) {
     if(fabs(a) < fabs(b)) return a;
     return a < 0 ? -fabs(b) : fabs(b);
 }
+//Apply Limiter to each component of a vector
 vec3 TVD::minmod(const vec3& a, const vec3& b) {
     vec3 v;
     v.x = minmod(a.x,b.x);
@@ -95,6 +101,7 @@ double TVD::MC(double a, double b) {
     if(c < 4*fabs(a) && c < 4*fabs(b)) return c/2;
     else return 2*minmod(a, b);
 }
+//Apply Limiter to each component of a vector
 vec3 TVD::MC(const vec3& a, const vec3& b) {
     vec3 v;
     v.x = MC(a.x,b.x);
@@ -118,6 +125,7 @@ double TVD::vanLeer(double a, double b) {
     if(a*b <= 0) return 0;
     return  2*a*b / (a + b);
 }
+//Apply Limiter to each component of a vector
 vec3 TVD::vanLeer(const vec3& a, const vec3& b) {
     vec3 v;
     v.x = vanLeer(a.x,b.x);
@@ -144,6 +152,7 @@ double TVD::superbee(double a, double b) {
     double mag = fmax(s1, s2);
     return a < 0 ? -mag : mag;
 }
+//Apply Limiter to each component of a vector
 vec3 TVD::superbee(const vec3& a, const vec3& b) {
     vec3 v;
     v.x = superbee(a.x,b.x);
@@ -166,6 +175,7 @@ double TVD::vanAlbada(double a, double b) {
     if(a*b <= 0) return 0;
     return  a*b * (a + b) / (a*a + b*b);
 }
+//Apply Limiter to each component of a vector
 vec3 TVD::vanAlbada(const vec3& a, const vec3& b) {
     vec3 v;
     v.x = vanAlbada(a.x,b.x);

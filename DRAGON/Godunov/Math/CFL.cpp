@@ -14,10 +14,11 @@
 #include <iostream>
 
 //MARK: Individual Speeds
+//CFL time = highest (|v|+a)/dL of any one side
 double CFL::cfl_max_speed(const PrimitiveState& W, double dx, double dy, double dz){
-#ifdef MHD
+#ifdef MHD //Use Magnetosonic fast speed for MHD
     double a = W.c_fast();
-#else
+#else //Use sound speed for Hydro
     double a = W.cs();
 #endif
     double speed = 0;
@@ -26,10 +27,12 @@ double CFL::cfl_max_speed(const PrimitiveState& W, double dx, double dy, double 
     if (dz > 1e-14) speed = std::max(speed, (fabs(W.v.z) + a)/dz);
     return speed;
 }
+
+//CFL time = sum of (|v|+a)/dL over all applicable sides
 double CFL::cfl_add_speed(const PrimitiveState& W, double dx, double dy, double dz){
-#ifdef MHD
+#ifdef MHD //Use Magnetosonic fast speed for MHD
     double a = W.c_fast();
-#else
+#else //Use sound speed for Hydro
     double a = W.cs();
 #endif
     double speed = 0;
@@ -38,10 +41,12 @@ double CFL::cfl_add_speed(const PrimitiveState& W, double dx, double dy, double 
     if (dz > 1e-14) speed += (fabs(W.v.z) + a)/dz;
     return speed;
 }
+
+//CFL time = [sum of ((|v|+a)/dL)^p]^(1/p)
 double CFL::cfl_pow_speed(const PrimitiveState& W, double p, double dx, double dy, double dz){
-#ifdef MHD
+#ifdef MHD //Use Magnetosonic fast speed for MHD
     double a = W.c_fast();
-#else
+#else //Use sound speed for Hydro
     double a = W.cs();
 #endif
     double speed = 0;
@@ -59,23 +64,25 @@ namespace CONFIG {
 #endif
 
 double CFL::cfl_speed(const PrimitiveState& W, double dx, double dy, double dz){
-#if CFL_CALCULATION == CHOOSE_RUNTIME || defined(TESTMODE)
+#if CFL_CALCULATION == CHOOSE_RUNTIME || defined(TESTMODE) //Choose at runtime (which is always the case when unit testing)
     switch(CONFIG::cfl_choice){
         case CFL_MAX: return cfl_max_speed(W, dx, dy, dz);
         case CFL_ADD: return cfl_add_speed(W, dx, dy, dz);
         default: return cfl_pow_speed(W, CONFIG::cfl_choice, dx, dy, dz);
     }
-#elif CFL_CALCULATION == CFL_MAX
+#elif CFL_CALCULATION == CFL_MAX //Use highest individual dimension
     return cfl_max_speed(W, dx, dy, dz);
-#elif CFL_CALCULATION == CFL_ADD
+#elif CFL_CALCULATION == CFL_ADD //Add the speeds together
     return cfl_add_speed(W, dx, dy, dz);
-#elif CFL_CALCULATION > 0
+#elif CFL_CALCULATION > 0 //Use the  (sum of []^p)^(1/p) method
     return cfl_pow_speed(W, CFL_CALCULATION, dx, dy, dz);
 #endif
 }
 
 //MARK: Grid Minimum
+//Calculate CFL time limit over the entire grid
 double CFL::cfl_time(const Grid1D& g){
+    //Calculate the highest speed over the entire grid
     double max_speed = 0;
     for(int i = 0; i<g.getSize(); i++){
       const PrimitiveState& W = g[i];
@@ -83,10 +90,12 @@ double CFL::cfl_time(const Grid1D& g){
       max_speed = fmax(max_speed, speed);
     }
     if(max_speed <= 0) throw std::runtime_error("CFL timestep failed: max signal speed is zero");
+    //Then convert to time and apply the coefficient
     return CFL_coeff * g.dx / max_speed;
 }
 
 double CFL::cfl_time(const Grid2D& g){
+    //Calculate the highest speed over the entire grid
     double max_speed = 0;
     for(int i = 0; i<g.getSizeX(); i++){
         for(int j = 0; j<g.getSizeY(); j++){
@@ -95,10 +104,12 @@ double CFL::cfl_time(const Grid2D& g){
         }
     }
     if(max_speed <= 0) throw std::runtime_error("CFL timestep failed: max signal speed is zero");
+    //Then convert to time and apply the coefficient
     return CFL_coeff / max_speed;
 }
 
 double CFL::cfl_time(const Grid3D& g){
+    //Calculate the highest speed over the entire grid
     double max_speed = 0;
     for(int i = 0; i<g.getSizeX(); i++){
         for(int j = 0; j<g.getSizeY(); j++){
@@ -109,5 +120,6 @@ double CFL::cfl_time(const Grid3D& g){
         }
     }
     if(max_speed <= 0) throw std::runtime_error("CFL timestep failed: max signal speed is zero");
+    //Then convert to time and apply the coefficient
     return CFL_coeff / max_speed;
 }

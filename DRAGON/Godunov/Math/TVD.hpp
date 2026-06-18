@@ -7,9 +7,10 @@
 #include "FluidElement.hpp"
 
 namespace TVD{
-
+    //MUSCL Reconstruction
     void MUSCL(const PrimitiveState& wL, PrimitiveState& _L, const PrimitiveState& wC, PrimitiveState& _R, const PrimitiveState& wR, double dt_dL);
 
+    //Apply the limiter chosen in Config.h
     PrimitiveState limit(const PrimitiveState& a, const PrimitiveState& b);
 
     //Limiter Functions

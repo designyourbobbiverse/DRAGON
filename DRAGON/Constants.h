@@ -14,11 +14,6 @@
 
 constexpr double _gamma = 5.0/3.0;
 
-//MARK: Grid Parameters
-const double stepSize = 0.01;
-const double timeStep = 0.01;
-
-
 
 
 //MARK: Gamma-dependent constants
