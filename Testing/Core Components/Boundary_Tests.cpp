@@ -29,6 +29,9 @@ void DRAGON_Test::verify_boundary(bool output){
     //Fixed
     if(output) std::cout << "Fixed State Boundary:\n";
     verify_boundary_fixed();
+    //Ignore
+    if(output) std::cout << "No-op Boundary:\n";
+    verify_boundary_ignore();
     //Composition
     if(output) std::cout << "Boundary Composition:\n";
     verify_boundary_composition();
@@ -342,6 +345,84 @@ void DRAGON_Test::verify_boundary_fixed_3D() {
     Boundary::Fixed(W,X | Y).apply(grid);
     expect_close(grid[-1,-1,-1], W);
 }
+
+
+//MARK: Ignore (No-op) Boundary
+void DRAGON_Test::verify_boundary_ignore(bool output){
+    if(output) std::cout<<"- 1D: ";
+    verify_boundary_ignore_1D();
+    if(output) std::cout<<"Passed\n";
+    if(output) std::cout<<"- 2D: ";
+    verify_boundary_ignore_2D();
+    if(output) std::cout<<"Passed\n";
+    if(output) std::cout<<"- 3D: ";
+    verify_boundary_ignore_3D();
+    if(output) std::cout<<"Passed\n";
+    if(output) std::cout<<"- Implicit Outflow: ";
+    verify_boundary_ignore_blocks_implicit_outflow();
+    if(output) std::cout<<"Passed\n";
+}
+
+void DRAGON_Test::verify_boundary_ignore_1D(){
+    Grid1D grid(4, 1.0, 2);
+    fill_1D(grid);
+
+    Ignore(X).apply(grid);
+
+    for(int i = 0; i < grid.getSize(); i++)
+        expect_close(grid[i], make_tagged_state(i * (1.0 / grid.getSize())));
+    expect_close(grid[-1], G);
+    expect_close(grid[-2], G);
+    expect_close(grid[4], G);
+    expect_close(grid[5], G);
+}
+
+void DRAGON_Test::verify_boundary_ignore_2D(){
+    Grid2D grid(3, 4, 1.0, 1.0, 1);
+    fill_2D(grid);
+
+    Ignore(X | Y).apply(grid);
+
+    for(int i = -grid.getGhosts(); i < grid.getSizeX() + grid.getGhosts(); i++) {
+        for(int j = -grid.getGhosts(); j < grid.getSizeY() + grid.getGhosts(); j++) {
+            if(i < 0 || i >= grid.getSizeX() || j < 0 || j >= grid.getSizeY()) expect_close(grid[i,j], G);
+        }
+    }
+}
+
+void DRAGON_Test::verify_boundary_ignore_3D(){
+    Grid3D grid(3, 4, 5, 1.0, 1.0, 1.0, 1);
+    fill_3D(grid);
+
+    Ignore(X | Y | Z).apply(grid);
+
+    for(int i = -grid.getGhosts(); i < grid.getSizeX() + grid.getGhosts(); i++) {
+        for(int j = -grid.getGhosts(); j < grid.getSizeY() + grid.getGhosts(); j++) {
+            for(int k = -grid.getGhosts(); k < grid.getSizeZ() + grid.getGhosts(); k++) {
+                if(i < 0 || i >= grid.getSizeX() || j < 0 || j >= grid.getSizeY() || k < 0 || k >= grid.getSizeZ()) expect_close(grid[i,j,k], G);
+            }
+        }
+    }
+}
+
+void DRAGON_Test::verify_boundary_ignore_blocks_implicit_outflow(){
+    Grid2D grid(3, 4, 1.0, 1.0, 1);
+    fill_2D(grid);
+
+    BoundaryList(Ignore(X)).apply(grid);
+
+    //Make sure it blocks the X outflow
+    for(int j = 0; j < grid.getSizeY(); j++) {
+        expect_close(grid[-1,j], G);
+        expect_close(grid[3,j], G);
+    }
+    //Make sure allows the Y outflow
+    for(int i = 0; i < grid.getSizeX(); i++) {
+        expect_close(grid[i,-1], grid[i,0]);
+        expect_close(grid[i,4], grid[i,3]);
+    }
+}
+
 
 //MARK: Outflow
 void DRAGON_Test::verify_boundary_outflow(bool output){
@@ -676,7 +757,6 @@ void DRAGON_Test::verify_boundary_reflective_3D(){
 }
 
 
-
 //MARK: Gated Outflow
 void DRAGON_Test::verify_boundary_outflow_1D_gated(){
     Grid1D grid(4, 1.0, 2);
@@ -707,7 +787,7 @@ void DRAGON_Test::verify_boundary_outflow_1D_gated(){
     assert(approx(grid[4].v.x, +5));
     assert(approx(grid[5].v.x, +5));
     
-    //Normal components cop.y
+    //Normal components copy
     fill_1D(grid);
     grid[0].v.x = +5.0;
     Outflow::Gated(X_negative).apply(grid);
@@ -755,7 +835,7 @@ void DRAGON_Test::verify_boundary_outflow_2D_gated(){
         assert(approx(grid[4,j].v.x, +5));
     }
     
-    //X - Normal components cop.y
+    //X - Normal components copy
     fill_2D(grid);
     for(int j=0;j<grid.getSizeY();j++) grid[0,j].v.x = +5.0;
     Outflow::Gated(X_negative).apply(grid);
@@ -799,7 +879,7 @@ void DRAGON_Test::verify_boundary_outflow_2D_gated(){
         assert(approx(grid[i,5].v.y, +5));
     }
     
-    //Normal components cop.y
+    //Normal components copy
     fill_2D(grid);
     for(int i=0;i<grid.getSizeX();i++) grid[i,0].v.y = +5.0;
     Outflow::Gated(Y_negative).apply(grid);
@@ -863,7 +943,7 @@ void DRAGON_Test::verify_boundary_outflow_3D_gated_X(){
         }
     }
     
-    //X - Normal components cop.y
+    //X - Normal components copy
     fill_3D(grid);
     for(int j=0;j<grid.getSizeY();j++) {
         for(int k=0;k<grid.getSizeZ();k++) grid[0,j,k].v.x = +5.0;
@@ -931,7 +1011,7 @@ void DRAGON_Test::verify_boundary_outflow_3D_gated_Y(){
         }
     }
     
-    //Normal components cop.y
+    //Normal components copy
     fill_3D(grid);
     for(int i=0;i<grid.getSizeX();i++){
         for(int k=0;k<grid.getSizeZ();k++) grid[i,0,k].v.y = +5.0;
@@ -997,7 +1077,7 @@ void DRAGON_Test::verify_boundary_outflow_3D_gated_Z(){
         }
     }
     
-    //Normal components cop.y
+    //Normal components copy
     fill_3D(grid);
     for(int i=0;i<grid.getSizeX();i++){
         for(int j=0;j<grid.getSizeY();j++) grid[i,j,0].v.z = +5.0;

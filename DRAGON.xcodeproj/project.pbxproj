@@ -57,9 +57,6 @@
 				Godunov/Splitting.cpp,
 				Godunov/Unsplit.cpp,
 				Refinement/AMRGrid.cpp,
-				"Refinement/Old Attempts/GridGroup.cpp",
-				"Refinement/Old Attempts/GridLink.cpp",
-				"Refinement/Old Attempts/ParentGridFill.cpp",
 				Riemann/Exact.cpp,
 				Riemann/Flux.cpp,
 				Riemann/HLL.cpp,
@@ -77,6 +74,7 @@
 				"Core Components/Godunov_Tests.cpp",
 				"Core Components/Grid_Tests.cpp",
 				"Core Components/Riemann_Tests.cpp",
+				"Core Components/TVD_Tests.cpp",
 				Testing.cpp,
 			);
 			target = F70D18F22FA12B5A00A2B235 /* DRAGON */;
@@ -90,6 +88,7 @@
 				"Core Components/Godunov_Tests.cpp",
 				"Core Components/Grid_Tests.cpp",
 				"Core Components/Riemann_Tests.cpp",
+				"Core Components/TVD_Tests.cpp",
 				Testing.cpp,
 			);
 			target = F77A715B2FB415A5006C2776 /* DRAGON_TESTS */;

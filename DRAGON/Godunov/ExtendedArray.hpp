@@ -15,23 +15,22 @@
 template <class T>
 struct ExtendedArray1D{
     
-    ExtendedArray1D(int size, int ghosts=2): size(size), ghosts(ghosts) {
-        x = new T[size+2*ghosts];
-    }
+    ExtendedArray1D(int size, int ghosts=2): size(size), ghosts(ghosts) { x = new T[size+2*ghosts]; }
     ~ExtendedArray1D(){ delete[] x; }
-    ExtendedArray1D(const ExtendedArray1D&) = delete; //No cop.ying
+    ExtendedArray1D(const ExtendedArray1D&) = delete; //No copying
     ExtendedArray1D& operator=(const ExtendedArray1D&) = delete;
     
     //Grid access
+    //Can take inputs <0 or >= n to access ghost cells
     T& operator[](int i){
-    #ifdef TESTMODE
+    #ifdef TESTMODE //Verify that we are in bounds, but strip in production to save time
         assert(i + ghosts >= 0 && i < size+ghosts);
     #endif
         int m = i+ghosts;
         return x[m];
     }
     const T& operator[](int i) const{
-    #ifdef TESTMODE
+    #ifdef TESTMODE //Verify that we are in bounds, but strip in production to save time
         assert(i + ghosts >= 0 && i < size+ghosts);
     #endif
         int m = i+ghosts;
@@ -40,7 +39,7 @@ struct ExtendedArray1D{
     int getSize() const{ return size; }
     int getGhosts() const{ return ghosts; }
 private:
-    T* x;
+    T* x; //The array storing all of the objects
     int ghosts, size;
 };
 
@@ -52,12 +51,13 @@ struct ExtendedArray2D{
         x = new T[(nx+2*ghosts)*(ny+2*ghosts)];
     }
     ~ExtendedArray2D(){ delete[] x; }
-    ExtendedArray2D(const ExtendedArray2D&) = delete; //No cop.ying
+    ExtendedArray2D(const ExtendedArray2D&) = delete; //No copying
     ExtendedArray2D& operator=(const ExtendedArray2D&) = delete;
     
     //Grid access
+    //Can take inputs <0 or >= n to access ghost cells
     T& operator[](int i,int j){
-    #ifdef TESTMODE
+    #ifdef TESTMODE //Verify that we are in bounds, but strip in production to save time
         assert(i + ghosts >= 0 && i < nx+ghosts);
         assert(j + ghosts >= 0 && j < ny+ghosts);
     #endif
@@ -65,7 +65,7 @@ struct ExtendedArray2D{
         return x[m];
     }
     const T& operator[](int i,int j) const{
-    #ifdef TESTMODE
+    #ifdef TESTMODE //Verify that we are in bounds, but strip in production to save time
         assert(i + ghosts >= 0 && i < nx+ghosts);
         assert(j + ghosts >= 0 && j < ny+ghosts);
     #endif
@@ -76,7 +76,7 @@ struct ExtendedArray2D{
     int getSizeY() const{ return ny; }
     int getGhosts() const{ return ghosts; }
 private:
-    T* x;
+    T* x; //The array storing all of the objects
     int ghosts, nx, ny;
 };
 
@@ -89,12 +89,13 @@ struct ExtendedArray3D{
         x = new T[(nx+2*ghosts)*(ny+2*ghosts)*(nz+2*ghosts)];
     }
     ~ExtendedArray3D(){ delete[] x; }
-    ExtendedArray3D(const ExtendedArray3D&) = delete; //No cop.ying
+    ExtendedArray3D(const ExtendedArray3D&) = delete; //No copying
     ExtendedArray3D& operator=(const ExtendedArray3D&) = delete;
     
     //Grid access
+    //Can take inputs <0 or >= n to access ghost cells
     T& operator[](int i,int j, int k){
-    #ifdef TESTMODE
+    #ifdef TESTMODE //Verify that we are in bounds, but strip in production to save time
         assert(i + ghosts >= 0 && i < nx+ghosts);
         assert(j + ghosts >= 0 && j < ny+ghosts);
         assert(k + ghosts >= 0 && k < nz+ghosts);
@@ -103,7 +104,7 @@ struct ExtendedArray3D{
         return x[m];
     }
     const T& operator[](int i,int j,int k) const{
-    #ifdef TESTMODE
+    #ifdef TESTMODE //Verify that we are in bounds, but strip in production to save time
         assert(i + ghosts >= 0 && i < nx+ghosts);
         assert(j + ghosts >= 0 && j < ny+ghosts);
         assert(k + ghosts >= 0 && k < nz+ghosts);
@@ -116,7 +117,7 @@ struct ExtendedArray3D{
     int getSizeZ() const{ return nz; }
     int getGhosts() const{ return ghosts; }
 private:
-    T* x;
+    T* x; //The array storing all of the objects
     int ghosts, nx, ny, nz;
 };
 

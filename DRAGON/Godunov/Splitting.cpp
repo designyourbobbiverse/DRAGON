@@ -40,15 +40,13 @@ int Grid3D::getGhosts() const { return w.getGhosts(); }
 
 
 //MARK: 2D Split
-
 void Grid2D::advance_split(double dt, bool check_cfl){
     while(dt > Timestep_Tolerance){
         //CFL Time Constraint
         double t1 = check_cfl ? std::min(dt,CFL::cfl_time(*this)) : dt;
         dt -= t1;
         
-
-        //Advance, alternating which step comes first
+        //Advance (Strang Split), alternating which step comes first
         if (sweep_step++ % 2 == 0) {
             advanceX(t1/2);
             advanceY(t1);
@@ -66,7 +64,7 @@ void Grid3D::advance_split(double dt, bool check_cfl){
         //CFL Time Constraint
         double t1 = check_cfl ? std::min(dt,CFL::cfl_time(*this)) : dt;
         dt -= t1;
-        //Advance, rotating step orders
+        //Advance  (Strang Split), rotating step orders
         switch (sweep_step++ % 6) {
         case 0: //Cyclic XYZ
             advanceX(t1/2);
@@ -116,44 +114,42 @@ void Grid3D::advance_split(double dt, bool check_cfl){
 
 
 //MARK: 2D Component Sweeps
-
 void Grid2D::advanceX(double dt){
-   boundary.apply(*this);
+   boundary.apply(*this); //Apply Boundary Conditions before every sweep
     
     int nx = w.getSizeX(), ny = w.getSizeY(), ghosts = w.getGhosts();
     Grid1D _w(nx, dx, ghosts);
-    ExtendedArray1D<PrimitiveState> _B1(nx, ghosts), _B2(nx, ghosts);
+    ExtendedArray1D<PrimitiveState> _B1(nx, ghosts), _B2(nx, ghosts);//Buffers
     
     for(int j=-ghosts; j<ny+ghosts; j++){
-        for(int i=-ghosts; i<nx+ghosts; i++) _w[i] = w[i,j];
+        for(int i=-ghosts; i<nx+ghosts; i++) _w[i] = w[i,j]; //Copy to a 1D array
 
-        _w.god_sweep(dt, _B1, _B2);
+        _w.god_sweep(dt, _B1, _B2); //Sweep through the 1D array
         
-        for(int i=-ghosts; i<nx+ghosts; i++) w[i,j] = _w[i];
+        for(int i=-ghosts; i<nx+ghosts; i++) w[i,j] = _w[i]; //Copy 1D array back to grid
     }
 }
 void Grid2D::advanceY(double dt){
-    boundary.apply(*this);
+    boundary.apply(*this); //Apply Boundary Conditions before every sweep
 
     int nx = w.getSizeX(), ny = w.getSizeY(), ghosts = w.getGhosts();
     Grid1D _w(ny, dy, ghosts);
     ExtendedArray1D<PrimitiveState> _B1(ny, ghosts), _B2(ny, ghosts);
     
     for(int i=-ghosts; i<nx+ghosts; i++){
-        for(int j=-ghosts; j<ny+ghosts; j++)  _w[j] = w[i,j].swappedXY();
+        for(int j=-ghosts; j<ny+ghosts; j++)  _w[j] = w[i,j].swappedXY(); //Dimension swap + copy to a 1D array
 
-        _w.god_sweep(dt, _B1, _B2);
+        _w.god_sweep(dt, _B1, _B2); //Sweep through the 1D array
         
-        for(int j=-ghosts; j<ny+ghosts; j++)  w[i,j] = _w[j].swappedXY();
+        for(int j=-ghosts; j<ny+ghosts; j++)  w[i,j] = _w[j].swappedXY(); //Dimension swap back + copy back to grid
     }
 }
 
 
 
 //MARK: 3D Component Sweeps
-
 void Grid3D::advanceX(double dt){
-    boundary.apply(*this);
+    boundary.apply(*this); //Apply Boundary Conditions before every sweep
 
     int nx = w.getSizeX(), ny = w.getSizeY(), nz = w.getSizeZ(), ghosts = w.getGhosts();
     Grid1D _w(nx,dx,ghosts);
@@ -161,16 +157,16 @@ void Grid3D::advanceX(double dt){
     
     for(int k=-ghosts; k<nz+ghosts; k++){
         for(int j=-ghosts; j<ny+ghosts; j++){
-            for(int i=-ghosts; i<nx+ghosts; i++) _w[i] = w[i,j,k];
+            for(int i=-ghosts; i<nx+ghosts; i++) _w[i] = w[i,j,k]; //Copy to a 1D array
             
-            _w.god_sweep(dt, _B1, _B2);
+            _w.god_sweep(dt, _B1, _B2); //Sweep through the 1D array
             
-            for(int i=-ghosts; i<nx+ghosts; i++) w[i,j,k] = _w[i];
+            for(int i=-ghosts; i<nx+ghosts; i++) w[i,j,k] = _w[i]; //Copy back to grid
         }
     }
 }
 void Grid3D::advanceY(double dt){
-    boundary.apply(*this);
+    boundary.apply(*this); //Apply Boundary Conditions before every sweep
 
     int nx = w.getSizeX(), ny = w.getSizeY(), nz = w.getSizeZ(), ghosts = w.getGhosts();
     Grid1D _w(ny,dy,ghosts);
@@ -178,16 +174,16 @@ void Grid3D::advanceY(double dt){
     
     for(int k=-ghosts; k<nz+ghosts; k++){
         for(int i=-ghosts; i<nx+ghosts; i++) {
-            for(int j=-ghosts; j<ny+ghosts; j++) _w[j] = w[i,j,k].swappedXY();
+            for(int j=-ghosts; j<ny+ghosts; j++) _w[j] = w[i,j,k].swappedXY(); //Dimension swap + copy to a 1D array
 
-            _w.god_sweep(dt, _B1, _B2);
+            _w.god_sweep(dt, _B1, _B2); //Sweep through the 1D array
             
-            for(int j=-ghosts; j<ny+ghosts; j++) w[i,j,k] = _w[j].swappedXY();
+            for(int j=-ghosts; j<ny+ghosts; j++) w[i,j,k] = _w[j].swappedXY();  //Dimension swap back + copy back to grid
        }
     }
 }
 void Grid3D::advanceZ(double dt){
-    boundary.apply(*this);
+    boundary.apply(*this); //Apply Boundary Conditions before every sweep
 
     int nx = w.getSizeX(), ny = w.getSizeY(), nz = w.getSizeZ(), ghosts = w.getGhosts();
     Grid1D _w(nz,dz,ghosts);
@@ -195,11 +191,11 @@ void Grid3D::advanceZ(double dt){
     
     for(int i=-ghosts; i<nx+ghosts; i++) {
         for(int j=-ghosts; j<ny+ghosts; j++) {
-            for(int k=-ghosts; k<nz+ghosts; k++) _w[k] = w[i,j,k].swappedXZ();
+            for(int k=-ghosts; k<nz+ghosts; k++) _w[k] = w[i,j,k].swappedXZ(); //Dimension swap + copy to a 1D array
             
-            _w.god_sweep(dt, _B1, _B2);
+            _w.god_sweep(dt, _B1, _B2); //Sweep through the 1D array
             
-            for(int k=-ghosts; k<nz+ghosts; k++) w[i,j,k] = _w[k].swappedXZ();
+            for(int k=-ghosts; k<nz+ghosts; k++) w[i,j,k] = _w[k].swappedXZ(); //Dimension swap back + copy back to grid
        }
     }
 }

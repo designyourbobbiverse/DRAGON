@@ -17,10 +17,25 @@
 void TVD::MUSCL(const PrimitiveState& wL, PrimitiveState& _L, const PrimitiveState& wC, PrimitiveState& _R, const PrimitiveState& wR, double dt_dL){
 #ifdef MUSCL_Hancock
     // Reconstruct a limited primitive-variable slope
-    PrimitiveState dW = TVD::limit(wC - wL, wR - wC);
+    PrimitiveState leftDiff, rightDiff;
+    leftDiff.rho = wC.rho - wL.rho; rightDiff.rho = wR.rho - wC.rho;
+    leftDiff.v = wC.v - wL.v; rightDiff.v = wR.v - wC.v;
+    leftDiff.p = wC.p - wL.p; rightDiff.p = wR.p - wC.p;
+#ifdef MHD
+    leftDiff.B = wC.B - wL.B; rightDiff.B = wR.B - wC.B;
+#endif
+    PrimitiveState dW = TVD::limit(leftDiff, rightDiff);
     //Spatial half step using the limited slope
-    _L = wC - dW/2;
-    _R = wC + dW/2;
+    _L.rho = wC.rho - 0.5*dW.rho;
+    _R.rho = wC.rho + 0.5*dW.rho;
+    _L.v = wC.v - 0.5*dW.v;
+    _R.v = wC.v + 0.5*dW.v;
+    _L.p = wC.p - 0.5*dW.p;
+    _R.p = wC.p + 0.5*dW.p;
+#ifdef MHD
+    _L.B = wC.B - 0.5*dW.B;
+    _R.B = wC.B + 0.5*dW.B;
+#endif
     
     //Time half step (MUSCL-Hancock Predictor)
     ConservativeState UL = ConservativeState(_L), UR = ConservativeState(_R);
@@ -98,7 +113,7 @@ PrimitiveState TVD::minmod(const PrimitiveState& a, const PrimitiveState& b) {
 double TVD::MC(double a, double b) {
     if(a*b <= 0) return 0;
     double c = fabs(a+b);
-    if(c < 4*fabs(a) && c < 4*fabs(b)) return c/2;
+    if(c < 4*fabs(a) && c < 4*fabs(b)) return a < 0 ? -c/2 : c/2;
     else return 2*minmod(a, b);
 }
 //Apply Limiter to each component of a vector

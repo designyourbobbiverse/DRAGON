@@ -576,7 +576,7 @@ void DRAGON_Test::verify_3D_Z_match_1D(bool split){
     Grid3D grid(3,3,6,1.0,1.0,1.0,2);
     Grid1D expected(6, 1.0, 2);
     grid.boundary = Outflow() + Periodic(X|Y);
-    expected.boundary = Outflow();;
+    expected.boundary = Outflow();
 
     for (int k = 0; k < grid.getSizeZ(); k++){
         for (int j = 0; j < grid.getSizeY(); j++){
@@ -829,7 +829,7 @@ void DRAGON_Test::verify_ctu_blast_3D() {
             }
         }
     }
-    assert(approx(mass1, mass0, 1e-8, 1e-8));
+    assert(approx(mass1, mass0, 1e-10, 1e-10));
     // The center should depressurize and nearby gas should start moving outward.
     assert((grid[nx/2, ny/2, nz/2].p < p_blast));
 }

@@ -31,7 +31,6 @@ int Grid1D::getGhosts() const { return w.getGhosts(); }
 
 
 //MARK: 1D Godunov Advance
-
 void Grid1D::advance(double dt, bool check_cfl){
     int size = getSize(), ghosts = getGhosts();
     ExtendedArray1D<PrimitiveState> _L(size,ghosts), _R(size,ghosts);//Buffer Grids
@@ -52,6 +51,7 @@ void Grid1D::advance(double dt, bool check_cfl){
 //MARK: Godunov Sweep
 void Grid1D::god_sweep(double dt, ExtendedArray1D<PrimitiveState>& _L, ExtendedArray1D<PrimitiveState>& _R){
     int size = getSize(), ghosts = getGhosts();
+    //Reconstruct Half-States (if applicable)
     for(int i=-ghosts+1; i<size+ghosts-1; i++) {
         TVD::MUSCL((*this)[i-1], _L[i], (*this)[i], _R[i], (*this)[i+1], dt/dx);
     }
@@ -60,7 +60,7 @@ void Grid1D::god_sweep(double dt, ExtendedArray1D<PrimitiveState>& _L, ExtendedA
     fL = Riemann(_R[-ghosts], _L[-ghosts+1]).flux_X(dt/dx);
     for(int i=-ghosts+1; i<size+ghosts-1; i++) {
         fR = Riemann(_R[i], _L[i+1]).flux_X(dt/dx);
-        (*this)[i] += (fL - fR) * (dt/dx);
+        (*this)[i] += (fL - fR) * (dt/dx); //Apply flux to cell
         fL = fR; //Right flux on this cell must equal Left flux on next cell
     }
 }

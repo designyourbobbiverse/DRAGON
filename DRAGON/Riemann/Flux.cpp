@@ -90,7 +90,7 @@ void Riemann::verify_and_fallback(ConservativeState& flux, double dt_dx){
     //Check whether both states would still be physical after update
     if((L - flux*dt_dx).isPhysical() &&  (R+flux*dt_dx).isPhysical()) return;
     //If not, try Exact
-    #if HYDRO_AVAILABLE && RIEMANN_DEFAULT != RIEMANN_EXACT
+    #if defined(HYDRO_AVAILABLE) && RIEMANN_DEFAULT != RIEMANN_EXACT
     flux = exact().flux();
     //Check whether both states would still be physical after update
     if((L - flux*dt_dx).isPhysical() &&  (R+flux*dt_dx).isPhysical()) return;
@@ -111,7 +111,7 @@ ConservativeState Riemann::flux_Y(double dt_dy){
 ConservativeState Riemann::flux_Z(double dt_dz){
     L.swapXZ(); R.swapXZ();//Swaps XZ components
     auto f = flux(dt_dz); //Solve the problem as if it were X
-    f.swapXY();//Swap the output back
+    f.swapXZ();//Swap the output back
     L.swapXZ(); R.swapXZ();//Swap Back Inputs to be a good citizen, even though 99% of the time we don't actually care
     return f;
 }

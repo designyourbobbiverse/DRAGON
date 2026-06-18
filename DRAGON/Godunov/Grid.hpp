@@ -19,13 +19,14 @@ struct Grid1D{
 private:
     ExtendedArray1D<PrimitiveState> w;
 public:
-    double dx;
+    double dx; //Phsyical scale of a grid unit
 
     Grid1D(int size, double dx, int ghosts=1);
     Grid1D(const Grid1D&) = delete; //No copying
     Grid1D& operator=(const Grid1D&) = delete;
 
     //Grid access
+    //Can take inputs <0 or >= size to access ghost cells
     PrimitiveState& operator[](int k);
     const PrimitiveState& operator[](int k) const;
     int getSize() const, getGhosts() const;
@@ -35,6 +36,7 @@ public:
     
     //Advance forward in time
     void advance(double dt, bool check_cfl=true);
+    //The meat of the above function, also used by splitting schemes on higher dimension grids
     void god_sweep(double dt, ExtendedArray1D<PrimitiveState>& _L, ExtendedArray1D<PrimitiveState>& _R);
 };
 
@@ -42,30 +44,32 @@ struct Grid2D{
 private:
     ExtendedArray2D<PrimitiveState> w;
 public:
+    double dx, dy;
+
     Grid2D(int nx, int ny, double dx, double dy, int ghosts=1);
     Grid2D(const Grid2D&) = delete; //No copying
     Grid2D& operator=(const Grid2D&) = delete;
     
     //Grid access
+    //Can take inputs <0 or >= n to access ghost cells
     PrimitiveState& operator[](int i,int j);
     const PrimitiveState& operator[](int i,int j) const;
     int getSizeX() const, getSizeY() const, getGhosts() const;
-    double dx, dy;
     
     //Boundary
     Boundary::BoundaryList boundary = Boundary::BoundaryList();
     
     //Advance Forward in time
-    void advance(double dt, bool check_cfl = true);
+    void advance(double dt, bool check_cfl = true); //Automatically split or unsplit based whether DIMENSION_UNSPLIT is set in Config.h
     void advance_split(double dt, bool check_cfl = true);
     void advance_unsplit(double dt, bool check_cfl = true);
 
 private:
     int sweep_step = 0;
 
-    void advanceX(double dt);
-    void advanceY(double dt);
-    void advanceXY(double dt);
+    void advanceX(double dt); //Advance a single split step in X
+    void advanceY(double dt); //Advance a single split step in Y
+    void advanceXY(double dt); //Advance a single unsplit step
 };
 
 struct Grid3D{
@@ -73,32 +77,33 @@ private:
     ExtendedArray3D<PrimitiveState>  w;
 public:
     double dx, dy, dz;
-
+    
     Grid3D(int nx, int ny, int nz, double dx, double dy, double dz, int ghosts=1);
     Grid3D(const Grid3D&) = delete; //No copying
     Grid3D& operator=(const Grid3D&) = delete;
-
+    
     //Grid Access
+    //Can take inputs <0 or >= n to access ghost cells
     PrimitiveState& operator[](int i,int j,int k);
     const PrimitiveState& operator[](int i,int j,int k) const;
     int getSizeX() const, getSizeY() const, getSizeZ() const, getGhosts() const;
-
+    
     //Boundary
     Boundary::BoundaryList boundary = Boundary::BoundaryList();
     
     //Advance Forward in time
-    void advance(double dt, bool check_cfl = true);
+    void advance(double dt, bool check_cfl = true);//Automatically split or unsplit based whether DIMENSION_UNSPLIT is set in Config.h
     void advance_split(double dt, bool check_cfl = true);
     void advance_unsplit(double dt, bool check_cfl = true);
     
     
 private:
     int sweep_step = 0;
-
-    void advanceX(double dt);
-    void advanceY(double dt);
-    void advanceZ(double dt);
-    void advanceXYZ(double dt);
+    
+    void advanceX(double dt); //Advance a single split step in X
+    void advanceY(double dt); //Advance a single split step in Y
+    void advanceZ(double dt); //Advance a single split step in Z
+    void advanceXYZ(double dt); //Advance a single unsplit step
 };
 
 

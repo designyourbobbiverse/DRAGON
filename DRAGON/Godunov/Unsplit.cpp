@@ -17,16 +17,16 @@
 
 
 //MARK: Split vs Unsplit
+//Use split or unsplit depending on whether DIMENSION_UNSPLIT is defined in Config.h
 void Grid2D::advance(double dt,bool check_cfl){
-#ifdef DimensionUnsplit
+#ifdef DIMENSION_UNSPLIT
     advance_unsplit(dt,check_cfl);
 #else
     advance_split(dt,check_cfl);
 #endif
 }
-
 void Grid3D::advance(double dt, bool check_cfl){
-#ifdef DimensionUnsplit
+#ifdef DIMENSION_UNSPLIT
     advance_unsplit(dt,check_cfl);
 #else
     advance_split(dt,check_cfl);
@@ -34,7 +34,6 @@ void Grid3D::advance(double dt, bool check_cfl){
 }
 
 //MARK: CFL
-
 void Grid2D::advance_unsplit(double dt, bool check_cfl){
     while(dt > Timestep_Tolerance){
         //CFL Time Constraint
@@ -108,10 +107,10 @@ void correctState(const FluidArray3D& _L0, const FluidArray3D& _R0, FluidArray3D
 
 void Grid3D::advanceXYZ(double dt){
     int nx = w.getSizeX(), ny = w.getSizeY(), nz = w.getSizeZ(), ghosts = w.getGhosts();
-    FluidArray3D _xL(nx,ny,nz,ghosts), _xR(nx,ny,nz,ghosts);
-    FluidArray3D _yL(nx,ny,nz,ghosts), _yR(nx,ny,nz,ghosts);
-    FluidArray3D _zL(nx,ny,nz,ghosts), _zR(nx,ny,nz,ghosts);
-    FluxArray3D F_X(nx, ny,nz,1), F_Y(nx,ny,nz,1), F_Z(nx,ny,nz,1);
+    FluidArray3D _xL(nx,ny,nz,ghosts), _xR(nx,ny,nz,ghosts); //X half States
+    FluidArray3D _yL(nx,ny,nz,ghosts), _yR(nx,ny,nz,ghosts); //Y half states
+    FluidArray3D _zL(nx,ny,nz,ghosts), _zR(nx,ny,nz,ghosts); //Z half states
+    FluxArray3D F_X(nx, ny,nz,1), F_Y(nx,ny,nz,1), F_Z(nx,ny,nz,1); //Fluxes
     
     boundary.apply(*this);
 
@@ -120,11 +119,11 @@ void Grid3D::advanceXYZ(double dt){
     computeHalfStates_Y(_yL, (*this), _yR, dt);
     computeHalfStates_Z(_zL, (*this), _zR, dt);
 #ifdef CTU //Colella (1990). https://doi.org/10.1016/0021-9991(90)90233-Q
-    //Compute Face Fluxes
+    //Compute preliminary face fluxes
     computeFlux_X(_xL, _xR, F_X, 0, nx, -1, ny+1, -1, nz+1, dt/dx); //F_X needs (0...nx, -1...ny, -1...nz)
     computeFlux_Y(_yL, _yR, F_Y, -1, nx+1, 0, ny, -1, nz+1, dt/dy); //F_Y needs (-1...nx, 0...ny, -1...nz)
     computeFlux_Z(_zL, _zR, F_Z, -1, nx+1, -1, ny+1, 0, nz, dt/dz); //F_Z needs (-1...nx, -1...ny, 0...nz)
-    //Compute Edge Corrections
+    //Apply first round of transverse corrections
     FluidArray3D _xyL(nx,ny,nz), _xyR(nx,ny,nz); //_xyLR needs (-1...nx, 0...ny-1, -1...nz)
     correctState(_xL, _xR, _xyL, _xyR, F_Y, (0.5*dt/dy) , -1, nx+1, 0, ny, -1, nz+1, 1);
     FluidArray3D _xzL(nx,ny,nz), _xzR(nx,ny,nz);//_xzLR needs (-1...nx, -1...ny, 0...nz-1)
@@ -137,7 +136,7 @@ void Grid3D::advanceXYZ(double dt){
     correctState(_zL, _zR, _zxL, _zxR, F_X, (0.5*dt/dx), 0, nx, -1, ny+1, -1, nz+1, 0);
     FluidArray3D _zyL(nx,ny,nz), _zyR(nx,ny,nz);//_zyLR needs (-1...nx, 0...ny-1, -1...nz)
     correctState(_zL, _zR, _zyL, _zyR, F_Y, (0.5*dt/dy), -1, nx+1, 0, ny, -1, nz+1, 1);
-    //Compute Edge Fluxes
+    //Recompute fluxes
     FluxArray3D F_Xy(nx, ny,nz,1), F_Xz(nx, ny,nz,1);
     computeFlux_X(_xyL, _xyR, F_Xy, 0, nx, 0, ny, -1,nz+1, dt/dx); //F_Xy needs (0...nx, 0...ny-1, -1...nz)
     computeFlux_X(_xzL, _xzR, F_Xz, 0, nx, -1, ny+1, 0,nz, dt/dx); //F_Xz needs (0...nx, -1...ny, 0...nz-1)
@@ -147,7 +146,7 @@ void Grid3D::advanceXYZ(double dt){
     FluxArray3D F_Zx(nx,ny,nz,1), F_Zy(nx, ny,nz,1);
     computeFlux_Z(_zxL, _zxR, F_Zx, 0, nx, -1, ny+1, 0, nz, dt/dz); //F_Zx needs (0...nx-1, -1...ny, 0...nz)
     computeFlux_Z(_zyL, _zyR, F_Zy, -1, nx+1, 0, ny, 0, nz, dt/dz); //F_Zy needs (-1...nx, 0...ny-1, 0...nz)
-    //Apply Corner Corrections
+    //Apply second round of transverse corrections
     correctState(_xL, _xR, _xL,_xR, F_Yz, (0.5*dt/dy), -1, nx+1, 0, ny, 0, nz, 1); //_xLR needs (-1...nx, 0...ny-1, 0...nz-1)
     correctState(_xL, _xR, _xL,_xR, F_Zy, (0.5*dt/dz), -1, nx+1, 0, ny, 0, nz, 2);
     correctState(_yL, _yR, _yL,_yR, F_Xz, (0.5*dt/dx), 0, nx, -1, ny+1, 0, nz, 0);//_yLR needs (0...nx-1, -1...ny, 0...nz-1)
@@ -173,55 +172,55 @@ void Grid3D::advanceXYZ(double dt){
 }
 
 //MARK: Flux Calculation
+//Compute X fluxes between Right(_R) and Left (_L) half-states over the entire grid
 void computeFlux_X(const FluidArray2D& _L, const FluidArray2D& _R, FluxArray2D& F, int xL, int xR, int yL, int yR, double dt_dx ){
-    //Compute X Fluxes
     for(int i=xL; i<=xR; i++){
         for(int j=yL; j<yR; j++){
-            auto L = _R[i-1,j], R = _L[i,j];
-            F[i,j] = Riemann(L,R).flux_X(dt_dx);
+            F[i,j] = Riemann(_R[i-1,j], _L[i,j]).flux_X(dt_dx);
         }
     }
 }
+//Compute Y fluxes between Right(_R) and Left (_L) half-states over the entire grid
 void computeFlux_Y(const FluidArray2D& _L, const FluidArray2D& _R, FluxArray2D& F, int xL, int xR, int yL, int yR, double dt_dy){
     for(int i=xL; i<xR; i++){
         for(int j=yL; j<=yR; j++){
-            auto L = _R[i,j-1], R = _L[i,j];
-            F[i,j] = Riemann(L,R).flux_Y(dt_dy);
+            F[i,j] = Riemann(_R[i,j-1], _L[i,j]).flux_Y(dt_dy);
         }
     }
 }
+//Compute X fluxes between Right(_R) and Left (_L) half-states over the entire grid
 void computeFlux_X(const FluidArray3D& _L, const FluidArray3D& _R, FluxArray3D& F, int xL, int xR, int yL, int yR, int zL, int zR, double dt_dx){
     for(int i=xL; i<=xR; i++){
         for(int j=yL; j<yR; j++){
             for(int k=zL; k<zR; k++){
-                auto L = _R[i-1,j,k], R = _L[i,j,k];
-                F[i,j,k] = Riemann(L,R).flux_X(dt_dx);
+                F[i,j,k] = Riemann(_R[i-1,j,k], _L[i,j,k]).flux_X(dt_dx);
             }
         }
     }
 }
+//Compute Y fluxes between Right(_R) and Left (_L) half-states over the entire grid
 void computeFlux_Y(const FluidArray3D& _L, const FluidArray3D& _R, FluxArray3D& F, int xL, int xR, int yL, int yR, int zL, int zR, double dt_dy){
     for(int i=xL; i<xR; i++){
         for(int j=yL; j<=yR; j++){
             for(int k=zL; k<zR; k++){
-                auto L = _R[i,j-1,k], R = _L[i,j,k];
-                F[i,j,k] = Riemann(L,R).flux_Y(dt_dy);
+                F[i,j,k] = Riemann(_R[i,j-1,k], _L[i,j,k]).flux_Y(dt_dy);
             }
         }
     }
 }
+//Compute Z fluxes between Right(_R) and Left (_L) half-states over the entire grid
 void computeFlux_Z(const FluidArray3D& _L, const FluidArray3D& _R, FluxArray3D& F, int xL, int xR, int yL, int yR, int zL, int zR, double dt_dz){
     for(int i=xL; i<xR; i++){
         for(int j=yL; j<yR; j++){
             for(int k=zL; k<=zR; k++){
-                auto L = _R[i,j,k-1], R = _L[i,j,k];
-                F[i,j,k] = Riemann(L,R).flux_Z(dt_dz);
+                F[i,j,k] = Riemann(_R[i,j,k-1], _L[i,j,k]).flux_Z(dt_dz);
             }
         }
     }
 }
 
 //MARK: TVD
+//Apply MUSCL over the entire grid
 void computeHalfStates_X(FluidArray2D& _L, const Grid2D& _W, FluidArray2D& _R, double dt){
     const double dt_dL = dt/_W.dx;//Compute once
     const int nx = _W.getSizeX(), ny = _W.getSizeY(), g = _W.getGhosts();
@@ -239,6 +238,7 @@ void computeHalfStates_Y(FluidArray2D& _L, const Grid2D& _W, FluidArray2D& _R, d
 
     for(int i=-g; i<nx+g; i++){
         for(int j=-g + 1; j<ny+g - 1; j++){
+            //Swap XY inputs to MUSCL, then swap output back
             auto wL =_W[i,j-1].swappedXY(), wR = _W[i,j+1].swappedXY();
             TVD::MUSCL(wL, _L[i,j], _W[i,j].swappedXY(), _R[i,j],wR, dt_dL);
             _L[i,j].swapXY(); _R[i,j].swapXY();
@@ -265,6 +265,7 @@ void computeHalfStates_Y(FluidArray3D& _L, const Grid3D& _W, FluidArray3D& _R, d
     for(int i=-g; i<nx+g; i++){
         for(int j=-g + 1; j<ny+g - 1; j++){
             for(int k=-g; k<nz+g; k++){
+                //Swap XY inputs to MUSCL, then swap output back
                 auto wL =_W[i,j-1,k].swappedXY(), wR = _W[i,j+1,k].swappedXY();
                 TVD::MUSCL(wL, _L[i,j,k], _W[i,j,k].swappedXY(), _R[i,j,k],wR, dt_dL);
                 _L[i,j,k].swapXY(); _R[i,j,k].swapXY();
@@ -279,6 +280,7 @@ void computeHalfStates_Z(FluidArray3D& _L, const Grid3D& _W, FluidArray3D& _R, d
     for(int i=-g; i<nx+g; i++){
         for(int j=-g; j<ny+g; j++){
             for(int k=-g + 1; k<nz+g - 1; k++){
+                //Swap XZ inputs to MUSCL, then swap output back
                 auto wL = _W[i,j,k-1].swappedXZ(), wR = _W[i,j,k+1].swappedXZ();
                 TVD::MUSCL(wL, _L[i,j,k], _W[i,j,k].swappedXZ(), _R[i,j,k],wR, dt_dL);
                 _L[i,j,k].swapXZ(); _R[i,j,k].swapXZ();

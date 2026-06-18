@@ -6,7 +6,6 @@
 //
 #include "Testing.hpp"
 #include <iostream>
-#include "GridLink.hpp"
 
 using namespace DRAGON_Test;
 
@@ -14,7 +13,6 @@ using namespace DRAGON_Test;
 //Testing TODOs:
 //AMRGrid
 //TVD Options
-//Ignore Boundary
 //Fallback to Exact
 //DRAGONWING
 //CFL with MHD
@@ -27,6 +25,7 @@ int main() {
     verify_riemann();
     verify_grid();
     verify_boundary();
+    verify_tvd();
     verify_cfl();
     
     verify_godunov_1D();

@@ -68,28 +68,25 @@ PrimitiveState DRAGON_Test::make_state(double rho, double vx, double vy, double 
 bool DRAGON_Test::approx(double a, double b, double rel, double abs) {
     return fabs(a - b) <= abs + rel * fmax(fabs(a), fabs(b));
 }
+void DRAGON_Test::expect_close(const vec3& a, const vec3& b, double rel, double abs) {
+    assert(approx(a.x,  b.x,  rel, abs));
+    assert(approx(a.y,  b.y,  rel, abs));
+    assert(approx(a.z,  b.z,  rel, abs));
+}
 void DRAGON_Test::expect_close(const ConservativeState& a, const ConservativeState& b, double rel, double abs) {
     assert(approx(a.rho, b.rho, rel, abs));
-    assert(approx(a.p.x,  b.p.x,  rel, abs));
-    assert(approx(a.p.y,  b.p.y,  rel, abs));
-    assert(approx(a.p.z,  b.p.z,  rel, abs));
     assert(approx(a.E,   b.E,   rel, abs));
+    expect_close(a.p, b.p, rel, abs);
 #ifdef MHD
-    assert(approx(a.B.x,  b.B.x,  rel, abs));
-    assert(approx(a.B.y,  b.B.y,  rel, abs));
-    assert(approx(a.B.z,  b.B.z,  rel, abs));
+    expect_close(a.B, b.B, rel, abs);
 #endif
 }
 void DRAGON_Test::expect_close(const PrimitiveState& a, const PrimitiveState& b, double rel, double abs) {
     assert(approx(a.rho, b.rho, rel, abs));
-    assert(approx(a.v.x,  b.v.x,  rel, abs));
-    assert(approx(a.v.y,  b.v.y,  rel, abs));
-    assert(approx(a.v.z,  b.v.z,  rel, abs));
-    assert(approx(a.p,   b.p,   rel, abs));
+    assert(approx(a.p, b.p,   rel, abs));
+    expect_close(a.v, b.v, rel, abs);
 #ifdef MHD
-    assert(approx(a.B.x,  b.B.x,  rel, abs));
-    assert(approx(a.B.y,  b.B.y,  rel, abs));
-    assert(approx(a.B.z,  b.B.z,  rel, abs));
+    expect_close(a.B, b.B, rel, abs);
 #endif
 }
 

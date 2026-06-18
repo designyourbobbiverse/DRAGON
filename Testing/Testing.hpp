@@ -17,6 +17,7 @@ namespace DRAGON_Test{
 
 //MARK: Numerical Close-ness
 bool approx(double a, double b, double rel = 1e-12, double abs = 1e-12);
+void expect_close(const vec3& a, const vec3& b,  double rel = 1e-12, double abs = 1e-12);
 void expect_close(const ConservativeState& a, const ConservativeState& b,  double rel = 1e-12, double abs = 1e-12);
 void expect_close(const PrimitiveState& a, const PrimitiveState& b, double rel = 1e-12, double abs = 1e-12);
 void expect_finite(const ConservativeState& U);
@@ -110,6 +111,12 @@ void verify_boundary_fixed(bool output = true);
 void verify_boundary_fixed_1D();
 void verify_boundary_fixed_2D();
 void verify_boundary_fixed_3D();
+//Ignore
+void verify_boundary_ignore(bool output = true);
+void verify_boundary_ignore_1D();
+void verify_boundary_ignore_2D();
+void verify_boundary_ignore_3D();
+void verify_boundary_ignore_blocks_implicit_outflow();
 //Composition
 void verify_boundary_composition(bool output = true);
 void verify_boundary_set_missing_faces_outflow_2D();
@@ -147,6 +154,22 @@ void verify_cfl_time_2D_ignores_ghost_cells();
 void verify_cfl_time_3D_uniform();
 void verify_cfl_time_3D_uses_fastest_cell();
 void verify_cfl_time_3D_ignores_ghost_cells();
+
+
+//MARK: TVD
+void verify_tvd(bool output = true);
+void verify_tvd_scalar_minmod();
+void verify_tvd_scalar_mc();
+void verify_tvd_scalar_vanleer();
+void verify_tvd_scalar_superbee();
+void verify_tvd_scalar_vanalbada();
+void verify_tvd_vec3_limiters();
+void verify_tvd_primitive_limiters();
+void verify_tvd_limiter_dispatch();
+void verify_tvd_muscl_constant_state();
+void verify_tvd_muscl_zero_dt_spatial_reconstruction();
+void verify_tvd_muscl_falls_back_when_unphysical();
+
 
 //MARK: Godunov Scheme
 //1D
