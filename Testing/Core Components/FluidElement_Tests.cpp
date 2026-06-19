@@ -61,6 +61,9 @@ PrimitiveState DRAGON_Test::make_state(double rho, double vx, double vy, double 
     W.v.y = vy;
     W.v.z = vz;
     W.p = p;
+#ifdef MHD
+    W.B = {0,0,0};
+#endif
     return W;
 }
 

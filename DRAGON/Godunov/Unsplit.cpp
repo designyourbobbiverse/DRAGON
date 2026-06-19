@@ -64,9 +64,10 @@ void computeHalfStates_Y( FluidArray2D& _L,const Grid2D& _W, FluidArray2D& _R, d
 void correctState(FluidArray2D& _L, FluidArray2D& _R, const FluxArray2D& F, double dt_dL, int xL, int xR, int yL, int yR, int dim);
 #ifdef MHD
 typedef ExtendedArray2D<vec3> MagneticArray2D;
+void computeFaceFields(const MagneticArray2D& _A, MagneticArray2D& _B, double dx, double dy);
 void copyFaceFields_X( FluidArray2D& _L,const MagneticArray2D& _B, FluidArray2D& _R);
 void copyFaceFields_Y( FluidArray2D& _L,const MagneticArray2D& _B, FluidArray2D& _R);
-void Faraday(MagneticArray2D& _B, const FluxArray2D& F_X,const FluxArray2D& F_Y, double dx, double dy, double dt);
+void updatePotential(MagneticArray2D& _B, const FluxArray2D& F_X,const FluxArray2D& F_Y, double dt);
 #endif
 
 
@@ -79,6 +80,9 @@ void Grid2D::advanceXY(double dt){
     boundary.apply(*this);
 
     #ifdef MHD
+    //Compute the face fields
+    MagneticArray2D B(nx+1,ny+1,ghosts);
+    computeFaceFields(A, B, dx, dy);
     //Set normal fields at faces to match face-centred fields
     copyFaceFields_X(_xL, B, _xR);
     copyFaceFields_Y(_yL, B, _yR);
@@ -88,12 +92,6 @@ void Grid2D::advanceXY(double dt){
     computeHalfStates_X(_xL, (*this), _xR, dt);//_xLR needs (-1...nx, -1...ny), (-2...nx+1, -1...ny)for MHD
     computeHalfStates_Y(_yL, (*this), _yR, dt);//_yLR needs (-1...nx, -1...ny), (-1...nx, -2...ny+1) for MHD
     
-    #ifdef MHD
-    //Set normal fields at faces to match face-centred fields
-    copyFaceFields_X(_xL, B, _xR);
-    copyFaceFields_Y(_yL, B, _yR);
-    #endif
-    
 #ifdef CTU //Colella (1990). https://doi.org/10.1016/0021-9991(90)90233-Q
     //Compute preliminary Fluxes
     computeFlux_X(_xL, _xR, F_X, -1, nx+1, -1, ny+1, dt/dx);  //F_X needs (0...nx, -1...ny), (-1...nx+1, -1...ny)for MHD
@@ -102,8 +100,7 @@ void Grid2D::advanceXY(double dt){
     correctState(_xL, _xR, F_Y, (0.5*dt/dy), -1, nx+1, -1, ny+1, 1); //_xLR needs (-1...nx, 0...ny-1), (-1...nx, -1...ny) for MHD
     correctState(_yL, _yR, F_X, (0.5*dt/dx), -1, nx+1, -1, ny+1, 0); //_yLR needs (0...nx-1, -1...ny), (-1...nx, -1...ny) for MHD
     
-    #ifdef MHD
-    //Set normal fields at faces to match face-centred fields
+    #ifdef MHD//Restore face-normal fields
     copyFaceFields_X(_xL, B, _xR);
     copyFaceFields_Y(_yL, B, _yR);
     #endif
@@ -121,7 +118,7 @@ void Grid2D::advanceXY(double dt){
     }
     
     #ifdef MHD //Do CT Update
-    Faraday(B, F_X, F_Y, dx, dy, dt);
+    updatePotential(A, F_X, F_Y, dt);
     computeBodyAveragedFields();
     #endif
 }
@@ -138,10 +135,11 @@ void computeHalfStates_Z(FluidArray3D& _L, const Grid3D& _W, FluidArray3D& _R, d
 void correctState(const FluidArray3D& _L0, const FluidArray3D& _R0, FluidArray3D& _L, FluidArray3D& _R, const FluxArray3D& F, double dt_dL, int xL, int xR, int yL, int yR, int zL, int zR, int dim);
 #ifdef MHD
 typedef ExtendedArray3D<vec3> MagneticArray3D;
+void computeFaceFields(const MagneticArray3D& _A, MagneticArray3D& _B, double dx, double dy, double dz);
 void copyFaceFields_X( FluidArray3D& _L,const MagneticArray3D& _B, FluidArray3D& _R);
 void copyFaceFields_Y( FluidArray3D& _L,const MagneticArray3D& _B, FluidArray3D& _R);
 void copyFaceFields_Z( FluidArray3D& _L,const MagneticArray3D& _B, FluidArray3D& _R);
-void Faraday(MagneticArray3D& _B, const FluxArray3D& F_X,const FluxArray3D& F_Y,const FluxArray3D& F_Z, double dx, double dy, double dz, double dt);
+void updatePotential(MagneticArray3D& _B, const FluxArray3D& F_X,const FluxArray3D& F_Y,const FluxArray3D& F_Z, double dt);
 #endif
 
 void Grid3D::advanceXYZ(double dt){
@@ -153,7 +151,12 @@ void Grid3D::advanceXYZ(double dt){
     
     boundary.apply(*this);
     
+    
     #ifdef MHD
+    computeBodyAveragedFields();
+    //Compute the face fields
+    MagneticArray3D B(nx+1,ny+1,nz+1,ghosts);
+    computeFaceFields(A, B, dx, dy, dz);
     //Set normal fields at faces to match face-centred fields
     copyFaceFields_X(_xL, B, _xR);
     copyFaceFields_Y(_yL, B, _yR);
@@ -164,14 +167,6 @@ void Grid3D::advanceXYZ(double dt){
     computeHalfStates_X(_xL, (*this), _xR, dt);
     computeHalfStates_Y(_yL, (*this), _yR, dt);
     computeHalfStates_Z(_zL, (*this), _zR, dt);
-    
-    #ifdef MHD
-    //Set normal fields at faces to match face-centred fields
-    copyFaceFields_X(_xL, B, _xR);
-    copyFaceFields_Y(_yL, B, _yR);
-    copyFaceFields_Z(_zL, B, _zR);
-    #endif
-
 
 #ifdef CTU //Colella (1990). https://doi.org/10.1016/0021-9991(90)90233-Q
     //Compute preliminary face fluxes
@@ -179,17 +174,17 @@ void Grid3D::advanceXYZ(double dt){
     computeFlux_Y(_yL, _yR, F_Y, -2, nx+2, -1, ny+1, -2, nz+2, dt/dy); //F_Y needs (-1...nx, 0...ny, -1...nz)
     computeFlux_Z(_zL, _zR, F_Z, -2, nx+2, -2, ny+2, -1, nz+1, dt/dz); //F_Z needs (-1...nx, -1...ny, 0...nz)
     //Apply first round of transverse corrections
-    FluidArray3D _xyL(nx,ny,nz), _xyR(nx,ny,nz); //_xyLR needs (-1...nx, 0...ny-1, -1...nz)
+    FluidArray3D _xyL(nx,ny,nz,ghosts), _xyR(nx,ny,nz,ghosts); //_xyLR needs (-1...nx, 0...ny-1, -1...nz)
     correctState(_xL, _xR, _xyL, _xyR, F_Y, (0.5*dt/dy) , -2, nx+2, -1, ny+1, -1, nz+1, 1);
-    FluidArray3D _xzL(nx,ny,nz), _xzR(nx,ny,nz);//_xzLR needs (-1...nx, -1...ny, 0...nz-1)
+    FluidArray3D _xzL(nx,ny,nz,ghosts), _xzR(nx,ny,nz,ghosts);//_xzLR needs (-1...nx, -1...ny, 0...nz-1)
     correctState(_xL, _xR, _xzL, _xzR, F_Z, (0.5*dt/dz) , -2, nx+2, -1, ny+1, -1, nz+1, 2);
-    FluidArray3D _yxL(nx,ny,nz), _yxR(nx,ny,nz);//_yxLR needs (0...nx-1, -1...ny, -1...nz)
+    FluidArray3D _yxL(nx,ny,nz,ghosts), _yxR(nx,ny,nz,ghosts);//_yxLR needs (0...nx-1, -1...ny, -1...nz)
     correctState(_yL, _yR, _yxL, _yxR, F_X, (0.5*dt/dx), -1, nx+1, -2, ny+2, -1, nz+1, 0);
-    FluidArray3D _yzL(nx,ny,nz), _yzR(nx,ny,nz);//_yzLR needs (-1...nx, -1...ny, 0...nz-1)
+    FluidArray3D _yzL(nx,ny,nz,ghosts), _yzR(nx,ny,nz,ghosts);//_yzLR needs (-1...nx, -1...ny, 0...nz-1)
     correctState(_yL, _yR, _yzL, _yzR, F_Z, (0.5*dt/dz), -1, nx+1, -2, ny+2, -1, nz+1, 2);
-    FluidArray3D _zxL(nx,ny,nz), _zxR(nx,ny,nz); //_zxLR needs (0...nx-1, -1...ny, -1...nz)
+    FluidArray3D _zxL(nx,ny,nz,ghosts), _zxR(nx,ny,nz,ghosts); //_zxLR needs (0...nx-1, -1...ny, -1...nz)
     correctState(_zL, _zR, _zxL, _zxR, F_X, (0.5*dt/dx), -1, nx+1, -1, ny+1, -2, nz+2, 0);
-    FluidArray3D _zyL(nx,ny,nz), _zyR(nx,ny,nz);//_zyLR needs (-1...nx, 0...ny-1, -1...nz)
+    FluidArray3D _zyL(nx,ny,nz,ghosts), _zyR(nx,ny,nz,ghosts);//_zyLR needs (-1...nx, 0...ny-1, -1...nz)
     correctState(_zL, _zR, _zyL, _zyR, F_Y, (0.5*dt/dy), -1, nx+1, -1, ny+1, -2, nz+2, 1);
     //Recompute fluxes
     FluxArray3D F_Xy(nx, ny,nz,2), F_Xz(nx, ny,nz,2);
@@ -202,15 +197,14 @@ void Grid3D::advanceXYZ(double dt){
     computeFlux_Z(_zxL, _zxR, F_Zx, -1, nx+1, -1, ny+1, -1, nz+1, dt/dz); //F_Zx needs (0...nx-1, -1...ny, 0...nz)
     computeFlux_Z(_zyL, _zyR, F_Zy, -1, nx+1, -1, ny+1, -1, nz+1, dt/dz); //F_Zy needs (-1...nx, 0...ny-1, 0...nz)
     //Apply second round of transverse corrections
-    correctState(_xL, _xR, _xL,_xR, F_Yz, (0.5*dt/dy), -1, nx+1, -1, ny+1, -1, nz+1, 1); //_xLR needs (-1...nx, 0...ny-1, 0...nz-1)
+    correctState(_xL, _xR, _xL,_xR, F_Yz, (0.5*dt/dy), -1, nx+1, -1, ny+1, -1, nz+1, 1); //_xLR needs (-1...nx, -1...ny, -1...nz)
     correctState(_xL, _xR, _xL,_xR, F_Zy, (0.5*dt/dz), -1, nx+1, -1, ny+1, -1, nz+1, 2);
-    correctState(_yL, _yR, _yL,_yR, F_Xz, (0.5*dt/dx), -1, nx+1, -1, ny+1, -1, nz+1, 0);//_yLR needs (0...nx-1, -1...ny, 0...nz-1)
+    correctState(_yL, _yR, _yL,_yR, F_Xz, (0.5*dt/dx), -1, nx+1, -1, ny+1, -1, nz+1, 0);//_yLR needs (-1...nx, -1...ny, -1...nz)
     correctState(_yL, _yR, _yL,_yR, F_Zx, (0.5*dt/dz), -1, nx+1, -1, ny+1, -1, nz+1, 2);
-    correctState(_zL, _zR, _zL,_zR, F_Xy, (0.5*dt/dx), -1, nx+1, -1, ny+1, -1, nz+1, 0);//_zLR needs (0...nx-1, 0...ny-1, -1...nz)
+    correctState(_zL, _zR, _zL,_zR, F_Xy, (0.5*dt/dx), -1, nx+1, -1, ny+1, -1, nz+1, 0);//_zLR needs (-1...nx, -1...ny, -1...nz)
     correctState(_zL, _zR, _zL,_zR, F_Yx, (0.5*dt/dy), -1, nx+1, -1, ny+1, -1, nz+1, 1);
     
-    #ifdef MHD
-    //Set normal fields at faces to match face-centred fields
+    #ifdef MHD//Restore face-normal fields
     copyFaceFields_X(_xL, B, _xR);
     copyFaceFields_Y(_yL, B, _yR);
     copyFaceFields_Z(_zL, B, _zR);
@@ -218,9 +212,9 @@ void Grid3D::advanceXYZ(double dt){
 #endif
     
     //Compute Fluxes
-    computeFlux_X(_xL, _xR, F_X, 0, nx, -1, ny+1, -1, nz+1, dt/dx); //F_X needs (0...nx, 0...ny-1, 0...nz-1)
-    computeFlux_Y(_yL, _yR, F_Y, -1, nx+1, 0, ny, -1, nz+1, dt/dy); //F_Y needs (0...nx-1, 0...ny, 0...nz-1)
-    computeFlux_Z(_zL, _zR, F_Z, -1, nx+1, -1, ny+1, 0, nz, dt/dz); //F_Z needs (0...nx-1, 0...ny-1, 0...nz)
+    computeFlux_X(_xL, _xR, F_X, 0, nx, -1, ny+1, -1, nz+1, dt/dx); //F_X needs (0...nx, -1...ny, -1...nz)
+    computeFlux_Y(_yL, _yR, F_Y, -1, nx+1, 0, ny, -1, nz+1, dt/dy); //F_Y needs (-1...nx, 0...ny, -1...nz)
+    computeFlux_Z(_zL, _zR, F_Z, -1, nx+1, -1, ny+1, 0, nz, dt/dz); //F_Z needs (-1...nx, -1...ny, 0...nz)
     
     //Apply Fluxes
     for(int i=0; i<nx; i++){
@@ -234,7 +228,7 @@ void Grid3D::advanceXYZ(double dt){
     }
     
     #ifdef MHD
-    Faraday(B, F_X, F_Y, F_Z, dx, dy, dz, dt);
+    updatePotential(A, F_X, F_Y, F_Z, dt);
     computeBodyAveragedFields();
     #endif
 }
@@ -320,6 +314,21 @@ void computeHalfStates_X(FluidArray3D& _L, const Grid3D& _W, FluidArray3D& _R, d
     const double dt_dL = dt/_W.dx;//Compute once
     const int nx = _W.getSizeX(), ny = _W.getSizeY(),nz = _W.getSizeZ(), g = _W.getGhosts();
 
+    for(int i=-g; i<nx+g; i++){
+        for(int j=-g; j<ny+g; j++){
+            for(int k=-g; k<nz+g; k++){
+#ifdef MHD
+                double BL = _L[i,j,k].B.x, BR = _R[i,j,k].B.x;
+#endif
+                _L[i,j,k] = _W[i,j,k];
+                _R[i,j,k] = _W[i,j,k];
+#ifdef MHD
+                _L[i,j,k].B.x = BL;
+                _R[i,j,k].B.x = BR;
+#endif
+            }
+        }
+    }
     for(int i=-g + 1; i<nx+g - 1; i++){
         for(int j=-g; j<ny+g; j++){
             for(int k=-g; k<nz+g; k++){
@@ -333,6 +342,21 @@ void computeHalfStates_Y(FluidArray3D& _L, const Grid3D& _W, FluidArray3D& _R, d
     const double dt_dL = dt/_W.dy;//Compute once
     const int nx = _W.getSizeX(), ny = _W.getSizeY(),nz = _W.getSizeZ(), g = _W.getGhosts();
     
+    for(int i=-g; i<nx+g; i++){
+        for(int j=-g; j<ny+g; j++){
+            for(int k=-g; k<nz+g; k++){
+#ifdef MHD
+                double BL = _L[i,j,k].B.y, BR = _R[i,j,k].B.y;
+#endif
+                _L[i,j,k] = _W[i,j,k];
+                _R[i,j,k] = _W[i,j,k];
+#ifdef MHD
+                _L[i,j,k].B.y = BL;
+                _R[i,j,k].B.y = BR;
+#endif
+            }
+        }
+    }
     for(int i=-g; i<nx+g; i++){
         for(int j=-g + 1; j<ny+g - 1; j++){
             for(int k=-g; k<nz+g; k++){
@@ -351,6 +375,21 @@ void computeHalfStates_Z(FluidArray3D& _L, const Grid3D& _W, FluidArray3D& _R, d
     const double dt_dL = dt/_W.dz;//Compute once
     const int nx = _W.getSizeX(), ny = _W.getSizeY(),nz = _W.getSizeZ(), g = _W.getGhosts();
     
+    for(int i=-g; i<nx+g; i++){
+        for(int j=-g; j<ny+g; j++){
+            for(int k=-g; k<nz+g; k++){
+#ifdef MHD
+                double BL = _L[i,j,k].B.z, BR = _R[i,j,k].B.z;
+#endif
+                _L[i,j,k] = _W[i,j,k];
+                _R[i,j,k] = _W[i,j,k];
+#ifdef MHD
+                _L[i,j,k].B.z = BL;
+                _R[i,j,k].B.z = BR;
+#endif
+            }
+        }
+    }
     for(int i=-g; i<nx+g; i++){
         for(int j=-g; j<ny+g; j++){
             for(int k=-g + 1; k<nz+g - 1; k++){
@@ -402,68 +441,8 @@ void correctState(const FluidArray3D& _L0, const FluidArray3D& _R0, FluidArray3D
         }
     }
 }
-//MARK: Constrained Transport
 #ifdef MHD
-void Faraday(MagneticArray2D& _B, const FluxArray2D& F_X,const FluxArray2D& F_Y, double dx, double dy, double dt){
-    const int nx = _B.getSizeX()-1, ny = _B.getSizeY()-1, g = _B.getGhosts();
-    const double dt_dx = dt/dx, dt_dy = dt/dy;
-    
-    ExtendedArray2D<double> Ez(nx+1,ny+1,1);
-    
-    for(int i=0; i<=nx; i++){
-        for(int j=0; j<=ny; j++){
-            Ez[i,j] = (F_Y[i-1,j].B.x -  F_X[i,j-1].B.y + F_Y[i,j].B.x  - F_X[i,j].B.y)*0.25;
-        }
-    }
-    for(int i=0; i<=nx; i++){
-        for(int j=0; j<ny; j++){
-            _B[i,j].x -= dt_dy * (Ez[i,j+1] - Ez[i,j]);
-        }
-    }
-    for(int i=0; i<nx; i++){
-        for(int j=0; j<=ny; j++){
-            _B[i,j].y -= dt_dx * (Ez[i,j] - Ez[i+1,j]);
-        }
-    }
-}
-void Faraday(MagneticArray3D& _B, const FluxArray3D& F_X,const FluxArray3D& F_Y, const FluxArray3D& F_Z, double dx, double dy, double dz, double dt){
-    const int nx = _B.getSizeX()-1, ny = _B.getSizeY()-1, nz = _B.getSizeZ()-1, g = _B.getGhosts();
-    const double dt_dx = dt/dx, dt_dy = dt/dy, dt_dz = dt/dz;
-    
-    ExtendedArray3D<vec3> E(nx+1,ny+1,nz+1,g);
-    
-    for(int i=0; i<=nx; i++){
-        for(int j=0; j<=ny; j++){
-            for(int k=0; k<=nz; k++){
-                E[i,j,k].x = (F_Z[i,j-1,k].B.y -  F_Y[i,j,k-1].B.z + F_Z[i,j,k].B.y  - F_Y[i,j,k].B.z)*0.25;
-                E[i,j,k].y = (F_X[i,j,k-1].B.z -  F_Z[i-1,j,k].B.x + F_X[i,j,k].B.z  - F_Z[i,j,k].B.x)*0.25;
-                E[i,j,k].z = (F_Y[i-1,j,k].B.x -  F_X[i,j-1,k].B.y + F_Y[i,j,k].B.x  - F_X[i,j,k].B.y)*0.25;
-            }
-        }
-    }
-    for(int i=0; i<=nx; i++){
-        for(int j=0; j<ny; j++){
-            for(int k=0; k<nz; k++){
-                _B[i,j,k].x -= dt_dy * (E[i,j+1,k].z - E[i,j,k].z) - dt_dz * (E[i,j,k+1].y - E[i,j,k].y);
-            }
-        }
-    }
-    for(int i=0; i<nx; i++){
-        for(int j=0; j<=ny; j++){
-            for(int k=0; k<nz; k++){
-                _B[i,j,k].y -= dt_dz * (E[i,j,k+1].x - E[i,j,k].x) - dt_dx * (E[i+1,j,k].z - E[i,j,k].z);
-            }
-        }
-    }
-    for(int i=0; i<nx; i++){
-        for(int j=0; j<ny; j++){
-            for(int k=0; k<=nz; k++){
-                _B[i,j,k].z -= dt_dx * (E[i+1,j,k].y - E[i,j,k].y) - dt_dy * (E[i,j+1,k].x - E[i,j,k].x);
-            }
-        }
-    }
-}
-
+//MARK: Face-Centred Field Copy
 void copyFaceFields_X( FluidArray2D& _L,const MagneticArray2D& _B, FluidArray2D& _R){
     const int nx = _L.getSizeX(), ny = _L.getSizeY(), g = _B.getGhosts();
     for(int i=-g; i<nx+g; i++){
@@ -515,32 +494,107 @@ void copyFaceFields_Z( FluidArray3D& _L,const MagneticArray3D& _B, FluidArray3D&
         }
     }
 }
+//MARK: Constrained Transport
+
+void updatePotential(MagneticArray2D& _A, const FluxArray2D& F_X,const FluxArray2D& F_Y, double dt){
+    const int nx = _A.getSizeX()-1, ny = _A.getSizeY()-1;
+    
+    for(int i=0; i<=nx; i++){
+        for(int j=0; j<=ny; j++){
+            _A[i,j].z -= (F_Y[i-1,j].B.x -  F_X[i,j-1].B.y + F_Y[i,j].B.x  - F_X[i,j].B.y) * 0.25 * dt;
+        }
+    }
+}
+void updatePotential(MagneticArray3D& _A, const FluxArray3D& F_X,const FluxArray3D& F_Y, const FluxArray3D& F_Z,  double dt){
+    const int nx = _A.getSizeX()-1, ny = _A.getSizeY()-1, nz = _A.getSizeZ()-1;
+    
+    for(int i=0; i<=nx; i++){
+        for(int j=0; j<=ny; j++){
+            for(int k=0; k<=nz; k++){
+                auto a = _A[i,j,k] * _A[i,j,k];
+                if(!(a < 1e-12)) abort();
+                
+                _A[i,j,k].x -= (F_Z[i,j-1,k].B.y -  F_Y[i,j,k-1].B.z + F_Z[i,j,k].B.y  - F_Y[i,j,k].B.z) * 0.25 * dt;
+                _A[i,j,k].y -= (F_X[i,j,k-1].B.z -  F_Z[i-1,j,k].B.x + F_X[i,j,k].B.z  - F_Z[i,j,k].B.x) * 0.25* dt;
+                _A[i,j,k].z -= (F_Y[i-1,j,k].B.x -  F_X[i,j-1,k].B.y + F_Y[i,j,k].B.x  - F_X[i,j,k].B.y) * 0.25 * dt;
+            }
+        }
+    }
+}
+void computeFaceFields(const MagneticArray2D& _A, MagneticArray2D& _B, double dx, double dy){
+    const int nx = _A.getSizeX()-1, ny = _A.getSizeY()-1, g = _B.getGhosts();
+    const double _dx = 1/dx, _dy = 1/dy; //One division + n^2 multiplications > n^2 divisions
+    
+    for(int i=-g; i<=nx+g; i++){
+        for(int j=-g; j<ny+g; j++){
+            _B[i,j].x = (_A[i,j+1].z - _A[i,j].z)*_dy;
+        }
+    }
+    for(int i=-g; i<nx+g; i++){
+        for(int j=-g; j<=ny+g; j++){
+            _B[i,j].y = (_A[i,j].z - _A[i+1,j].z)*_dx;
+        }
+    }
+}
+void computeFaceFields(const MagneticArray3D& _A, MagneticArray3D& _B, double dx, double dy, double dz){
+    const int nx = _A.getSizeX()-1, ny = _A.getSizeY()-1, nz = _A.getSizeZ()-1, g = _B.getGhosts();
+    const double _dx = 1/dx, _dy = 1/dy, _dz = 1/dz; //One division + n^3 multiplications > n^3 divisions
+    
+    for(int i=-g; i<=nx+g; i++){
+        for(int j=-g; j<ny+g; j++){
+            for(int k=-g; k<nz+g; k++){
+                _B[i,j,k].x = (_A[i,j+1,k].z - _A[i,j,k].z)*_dy - (_A[i,j,k+1].y - _A[i,j,k].y)*_dz;
+            }
+        }
+    }
+    for(int i=-g; i<nx+g; i++){
+        for(int j=-g; j<=ny+g; j++){
+            for(int k=-g; k<nz+g; k++){
+                _B[i,j,k].y = (_A[i,j,k+1].x - _A[i,j,k].x)*_dz - (_A[i+1,j,k].z - _A[i,j,k].z)*_dx;
+            }
+        }
+    }
+    for(int i=-g; i<nx+g; i++){
+        for(int j=-g; j<ny+g; j++){
+            for(int k=-g; k<=nz+g; k++){
+                _B[i,j,k].z = (_A[i+1,j,k].y - _A[i,j,k].y)*_dx -  (_A[i,j+1,k].x - _A[i,j,k].x)*_dy;
+            }
+        }
+    }
+}
+
+
 void Grid2D::computeBodyAveragedFields(){
     const int nx = w.getSizeX(), ny = w.getSizeY();
+    MagneticArray2D B(nx+1,ny+1,w.getGhosts());
+    computeFaceFields(A, B, dx, dy);
     
     for(int i=0; i<nx; i++){
         for(int j=0; j<ny; j++){
-            ConservativeState U(w[i,j]);//Update the conservative element to keep quantities conserved
-            U.B.x = (B[i,j].x + B[i+1,j].x)/2;
-            U.B.y = (B[i,j].y + B[i,j+1].y)/2;
-            w[i,j] = U;
+            //ConservativeState U(w[i,j]);//Update the conservative element to keep quantities conserved
+            w[i,j].B.x = (B[i,j].x + B[i+1,j].x)/2;
+            w[i,j].B.y = (B[i,j].y + B[i,j+1].y)/2;
+            //w[i,j] = U;
         }
     }
 }
 void Grid3D::computeBodyAveragedFields(){
     const int nx = w.getSizeX(), ny = w.getSizeY(), nz = w.getSizeZ();
+    MagneticArray3D B(nx+1,ny+1,nz+1,w.getGhosts());
+    computeFaceFields(A, B, dx, dy, dz);
 
     for(int i=0; i<nx; i++){
         for(int j=0; j<ny; j++){
             for(int k=0; k<nz; k++){
-                ConservativeState U(w[i,j,k]);//Update the conservative element to keep quantities conserved
-                U.B.x = (B[i,j,k].x + B[i+1,j,k].x)/2;
-                U.B.y = (B[i,j,k].y + B[i,j+1,k].y)/2;
-                U.B.z = (B[i,j,k].z + B[i,j,k+1].z)/2;
-                w[i,j,k] = U;
+               // ConservativeState U(w[i,j,k]);//Update the conservative element to keep quantities conserved
+                w[i,j,k].B.x = (B[i,j,k].x + B[i+1,j,k].x)/2;
+                w[i,j,k].B.y = (B[i,j,k].y + B[i,j+1,k].y)/2;
+                w[i,j,k].B.z = (B[i,j,k].z + B[i,j,k+1].z)/2;
+                //w[i,j,k] = U;
             }
         }
     }
 }
+
 
 #endif

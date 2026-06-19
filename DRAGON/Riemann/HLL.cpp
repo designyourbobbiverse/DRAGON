@@ -25,7 +25,7 @@ ConservativeState Riemann::HLL(){
     //Compute Sound/Fast Speed
 #ifdef MHD
     //Set Normal Magnetic Fields
-    if(Bx != Bx) Bx = (L.B.x+R.B.x)/2;
+    double Bx = (L.B.x+R.B.x)/2;
     L.B.x = Bx; R.B.x = Bx;
     //Calculate Fast Mode
     double aL = L.c_fast(), aR = R.c_fast(), aM = M.c_fast();
@@ -43,7 +43,7 @@ ConservativeState Riemann::HLLE(){
     double sql = sqrt(L.rho), sqr = sqrt(R.rho);
 #ifdef MHD
     //Set Normal Magnetic Fields
-    if(Bx != Bx) Bx = (L.B.x+R.B.x)/2;
+    double Bx = (L.B.x+R.B.x)/2;
     L.B.x = Bx; R.B.x = Bx;
     //Calculate Fast Mode
     double aL = L.c_fast(), aR = R.c_fast();

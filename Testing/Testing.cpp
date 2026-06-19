@@ -15,7 +15,6 @@ using namespace DRAGON_Test;
 //DRAGONWING
 
 int main() {
-    
     verify_fluid_element();
     verify_riemann();
     verify_grid();

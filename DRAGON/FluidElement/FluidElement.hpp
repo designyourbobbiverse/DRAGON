@@ -18,6 +18,7 @@ struct ConservativeState;
 struct vec3{
     double x, y, z;
     
+    vec3(double x=0, double y=0, double z=0): x(x), y(y), z(z){ }
     // Returns a copy with the two specified components swapped
     vec3 swappedXY() const;
     vec3 swappedXZ() const;
@@ -84,6 +85,7 @@ struct ConservativeState {
 #endif
     
     ConservativeState();//Constructs a zero state
+    ConservativeState(const ConservativeState&) = default; //copying
     ConservativeState(PrimitiveState prim);//Converts primitive to conservative
     
     //Computes the pressure, assuming ideal gas EOS
