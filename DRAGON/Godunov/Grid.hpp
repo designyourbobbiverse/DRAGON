@@ -43,6 +43,9 @@ public:
 struct Grid2D{
 private:
     ExtendedArray2D<PrimitiveState> w;
+#ifdef MHD
+    ExtendedArray2D<vec3> B;
+#endif
 public:
     double dx, dy;
 
@@ -70,15 +73,21 @@ private:
     void advanceX(double dt); //Advance a single split step in X
     void advanceY(double dt); //Advance a single split step in Y
     void advanceXY(double dt); //Advance a single unsplit step
+#ifdef MHD
+    void computeBodyAveragedFields();
+#endif
 };
 
 struct Grid3D{
 private:
     ExtendedArray3D<PrimitiveState>  w;
+#ifdef MHD
+    ExtendedArray3D<vec3> B;
+#endif
 public:
     double dx, dy, dz;
     
-    Grid3D(int nx, int ny, int nz, double dx, double dy, double dz, int ghosts=1);
+    Grid3D(int nx, int ny, int nz, double dx, double dy, double dz, int ghosts=2);
     Grid3D(const Grid3D&) = delete; //No copying
     Grid3D& operator=(const Grid3D&) = delete;
     
@@ -104,6 +113,9 @@ private:
     void advanceY(double dt); //Advance a single split step in Y
     void advanceZ(double dt); //Advance a single split step in Z
     void advanceXYZ(double dt); //Advance a single unsplit step
+#ifdef MHD
+    void computeBodyAveragedFields();
+#endif
 };
 
 

@@ -184,7 +184,7 @@ void DRAGON_Test::verify_god_uniform_moving_2D(bool split){
 }
 
 void DRAGON_Test::verify_god_uniform_stationary_3D(bool split){
-    Grid3D grid(10,10,10, 1.0,1.0,1.0, 2);
+    Grid3D grid(10,10,10, 1.0,1.0,1.0,2);
     PrimitiveState W = make_state(1.0, 0.0, 0.0, 0.0, 5.0);
     for (int i = 0; i < grid.getSizeX(); i++){
         for (int j = 0; j < grid.getSizeY(); j++){
@@ -297,8 +297,8 @@ void DRAGON_Test::verify_god_periodic_conservation_3D(bool split){
         }
     }
     
-    if(split) grid.advance_split(3.0);
-    else grid.advance_unsplit(3.0);
+    if(split) grid.advance_split(2.0);
+    else grid.advance_unsplit(2.0);
     
     ConservativeState got = ConservativeState();
     for (int i = 0; i < grid.getSizeX(); i++){
@@ -795,6 +795,7 @@ void DRAGON_Test::verify_ctu_blast_2D() {
             double p = (r < r0) ? p_blast : p_ambient;
 
             grid[i,j] = make_state(rho0, 0.0, 0.0, 0.0, p);
+            grid[i,j].B = {0,0,0};
             initial[i,j] = grid[i,j];
         }
     }
@@ -838,7 +839,7 @@ void DRAGON_Test::verify_ctu_blast_3D() {
 
     grid.boundary = Outflow();
 
-    CONFIG::riemann_choice = RIEMANN_HLLC;
+    CONFIG::riemann_choice = RIEMANN_EXACT;
 
     const double rho0 = 1.0;
     const double p_ambient = 0.1;

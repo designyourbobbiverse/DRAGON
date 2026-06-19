@@ -36,9 +36,6 @@ struct RiemannSolution;
 struct Riemann{
     PrimitiveState L, R;
     Riemann(PrimitiveState L, PrimitiveState R);
-#ifdef MHD
-    Riemann(PrimitiveState L, PrimitiveState R, double Bx);
-#endif
     
     //Computes the flux using whatever method was selected in Config.h
     //dt_dx is used in verifying physicality of solution (see RIEMANN_VERIFY_FALLBACK in Config.h)
@@ -77,10 +74,6 @@ private:
     RiemannSolution TRRS();//Two-Rarefaction Riemann Solver
     
     void verify_and_fallback(ConservativeState& flux, double dt_dx);
-    
-#ifdef MHD
-    double Bx = NAN;
-#endif
 };
     
 //MARK: Riemann Solution State

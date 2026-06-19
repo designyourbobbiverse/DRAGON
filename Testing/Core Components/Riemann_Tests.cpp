@@ -588,15 +588,14 @@ void DRAGON_Test::verify_hlld_averages_normal_field() {
 }
 
 void DRAGON_Test::verify_hlld_explicit_normal_field() {
-    PrimitiveState L = make_mhd_state(1.0, 0.2, 0.5, -0.3, 1.0, 0.8, -0.3, 0.2);
-    PrimitiveState R = make_mhd_state(0.7, -0.4, -0.2, 0.4, 0.8, -0.2, 0.1, -0.5);
-    double Bx = 0.25;
+    PrimitiveState L = make_mhd_state(1.0, 0.2, 0.5, -0.3, 1.0, 0.25, -0.3, 0.2);
+    PrimitiveState R = make_mhd_state(0.7, -0.4, -0.2, 0.4, 0.8, 0.25, 0.1, -0.5);
 
-    Riemann problem(L, R, Bx);
+    Riemann problem(L, R);
     ConservativeState F = problem.HLLD();
 
-    assert(approx(problem.L.B.x, Bx));
-    assert(approx(problem.R.B.x, Bx));
+    assert(approx(problem.L.B.x, 0.25));
+    assert(approx(problem.R.B.x, 0.25));
     assert(approx(F.B.x, 0.0));
     expect_finite(F);
 }

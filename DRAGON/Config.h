@@ -31,7 +31,7 @@
     #define RIEMANN_EXACT 0 //Produces an exact solution to the Euler Equations using an iterative procedure
         #define Exact_Rarefactions_Check //Checks for the 2-rarefaction case before attempting an iterative procedure
         constexpr double ExactRiemann_Tolerance = 1E-12; //Defines the convergence threshold for the iterative procedure
-        constexpr double ExactRiemann_MaxIters = 0; //Use a nonpostiive value for unlimited iterations
+        constexpr double ExactRiemann_MaxIters = 6; //Use a nonpostiive value for unlimited iterations
     #define RIEMANN_HLL 1 // Harten, Lax, and van Leer (1983). https://doi.org/10.1137/1025002
     #define RIEMANN_HLLC 2 // Toro, Spruce, and Speares (1994). https://doi.org/10.1007/BF01414629
     #define RIEMANN_HLLD 3 // Miyoshi and Kusano (2005). https://doi.org/10.1016/j.jcp.2005.02.017

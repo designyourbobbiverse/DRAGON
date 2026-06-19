@@ -135,6 +135,7 @@ ConservativeState ConservativeState::flux(vec3 v) const {
     F.E -= v * mag_ten; //Poynting Flux
     //Magnetic Induction
     F.B = v.x * B - B.x * v;
+    F.B.x = 0; //Guard against weird floating point errors
 #endif
     
     return F;

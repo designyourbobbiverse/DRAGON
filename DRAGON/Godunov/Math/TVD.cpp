@@ -32,6 +32,7 @@ void TVD::MUSCL(const PrimitiveState& wL, PrimitiveState& _L, const PrimitiveSta
     _L.p = wC.p - 0.5*dW.p;
     _R.p = wC.p + 0.5*dW.p;
 #ifdef MHD
+    dW.B.x = 0; //Normal B should be handled separately
     _L.B = wC.B - 0.5*dW.B;
     _R.B = wC.B + 0.5*dW.B;
 #endif

@@ -16,8 +16,6 @@
 #ifdef MHD
 
 //MARK: Setup
-Riemann::Riemann(PrimitiveState _L, PrimitiveState _R, double _Bx){ L = _L; R = _R; Bx = _Bx; }
-
 void compute_outer_star_transverse(PrimitiveState& wsK, const PrimitiveState& K, double _xK, double SK, double SM, double Bx){
     double Bx2_4pi = (Bx*Bx)/(4*M_PI); // B_x^2 / 4pi
     double denom = _xK*(SK - SM) - Bx2_4pi; //Denominator of B and v scaling factors
@@ -33,7 +31,7 @@ void compute_outer_star_transverse(PrimitiveState& wsK, const PrimitiveState& K,
 
 ConservativeState Riemann::HLLD(){
     //Set normal magnetic fields
-    if(Bx != Bx) Bx = (L.B.x+R.B.x)/2;
+    double Bx = (L.B.x+R.B.x)/2;
     L.B.x = Bx; R.B.x = Bx;
     //Calculate Outer Wave speeds
     double SL = fmin(L.v.x - L.c_fast(), R.v.x - R.c_fast());
@@ -60,14 +58,14 @@ ConservativeState Riemann::HLLD(){
     if(SsR >= 0) {//If this isn't true, we are between right fast/alfven, so we won't need FsL
         compute_outer_star_transverse(wsL, L, _xL, SL, SM, Bx);
         wsL.p = pT - wsL.B*wsL.B / (8*M_PI);
-        FsL =  L.flux() + (wsL - L)*SL;
+        FsL =  L.flux() + (wsL - L)*SL; FsL.B.x = 0;
         //Check for Left fast-alfven region, if so can return the flux now
         if(SsL >= 0) return FsL;
     }
     if(SsL <= 0) { //If this isn't true, we are between left fast/alfven, so we won't need FsR
         compute_outer_star_transverse(wsR, R, _xR, SR, SM, Bx);
         wsR.p = pT - wsR.B*wsR.B / (8*M_PI);
-        FsR = R.flux() + (wsR - R)*SR;
+        FsR = R.flux() + (wsR - R)*SR; FsR.B.x = 0;
         //Check for Right fast-alfven region, if so can return the flux now
         if(SsR <= 0) return FsR;
     }

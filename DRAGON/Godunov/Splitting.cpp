@@ -21,7 +21,11 @@ static int validGhosts(int g){
 #endif
 }
 //MARK: Array Wrappers
-Grid2D::Grid2D(int nx_, int ny_, double dx_, double dy_, int g_): dx(dx_), dy(dy_), w(nx_, ny_,validGhosts(g_)) {}
+Grid2D::Grid2D(int nx_, int ny_, double dx_, double dy_, int g_):  w(nx_, ny_,validGhosts(g_)),
+#ifdef MHD
+    B(nx_+1, ny_+1,w.getGhosts()),
+#endif
+    dx(dx_), dy(dy_) { }
 PrimitiveState& Grid2D::operator[](int i, int j) { return w[i,j]; }
 const PrimitiveState& Grid2D::operator[](int i, int j) const { return w[i,j]; }
 int Grid2D::getSizeX() const { return w.getSizeX(); }
@@ -29,8 +33,11 @@ int Grid2D::getSizeY() const { return w.getSizeY(); }
 int Grid2D::getGhosts() const { return w.getGhosts(); }
 
 
-Grid3D::Grid3D(int nx_, int ny_, int nz_, double dx_, double dy_, double dz_, int g_): dx(dx_), dy(dy_), dz(dz_),
-    w(nx_, ny_, nz_, validGhosts(g_)) {}
+Grid3D::Grid3D(int nx_, int ny_, int nz_, double dx_, double dy_, double dz_, int g_): w(nx_, ny_, nz_, validGhosts(g_)) ,
+#ifdef MHD
+    B(nx_+1, ny_+1, nz_+1, w.getGhosts()),
+#endif
+    dx(dx_), dy(dy_), dz(dz_) {}
 PrimitiveState& Grid3D::operator[](int i, int j, int k) { return w[i,j,k]; }
 const PrimitiveState& Grid3D::operator[](int i, int j, int k) const { return w[i,j,k]; }
 int Grid3D::getSizeX() const { return w.getSizeX(); }
