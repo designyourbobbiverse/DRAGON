@@ -128,6 +128,12 @@ ConservativeState RiemannSolution::flux(double x_t){
 //Get the state along any given x/t line
 PrimitiveState RiemannSolution::sample(double x_t){
     PrimitiveState state;
+    //Edge case: Right on the contact wave, do this to help ensure symmetry
+    if(fabs(sR.v.x - x_t) < 1e-12){
+        double sql = sqrt(sL.rho), sqr = sqrt(sR.rho);
+        return (sql*sL + sqr*sR)/(sql+sqr);
+    }
+    
     //Handle left vs Right side
     bool isLeft = x_t < sR.v.x;
     if(isLeft){ mirror(); x_t=-x_t; }

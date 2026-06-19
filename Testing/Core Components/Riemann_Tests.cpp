@@ -11,14 +11,26 @@
 
 using namespace DRAGON_Test;
 
+
+static PrimitiveState mirrored_state(PrimitiveState W) {
+    W.v.x *= -1.0;
 #ifdef MHD
-static PrimitiveState make_mhd_state(double rho, double vx, double vy, double vz, double p,
-                                     double Bx, double By, double Bz) {
-    PrimitiveState W = make_state(rho, vx, vy, vz, p);
-    W.B = {Bx, By, Bz};
+    W.B.x *= -1.0;
+#endif
     return W;
 }
+
+static ConservativeState mirrored_flux(ConservativeState F) {
+    F.rho *= -1.0;
+    F.p.y *= -1.0;
+    F.p.z *= -1.0;
+    F.E *= -1.0;
+#ifdef MHD
+    F.B.y *= -1.0;
+    F.B.z *= -1.0;
 #endif
+    return F;
+}
 
 void DRAGON_Test::verify_riemann(bool output){
     if(output) std::cout << "Exact Riemann Solver: \n";
@@ -40,6 +52,7 @@ void DRAGON_Test::verify_riemann(bool output){
     verify_exact_supersonic_upwind();
     verify_exact_supersonic_upwind_transverse();
     verify_exact_sod();
+    verify_riemann_exact_symmetry();
     if(output) std::cout << "All Tests Passed\n";
     
     // HLL Tests
@@ -48,6 +61,7 @@ void DRAGON_Test::verify_riemann(bool output){
     verify_hll_stationary_contact();
     verify_hll_supersonic_upwind();
     verify_hll_supersonic_upwind_transverse();
+    verify_hll_symmetry();
     verify_hll_manual_wave_speeds();
     verify_hllc_manual_wave_speeds();
     if(output) std::cout << "All Tests Passed\n";
@@ -68,6 +82,7 @@ void DRAGON_Test::verify_riemann(bool output){
     verify_roe_stationary_contact();
     verify_roe_supersonic_upwind();
     verify_roe_supersonic_upwind_transverse();
+    verify_roe_symmetry();
     verify_roe_entropy_fix_rarefactions();
     if(output) std::cout << "All Tests Passed\n";
 
@@ -359,6 +374,16 @@ void DRAGON_Test::verify_exact_supersonic_upwind_transverse() {
     }
 }
 
+void DRAGON_Test::verify_riemann_exact_symmetry() {
+    PrimitiveState L = make_state(1.0, 0.35, 0.2, -0.1, 1.0);
+    PrimitiveState R = make_state(0.7, -0.45, -0.3, 0.4, 0.8);
+
+    ConservativeState F = Riemann(L, R).exact().flux();
+    ConservativeState reflected = Riemann(mirrored_state(R), mirrored_state(L)).exact().flux();
+
+    expect_close(reflected, mirrored_flux(F));
+}
+
 
 //MARK: HLL/HLLC/HLLE Tests
 void DRAGON_Test::verify_hll_equal_state() {
@@ -445,6 +470,39 @@ void DRAGON_Test::verify_hll_supersonic_upwind_transverse() {
     #endif
         expect_close(Riemann(L,R).HLLE(), expected, 1e-10, 1e-10);
     }
+}
+void DRAGON_Test::verify_hll_symmetry() {
+    PrimitiveState L = make_state(1.0, 0.35, 0.2, -0.1, 1.0);
+    PrimitiveState R = make_state(0.7, -0.45, -0.3, 0.4, 0.8);
+
+    ConservativeState F = Riemann(L, R).HLL();
+    ConservativeState reflected = Riemann(mirrored_state(R), mirrored_state(L)).HLL();
+    expect_close(reflected, mirrored_flux(F));
+    
+    F = Riemann(L, R).HLLC();
+    reflected = Riemann(mirrored_state(R), mirrored_state(L)).HLLC();
+    expect_close(reflected, mirrored_flux(F));
+    
+    F = Riemann(L, R).HLLE();
+    reflected = Riemann(mirrored_state(R), mirrored_state(L)).HLLE();
+    expect_close(reflected, mirrored_flux(F));
+    
+#ifdef MHD
+    L = make_mhd_state(1.0, 0.35, 0.2, -0.1, 1.0, 0.4, -0.3, 0.2);
+    R = make_mhd_state(0.7, -0.45, -0.3, 0.4, 0.8, 0.4, 0.1, -0.5);
+    
+    F = Riemann(L, R).HLL();
+    reflected = Riemann(mirrored_state(R), mirrored_state(L)).HLL();
+    expect_close(reflected, mirrored_flux(F));
+    
+    F = Riemann(L, R).HLLD();
+    reflected = Riemann(mirrored_state(R), mirrored_state(L)).HLLD();
+    expect_close(reflected, mirrored_flux(F));
+    
+    F = Riemann(L, R).HLLE();
+    reflected = Riemann(mirrored_state(R), mirrored_state(L)).HLLE();
+    expect_close(reflected, mirrored_flux(F));
+#endif
 }
 void DRAGON_Test::verify_hll_manual_wave_speeds() {
     PrimitiveState L = make_state(1.0,   0.0, 0.0, 0.0, 1.0);
@@ -617,6 +675,15 @@ void DRAGON_Test::verify_roe_supersonic_upwind_transverse() {
         expect_close(Riemann(L,R).Roe(),          expected, 1e-10, 1e-10);
     }
 }
+void DRAGON_Test::verify_roe_symmetry() {
+    PrimitiveState L = make_state(1.0, 0.35, 0.2, -0.1, 1.0);
+    PrimitiveState R = make_state(0.7, -0.45, -0.3, 0.4, 0.8);
+
+    ConservativeState F = Riemann(L, R).Roe();
+    ConservativeState reflected = Riemann(mirrored_state(R), mirrored_state(L)).Roe();
+    expect_close(reflected, mirrored_flux(F));
+}
+
 void DRAGON_Test::verify_roe_entropy_fix_rarefactions() {
 #ifdef Harten_Hyman
     {
@@ -638,6 +705,8 @@ void DRAGON_Test::verify_roe_entropy_fix_rarefactions() {
     }
 #endif
 }
+
+
 
 //MARK: Verify Finiteness
 void DRAGON_Test::expect_finite(const ConservativeState& U) {

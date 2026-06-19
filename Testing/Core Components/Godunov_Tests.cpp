@@ -730,6 +730,46 @@ void DRAGON_Test::verify_ctu_diagonal_contact_3D() {
     }
 }
 //MARK: CTU - Blast
+constexpr double blast_sym_tol = 1e-6;
+static void expect_blast_mirror_x(const PrimitiveState& L, const PrimitiveState& R, double rel = blast_sym_tol, double abs = blast_sym_tol) {
+    assert(approx(L.rho, R.rho, rel, abs));
+    assert(approx(L.p, R.p, rel, abs));
+    assert(approx(L.v.x, -R.v.x, rel, abs));
+    assert(approx(L.v.y, R.v.y, rel, abs));
+    assert(approx(L.v.z, R.v.z, rel, abs));
+#ifdef MHD
+    assert(approx(L.B.x, -R.B.x, rel, abs));
+    assert(approx(L.B.y, R.B.y, rel, abs));
+    assert(approx(L.B.z, R.B.z, rel, abs));
+#endif
+}
+
+static void expect_blast_mirror_y(const PrimitiveState& L, const PrimitiveState& R, double rel = blast_sym_tol, double abs = blast_sym_tol) {
+    assert(approx(L.rho, R.rho, rel, abs));
+    assert(approx(L.p, R.p, rel, abs));
+    assert(approx(L.v.x, R.v.x, rel, abs));
+    assert(approx(L.v.y, -R.v.y, rel, abs));
+    assert(approx(L.v.z, R.v.z, rel, abs));
+#ifdef MHD
+    assert(approx(L.B.x, R.B.x, rel, abs));
+    assert(approx(L.B.y, -R.B.y, rel, abs));
+    assert(approx(L.B.z, R.B.z, rel, abs));
+#endif
+}
+
+static void expect_blast_mirror_z(const PrimitiveState& L, const PrimitiveState& R, double rel = blast_sym_tol, double abs = blast_sym_tol) {
+    assert(approx(L.rho, R.rho, rel, abs));
+    assert(approx(L.p, R.p, rel, abs));
+    assert(approx(L.v.x, R.v.x, rel, abs));
+    assert(approx(L.v.y, R.v.y, rel, abs));
+    assert(approx(L.v.z, -R.v.z, rel, abs));
+#ifdef MHD
+    assert(approx(L.B.x, R.B.x, rel, abs));
+    assert(approx(L.B.y, R.B.y, rel, abs));
+    assert(approx(L.B.z, -R.B.z, rel, abs));
+#endif
+}
+
 void DRAGON_Test::verify_ctu_blast_2D() {
     const int nx = 64, ny = 64;
     const double dx = 1.0 / nx, dy = 1.0 / ny;
@@ -738,6 +778,8 @@ void DRAGON_Test::verify_ctu_blast_2D() {
     Grid2D initial(nx, ny, dx, dy);
 
     grid.boundary = Outflow();
+    
+    CONFIG::riemann_choice = RIEMANN_EXACT;
 
     const double rho0 = 1.0;
     const double p_ambient = 0.1;
@@ -777,6 +819,14 @@ void DRAGON_Test::verify_ctu_blast_2D() {
     assert(approx(mass1, mass0, 1e-10, 1e-10));
     // The center should depressurize and nearby gas should start moving outward.
     assert((grid[nx/2, ny/2].p < p_blast));
+    // Symmetry across the blast center.
+    for (int i = 0; i < nx; ++i) {
+        for (int j = 0; j < ny; ++j) {
+            expect_blast_mirror_x(grid[i,j], grid[nx-1-i,j]);
+            expect_blast_mirror_y(grid[i,j], grid[i,ny-1-j]);
+        }
+    }
+
 }
 
 void DRAGON_Test::verify_ctu_blast_3D() {
@@ -787,6 +837,8 @@ void DRAGON_Test::verify_ctu_blast_3D() {
     Grid3D initial(nx, ny,nz, dx, dy, dz);
 
     grid.boundary = Outflow();
+
+    CONFIG::riemann_choice = RIEMANN_HLLC;
 
     const double rho0 = 1.0;
     const double p_ambient = 0.1;
@@ -832,4 +884,15 @@ void DRAGON_Test::verify_ctu_blast_3D() {
     assert(approx(mass1, mass0, 1e-10, 1e-10));
     // The center should depressurize and nearby gas should start moving outward.
     assert((grid[nx/2, ny/2, nz/2].p < p_blast));
+    // Symmetry across the blast center.
+    for (int i = 0; i < nx; ++i) {
+        for (int j = 0; j < ny; ++j) {
+            for (int k = 0; k < nz; ++k) {
+                expect_blast_mirror_x(grid[i,j,k], grid[nx-1-i,j,k]);
+                expect_blast_mirror_y(grid[i,j,k], grid[i,ny-1-j,k]);
+                expect_blast_mirror_z(grid[i,j,k], grid[i,j,nz-1-k]);
+            }
+        }
+    }
+
 }

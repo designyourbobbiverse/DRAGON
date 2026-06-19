@@ -64,6 +64,14 @@ PrimitiveState DRAGON_Test::make_state(double rho, double vx, double vy, double 
     return W;
 }
 
+#ifdef MHD
+PrimitiveState DRAGON_Test::make_mhd_state(double rho, double vx,double vy,double vz, double p, double Bx,double By,double Bz) {
+    PrimitiveState W = make_state(rho, vx, vy, vz, p);
+    W.B = {Bx, By, Bz};
+    return W;
+}
+#endif
+
 
 //MARK: Close enough
 bool DRAGON_Test::approx(double a, double b, double rel, double abs) {

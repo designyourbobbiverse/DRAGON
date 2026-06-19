@@ -27,6 +27,9 @@ void expect_finite(const PrimitiveState& W);
 //MARK: Fluid Element
 void verify_fluid_element(bool output = true);
 PrimitiveState make_state(double rho, double vx, double vy, double vz, double p);
+#ifdef MHD
+PrimitiveState make_mhd_state(double rho, double vx, double vy, double vz, double p, double Bx, double By, double Bz);
+#endif
 //Data Structure & Coversion
 void verify_constructors();
 void verify_conversion();
@@ -58,6 +61,7 @@ void verify_exact_sod();
 void verify_riemann_f();
 void verify_sample_mirror_restores_state();
 void verify_exact_supersonic_upwind_transverse();
+void verify_riemann_exact_symmetry();
 // Flux dispatch and wrappers
 void verify_riemann_flux_dispatch();
 void verify_riemann_flux_safety_check();
@@ -67,6 +71,7 @@ void verify_riemann_flux_dimension_wrappers_mhd();
 void verify_hll_equal_state();
 void verify_hll_stationary_contact();
 void verify_hll_supersonic_upwind();
+void verify_hll_symmetry();
 void verify_hll_manual_wave_speeds();
 void verify_hllc_manual_wave_speeds();
 void verify_hll_supersonic_upwind_transverse();
@@ -77,6 +82,7 @@ void verify_hlld_explicit_normal_field();
 void verify_hlld_star_regions_finite();
 //Roe Tests
 void verify_roe_equal_state();
+void verify_roe_symmetry();
 void verify_roe_stationary_contact();
 void verify_roe_supersonic_upwind();
 void verify_roe_supersonic_upwind_transverse();

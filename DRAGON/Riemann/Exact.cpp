@@ -96,7 +96,8 @@ RiemannSolution Riemann::TRRS(){
     double aL = L.cs(), aR = R.cs();//Compute the Sound Speeds
     RiemannSolution s = RiemannSolution(*this);
 
-    double _LR = pow(L.p / R.p, _Ginv) * aR/aL;
+    double _LR = pow(L.p / R.p, _Gm1_2G) * aR/aL;
+    
     //Velocity
     s.sL.v.x = (_LR*L.v.x + R.v.x + _2_Gm1*(_LR*aL-aR)) / (_LR + 1);
         s.sR.v.x = s.sL.v.x;//Velocity same across contact
