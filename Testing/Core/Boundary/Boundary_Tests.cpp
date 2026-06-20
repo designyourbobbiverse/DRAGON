@@ -317,6 +317,13 @@ void DRAGON_Test::verify_boundary_ignore_2D(){
             if(i < 0 || i >= grid.getSizeX() || j < 0 || j >= grid.getSizeY()) expect_close(grid[i,j], G);
         }
     }
+#ifdef MHD
+    for(int i = -grid.getGhosts(); i <= grid.getSizeX() + grid.getGhosts(); i++) {
+        for(int j = -grid.getGhosts(); j <= grid.getSizeY() + grid.getGhosts(); j++) {
+            expect_close(grid.getA()[i,j], make_tagged_vec(10*i + j));
+        }
+    }
+#endif
 }
 
 void DRAGON_Test::verify_boundary_ignore_3D(){
@@ -332,6 +339,15 @@ void DRAGON_Test::verify_boundary_ignore_3D(){
             }
         }
     }
+#ifdef MHD
+    for(int i = -grid.getGhosts(); i <= grid.getSizeX() + grid.getGhosts(); i++) {
+        for(int j = -grid.getGhosts(); j <= grid.getSizeY() + grid.getGhosts(); j++) {
+            for(int k = -grid.getGhosts(); k <= grid.getSizeZ() + grid.getGhosts(); k++) {
+                expect_close(grid.getA()[i,j,k], make_tagged_vec(100*i + 10*j + k));
+            }
+        }
+    }
+#endif
 }
 
 void DRAGON_Test::verify_boundary_ignore_blocks_implicit_outflow(){
@@ -351,7 +367,6 @@ void DRAGON_Test::verify_boundary_ignore_blocks_implicit_outflow(){
         expect_close(grid[i,4], grid[i,3]);
     }
 }
-
 
 
 

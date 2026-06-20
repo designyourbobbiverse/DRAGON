@@ -58,9 +58,11 @@ public:
     PrimitiveState& operator[](int i,int j);
     const PrimitiveState& operator[](int i,int j) const;
     int getSizeX() const, getSizeY() const, getGhosts() const;
+    #ifdef MHD
     //Access Edge Magnetic potentials.
     //A[i,j] is on the corner between w[i-1,j-1] and w[i,j]
     ExtendedArray2D<vec3>& getA(){return A;}
+    #endif
     
     //Boundary
     Boundary::BoundaryList boundary = Boundary::BoundaryList();
@@ -99,9 +101,11 @@ public:
     PrimitiveState& operator[](int i,int j,int k);
     const PrimitiveState& operator[](int i,int j,int k) const;
     int getSizeX() const, getSizeY() const, getSizeZ() const, getGhosts() const;
+    #ifdef MHD
     //Access Edge Magnetic potentials.
     //A[i,j,k] is on the corner between w[i-1,j-1,k-1] and w[i,j,k]
     ExtendedArray3D<vec3>& getA(){return A;}
+    #endif
     
     
     //Boundary
