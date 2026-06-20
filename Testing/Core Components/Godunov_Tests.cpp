@@ -880,7 +880,7 @@ void DRAGON_Test::verify_ctu_blast_3D() {
             }
         }
     }
-    //assert(approx(mass1, mass0, 1e-10, 1e-10));
+    assert(approx(mass1, mass0, 1e-10, 1e-10));
     // The center should depressurize and nearby gas should start moving outward.
     assert((grid[nx/2, ny/2, nz/2].p < p_blast));
     // Symmetry across the blast center.

@@ -29,6 +29,8 @@ void compute_outer_star_transverse(PrimitiveState& wsK, const PrimitiveState& K,
 }
 
 
+
+
 ConservativeState Riemann::HLLD(){
     //Set normal magnetic fields
     double Bx = (L.B.x+R.B.x)/2;
@@ -38,7 +40,7 @@ ConservativeState Riemann::HLLD(){
     if(SL >= 0) return L.flux(); //Left intial region
     double SR = fmax(L.v.x + L.c_fast(), R.v.x + R.c_fast());
     if(SR <= 0) return R.flux(); //Right intial region
-    
+        
     //Calculate the Contact Wave Speed
     double pTL = L.p + (L.B*L.B)/(8*M_PI), pTR = R.p + (R.B*R.B)/(8*M_PI);
     double _xL = L.rho * (SL-L.v.x), _xR = R.rho * (SR-R.v.x);
@@ -56,8 +58,6 @@ ConservativeState Riemann::HLLD(){
     ConservativeState FsL, FsR;
     double pT = (_xR*pTL - _xL*pTR + _xL*_xR*(R.v.x - L.v.x)) / (_xR - _xL);
     
-    
-    
     if(SsR >= 0) {//If this isn't true, we are between right fast/alfven, so we won't need FsL
         compute_outer_star_transverse(wsL, L, _xL, SL, SM, Bx);
         wsL.p = pT - wsL.B*wsL.B / (8*M_PI);
@@ -70,7 +70,6 @@ ConservativeState Riemann::HLLD(){
         FsR = R.flux() + (wsR - R)*SR; FsR.B.x = 0;
     }
             
-    if (SsL>-1e-14 && SsR < 1e-14) return HLLC(); //Degenerate Middle, preserve symmetry
     if(SsL >= 0) return FsL;//Check for Left fast-alfven region, if so can return the flux now
     if(SsR <= 0) return FsR;//Check for Right fast-alfven region, if so can return the flux now
 

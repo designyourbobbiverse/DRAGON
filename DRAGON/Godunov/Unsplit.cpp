@@ -511,9 +511,6 @@ void updatePotential(MagneticArray3D& _A, const FluxArray3D& F_X,const FluxArray
     for(int i=0; i<=nx; i++){
         for(int j=0; j<=ny; j++){
             for(int k=0; k<=nz; k++){
-                auto a = _A[i,j,k] * _A[i,j,k];
-                if(!(a < 1e-12)) abort();
-                
                 _A[i,j,k].x -= (F_Z[i,j-1,k].B.y -  F_Y[i,j,k-1].B.z + F_Z[i,j,k].B.y  - F_Y[i,j,k].B.z) * 0.25 * dt;
                 _A[i,j,k].y -= (F_X[i,j,k-1].B.z -  F_Z[i-1,j,k].B.x + F_X[i,j,k].B.z  - F_Z[i,j,k].B.x) * 0.25* dt;
                 _A[i,j,k].z -= (F_Y[i-1,j,k].B.x -  F_X[i,j-1,k].B.y + F_Y[i,j,k].B.x  - F_X[i,j,k].B.y) * 0.25 * dt;
@@ -571,10 +568,10 @@ void Grid2D::computeBodyAveragedFields(){
     
     for(int i=0; i<nx; i++){
         for(int j=0; j<ny; j++){
-            //ConservativeState U(w[i,j]);//Update the conservative element to keep quantities conserved
-            w[i,j].B.x = (B[i,j].x + B[i+1,j].x)/2;
-            w[i,j].B.y = (B[i,j].y + B[i,j+1].y)/2;
-            //w[i,j] = U;
+            ConservativeState U(w[i,j]);//Update the conservative element to keep quantities conserved
+            U.B.x = (B[i,j].x + B[i+1,j].x)/2;
+            U.B.y = (B[i,j].y + B[i,j+1].y)/2;
+            w[i,j] = U;
         }
     }
 }
@@ -586,11 +583,11 @@ void Grid3D::computeBodyAveragedFields(){
     for(int i=0; i<nx; i++){
         for(int j=0; j<ny; j++){
             for(int k=0; k<nz; k++){
-               // ConservativeState U(w[i,j,k]);//Update the conservative element to keep quantities conserved
-                w[i,j,k].B.x = (B[i,j,k].x + B[i+1,j,k].x)/2;
-                w[i,j,k].B.y = (B[i,j,k].y + B[i,j+1,k].y)/2;
-                w[i,j,k].B.z = (B[i,j,k].z + B[i,j,k+1].z)/2;
-                //w[i,j,k] = U;
+                ConservativeState U(w[i,j,k]);//Update the conservative element to keep quantities conserved
+                U.B.x = (B[i,j,k].x + B[i+1,j,k].x)/2;
+                U.B.y = (B[i,j,k].y + B[i,j+1,k].y)/2;
+                U.B.z = (B[i,j,k].z + B[i,j,k+1].z)/2;
+                w[i,j,k] = U;
             }
         }
     }
