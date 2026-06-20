@@ -48,6 +48,9 @@ void Boundary::Outflow::apply(Grid2D& grid) {
             for(int g = 1; g <= ng; g++){
                 grid[-g,j] = grid[0,j];
                 if(gated && grid[-g,j].v.x > 0) grid[-g,j].v.x = 0; //Kill inflows if applicable
+                #ifdef MHD
+                grid.getA()[-g,j] = grid.getA()[0,j];
+                #endif
             }
         }
     }
@@ -56,7 +59,9 @@ void Boundary::Outflow::apply(Grid2D& grid) {
             for(int g = 1; g <= ng; g++){
                 grid[nx-1+g,j] = grid[nx-1,j];
                 if(gated && grid[nx-1+g,j].v.x < 0) grid[nx-1+g,j].v.x = 0; //Kill inflows if applicable
-
+                #ifdef MHD
+                grid.getA()[nx+g,j] = grid.getA()[nx,j];
+                #endif
             }
         }
     }
@@ -65,6 +70,9 @@ void Boundary::Outflow::apply(Grid2D& grid) {
             for(int g = 1; g <= ng; g++){
                 grid[i,-g] = grid[i,0];
                 if(gated && grid[i,-g].v.y > 0) grid[i,-g].v.y = 0; //Kill inflows if applicable
+                #ifdef MHD
+                grid.getA()[i,-g] = grid.getA()[i,0];
+                #endif
             }
         }
     }
@@ -73,6 +81,9 @@ void Boundary::Outflow::apply(Grid2D& grid) {
             for(int g = 1; g <= ng; g++){
                 grid[i,ny-1+g] = grid[i,ny-1];
                 if(gated && grid[i,ny-1+g].v.y < 0) grid[i,ny-1+g].v.y = 0; //Kill inflows if applicable
+                #ifdef MHD
+                grid.getA()[i,ny+g] = grid.getA()[i,ny];
+                #endif
             }
         }
     }
@@ -91,6 +102,9 @@ void Boundary::Outflow::apply(Grid3D& grid) {
                 for(int g = 1; g <= ng; g++){
                     grid[-g,j,k] = grid[0,j,k];
                     if(gated && grid[-g,j,k].v.x > 0) grid[-g,j,k].v.x = 0; //Kill inflows if applicable
+                    #ifdef MHD
+                    grid.getA()[-g,j,k] = grid.getA()[0,j,k];
+                    #endif
                 }
             }
         }
@@ -101,6 +115,9 @@ void Boundary::Outflow::apply(Grid3D& grid) {
                 for(int g = 1; g <= ng; g++){
                     grid[nx-1+g,j,k] = grid[nx-1,j,k];
                     if(gated && grid[nx-1+g,j,k].v.x < 0) grid[nx-1+g,j,k].v.x = 0; //Kill inflows if applicable
+                    #ifdef MHD
+                    grid.getA()[nx+g,j,k] = grid.getA()[nx,j,k];
+                    #endif
                 }
             }
         }
@@ -111,7 +128,9 @@ void Boundary::Outflow::apply(Grid3D& grid) {
                 for(int g = 1; g <= ng; g++){
                     grid[i,-g,k] = grid[i,0,k];
                     if(gated && grid[i,-g,k].v.y > 0) grid[i,-g,k].v.y = 0; //Kill inflows if applicable
-
+                    #ifdef MHD
+                    grid.getA()[i,-g,k] = grid.getA()[i,0,k];
+                    #endif
                 }
             }
         }
@@ -122,6 +141,9 @@ void Boundary::Outflow::apply(Grid3D& grid) {
                 for(int g = 1; g <= ng; g++){
                     grid[i,ny-1+g,k] = grid[i,ny-1,k];
                     if(gated && grid[i,ny-1+g,k].v.y < 0) grid[i,ny-1+g,k].v.y = 0; //Kill inflows if applicable
+                    #ifdef MHD
+                    grid.getA()[i,ny+g,k] = grid.getA()[i,ny,k];
+                    #endif
                 }
             }
         }
@@ -132,6 +154,9 @@ void Boundary::Outflow::apply(Grid3D& grid) {
                 for(int g = 1; g <= ng; g++){
                     grid[i,j,-g] = grid[i,j,0];
                     if(gated && grid[i,j,-g].v.z > 0) grid[i,j,-g].v.z = 0; //Kill inflows if applicable
+                    #ifdef MHD
+                    grid.getA()[i,j,-g] = grid.getA()[i,j,0];
+                    #endif
                 }
             }
         }
@@ -142,6 +167,9 @@ void Boundary::Outflow::apply(Grid3D& grid) {
                 for(int g = 1; g <= ng; g++){
                     grid[i,j,nz-1+g] = grid[i,j,nz-1];
                     if(gated && grid[i,j,nz-1+g].v.z < 0) grid[i,j,nz-1+g].v.z = 0; //Kill inflows if applicable
+                    #ifdef MHD
+                    grid.getA()[i,j,nz+g] = grid.getA()[i,j,nz];
+                    #endif
                 }
             }
         }

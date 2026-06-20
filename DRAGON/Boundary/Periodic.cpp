@@ -38,7 +38,14 @@ void Boundary::Periodic::apply(Grid2D& grid) {
             for(int g = 1; g <= ng; g++){
                 grid[-g,j] = grid[nx-g,j];
                 grid[nx-1+g,j] = grid[g-1,j];
+                #ifdef MHD
+                grid.getA()[-g,j] = grid.getA()[nx-g,j];
+                grid.getA()[nx-1+g,j] = grid.getA()[g-1,j];
+                #endif
             }
+            #ifdef MHD
+            grid.getA()[nx+ng,j] = grid.getA()[ng,j];
+            #endif
         }
     }
     if (faces & Y){
@@ -46,7 +53,14 @@ void Boundary::Periodic::apply(Grid2D& grid) {
             for(int g = 1; g <= ng; g++){
                 grid[i,-g] = grid[i,ny-g];
                 grid[i,ny-1+g] = grid[i,g-1];
+                #ifdef MHD
+                grid.getA()[i,-g] = grid.getA()[i,ny-g];
+                grid.getA()[i,ny-1+g] = grid.getA()[i,g-1];
+                #endif
             }
+            #ifdef MHD
+            grid.getA()[i,ny+ng] = grid.getA()[i,ng];
+            #endif
         }
     }
 }
@@ -64,7 +78,14 @@ void Boundary::Periodic::apply(Grid3D& grid) {
                 for(int g = 1; g <= ng; g++){
                     grid[-g,j,k] = grid[nx-g,j,k];
                     grid[nx-1+g,j,k] = grid[g-1,j,k];
+                    #ifdef MHD
+                    grid.getA()[-g,j,k] = grid.getA()[nx-g,j,k];
+                    grid.getA()[nx-1+g,j,k] = grid.getA()[g-1,j,k];
+                    #endif
                 }
+                #ifdef MHD
+                grid.getA()[nx+ng,j,k] = grid.getA()[ng,j,k];
+                #endif
             }
         }
     }
@@ -74,7 +95,14 @@ void Boundary::Periodic::apply(Grid3D& grid) {
                 for(int g = 1; g <= ng; g++){
                     grid[i,-g,k] = grid[i,ny-g,k];
                     grid[i,ny-1+g,k] = grid[i,g-1,k];
+                    #ifdef MHD
+                    grid.getA()[i,-g,k] = grid.getA()[i,ny-g,k];
+                    grid.getA()[i,ny-1+g,k] = grid.getA()[i,g-1,k];
+                    #endif
                 }
+                #ifdef MHD
+                grid.getA()[i,ny+ng,k] = grid.getA()[i,ng,k];
+                #endif
             }
         }
     }
@@ -84,7 +112,14 @@ void Boundary::Periodic::apply(Grid3D& grid) {
                 for(int g = 1; g <= ng; g++){
                     grid[i,j,-g] = grid[i,j,nz-g];
                     grid[i,j,nz-1+g] = grid[i,j,g-1];
+                    #ifdef MHD
+                    grid.getA()[i,j,-g] = grid.getA()[i,j,nz-g];
+                    grid.getA()[i,j,nz-1+g] = grid.getA()[i,j,g-1];
+                    #endif
                 }
+                #ifdef MHD
+                grid.getA()[i,j,nz+ng] = grid.getA()[i,j,ng];
+                #endif
             }
         }
     }
