@@ -40,25 +40,42 @@ void DRAGON_Test::verify_boundary(bool output){
 }
 
 //MARK: Helpers
-void reflectX(PrimitiveState& W){
+vec3 make_tagged_vec(double tag){
+    return vec3(tag + 100, tag + 200, tag + 300);
+}
+
+void reflectX1D(PrimitiveState& W){
     W.v.x *= -1;
 #ifdef MHD
+    W.B *= -1;
     W.B.x *= -1;
 #endif
 }
 
-void reflectY(PrimitiveState& W){
-    W.v.y *= -1;
-#ifdef MHD
-    W.B.y *= -1;
-#endif
-}
-
-void reflectZ(PrimitiveState& W){
-    W.v.z *= -1;
+void reflectX2D(PrimitiveState& W){
+    W.v.x *= -1;
 #ifdef MHD
     W.B.z *= -1;
 #endif
+}
+
+void reflectY2D(PrimitiveState& W){
+    W.v.y *= -1;
+#ifdef MHD
+    W.B.z *= -1;
+#endif
+}
+
+void reflectX3D(PrimitiveState& W){
+    W.v.x *= -1;
+}
+
+void reflectY3D(PrimitiveState& W){
+    W.v.y *= -1;
+}
+
+void reflectZ3D(PrimitiveState& W){
+    W.v.z *= -1;
 }
 
 const PrimitiveState G = make_tagged_state(-666);
@@ -86,6 +103,13 @@ void fill_2D(Grid2D& grid) {
             grid[i, j] = make_tagged_state(i*s + j*s*s);
         }
     }
+#ifdef MHD
+    for (int i = -grid.getGhosts(); i <= grid.getSizeX()+grid.getGhosts(); i++) {
+        for (int j = -grid.getGhosts(); j <= grid.getSizeY()+grid.getGhosts(); j++) {
+            grid.getA()[i, j] = make_tagged_vec(10*i + j);
+        }
+    }
+#endif
     
 }
 void fill_3D(Grid3D& grid) {
@@ -104,6 +128,15 @@ void fill_3D(Grid3D& grid) {
             }
         }
     }
+#ifdef MHD
+    for (int i = -grid.getGhosts(); i <= grid.getSizeX()+grid.getGhosts(); i++) {
+        for (int j = -grid.getGhosts(); j <= grid.getSizeY()+grid.getGhosts(); j++) {
+            for (int k = -grid.getGhosts(); k <= grid.getSizeZ()+grid.getGhosts(); k++) {
+                grid.getA()[i, j, k] = make_tagged_vec(100*i + 10*j + k);
+            }
+        }
+    }
+#endif
 }
 
 //MARK: Boundary Consturction
@@ -210,9 +243,9 @@ void DRAGON_Test::verify_boundary_set_missing_faces_outflow_2D() {
     boundary.apply(grid);
     
     // X should be reflective
-    PrimitiveState wxL = grid[0,0]; reflectX(wxL);
+    PrimitiveState wxL = grid[0,0]; reflectX2D(wxL);
     expect_close(grid[-1,0], wxL);
-    PrimitiveState wxR = grid[2,0]; reflectX(wxR);
+    PrimitiveState wxR = grid[2,0]; reflectX2D(wxR);
     expect_close(grid[3,0], wxR);
     // Y should be default outflow
     expect_close(grid[0,-1], grid[0,0]);
@@ -234,12 +267,12 @@ void DRAGON_Test::verify_boundary_composition_3D() {
     expect_close(grid[0,-1,0], grid[0,3,0]);
     expect_close(grid[0, 4,0], grid[0,0,0]);
     // Z should be reflective
-    PrimitiveState wxL = grid[0,0,0]; reflectZ(wxL);
+    PrimitiveState wxL = grid[0,0,0]; reflectZ3D(wxL);
     expect_close(grid[0,0,-1], wxL);
-    PrimitiveState wxR = grid[0,0,4]; reflectZ(wxR);
+    PrimitiveState wxR = grid[0,0,4]; reflectZ3D(wxR);
     expect_close(grid[0,0,5], wxR);
     //Corner
-    PrimitiveState w = grid[0,3,0]; reflectZ(w);
+    PrimitiveState w = grid[0,3,0]; reflectZ3D(w);
     expect_close(grid[-1,-1,-1], w);
 }
 void DRAGON_Test::verify_boundary_composition_order() {
@@ -253,12 +286,12 @@ void DRAGON_Test::verify_boundary_composition_order() {
     expect_close(grid[0,-1,0], grid[0,3,0]);
     expect_close(grid[0, 4,0], grid[0,0,0]);
     // Z should be reflective
-    PrimitiveState wxL = grid[0,0,0]; reflectZ(wxL);
+    PrimitiveState wxL = grid[0,0,0]; reflectZ3D(wxL);
     expect_close(grid[0,0,-1], wxL);
-    PrimitiveState wxR = grid[0,0,4]; reflectZ(wxR);
+    PrimitiveState wxR = grid[0,0,4]; reflectZ3D(wxR);
     expect_close(grid[0,0,5], wxR);
     //Corner
-    PrimitiveState w = grid[0,3,0]; reflectX(w);reflectZ(w);
+    PrimitiveState w = grid[0,3,0]; reflectX3D(w);reflectZ3D(w);
     expect_close(grid[-1,-1,-1], w);
 }
 void DRAGON_Test::verify_boundary_composition_overlap_order() {
@@ -268,7 +301,7 @@ void DRAGON_Test::verify_boundary_composition_overlap_order() {
     BoundaryList boundary = Fixed(W, X) + Reflective(X_negative);
     boundary.apply(grid);
 
-    PrimitiveState reflected = grid[0,0]; reflectX(reflected);
+    PrimitiveState reflected = grid[0,0]; reflectX2D(reflected);
     expect_close(grid[-1,0], reflected);
     expect_close(grid[3,0], W);
 }
@@ -516,6 +549,10 @@ void DRAGON_Test::verify_boundary_outflow_2D() {
     for (int j = 0; j < grid.getSizeY(); j++) {
         expect_close(grid[-1, j], grid[0, j]);
         expect_close(grid[3, j],  grid[2, j]);
+#ifdef MHD
+        expect_close(grid.getA()[-1, j], grid.getA()[0, j]);
+        expect_close(grid.getA()[4, j],  grid.getA()[3, j]);
+#endif
     }
     //Y
     fill_2D(grid);
@@ -523,6 +560,10 @@ void DRAGON_Test::verify_boundary_outflow_2D() {
     for (int i = 0; i < grid.getSizeX(); i++) {
         expect_close(grid[i,-1], grid[i,0]);
         expect_close(grid[i,4],  grid[i,3]);
+#ifdef MHD
+        expect_close(grid.getA()[i, -1], grid.getA()[i, 0]);
+        expect_close(grid.getA()[i, 5],  grid.getA()[i, 4]);
+#endif
     }
     //No corners = no corners
     expect_close(grid[-1,-1],G);
@@ -542,6 +583,10 @@ void DRAGON_Test::verify_boundary_outflow_3D() {
         for (int k = 0; k < grid.getSizeZ(); k++) {
             expect_close(grid[-1, j,k], grid[0, j,k]);
             expect_close(grid[3, j,k],  grid[2, j,k]);
+#ifdef MHD
+            expect_close(grid.getA()[-1, j, k], grid.getA()[0, j, k]);
+            expect_close(grid.getA()[4, j, k],  grid.getA()[3, j, k]);
+#endif
         }
     }
     //Y
@@ -551,6 +596,9 @@ void DRAGON_Test::verify_boundary_outflow_3D() {
         for (int k = 0; k < grid.getSizeZ(); k++) {
             expect_close(grid[i,-1, k], grid[i,0, k]);
             expect_close(grid[i,4, k],  G);
+#ifdef MHD
+            expect_close(grid.getA()[i, -1, k], grid.getA()[i, 0, k]);
+#endif
         }
     }
     fill_3D(grid);
@@ -559,6 +607,9 @@ void DRAGON_Test::verify_boundary_outflow_3D() {
         for (int k = 0; k < grid.getSizeZ(); k++) {
             expect_close(grid[i,-1, k], G);
             expect_close(grid[i,4, k],  grid[i,3,k]);
+#ifdef MHD
+            expect_close(grid.getA()[i, 5, k], grid.getA()[i, 4, k]);
+#endif
         }
     }
     //Z
@@ -568,6 +619,10 @@ void DRAGON_Test::verify_boundary_outflow_3D() {
         for (int j = 0; j < grid.getSizeY(); j++) {
             expect_close(grid[i,j,-1], grid[i,j,0]);
             expect_close(grid[i,j,5],  grid[i,j,4]);
+#ifdef MHD
+            expect_close(grid.getA()[i, j, -1], grid.getA()[i, j, 0]);
+            expect_close(grid.getA()[i, j, 6],  grid.getA()[i, j, 5]);
+#endif
         }
     }
     //No corners = no corners
@@ -613,6 +668,11 @@ void DRAGON_Test::verify_boundary_periodic_2D() {
     for (int j = 0; j < grid.getSizeY(); j++) {
         expect_close(grid[-1, j], grid[2, j]);
         expect_close(grid[3, j],  grid[0, j]);
+#ifdef MHD
+        expect_close(grid.getA()[-1, j], grid.getA()[2, j]);
+        expect_close(grid.getA()[3, j],  grid.getA()[0, j]);
+        expect_close(grid.getA()[5, j],  grid.getA()[2, j]);
+#endif
     }
     //Y
     fill_2D(grid);
@@ -620,6 +680,11 @@ void DRAGON_Test::verify_boundary_periodic_2D() {
     for (int i = 0; i < grid.getSizeX(); i++) {
         expect_close(grid[i,-1], grid[i,3]);
         expect_close(grid[i,4],  grid[i,0]);
+#ifdef MHD
+        expect_close(grid.getA()[i, -1], grid.getA()[i, 3]);
+        expect_close(grid.getA()[i, 4],  grid.getA()[i, 0]);
+        expect_close(grid.getA()[i, 6],  grid.getA()[i, 2]);
+#endif
     }
     //No corners = no corners
     expect_close(grid[-1,-1],G);
@@ -639,6 +704,11 @@ void DRAGON_Test::verify_boundary_periodic_3D() {
         for (int k = 0; k < grid.getSizeZ(); k++) {
             expect_close(grid[-1, j,k], grid[2, j,k]);
             expect_close(grid[3, j,k],  grid[0, j,k]);
+#ifdef MHD
+            expect_close(grid.getA()[-1, j, k], grid.getA()[2, j, k]);
+            expect_close(grid.getA()[3, j, k],  grid.getA()[0, j, k]);
+            expect_close(grid.getA()[5, j, k],  grid.getA()[2, j, k]);
+#endif
         }
     }
     //No corners = no corners
@@ -650,6 +720,11 @@ void DRAGON_Test::verify_boundary_periodic_3D() {
         for (int k = 0; k < grid.getSizeZ(); k++) {
             expect_close(grid[i,-1, k], grid[i,3, k]);
             expect_close(grid[i,4, k],  grid[i,0,k]);
+#ifdef MHD
+            expect_close(grid.getA()[i, -1, k], grid.getA()[i, 3, k]);
+            expect_close(grid.getA()[i, 4, k],  grid.getA()[i, 0, k]);
+            expect_close(grid.getA()[i, 6, k],  grid.getA()[i, 2, k]);
+#endif
         }
     }
     //Z
@@ -659,6 +734,11 @@ void DRAGON_Test::verify_boundary_periodic_3D() {
         for (int j = 0; j < grid.getSizeY(); j++) {
             expect_close(grid[i,j,-1], grid[i,j,4]);
             expect_close(grid[i,j,5],  grid[i,j,0]);
+#ifdef MHD
+            expect_close(grid.getA()[i, j, -1], grid.getA()[i, j, 4]);
+            expect_close(grid.getA()[i, j, 5],  grid.getA()[i, j, 0]);
+            expect_close(grid.getA()[i, j, 7],  grid.getA()[i, j, 2]);
+#endif
         }
     }
     //Corner
@@ -686,28 +766,28 @@ void DRAGON_Test::verify_boundary_reflective_1D() {
 
     Reflective(X).apply(grid);
     //Left
-    PrimitiveState w = grid[0]; reflectX(w);
+    PrimitiveState w = grid[0]; reflectX1D(w);
     expect_close(grid[-1], w);
-    w = grid[1]; reflectX(w);
+    w = grid[1]; reflectX1D(w);
     expect_close(grid[-2], w);
     //Right
-    w = grid[3]; reflectX(w);
+    w = grid[3]; reflectX1D(w);
     expect_close(grid[4], w);
-    w = grid[2]; reflectX(w);
+    w = grid[2]; reflectX1D(w);
     expect_close(grid[5], w);
     //Single face filling: Left
     fill_1D(grid);
     Reflective("X-").apply(grid);
-    w = grid[0]; reflectX(w);
+    w = grid[0]; reflectX1D(w);
     expect_close(grid[-1], w);
-    w = grid[1]; reflectX(w);
+    w = grid[1]; reflectX1D(w);
     expect_close(grid[-2], w);
     //Single face filling: Right
     fill_1D(grid);
     Reflective("X+").apply(grid);
-    w = grid[3]; reflectX(w);
+    w = grid[3]; reflectX1D(w);
     expect_close(grid[4], w);
-    w = grid[2]; reflectX(w);
+    w = grid[2]; reflectX1D(w);
     expect_close(grid[5], w);
 }
 //MARK: Reflecting - 2D
@@ -717,11 +797,17 @@ void DRAGON_Test::verify_boundary_reflective_2D(){
     fill_2D(grid);
     Reflective(X,false).apply(grid);
     for (int j = 0; j < grid.getSizeY(); j++) {
-        PrimitiveState w = grid[0,j]; reflectX(w);
+        PrimitiveState w = grid[0,j]; reflectX2D(w);
         expect_close(grid[-1, j], w);
+#ifdef MHD
+        expect_close(grid.getA()[-1, j], grid.getA()[1, j]);
+#endif
        
-        w = grid[2,j]; reflectX(w);
+        w = grid[2,j]; reflectX2D(w);
         expect_close(grid[3, j], w);
+#ifdef MHD
+        expect_close(grid.getA()[4, j], grid.getA()[2, j]);
+#endif
     }
     //No corners = no corners
     expect_close(grid[-1,-1],G);
@@ -729,16 +815,22 @@ void DRAGON_Test::verify_boundary_reflective_2D(){
     fill_2D(grid);
     Reflective(Y).apply(grid);
     for (int i = 0; i < grid.getSizeX(); i++) {
-        PrimitiveState w = grid[i,0]; reflectY(w);
+        PrimitiveState w = grid[i,0]; reflectY2D(w);
         expect_close(grid[i,-1], w);
+#ifdef MHD
+        expect_close(grid.getA()[i, -1], grid.getA()[i, 1]);
+#endif
        
-        w = grid[i,3]; reflectY(w);
+        w = grid[i,3]; reflectY2D(w);
         expect_close(grid[i,4], w);
+#ifdef MHD
+        expect_close(grid.getA()[i, 5], grid.getA()[i, 3]);
+#endif
     }
     //Corner
     fill_2D(grid);
     Reflective(X | Y).apply(grid);
-    auto w = grid[0,0]; reflectX(w); reflectY(w);
+    auto w = grid[0,0]; reflectX2D(w); reflectY2D(w);
     expect_close(grid[-1,-1], w);
 }
 //MARK: Reflecting - 3D
@@ -749,11 +841,21 @@ void DRAGON_Test::verify_boundary_reflective_3D(){
     Reflective(X).apply(grid);
     for (int j = 0; j < grid.getSizeY(); j++) {
         for (int k = 0; k < grid.getSizeZ(); k++) {
-            PrimitiveState w = grid[0,j,k]; reflectX(w);
+            PrimitiveState w = grid[0,j,k]; reflectX3D(w);
             expect_close(grid[-1, j,k], w);
+#ifdef MHD
+            vec3 A = grid.getA()[1, j, k];
+            A.x *= -1;
+            expect_close(grid.getA()[-1, j, k], A);
+#endif
             
-            w = grid[2,j,k]; reflectX(w);
+            w = grid[2,j,k]; reflectX3D(w);
             expect_close(grid[3, j,k], w);
+#ifdef MHD
+            A = grid.getA()[2, j, k];
+            A.x *= -1;
+            expect_close(grid.getA()[4, j, k], A);
+#endif
         }
     }
     //Y
@@ -761,11 +863,21 @@ void DRAGON_Test::verify_boundary_reflective_3D(){
     Reflective(Y).apply(grid);
     for (int i = 0; i < grid.getSizeX(); i++) {
         for (int k = 0; k < grid.getSizeZ(); k++) {
-            PrimitiveState w = grid[i,0,k]; reflectY(w);
+            PrimitiveState w = grid[i,0,k]; reflectY3D(w);
             expect_close(grid[i,-1,k], w);
+#ifdef MHD
+            vec3 A = grid.getA()[i, 1, k];
+            A.y *= -1;
+            expect_close(grid.getA()[i, -1, k], A);
+#endif
             
-            w = grid[i,3,k]; reflectY(w);
+            w = grid[i,3,k]; reflectY3D(w);
             expect_close(grid[i,4,k], w);
+#ifdef MHD
+            A = grid.getA()[i, 3, k];
+            A.y *= -1;
+            expect_close(grid.getA()[i, 5, k], A);
+#endif
         }
     }
     //Z
@@ -773,11 +885,21 @@ void DRAGON_Test::verify_boundary_reflective_3D(){
     Reflective("Z",false).apply(grid);
     for (int i = 0; i < grid.getSizeX(); i++) {
         for (int j = 0; j < grid.getSizeY(); j++) {
-            PrimitiveState w = grid[i,j,0]; reflectZ(w);
+            PrimitiveState w = grid[i,j,0]; reflectZ3D(w);
             expect_close(grid[i,j,-1], w);
+#ifdef MHD
+            vec3 A = grid.getA()[i, j, 1];
+            A.z *= -1;
+            expect_close(grid.getA()[i, j, -1], A);
+#endif
             
-            w = grid[i,j,4]; reflectZ(w);
+            w = grid[i,j,4]; reflectZ3D(w);
             expect_close(grid[i,j,5], w);
+#ifdef MHD
+            A = grid.getA()[i, j, 4];
+            A.z *= -1;
+            expect_close(grid.getA()[i, j, 6], A);
+#endif
         }
     }
     //No corners = no corners
@@ -785,7 +907,7 @@ void DRAGON_Test::verify_boundary_reflective_3D(){
     //Corner
     fill_3D(grid);
     Reflective().apply(grid);
-    auto w = grid[0,0,0]; reflectX(w); reflectY(w); reflectZ(w);
+    auto w = grid[0,0,0]; reflectX3D(w); reflectY3D(w); reflectZ3D(w);
     expect_close(grid[-1,-1,-1], w);
 }
 
@@ -1135,5 +1257,3 @@ void DRAGON_Test::verify_boundary_outflow_3D_gated_Z(){
         }
     }
 }
-
-
