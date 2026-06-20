@@ -146,7 +146,7 @@ void Boundary::Reflective::apply(Grid3D& grid) {
                     #endif
                 }
                 #ifdef MHD
-                if (conductive) grid.getA()[0,j,k].y = 0;
+                if (conductive) grid.getA()[0,j,k].x = 0;
                 #endif
             }
         }
@@ -168,7 +168,7 @@ void Boundary::Reflective::apply(Grid3D& grid) {
                     #endif
                 }
                 #ifdef MHD
-                if (conductive) grid.getA()[nx,j,k].y = 0;
+                if (conductive) grid.getA()[nx,j,k].x = 0;
                 #endif
             }
         }
