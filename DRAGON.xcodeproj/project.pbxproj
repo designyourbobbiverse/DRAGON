@@ -70,13 +70,17 @@
 		F77E4EF82FCB8C180070DBBF /* Exceptions for "Testing" folder in "DRAGON" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				"Core Components/Boundary_Tests.cpp",
-				"Core Components/CFL_Tests.cpp",
-				"Core Components/FluidElement_Tests.cpp",
-				"Core Components/Godunov_Tests.cpp",
-				"Core Components/Grid_Tests.cpp",
-				"Core Components/Riemann_Tests.cpp",
-				"Core Components/TVD_Tests.cpp",
+				Core/Boundary/Boundary_Tests.cpp,
+				Core/Boundary/FixedBound_Tests.cpp,
+				Core/Boundary/Outflow_Tests.cpp,
+				Core/Boundary/Periodic_Tests.cpp,
+				Core/Boundary/Reflecting_Tests.cpp,
+				Core/CFL_Tests.cpp,
+				Core/FluidElement_Tests.cpp,
+				Core/Godunov_Tests.cpp,
+				Core/Grid_Tests.cpp,
+				Core/Riemann_Tests.cpp,
+				Core/TVD_Tests.cpp,
 				Testing.cpp,
 			);
 			target = F70D18F22FA12B5A00A2B235 /* DRAGON */;
@@ -84,13 +88,17 @@
 		F790CF822FC9F8D90094987D /* Exceptions for "Testing" folder in "DRAGON_TESTS" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				"Core Components/Boundary_Tests.cpp",
-				"Core Components/CFL_Tests.cpp",
-				"Core Components/FluidElement_Tests.cpp",
-				"Core Components/Godunov_Tests.cpp",
-				"Core Components/Grid_Tests.cpp",
-				"Core Components/Riemann_Tests.cpp",
-				"Core Components/TVD_Tests.cpp",
+				Core/Boundary/Boundary_Tests.cpp,
+				Core/Boundary/FixedBound_Tests.cpp,
+				Core/Boundary/Outflow_Tests.cpp,
+				Core/Boundary/Periodic_Tests.cpp,
+				Core/Boundary/Reflecting_Tests.cpp,
+				Core/CFL_Tests.cpp,
+				Core/FluidElement_Tests.cpp,
+				Core/Godunov_Tests.cpp,
+				Core/Grid_Tests.cpp,
+				Core/Riemann_Tests.cpp,
+				Core/TVD_Tests.cpp,
 				Testing.cpp,
 			);
 			target = F77A715B2FB415A5006C2776 /* DRAGON_TESTS */;

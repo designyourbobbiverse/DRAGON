@@ -92,12 +92,21 @@ protected:
 //The velocity component normal to the boundary face will be flipped, transverse velocities preserved
 class Reflective : public GhostFill {
 public:
+    #ifdef MHD
+    Reflective(std::string faces, bool corner_ghosts = true, bool conductive = true);
+    Reflective(int faces = X|Y|Z, bool corner_ghosts = true, bool conductive = true);
+    #else
     Reflective(std::string faces, bool corner_ghosts = true);
     Reflective(int faces = X|Y|Z, bool corner_ghosts = true);
+    #endif
+    
     
     void apply(Grid1D& grid) override;
     void apply(Grid2D& grid) override;
     void apply(Grid3D& grid) override;
+    #ifdef MHD
+    bool conductive; //If false, magnetic boundaries follow outflow instead of reflection
+    #endif
 };
 
 //Periodic Boundary Condition

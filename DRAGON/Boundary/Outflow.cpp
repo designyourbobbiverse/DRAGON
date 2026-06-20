@@ -48,8 +48,8 @@ void Boundary::Outflow::apply(Grid2D& grid) {
             for(int g = 1; g <= ng; g++){
                 grid[-g,j] = grid[0,j];
                 if(gated && grid[-g,j].v.x > 0) grid[-g,j].v.x = 0; //Kill inflows if applicable
-                #ifdef MHD
-                grid.getA()[-g,j] = grid.getA()[0,j];
+                #ifdef MHD // Preserve transverse B
+                grid.getA()[-g,j].z = 2*grid.getA()[1-g,j].z - grid.getA()[2-g,j].z;
                 #endif
             }
         }
@@ -59,8 +59,8 @@ void Boundary::Outflow::apply(Grid2D& grid) {
             for(int g = 1; g <= ng; g++){
                 grid[nx-1+g,j] = grid[nx-1,j];
                 if(gated && grid[nx-1+g,j].v.x < 0) grid[nx-1+g,j].v.x = 0; //Kill inflows if applicable
-                #ifdef MHD
-                grid.getA()[nx+g,j] = grid.getA()[nx,j];
+                #ifdef MHD // Preserve transverse B
+                grid.getA()[nx+g,j].z = 2*grid.getA()[nx+g-1,j].z - grid.getA()[nx+g-2,j].z;
                 #endif
             }
         }
@@ -70,8 +70,8 @@ void Boundary::Outflow::apply(Grid2D& grid) {
             for(int g = 1; g <= ng; g++){
                 grid[i,-g] = grid[i,0];
                 if(gated && grid[i,-g].v.y > 0) grid[i,-g].v.y = 0; //Kill inflows if applicable
-                #ifdef MHD
-                grid.getA()[i,-g] = grid.getA()[i,0];
+                #ifdef MHD // Preserve transverse B
+                grid.getA()[i,-g].z = 2*grid.getA()[i,1-g].z - grid.getA()[i,2-g].z;
                 #endif
             }
         }
@@ -81,8 +81,8 @@ void Boundary::Outflow::apply(Grid2D& grid) {
             for(int g = 1; g <= ng; g++){
                 grid[i,ny-1+g] = grid[i,ny-1];
                 if(gated && grid[i,ny-1+g].v.y < 0) grid[i,ny-1+g].v.y = 0; //Kill inflows if applicable
-                #ifdef MHD
-                grid.getA()[i,ny+g] = grid.getA()[i,ny];
+                #ifdef MHD // Preserve transverse B
+                grid.getA()[i,ny+g].z = 2*grid.getA()[i,ny+g-1].z - grid.getA()[i,ny+g-2].z;
                 #endif
             }
         }
@@ -102,8 +102,9 @@ void Boundary::Outflow::apply(Grid3D& grid) {
                 for(int g = 1; g <= ng; g++){
                     grid[-g,j,k] = grid[0,j,k];
                     if(gated && grid[-g,j,k].v.x > 0) grid[-g,j,k].v.x = 0; //Kill inflows if applicable
-                    #ifdef MHD
-                    grid.getA()[-g,j,k] = grid.getA()[0,j,k];
+                    #ifdef MHD // Preserve transverse B
+                    grid.getA()[-g,j,k] = 2*grid.getA()[1-g,j,k] - grid.getA()[2-g,j,k];
+                    grid.getA()[-g,j,k].x = grid.getA()[1-g,j,k].x;
                     #endif
                 }
             }
@@ -115,8 +116,9 @@ void Boundary::Outflow::apply(Grid3D& grid) {
                 for(int g = 1; g <= ng; g++){
                     grid[nx-1+g,j,k] = grid[nx-1,j,k];
                     if(gated && grid[nx-1+g,j,k].v.x < 0) grid[nx-1+g,j,k].v.x = 0; //Kill inflows if applicable
-                    #ifdef MHD
-                    grid.getA()[nx+g,j,k] = grid.getA()[nx,j,k];
+                    #ifdef MHD // Preserve transverse B
+                    grid.getA()[nx+g,j,k] = 2*grid.getA()[nx+g-1,j,k] - grid.getA()[nx+g-2,j,k];
+                    grid.getA()[nx+g,j,k].x = grid.getA()[nx+g-1,j,k].x;
                     #endif
                 }
             }
@@ -128,8 +130,9 @@ void Boundary::Outflow::apply(Grid3D& grid) {
                 for(int g = 1; g <= ng; g++){
                     grid[i,-g,k] = grid[i,0,k];
                     if(gated && grid[i,-g,k].v.y > 0) grid[i,-g,k].v.y = 0; //Kill inflows if applicable
-                    #ifdef MHD
-                    grid.getA()[i,-g,k] = grid.getA()[i,0,k];
+                    #ifdef MHD // Preserve transverse B
+                    grid.getA()[i,-g,k] = 2*grid.getA()[i,1-g,k] - grid.getA()[i,2-g,k];
+                    grid.getA()[i,-g,k].y = grid.getA()[i,1-g,k].y;
                     #endif
                 }
             }
@@ -141,8 +144,9 @@ void Boundary::Outflow::apply(Grid3D& grid) {
                 for(int g = 1; g <= ng; g++){
                     grid[i,ny-1+g,k] = grid[i,ny-1,k];
                     if(gated && grid[i,ny-1+g,k].v.y < 0) grid[i,ny-1+g,k].v.y = 0; //Kill inflows if applicable
-                    #ifdef MHD
-                    grid.getA()[i,ny+g,k] = grid.getA()[i,ny,k];
+                    #ifdef MHD // Preserve transverse B
+                    grid.getA()[i,ny+g,k] = 2*grid.getA()[i,ny+g-1,k] - grid.getA()[i,ny+g-2,k];
+                    grid.getA()[i,ny+g,k].y = grid.getA()[i,ny+g-1,k].y;
                     #endif
                 }
             }
@@ -154,8 +158,9 @@ void Boundary::Outflow::apply(Grid3D& grid) {
                 for(int g = 1; g <= ng; g++){
                     grid[i,j,-g] = grid[i,j,0];
                     if(gated && grid[i,j,-g].v.z > 0) grid[i,j,-g].v.z = 0; //Kill inflows if applicable
-                    #ifdef MHD
-                    grid.getA()[i,j,-g] = grid.getA()[i,j,0];
+                    #ifdef MHD // Preserve transverse B
+                    grid.getA()[i,j,-g] = 2*grid.getA()[i,j,1-g] - grid.getA()[i,j,2-g];
+                    grid.getA()[i,j,-g].z = grid.getA()[i,j,1-g].z;
                     #endif
                 }
             }
@@ -168,7 +173,8 @@ void Boundary::Outflow::apply(Grid3D& grid) {
                     grid[i,j,nz-1+g] = grid[i,j,nz-1];
                     if(gated && grid[i,j,nz-1+g].v.z < 0) grid[i,j,nz-1+g].v.z = 0; //Kill inflows if applicable
                     #ifdef MHD
-                    grid.getA()[i,j,nz+g] = grid.getA()[i,j,nz];
+                    grid.getA()[i,j,nz+g] = 2*grid.getA()[i,j,nz+g-1] - grid.getA()[i,j,nz+g-2];
+                    grid.getA()[i,j,nz+g].z = grid.getA()[i,j,nz+g-1].z;
                     #endif
                 }
             }
