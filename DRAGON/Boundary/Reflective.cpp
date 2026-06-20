@@ -138,16 +138,13 @@ void Boundary::Reflective::apply(Grid3D& grid) {
                     #ifdef MHD
                     if (conductive) { //Mirror Transverse Magnetic Fields
                         grid.getA()[-g,j,k] = grid.getA()[g,j,k]; //A reflects over zero, w reflects over -1/2
-                        grid.getA()[-g,j,k].x *= -1;
+                        grid.getA()[-g,j,k].x = grid.getA()[g-1,j,k].x; //Except normal A does refelct over  -1/2
                     } else {
                         grid.getA()[-g,j,k] = 2*grid.getA()[1-g,j,k] - grid.getA()[2-g,j,k];
                         grid.getA()[-g,j,k].x = grid.getA()[1-g,j,k].x;
                     }
                     #endif
                 }
-                #ifdef MHD
-                if (conductive) grid.getA()[0,j,k].x = 0;
-                #endif
             }
         }
     }
@@ -160,16 +157,13 @@ void Boundary::Reflective::apply(Grid3D& grid) {
                     #ifdef MHD
                     if (conductive) { //Mirror Transverse Magnetic Fields
                         grid.getA()[nx+g,j,k] = grid.getA()[nx-g,j,k]; //A reflects over zero, w reflects over -1/2
-                        grid.getA()[nx+g,j,k].x *= -1;
+                        grid.getA()[nx-1+g,j,k].x = -grid.getA()[nx-g,j,k].x; //Except normal A does reflect over -1/2
                     } else {
                         grid.getA()[nx+g,j,k] = 2*grid.getA()[nx+g-1,j,k] - grid.getA()[nx+g-2,j,k];
                         grid.getA()[nx+g,j,k].x = grid.getA()[nx+g-1,j,k].x;
                     }
                     #endif
                 }
-                #ifdef MHD
-                if (conductive) grid.getA()[nx,j,k].x = 0;
-                #endif
             }
         }
     }
@@ -182,16 +176,13 @@ void Boundary::Reflective::apply(Grid3D& grid) {
                     #ifdef MHD
                     if (conductive) { //Mirror Transverse Magnetic Fields
                         grid.getA()[i,-g,k] = grid.getA()[i,g,k]; //A reflects over zero, w reflects over -1/2
-                        grid.getA()[i,-g,k].y *= -1;
+                        grid.getA()[i,-g,k].y = -grid.getA()[i,g-1,k].y; //Except normal A does reflect over -1/2
                     } else {
                         grid.getA()[i,-g,k] = 2*grid.getA()[i,1-g,k] - grid.getA()[i,2-g,k];
                         grid.getA()[i,-g,k].y = grid.getA()[i,1-g,k].y;
                     }
                     #endif
                 }
-                #ifdef MHD
-                if (conductive) grid.getA()[i,0,k].y = 0;
-                #endif
             }
         }
     }
@@ -204,16 +195,13 @@ void Boundary::Reflective::apply(Grid3D& grid) {
                     #ifdef MHD
                     if (conductive) { //Mirror Transverse Magnetic Fields
                         grid.getA()[i,ny+g,k] = grid.getA()[i,ny-g,k]; //A reflects over zero, w reflects over -1/2
-                        grid.getA()[i,ny+g,k].y *= -1;
+                        grid.getA()[i,ny-1+g,k].x = -grid.getA()[i,ny-g,k].y; //Except normal A does reflect over -1/2
                     } else {
                         grid.getA()[i,ny+g,k] = 2*grid.getA()[i,ny+g-1,k] - grid.getA()[i,ny+g-2,k];
                         grid.getA()[i,ny+g,k].y = grid.getA()[i,ny+g-1,k].y;
                     }
                     #endif
                 }
-                #ifdef MHD
-                if (conductive) grid.getA()[i,ny,k].y = 0;
-                #endif
             }
         }
     }
@@ -226,16 +214,13 @@ void Boundary::Reflective::apply(Grid3D& grid) {
                     #ifdef MHD
                     if (conductive) { //Mirror Transverse Magnetic Fields
                         grid.getA()[i,j,-g] = grid.getA()[i,j,g]; //A reflects over zero, w reflects over -1/2
-                        grid.getA()[i,j,-g].z *= -1;
+                        grid.getA()[i,j,-g].z = -grid.getA()[i,j,g-1].z; //Except normal A does reflect over -1/2
                     } else {
                         grid.getA()[i,j,-g] = 2*grid.getA()[i,j,1-g] - grid.getA()[i,j,2-g];
                         grid.getA()[i,j,-g].z = grid.getA()[i,j,1-g].z;
                     }
                     #endif
                 }
-                #ifdef MHD
-                if (conductive) grid.getA()[i,j,0].z = 0;
-                #endif
             }
         }
     }
@@ -248,16 +233,13 @@ void Boundary::Reflective::apply(Grid3D& grid) {
                     #ifdef MHD
                     if (conductive) { //Mirror Transverse Magnetic Fields
                         grid.getA()[i,j,nz+g] = grid.getA()[i,j,nz-g]; //A reflects over zero, w reflects over -1/2
-                        grid.getA()[i,j,nz+g].z *= -1;
+                        grid.getA()[i,j,nz-1+g].z = -grid.getA()[i,j,nz-g].z; //Except normal A does reflect over -1/2
                     } else {
                         grid.getA()[i,j,nz+g] = 2*grid.getA()[i,j,nz+g-1] - grid.getA()[i,j,nz+g-2];
                         grid.getA()[i,j,nz+g].z = grid.getA()[i,j,nz+g-1].z;
                     }
                     #endif
                 }
-                #ifdef MHD
-                if (conductive)  grid.getA()[i,j,nz].z = 0;
-                #endif
             }
         }
     }
