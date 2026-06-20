@@ -145,6 +145,9 @@ void Boundary::Reflective::apply(Grid3D& grid) {
                     }
                     #endif
                 }
+                #ifdef MHD
+                if (conductive) grid.getA()[0,j,k].y = 0;
+                #endif
             }
         }
     }
@@ -164,6 +167,9 @@ void Boundary::Reflective::apply(Grid3D& grid) {
                     }
                     #endif
                 }
+                #ifdef MHD
+                if (conductive) grid.getA()[nx,j,k].y = 0;
+                #endif
             }
         }
     }
@@ -183,6 +189,9 @@ void Boundary::Reflective::apply(Grid3D& grid) {
                     }
                     #endif
                 }
+                #ifdef MHD
+                if (conductive) grid.getA()[i,0,k].y = 0;
+                #endif
             }
         }
     }
@@ -202,6 +211,9 @@ void Boundary::Reflective::apply(Grid3D& grid) {
                     }
                     #endif
                 }
+                #ifdef MHD
+                if (conductive) grid.getA()[i,ny,k].y = 0;
+                #endif
             }
         }
     }
@@ -221,6 +233,9 @@ void Boundary::Reflective::apply(Grid3D& grid) {
                     }
                     #endif
                 }
+                #ifdef MHD
+                if (conductive) grid.getA()[i,j,0].z = 0;
+                #endif
             }
         }
     }
@@ -240,6 +255,9 @@ void Boundary::Reflective::apply(Grid3D& grid) {
                     }
                     #endif
                 }
+                #ifdef MHD
+                if (conductive)  grid.getA()[i,j,nz].z = 0;
+                #endif
             }
         }
     }
