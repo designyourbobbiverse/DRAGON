@@ -134,6 +134,7 @@ void DistGrid1D::pushToChildren(){
         //Copy parent data to child
         for(int i = -ghosts; i < child->getSize() + ghosts; i++){
             (*child)[i] = data[i+x_offset];
+            
         }
         child->boundary = Boundary::Ignore(); //Don't let the boundary API overwrite this
         child->pushToChildren(); //If children have children, make them sync too
@@ -150,14 +151,21 @@ void DistGrid2D::pushToChildren(){
         for(int zj = 0; zj<ncy; zj++){
             std::unique_ptr<DistGrid2D>& child = children[ncy*zi + zj];
             int _ny = child->getSizeY();
-            //Copy parent data to child
+            //Copy parent fluid to child
             for(int i = -ghosts; i < _nx + ghosts; i++){
                 for(int j = -ghosts; j < _ny +ghosts; j++){
                     (*child)[i,j] = data[i+x_offset, j+y_offset];
                 }
             }
-            child->boundary = Boundary::Ignore(); //Don't let the boundary API overwrite this
-            child->pushToChildren(); //If children have children, make them sync too
+            #ifdef MHD//Copy parent magnetic potential to child
+            for(int i = -ghosts; i <= _nx + ghosts; i++){
+                for(int j = -ghosts; j <= _ny +ghosts; j++){
+                    child->A()[i,j] = A()[i+x_offset, j+y_offset];
+                }
+            }
+            #endif
+            child->boundary = Boundary::Ignore();//Don't let the boundary API overwrite this
+            child->pushToChildren();//If children have children, make them sync too
             
             y_offset += _ny;
         }
@@ -176,7 +184,7 @@ void DistGrid3D::pushToChildren(){
             for(int zk = 0; zk<ncz; zk++){
                 std::unique_ptr<DistGrid3D>& child = children[ncz*(ncy*zi + zj) + zk];
                 int _nz = child->getSizeZ();
-                //Copy parent data to child
+                //Copy parent fluid to child
                 for(int i = -ghosts; i < _nx + ghosts; i++){
                     for(int j = -ghosts; j < _ny + ghosts; j++){
                         for(int k = -ghosts; k < _nz + ghosts; k++){
@@ -184,8 +192,17 @@ void DistGrid3D::pushToChildren(){
                         }
                     }
                 }
-                child->boundary = Boundary::Ignore(); //Don't let the boundary API overwrite this
-                child->pushToChildren(); //If children have children, make them sync too
+                #ifdef MHD//Copy parent magnetic potential to child
+                for(int i = -ghosts; i <= _nx + ghosts; i++){
+                    for(int j = -ghosts; j <= _ny + ghosts; j++){
+                        for(int k = -ghosts; k <= _nz + ghosts; k++){
+                            child->A()[i,j,k] = A()[i+x_offset, j+y_offset, k+z_offset];
+                        }
+                    }
+                }
+                #endif
+                child->boundary = Boundary::Ignore();//Don't let the boundary API overwrite this
+                child->pushToChildren();//If children have children, make them sync too
                 
                 z_offset += _nz;
             }
@@ -221,12 +238,19 @@ void DistGrid2D::loadFromChildren(){
             std::unique_ptr<DistGrid2D>& child = children[ncy*zi + zj];
             child->loadFromChildren();//If children have children, make them sync first
             int _ny = child->getSizeY();
-            //Copy child data to parent
+            //Copy child fluid to parent
             for(int i = 0; i < _nx; i++){
                 for(int j=0; j < _ny; j++){
                     data[i+x_offset, j+y_offset] = (*child)[i,j];
                 }
             }
+            #ifdef MHD//Copy child magnetic potential to parent
+            for(int i = 0; i <= _nx; i++){
+                for(int j=0; j <= _ny; j++){
+                    A()[i+x_offset, j+y_offset] = child->A()[i,j];
+                }
+            }
+            #endif
             
             y_offset += _ny;
         }
@@ -247,15 +271,25 @@ void DistGrid3D::loadFromChildren(){
                 std::unique_ptr<DistGrid3D>& child = children[ncy*zi + zj];
                 child->loadFromChildren();//If children have children, make them sync first
                 int _nz = child->getSizeZ();
-                //Copy child data to parent
+                //Copy child fluid to parent
                 for(int i = 0; i < _nx; i++){
                     for(int j=0; j < _ny; j++){
                         for(int k=0; k < _nz; k++){
                             data[i+x_offset, j+y_offset, k+z_offset] = (*child)[i,j,k];
+                            A()[i+x_offset, j+y_offset, k+z_offset] = child->A()[i,j,k];
                         }
                     }
                 }
-                
+                #ifdef MHD //Copy child magnetic potential to parent
+                for(int i = 0; i <= _nx; i++){
+                    for(int j=0; j <= _ny; j++){
+                        for(int k=0; k <= _nz; k++){
+                            A()[i+x_offset, j+y_offset, k+z_offset] = child->A()[i,j,k];
+                        }
+                    }
+                }
+                #endif
+
                 z_offset += _nz;
             }
             y_offset += _ny;

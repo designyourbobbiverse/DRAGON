@@ -9,7 +9,7 @@
 #include <pthread.h>
 #include <iostream>
 #include <deque>
-#include "AMRGrid.hpp"
+#include "DistGrid.hpp"
 
 
 namespace DRARGONWING{
@@ -18,7 +18,7 @@ namespace DRARGONWING{
         double dt;
     };
     struct ThreadArgs_Grid2D {
-        DistGrid* grid;
+        DistGrid2D* grid;
         double dt;
     };
     struct ThreadArgs_Grid3D {
@@ -65,7 +65,7 @@ void* DRARGONWING::launchParallel(DistGrid1D* grid, double dt){
     return &threads.back();
 }
 
-void* DRARGONWING::launchParallel(DistGrid* grid, double dt){
+void* DRARGONWING::launchParallel(DistGrid2D* grid, double dt){
     args2D.push_back({grid,dt});
     pthread_t thread;
 

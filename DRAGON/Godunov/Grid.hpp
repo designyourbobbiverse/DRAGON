@@ -59,8 +59,8 @@ public:
     const PrimitiveState& operator[](int i,int j) const;
     int getSizeX() const, getSizeY() const, getGhosts() const;
     #ifdef MHD
-    //Access Edge Magnetic potentials.
-    //A[i,j] is on the corner between w[i-1,j-1] and w[i,j]
+    //Access Edge Magnetic potentials. Only Az is used in 2D
+    //A[i,j] is on the corner w[i-1/2,j-1/2]
     ExtendedArray2D<vec3>& getA(){return A;}
     #endif
     
@@ -103,7 +103,7 @@ public:
     int getSizeX() const, getSizeY() const, getSizeZ() const, getGhosts() const;
     #ifdef MHD
     //Access Edge Magnetic potentials.
-    //A[i,j,k] is on the corner between w[i-1,j-1,k-1] and w[i,j,k]
+    //A[i,j,k] is the corner w[i-1/2,j-1/2,k-1/2] to each of the 3 adjacent corners of w[i,j,k]
     ExtendedArray3D<vec3>& getA(){return A;}
     #endif
     
