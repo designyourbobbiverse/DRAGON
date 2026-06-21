@@ -8,15 +8,15 @@
 #ifndef DRAGONWING
 #define DRAGONWING
 
-class AMRGrid1D;
-class AMRGrid2D;
-class AMRGrid3D;
+class DistGrid1D;
+class DistGrid2D;
+class DistGrid3D;
 
 
 namespace DRARGONWING{
-    void* launchParallel(AMRGrid1D* grid, double dt);
-    void* launchParallel(AMRGrid2D* grid, double dt);
-    void* launchParallel(AMRGrid3D* grid, double dt);
+    void* launchParallel(DistGrid1D* grid, double dt);
+    void* launchParallel(DistGrid2D* grid, double dt);
+    void* launchParallel(DistGrid3D* grid, double dt);
     void synchronize(void* thread = nullptr);
 }
 

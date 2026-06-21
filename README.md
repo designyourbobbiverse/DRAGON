@@ -88,10 +88,10 @@ The current test suite covers the main numerical components, but `Testing.cpp` s
 ## Minimal Usage Example
 
 ```cpp
-#include "Grid.hpp" //Or AMRGrid.hpp to run across multiple cores
+#include "Grid.hpp" //Or DistGrid.hpp to run across multiple cores
 
 int main() {
-    Grid2D grid(128, 128, 0.01, 0.01); //Or AMRGrid2D to run across multiple cores
+    Grid2D grid(128, 128, 0.01, 0.01); //Or DistGrid2D to run across multiple cores
     grid.boundary = Boundary::Reflective();
 
     for (int i = 0; i < grid.getSizeX(); ++i) {

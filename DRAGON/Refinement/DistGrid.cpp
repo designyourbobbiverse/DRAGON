@@ -5,7 +5,7 @@
 //  Created by Bobbie Markwick on 12/06/2026.
 //
 
-#include "AMRGrid.hpp"
+#include "DistGrid.hpp"
 #include "DragonWing.hpp"
 #include "CFL.hpp"
 #include <math.h>
@@ -31,7 +31,7 @@ static int validGhosts(int g){ //How many ghost cells are needed to do this corr
 #endif
 }
 
-AMRGrid1D::AMRGrid1D(int nx, double dx_, int g, bool root): size_x(nx*dx_),dx(dx_), ghosts(validGhosts(g)), data(nx, dx_,validGhosts(g)) {
+DistGrid1D::DistGrid1D(int nx, double dx_, int g, bool root): size_x(nx*dx_),dx(dx_), ghosts(validGhosts(g)), data(nx, dx_,validGhosts(g)) {
     
     
     ncx = root ? core_count : 1;
@@ -41,13 +41,13 @@ AMRGrid1D::AMRGrid1D(int nx, double dx_, int g, bool root): size_x(nx*dx_),dx(dx
         for(int i = 0; i<ncx; i++){
             int _nx = computeChildSize(nx, ncx, i);
         
-            auto child = std::make_unique<AMRGrid1D>(_nx, dx, ghosts, false);
+            auto child = std::make_unique<DistGrid1D>(_nx, dx, ghosts, false);
             children.push_back(std::move(child));
         }
     }
 }
 
-AMRGrid2D::AMRGrid2D(int nx, int ny, double dx_, double dy_, int g, bool root): size_x(nx*dx_),size_y(ny*dy_), dx(dx_), dy(dy_), ghosts(validGhosts(g)), data(nx, ny, dx_, dy_, validGhosts(g)) {
+DistGrid2D::DistGrid2D(int nx, int ny, double dx_, double dy_, int g, bool root): size_x(nx*dx_),size_y(ny*dy_), dx(dx_), dy(dy_), ghosts(validGhosts(g)), data(nx, ny, dx_, dy_, validGhosts(g)) {
 
     if(!root){ ncx = 1; ncy = 1; return;}
     
@@ -63,7 +63,7 @@ AMRGrid2D::AMRGrid2D(int nx, int ny, double dx_, double dy_, int g, bool root): 
             for(int j = 0; j<ncy; j++){
                 int _ny = computeChildSize(ny, ncy, j);
 
-                auto child = std::make_unique<AMRGrid2D>(_nx, _ny, dx, dy, ghosts, false);
+                auto child = std::make_unique<DistGrid2D>(_nx, _ny, dx, dy, ghosts, false);
                 children.push_back(std::move(child));
             }
         }
@@ -71,7 +71,7 @@ AMRGrid2D::AMRGrid2D(int nx, int ny, double dx_, double dy_, int g, bool root): 
         
 }
 
-AMRGrid3D::AMRGrid3D(int nx, int ny, int nz, double dx_, double dy_, double dz_, int g, bool root):
+DistGrid3D::DistGrid3D(int nx, int ny, int nz, double dx_, double dy_, double dz_, int g, bool root):
     size_x(nx*dx_),size_y(ny*dy_), size_z(nz*dz_), dx(dx_), dy(dy_), dz(dz_), ghosts(validGhosts(g)),
     data(nx, ny, nz, dx_, dy_, dz_, validGhosts(g)) {
 
@@ -91,7 +91,7 @@ AMRGrid3D::AMRGrid3D(int nx, int ny, int nz, double dx_, double dy_, double dz_,
                 for(int k = 0; k<ncz; k++){
                     int _nz = computeChildSize(nz, ncz, k);
                     
-                    auto child = std::make_unique<AMRGrid3D>(_nx, _ny, _nz, dx, dy, dz, ghosts, false);
+                    auto child = std::make_unique<DistGrid3D>(_nx, _ny, _nz, dx, dy, dz, ghosts, false);
                     children.push_back(std::move(child));
                 }
             }
@@ -102,35 +102,35 @@ AMRGrid3D::AMRGrid3D(int nx, int ny, int nz, double dx_, double dy_, double dz_,
 
 
 //MARK: Grid Access
-PrimitiveState& AMRGrid1D::operator[](int i){ return data[i];}
-const PrimitiveState& AMRGrid1D::operator[](int i) const { return data[i]; }
+PrimitiveState& DistGrid1D::operator[](int i){ return data[i];}
+const PrimitiveState& DistGrid1D::operator[](int i) const { return data[i]; }
 
-PrimitiveState& AMRGrid2D::operator[](int i,int j){ return data[i,j];}
-const PrimitiveState& AMRGrid2D::operator[](int i,int j) const { return data[i,j]; }
+PrimitiveState& DistGrid2D::operator[](int i,int j){ return data[i,j];}
+const PrimitiveState& DistGrid2D::operator[](int i,int j) const { return data[i,j]; }
 
-PrimitiveState& AMRGrid3D::operator[](int i,int j,int k){ return data[i,j,k];}
-const PrimitiveState& AMRGrid3D::operator[](int i,int j,int k) const { return data[i,j,k]; }
+PrimitiveState& DistGrid3D::operator[](int i,int j,int k){ return data[i,j,k];}
+const PrimitiveState& DistGrid3D::operator[](int i,int j,int k) const { return data[i,j,k]; }
 
-int AMRGrid1D::getSize() const{ return data.getSize(); }
-int AMRGrid1D::getGhosts() const{ return data.getGhosts(); }
+int DistGrid1D::getSize() const{ return data.getSize(); }
+int DistGrid1D::getGhosts() const{ return data.getGhosts(); }
 
-int AMRGrid2D::getSizeX() const{ return data.getSizeX(); }
-int AMRGrid2D::getSizeY() const{ return data.getSizeY(); }
-int AMRGrid2D::getGhosts() const{ return data.getGhosts(); }
+int DistGrid2D::getSizeX() const{ return data.getSizeX(); }
+int DistGrid2D::getSizeY() const{ return data.getSizeY(); }
+int DistGrid2D::getGhosts() const{ return data.getGhosts(); }
 
-int AMRGrid3D::getSizeX() const{ return data.getSizeX(); }
-int AMRGrid3D::getSizeY() const{ return data.getSizeY(); }
-int AMRGrid3D::getSizeZ() const{ return data.getSizeZ(); }
-int AMRGrid3D::getGhosts() const{ return data.getGhosts(); }
+int DistGrid3D::getSizeX() const{ return data.getSizeX(); }
+int DistGrid3D::getSizeY() const{ return data.getSizeY(); }
+int DistGrid3D::getSizeZ() const{ return data.getSizeZ(); }
+int DistGrid3D::getGhosts() const{ return data.getGhosts(); }
 
 
 //MARK: Parent -> Child
 
-void AMRGrid1D::pushToChildren(){
+void DistGrid1D::pushToChildren(){
     if(ncx == 1) return; //This is the child
     int x_offset = 0;
     for(int zi = 0; zi<ncx; zi++){
-        std::unique_ptr<AMRGrid1D>& child = children[zi];
+        std::unique_ptr<DistGrid1D>& child = children[zi];
         //Copy parent data to child
         for(int i = -ghosts; i < child->getSize() + ghosts; i++){
             (*child)[i] = data[i+x_offset];
@@ -141,14 +141,14 @@ void AMRGrid1D::pushToChildren(){
         x_offset += child->getSize();
     }
 }
-void AMRGrid2D::pushToChildren(){
+void DistGrid2D::pushToChildren(){
     if(ncx*ncy == 1) return;
     int x_offset = 0;
     for(int zi = 0; zi<ncx; zi++){
         int _nx = children[ncy*zi]->getSizeX();
         int y_offset = 0;
         for(int zj = 0; zj<ncy; zj++){
-            std::unique_ptr<AMRGrid2D>& child = children[ncy*zi + zj];
+            std::unique_ptr<DistGrid2D>& child = children[ncy*zi + zj];
             int _ny = child->getSizeY();
             //Copy parent data to child
             for(int i = -ghosts; i < _nx + ghosts; i++){
@@ -164,7 +164,7 @@ void AMRGrid2D::pushToChildren(){
         x_offset += _nx;
     }
 }
-void AMRGrid3D::pushToChildren(){
+void DistGrid3D::pushToChildren(){
     if(ncx*ncy*ncz == 1) return;
     int x_offset = 0;
     for(int zi = 0; zi<ncx; zi++){
@@ -174,7 +174,7 @@ void AMRGrid3D::pushToChildren(){
             int _ny = children[ncz*(ncy*zi + zj)]->getSizeY();
             int z_offset = 0;
             for(int zk = 0; zk<ncz; zk++){
-                std::unique_ptr<AMRGrid3D>& child = children[ncz*(ncy*zi + zj) + zk];
+                std::unique_ptr<DistGrid3D>& child = children[ncz*(ncy*zi + zj) + zk];
                 int _nz = child->getSizeZ();
                 //Copy parent data to child
                 for(int i = -ghosts; i < _nx + ghosts; i++){
@@ -197,11 +197,11 @@ void AMRGrid3D::pushToChildren(){
 
 
 //MARK: Child -> Parent
-void AMRGrid1D::loadFromChildren(){
+void DistGrid1D::loadFromChildren(){
     if(ncx == 1) return;
     int x_offset = 0;
     for(int zi = 0; zi<ncx; zi++){
-        std::unique_ptr<AMRGrid1D>& child = children[zi];
+        std::unique_ptr<DistGrid1D>& child = children[zi];
         child->loadFromChildren(); //If children have children, make them sync first
         //Copy child data to parent
         for(int i = 0; i < child->getSize(); i++) {
@@ -211,14 +211,14 @@ void AMRGrid1D::loadFromChildren(){
     }
 }
 
-void AMRGrid2D::loadFromChildren(){
+void DistGrid2D::loadFromChildren(){
     if(ncx*ncy == 1) return;
     int x_offset = 0;
     for(int zi = 0; zi<ncx; zi++){
         int _nx = children[ncy*zi]->getSizeX();
         int y_offset = 0;
         for(int zj = 0; zj<ncy; zj++){
-            std::unique_ptr<AMRGrid2D>& child = children[ncy*zi + zj];
+            std::unique_ptr<DistGrid2D>& child = children[ncy*zi + zj];
             child->loadFromChildren();//If children have children, make them sync first
             int _ny = child->getSizeY();
             //Copy child data to parent
@@ -234,7 +234,7 @@ void AMRGrid2D::loadFromChildren(){
     }
 }
 
-void AMRGrid3D::loadFromChildren(){
+void DistGrid3D::loadFromChildren(){
     if(ncx*ncy*ncz == 1) return;
     int x_offset = 0;
     for(int zi = 0; zi<ncx; zi++){
@@ -244,7 +244,7 @@ void AMRGrid3D::loadFromChildren(){
             int _ny = children[ncz*(ncy*zi+zj)]->getSizeY();
             int z_offset = 0;
             for(int zi = 0; zi<ncx; zi++){
-                std::unique_ptr<AMRGrid3D>& child = children[ncy*zi + zj];
+                std::unique_ptr<DistGrid3D>& child = children[ncy*zi + zj];
                 child->loadFromChildren();//If children have children, make them sync first
                 int _nz = child->getSizeZ();
                 //Copy child data to parent
@@ -265,7 +265,7 @@ void AMRGrid3D::loadFromChildren(){
 }
 
 //MARK: Advance
-void AMRGrid1D::advance(double dt, bool check_cfl){
+void DistGrid1D::advance(double dt, bool check_cfl){
     if(ncx == 1 ){
         data.boundary = std::move(boundary);
         data.advance(dt, check_cfl);
@@ -292,7 +292,7 @@ void AMRGrid1D::advance(double dt, bool check_cfl){
 }
 
 
-void AMRGrid2D::advance(double dt, bool check_cfl){
+void DistGrid2D::advance(double dt, bool check_cfl){
     if(ncx*ncy == 1 ){
         data.boundary = std::move(boundary);
         data.advance(dt, check_cfl);
@@ -318,7 +318,7 @@ void AMRGrid2D::advance(double dt, bool check_cfl){
 }
 
 
-void AMRGrid3D::advance(double dt, bool check_cfl){
+void DistGrid3D::advance(double dt, bool check_cfl){
     if(ncx*ncy*ncz == 1 ){
         data.boundary = std::move(boundary);
         data.advance(dt, check_cfl);

@@ -192,7 +192,7 @@
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "58"
             endingLineNumber = "58"
-            landmarkName = "AMRGrid2D::AMRGrid2D(nx, ny, dx_, dy_, g, root)"
+            landmarkName = "DistGrid2D::DistGrid2D(nx, ny, dx_, dy_, g, root)"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>

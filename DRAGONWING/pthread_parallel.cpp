@@ -14,15 +14,15 @@
 
 namespace DRARGONWING{
     struct ThreadArgs_Grid1D {
-        AMRGrid1D* grid;
+        DistGrid1D* grid;
         double dt;
     };
     struct ThreadArgs_Grid2D {
-        AMRGrid2D* grid;
+        DistGrid* grid;
         double dt;
     };
     struct ThreadArgs_Grid3D {
-        AMRGrid3D* grid;
+        DistGrid3D* grid;
         double dt;
     };
 
@@ -50,7 +50,7 @@ namespace DRARGONWING{
 
 }
 
-void* DRARGONWING::launchParallel(AMRGrid1D* grid, double dt){
+void* DRARGONWING::launchParallel(DistGrid1D* grid, double dt){
     args1D.push_back({grid,dt});
     pthread_t thread;
 
@@ -65,7 +65,7 @@ void* DRARGONWING::launchParallel(AMRGrid1D* grid, double dt){
     return &threads.back();
 }
 
-void* DRARGONWING::launchParallel(AMRGrid2D* grid, double dt){
+void* DRARGONWING::launchParallel(DistGrid* grid, double dt){
     args2D.push_back({grid,dt});
     pthread_t thread;
 
@@ -80,7 +80,7 @@ void* DRARGONWING::launchParallel(AMRGrid2D* grid, double dt){
     return &threads.back();
 }
 
-void* DRARGONWING::launchParallel(AMRGrid3D* grid, double dt){
+void* DRARGONWING::launchParallel(DistGrid3D* grid, double dt){
     args3D.push_back({grid,dt});
     pthread_t thread;
 

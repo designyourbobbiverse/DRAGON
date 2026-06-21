@@ -58,7 +58,7 @@
 				Godunov/Math/TVD.cpp,
 				Godunov/Splitting.cpp,
 				Godunov/Unsplit.cpp,
-				Refinement/AMRGrid.cpp,
+				Refinement/DistGrid.cpp,
 				Riemann/Exact.cpp,
 				Riemann/Flux.cpp,
 				Riemann/HLL.cpp,

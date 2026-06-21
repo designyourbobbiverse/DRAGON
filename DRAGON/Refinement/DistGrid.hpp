@@ -15,11 +15,11 @@
 #include <memory>
 
 
-struct AMRGrid1D{
+struct DistGrid1D{
     
-    AMRGrid1D(int nx, double dx, int ghosts=3, bool root=true);
-    AMRGrid1D(const AMRGrid1D&) = delete; //No copying
-    AMRGrid1D& operator=(const AMRGrid1D&) = delete;
+    DistGrid1D(int nx, double dx, int ghosts=3, bool root=true);
+    DistGrid1D(const DistGrid1D&) = delete; //No copying
+    DistGrid1D& operator=(const DistGrid1D&) = delete;
 
     
     //Grid access
@@ -36,7 +36,7 @@ struct AMRGrid1D{
     
 private:
     Grid1D data;//The Grid containing all fo the reference data
-    std::vector<std::unique_ptr<AMRGrid1D>> children;//The subgrids that actually do the processing
+    std::vector<std::unique_ptr<DistGrid1D>> children;//The subgrids that actually do the processing
     int ncx; //The number of children we have
     double size_x, dx; //Total width, width per cell
     int ghosts;
@@ -46,11 +46,11 @@ private:
 };
 
 
-struct AMRGrid2D{
+struct DistGrid2D{
     
-    AMRGrid2D(int nx, int ny, double dx, double dy, int ghosts=3, bool root=true);
-    AMRGrid2D(const AMRGrid2D&) = delete; //No copying
-    AMRGrid2D& operator=(const AMRGrid2D&) = delete;
+    DistGrid2D(int nx, int ny, double dx, double dy, int ghosts=3, bool root=true);
+    DistGrid2D(const DistGrid2D&) = delete; //No copying
+    DistGrid2D& operator=(const DistGrid2D&) = delete;
 
     
     //Grid access
@@ -67,7 +67,7 @@ struct AMRGrid2D{
     
 private:
     Grid2D data;//The Grid containing all fo the reference data
-    std::vector<std::unique_ptr<AMRGrid2D>> children;//The subgrids that actually do the processing
+    std::vector<std::unique_ptr<DistGrid2D>> children;//The subgrids that actually do the processing
     int ncx, ncy;//The number of children we have in each dimension
     double size_x, size_y;//Total physical size of the Grid
     double dx, dy;//Physical size per cell
@@ -78,11 +78,11 @@ private:
 };
 
 
-struct AMRGrid3D{
+struct DistGrid3D{
     
-    AMRGrid3D(int nx, int ny, int nz, double dx, double dy, double dz, int ghosts=3, bool root=true);
-    AMRGrid3D(const AMRGrid3D&) = delete; //No copying
-    AMRGrid3D& operator=(const AMRGrid3D&) = delete;
+    DistGrid3D(int nx, int ny, int nz, double dx, double dy, double dz, int ghosts=3, bool root=true);
+    DistGrid3D(const DistGrid3D&) = delete; //No copying
+    DistGrid3D& operator=(const DistGrid3D&) = delete;
 
     
     //Grid access
@@ -99,7 +99,7 @@ struct AMRGrid3D{
     
 private:
     Grid3D data;//The Grid containing all fo the reference data
-    std::vector<std::unique_ptr<AMRGrid3D>> children;//The subgrids that actually do the processing
+    std::vector<std::unique_ptr<DistGrid3D>> children;//The subgrids that actually do the processing
     int ncx, ncy, ncz;//The number of children we have in each dimension
     double size_x, size_y, size_z; //The total width of the grid
     double dx, dy, dz; //Spacing of an individual cell

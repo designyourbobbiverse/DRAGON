@@ -7,7 +7,7 @@
 #include <fstream>
 #include <chrono>
 
-#include "AMRGrid.hpp"
+#include "DistGrid.hpp"
 
 #ifdef TESTMODE
 #error Test mode was enabled, check your build settings
