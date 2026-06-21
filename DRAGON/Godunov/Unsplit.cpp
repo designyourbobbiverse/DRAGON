@@ -5,7 +5,10 @@
 //  Created by Bobbie Markwick on 10/06/2026.
 //  Implementation based in part on  Toro (2009). https://doi.org/10.1007/b79761
 //      Colella (1990). https://doi.org/10.1016/0021-9991(90)90233-Q
-//
+//  CT Implementaiton based in part on https://doi.org/10.1088/0067-0049/182/2/519
+//      Evans and Hawley (1988). https://doi.org/10.1086/166684
+//      Gardiner and Stone (2005). https://doi.org/10.1016/j.jcp.2004.11.016
+
 
 #include "Grid.hpp"
 #include "Riemann.hpp"

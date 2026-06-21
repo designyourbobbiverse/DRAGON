@@ -1,6 +1,6 @@
 # DRAGON
 
-**Divergence-Restricted Adaptive Grid Operations & Numerics**
+**Divergence-Regulation by A-field Grid Operations & Numerics**
 
 DRAGON is a C++ Eulerian hydrodynamics and magnetohydrodynamics code for finite-volume simulations on structured grids. The core solver uses Godunov methods with configurable Riemann solvers, CFL timestep calculation, TVD/MUSCL reconstruction, and boundary-condition handling for 1D, 2D, and 3D grids.
 
@@ -126,3 +126,20 @@ DRAGON is licensed under the Apache License 2.0. See `LICENSE` for details.
 - Complete and validate AMR behavior.
 - Replace hard-coded demo parameters and output paths with runtime configuration.
 - Add documented example problems and plotting/post-processing helpers.
+
+
+## Use of Generative AI
+
+DRAGON was developed by Bobbie Markwick as an independent C++ hydrodynamics/MHD code. Generative AI tools were used during development as an auxiliary aid for discussion, review, documentation, and some test-writing support, but not as an automated system for producing the main codebase.
+
+AI assistance was used for tasks such as:
+* checking reasoning about hydrodynamics, MHD, constrained transport, CTU updates, boundary conditions, and AMR design;
+* discussing numerical algorithms and implementation strategies;
+* reviewing selected code snippets for possible bugs, inconsistencies, or edge cases;
+* drafting or helping draft portions of the unit-test suite;
+
+The main DRAGON implementation was written and integrated manually by the author. Design decisions, algorithm selection, debugging, validation, and interpretation of results remain the author’s responsibility. AI-generated suggestions were treated as advisory rather than authoritative, and in multiple cases required correction, rejection, or reinterpretation before use.
+
+The numerical methods implemented in DRAGON are based on standard published algorithms in computational fluid dynamics and magnetohydrodynamics, including Godunov-type finite-volume methods, approximate Riemann solvers, MUSCL/CTU-style reconstruction and time integration, and constrained transport for magnetic-field evolution. Where appropriate, these methods are cited directly in the source code and documentation.
+
+In short: generative AI was used as an interactive reference, code-review assistant, documentation aid, and unit-test drafting assistant. DRAGON itself is an original implementation, with responsibility for correctness, testing, validation, and scientific interpretation resting with the author.
