@@ -175,6 +175,16 @@ void DRAGON_Test::verify_boundary_reflective_2D(){
     #endif
     auto w = grid[0,0]; reflectX2D(w,false); reflectY2D(w,false);
     expect_close(grid[-1,-1], w);
+    #ifdef MHD //A field corner checks
+    int ng = grid.getGhosts(), nx = grid.getSizeX(), ny = grid.getSizeY();
+    fill_2D(grid);
+    Reflective(X, true, false).apply(grid);
+    assert(approx(grid.getA()[nx+ng,ny+ng].z, 2*grid.getA()[nx+ng-1,ny+ng].z - grid.getA()[nx+ng-2,ny+ng].z));
+
+    fill_2D(grid);
+    Reflective(Y, true, false).apply(grid);
+    assert(approx(grid.getA()[nx+ng,ny+ng].z, 2*grid.getA()[nx+ng,ny+ng-1].z - grid.getA()[nx+ng,ny+ng-2].z));
+    #endif
 }
 //MARK: Reflecting - 3D
 
@@ -277,6 +287,26 @@ void DRAGON_Test::verify_boundary_reflective_3D(){
     #endif
     auto w = grid[0,0,0]; reflectX3D(w); reflectY3D(w); reflectZ3D(w);
     expect_close(grid[-1,-1,-1], w);
+    #ifdef MHD//A field corner checks
+    int ng = grid.getGhosts(), nx = grid.getSizeX(), ny = grid.getSizeY(), nz = grid.getSizeZ();
+    fill_3D(grid);
+    Reflective(X, true, false).apply(grid);
+    vec3 expected = 2*grid.getA()[nx+ng-1,ny+ng,nz+ng] - grid.getA()[nx+ng-2,ny+ng,nz+ng];
+    expected.x = grid.getA()[nx+ng-1,ny+ng,nz+ng].x;
+    expect_close(grid.getA()[nx+ng,ny+ng,nz+ng], expected);
+
+    fill_3D(grid);
+    Reflective(Y, true, false).apply(grid);
+    expected = 2*grid.getA()[nx+ng,ny+ng-1,nz+ng] - grid.getA()[nx+ng,ny+ng-2,nz+ng];
+    expected.y = grid.getA()[nx+ng,ny+ng-1,nz+ng].y;
+    expect_close(grid.getA()[nx+ng,ny+ng,nz+ng], expected);
+
+    fill_3D(grid);
+    Reflective(Z, true, false).apply(grid);
+    expected = 2*grid.getA()[nx+ng,ny+ng,nz+ng-1] - grid.getA()[nx+ng,ny+ng,nz+ng-2];
+    expected.z = grid.getA()[nx+ng,ny+ng,nz+ng-1].z;
+    expect_close(grid.getA()[nx+ng,ny+ng,nz+ng], expected);
+    #endif
 }
 //MARK: Conductive - 1D
 #ifdef MHD

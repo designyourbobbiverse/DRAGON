@@ -60,7 +60,7 @@ void DRAGON_Test::verify_boundary_periodic_2D() {
     for (int j = 0; j < grid.getSizeY(); j++) {
         expect_close(grid[-1, j], grid[2, j]);
         expect_close(grid[3, j],  grid[0, j]);
-#ifdef MHD
+        #ifdef MHD
         expect_close(magneticX(grid, -1, j), magneticX(grid, 2, j));
         expect_close(magneticY(grid, -1, j), magneticY(grid, 2, j));
 
@@ -70,15 +70,20 @@ void DRAGON_Test::verify_boundary_periodic_2D() {
         expect_close(magneticX(grid, 4, j), magneticX(grid, 1, j));
         expect_close(magneticY(grid, 4, j), magneticY(grid, 1, j));
 
-#endif
+        #endif
     }
+    #ifdef MHD//A field corner check
+    int ng = grid.getGhosts(), nx = grid.getSizeX(), ny = grid.getSizeY();
+    vec3 dA = grid.getA()[nx,ny+ng] - grid.getA()[0,ny+ng];
+    expect_close(grid.getA()[nx+ng,ny+ng], grid.getA()[ng,ny+ng] + dA);
+    #endif
     //Y
     fill_2D(grid);
     Periodic(Y).apply(grid);
     for (int i = 0; i < grid.getSizeX(); i++) {
         expect_close(grid[i,-1], grid[i,3]);
         expect_close(grid[i,4],  grid[i,0]);
-#ifdef MHD
+        #ifdef MHD
         expect_close(magneticX(grid, i,-1), magneticX(grid, i,3));
         expect_close(magneticY(grid, i,-1), magneticY(grid, i,3));
 
@@ -87,8 +92,12 @@ void DRAGON_Test::verify_boundary_periodic_2D() {
 
         expect_close(magneticX(grid, i,5), magneticX(grid, i,1));
         expect_close(magneticY(grid, i,5), magneticY(grid, i,1));
-#endif
+        #endif
     }
+    #ifdef MHD//A field corner check
+    dA = vec3{grid.getA()[nx+ng,ny].y - grid.getA()[nx+ng,0].y,0,0};
+    expect_close(grid.getA()[nx+ng,ny+ng], grid.getA()[nx+ng,ng] + dA);
+    #endif
     //No corners = no corners
     fill_2D(grid);
     Periodic(Y,false).apply(grid);
@@ -109,7 +118,7 @@ void DRAGON_Test::verify_boundary_periodic_3D() {
         for (int k = 0; k < grid.getSizeZ(); k++) {
             expect_close(grid[-1, j,k], grid[2, j,k]);
             expect_close(grid[3, j,k],  grid[0, j,k]);
-#ifdef MHD
+            #ifdef MHD
             expect_close(magneticX(grid, -1, j,k), magneticX(grid, 2, j,k));
             expect_close(magneticY(grid, -1, j,k), magneticY(grid, 2, j,k));
             expect_close(magneticZ(grid, -1, j,k), magneticZ(grid, 2, j,k));
@@ -121,9 +130,14 @@ void DRAGON_Test::verify_boundary_periodic_3D() {
             expect_close(magneticX(grid, 4, j,k), magneticX(grid, 1, j,k));
             expect_close(magneticY(grid, 4, j,k), magneticY(grid, 1, j,k));
             expect_close(magneticZ(grid, 4, j,k), magneticZ(grid, 1, j,k));
-#endif
+            #endif
         }
     }
+    #ifdef MHD//A field corner check
+    int ng = grid.getGhosts(), nx = grid.getSizeX(), ny = grid.getSizeY(), nz = grid.getSizeZ();
+    vec3 dA = grid.getA()[nx,ny+ng,nz+ng] - grid.getA()[0,ny+ng,nz+ng];
+    expect_close(grid.getA()[nx+ng,ny+ng,nz+ng], grid.getA()[ng,ny+ng,nz+ng] + dA);
+    #endif
     //No corners = no corners
     fill_3D(grid);
     Periodic(X).apply(grid);
@@ -135,7 +149,7 @@ void DRAGON_Test::verify_boundary_periodic_3D() {
         for (int k = 0; k < grid.getSizeZ(); k++) {
             expect_close(grid[i,-1, k], grid[i,3, k]);
             expect_close(grid[i,4, k],  grid[i,0,k]);
-#ifdef MHD
+            #ifdef MHD
             expect_close(magneticX(grid, i,-1,k), magneticX(grid, i,3,k));
             expect_close(magneticY(grid, i,-1,k), magneticY(grid, i,3,k));
             expect_close(magneticZ(grid, i,-1,k), magneticZ(grid, i,3,k));
@@ -147,9 +161,13 @@ void DRAGON_Test::verify_boundary_periodic_3D() {
             expect_close(magneticX(grid, i,5,k), magneticX(grid, i,1,k));
             expect_close(magneticY(grid, i,5,k), magneticY(grid, i,1,k));
             expect_close(magneticZ(grid, i,5,k), magneticZ(grid, i,1,k));
-#endif
+            #endif
         }
     }
+    #ifdef MHD//A field corner check
+    dA = grid.getA()[nx+ng,ny,nz+ng] - grid.getA()[nx+ng,0,nz+ng];
+    expect_close(grid.getA()[nx+ng,ny+ng,nz+ng], grid.getA()[nx+ng,ng,nz+ng] + dA);
+    #endif
     //Z
     fill_3D(grid);
     Periodic("Z").apply(grid);
@@ -157,7 +175,7 @@ void DRAGON_Test::verify_boundary_periodic_3D() {
         for (int j = 0; j < grid.getSizeY(); j++) {
             expect_close(grid[i,j,-1], grid[i,j,4]);
             expect_close(grid[i,j,5],  grid[i,j,0]);
-#ifdef MHD
+            #ifdef MHD
             expect_close(magneticX(grid, i,j,-1), magneticX(grid, i,j,4));
             expect_close(magneticY(grid, i,j,-1), magneticY(grid, i,j,4));
             expect_close(magneticZ(grid, i,j,-1), magneticZ(grid, i,j,4));
@@ -169,9 +187,13 @@ void DRAGON_Test::verify_boundary_periodic_3D() {
             expect_close(magneticX(grid, i,j,6), magneticX(grid, i,j,1));
             expect_close(magneticY(grid, i,j,6), magneticY(grid, i,j,1));
             expect_close(magneticZ(grid, i,j,6), magneticZ(grid, i,j,1));
-#endif
+            #endif
         }
     }
+    #ifdef MHD//A field corner check
+    dA = grid.getA()[nx+ng,ny+ng,nz] - grid.getA()[nx+ng,ny+ng,0];
+    expect_close(grid.getA()[nx+ng,ny+ng,nz+ng], grid.getA()[nx+ng,ny+ng,ng] + dA);
+    #endif
     //Corner
     fill_3D(grid);
     Periodic(X | Y | Z).apply(grid);
