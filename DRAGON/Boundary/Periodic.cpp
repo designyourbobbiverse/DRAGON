@@ -38,7 +38,9 @@ void Boundary::Periodic::apply(Grid2D& grid) {
 
     if (faces & X){
         for(int j = j0 ; j < jn; j++){
+            #ifdef MHD
             auto dAx = _A[nx,j].x - _A[0,j].x;
+            #endif
             for(int g = 1; g <= ng; g++){
                 grid[-g,j] = grid[nx-g,j];
                 grid[nx-1+g,j] = grid[g-1,j];
@@ -56,7 +58,9 @@ void Boundary::Periodic::apply(Grid2D& grid) {
     }
     if (faces & Y){
         for(int i = i0 ; i < in; i++){
+            #ifdef MHD
             auto dAy = _A[i,ny].y - _A[i,0].y;
+            #endif
             for(int g = 1; g <= ng; g++){
                 grid[i,-g] = grid[i,ny-g];
                 grid[i,ny-1+g] = grid[i,g-1];
@@ -87,7 +91,9 @@ void Boundary::Periodic::apply(Grid3D& grid) {
     if (faces & X){
         for(int j = j0 ; j < jn; j++){
             for(int k = k0 ; k < kn; k++){
+                #ifdef MHD
                 auto dAx = _A[nx,j,k].x - _A[0,j,k].x;
+                #endif
                 for(int g = 1; g <= ng; g++){
                     grid[-g,j,k] = grid[nx-g,j,k];
                     grid[nx-1+g,j,k] = grid[g-1,j,k];
@@ -107,7 +113,9 @@ void Boundary::Periodic::apply(Grid3D& grid) {
     if (faces & Y){
         for(int i = i0 ; i < in; i++){
             for(int k = k0 ; k < kn; k++){
+                #ifdef MHD
                 auto dAy = _A[i,ny,k].y - _A[i,0,k].y;
+                #endif
                 for(int g = 1; g <= ng; g++){
                     grid[i,-g,k] = grid[i,ny-g,k];
                     grid[i,ny-1+g,k] = grid[i,g-1,k];
@@ -127,7 +135,9 @@ void Boundary::Periodic::apply(Grid3D& grid) {
     if (faces & Z){
         for(int i = i0 ; i < in; i++){
             for(int j = j0 ; j < jn; j++){
+                #ifdef MHD
                 auto dAz = _A[i,j,nz].z - _A[i,j,0].z;
+                #endif
                 for(int g = 1; g <= ng; g++){
                     grid[i,j,-g] = grid[i,j,nz-g];
                     grid[i,j,nz-1+g] = grid[i,j,g-1];
