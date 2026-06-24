@@ -73,6 +73,11 @@ void DRAGON_Test::verify_godunov_2D_Unsplit(bool output){
     if(output) std::cout<<"- Periodic Conservation: ";
     verify_god_periodic_conservation_2D(false);
     if(output) std::cout<<"Passed\n";
+    
+    #ifdef MHD
+    verify_godunov_2D_MHD();
+    #endif
+    
     if(output) std::cout<<"- Zero Time: ";
     verify_god_dt0_2D(false);
     if(output) std::cout<<"Passed\n";
@@ -131,6 +136,11 @@ void DRAGON_Test::verify_godunov_3D_Unsplit(bool output){
     if(output) std::cout<<"- Periodic Conservation: ";
     verify_god_periodic_conservation_3D(false);
     if(output) std::cout<<"Passed\n";
+    
+    #ifdef MHD
+    verify_godunov_3D_MHD();
+    #endif
+    
     if(output) std::cout<<"- Zero Time: ";
     verify_god_dt0_3D(false);
     if(output) std::cout<<"Passed\n";

@@ -35,12 +35,11 @@ void DRAGON_Test::verify_godunov_2D_MHD(bool output){
     int prev = CONFIG::riemann_choice;
     CONFIG::riemann_choice = RIEMANN_HLLD;
     
-    if(output) std::cout<<"2D MHD Godunov Scheme: \n";
-    if(output) std::cout<<"- Uniform Flows: ";
+    if(output) std::cout<<"- MHD Uniform Flows: ";
     verify_god_uniform_stationary_2D_MHD();
     verify_god_uniform_moving_2D_MHD();
     if(output) std::cout<<"Passed\n";
-    if(output) std::cout<<"- Periodic Conservation: ";
+    if(output) std::cout<<"- MHD Periodic Conservation: ";
     verify_god_periodic_conservation_2D_MHD();
     if(output) std::cout<<"Passed\n";
     
@@ -50,12 +49,11 @@ void DRAGON_Test::verify_godunov_3D_MHD(bool output){
     int prev = CONFIG::riemann_choice;
     CONFIG::riemann_choice = RIEMANN_HLLD;
     
-    if(output) std::cout<<"3D MHD Godunov Scheme: \n";
-    if(output) std::cout<<"- Uniform Flows: ";
+    if(output) std::cout<<"- MHD Uniform Flows: ";
     verify_god_uniform_stationary_3D_MHD();
     verify_god_uniform_moving_3D_MHD();
     if(output) std::cout<<"Passed\n";
-    if(output) std::cout<<"- Periodic Conservation: ";
+    if(output) std::cout<<"- MHD Periodic Conservation: ";
     verify_god_periodic_conservation_3D_MHD();
     if(output) std::cout<<"Passed\n";
     
@@ -77,7 +75,7 @@ void DRAGON_Test::verify_god_uniform_moving_1D_MHD(){
     PrimitiveState W = make_state(1.0, 1.0, 2.0, 3.0, 5.0);
     W.B = {1,2,3};
     for (int i = 0; i < grid.getSize(); i++) grid[i] = W;
-    grid.boundary = Fixed(W);
+    grid.boundary = Outflow();
     grid.advance(1.0);
     for (int i = 0; i < grid.getSize(); i++) expect_close(grid[i], W);
 }
@@ -104,7 +102,7 @@ void DRAGON_Test::verify_god_uniform_stationary_2D_MHD(){
 
     for (int i = 0; i < grid.getSizeX(); i++){
         for (int j = 0; j < grid.getSizeY(); j++){
-        //    expect_close(grid[i,j], W);
+            expect_close(grid[i,j], W);
         }
     }
 }
@@ -127,7 +125,7 @@ void DRAGON_Test::verify_god_uniform_moving_2D_MHD(){
     
     for (int i = 0; i < grid.getSizeX(); i++){
         for (int j = 0; j < grid.getSizeY(); j++){
-        //    expect_close(grid[i,j], W);
+            expect_close(grid[i,j], W);
         }
     }
 }
@@ -135,14 +133,18 @@ void DRAGON_Test::verify_god_uniform_moving_2D_MHD(){
 void DRAGON_Test::verify_god_uniform_stationary_3D_MHD(){
     Grid3D grid(10,10,10, 1.0,1.0,1.0,2);
     PrimitiveState W = make_state(1.0, 0.0, 0.0, 0.0, 5.0);
-    for (int i = 0; i < grid.getSizeX(); i++){
-        for (int j = 0; j < grid.getSizeY(); j++){
-            for(int k=0; k<grid.getSizeZ(); k++){
+    for (int i = 0; i <= grid.getSizeX(); i++){
+        for (int j = 0; j <= grid.getSizeY(); j++){
+            for(int k = 0; k <= grid.getSizeZ(); k++){
                 grid[i,j,k] = W;
+                grid.getA()[i,j,k] = vec3{0,0,0.1*i};
             }
         }
     }
     grid.boundary = Reflective();
+    grid.boundary.apply(grid);
+    grid.computeBodyAveragedFields();
+    W = grid[1,1,1];
     
     grid.advance(1.0);
     
@@ -157,14 +159,18 @@ void DRAGON_Test::verify_god_uniform_stationary_3D_MHD(){
 void DRAGON_Test::verify_god_uniform_moving_3D_MHD(){
     Grid3D grid(10,10,10, 1.0,1.0, 1.0, 2);
     PrimitiveState W = make_state(1.0, 1.0, 2.0, 3.0, 5.0);
-    for (int i = 0; i < grid.getSizeX(); i++){
-        for (int j = 0; j < grid.getSizeY(); j++){
-            for (int k = 0; k < grid.getSizeZ(); k++){
+    for (int i = 0; i <= grid.getSizeX(); i++){
+        for (int j = 0; j <= grid.getSizeY(); j++){
+            for (int k = 0; k <= grid.getSizeZ(); k++){
                 grid[i,j,k] = W;
+                grid.getA()[i,j,k] = vec3{0,0,0.125*i};
             }
         }
     }
-    grid.boundary = Outflow();
+    grid.computeBodyAveragedFields();
+    W = grid[2,2,2];
+
+    grid.boundary = Fixed(W);
     
     grid.advance(1.0);
     
