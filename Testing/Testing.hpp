@@ -229,6 +229,24 @@ void verify_3D_Z_match_1D(bool split);
 void verify_ctu_diagonal_contact_3D();
 void verify_ctu_blast_3D();
 
+//MARK: Godunov Scheme (MHD)
+#ifdef MHD
+//1D
+void verify_godunov_1D_MHD(bool output = true);
+void verify_god_uniform_stationary_1D_MHD();
+void verify_god_uniform_moving_1D_MHD();
+void verify_god_periodic_conservation_1D_MHD();
+//2D
+void verify_godunov_2D_MHD(bool output = true);
+void verify_god_uniform_stationary_2D_MHD();
+void verify_god_uniform_moving_2D_MHD();
+void verify_god_periodic_conservation_2D_MHD();
+//3D
+void verify_godunov_3D_MHD(bool output = true);
+void verify_god_uniform_stationary_3D_MHD();
+void verify_god_uniform_moving_3D_MHD();
+void verify_god_periodic_conservation_3D_MHD();
+#endif
 
 
 

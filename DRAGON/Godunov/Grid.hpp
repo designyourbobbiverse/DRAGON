@@ -72,15 +72,16 @@ public:
     void advance_split(double dt, bool check_cfl = true);
     void advance_unsplit(double dt, bool check_cfl = true);
 
+    #ifdef MHD
+    void computeBodyAveragedFields();
+    #endif
 private:
     int sweep_step = 0;
 
     void advanceX(double dt); //Advance a single split step in X
     void advanceY(double dt); //Advance a single split step in Y
     void advanceXY(double dt); //Advance a single unsplit step
-#ifdef MHD
-    void computeBodyAveragedFields();
-#endif
+
 };
 
 struct Grid3D{
@@ -116,7 +117,9 @@ public:
     void advance_split(double dt, bool check_cfl = true);
     void advance_unsplit(double dt, bool check_cfl = true);
     
-    
+    #ifdef MHD
+    void computeBodyAveragedFields();
+    #endif
 private:
     int sweep_step = 0;
     
@@ -124,9 +127,6 @@ private:
     void advanceY(double dt); //Advance a single split step in Y
     void advanceZ(double dt); //Advance a single split step in Z
     void advanceXYZ(double dt); //Advance a single unsplit step
-#ifdef MHD
-    void computeBodyAveragedFields();
-#endif
 };
 
 

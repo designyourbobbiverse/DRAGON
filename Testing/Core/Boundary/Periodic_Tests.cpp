@@ -13,6 +13,9 @@
 
 using namespace DRAGON_Test;
 using namespace Boundary;
+#ifdef MHD
+using namespace MagneticGrid;
+#endif
 
 //MARK: Helpers
 static vec3 make_tagged_vec(double tag){ return vec3(tag + 100, tag + 200, tag + 300); }
@@ -49,7 +52,7 @@ void DRAGON_Test::verify_boundary_periodic_1D() {
 }
 //MARK: Periodic - 2D
 void DRAGON_Test::verify_boundary_periodic_2D() {
-    Grid2D grid(3, 4, 1.0, 1.0, 1);
+    Grid2D grid(3, 4, 1.0, 1.0, 2);
     
     //X
     fill_2D(grid);
@@ -58,24 +61,37 @@ void DRAGON_Test::verify_boundary_periodic_2D() {
         expect_close(grid[-1, j], grid[2, j]);
         expect_close(grid[3, j],  grid[0, j]);
 #ifdef MHD
-        expect_close(grid.getA()[-1, j], grid.getA()[2, j]);
-        expect_close(grid.getA()[3, j],  grid.getA()[0, j]);
-        expect_close(grid.getA()[5, j],  grid.getA()[2, j]);
+        expect_close(magneticX(grid, -1, j), magneticX(grid, 2, j));
+        expect_close(magneticY(grid, -1, j), magneticY(grid, 2, j));
+
+        expect_close(magneticX(grid, 3, j), magneticX(grid, 0, j));
+        expect_close(magneticY(grid, 3, j), magneticY(grid, 0, j));
+
+        expect_close(magneticX(grid, 4, j), magneticX(grid, 1, j));
+        expect_close(magneticY(grid, 4, j), magneticY(grid, 1, j));
+
 #endif
     }
     //Y
     fill_2D(grid);
-    Periodic(Y,false).apply(grid);
+    Periodic(Y).apply(grid);
     for (int i = 0; i < grid.getSizeX(); i++) {
         expect_close(grid[i,-1], grid[i,3]);
         expect_close(grid[i,4],  grid[i,0]);
 #ifdef MHD
-        expect_close(grid.getA()[i, -1], grid.getA()[i, 3]);
-        expect_close(grid.getA()[i, 4],  grid.getA()[i, 0]);
-        expect_close(grid.getA()[i, 6],  grid.getA()[i, 2]);
+        expect_close(magneticX(grid, i,-1), magneticX(grid, i,3));
+        expect_close(magneticY(grid, i,-1), magneticY(grid, i,3));
+
+        expect_close(magneticX(grid, i,4), magneticX(grid, i,0));
+        expect_close(magneticY(grid, i,4), magneticY(grid, i,0));
+
+        expect_close(magneticX(grid, i,5), magneticX(grid, i,1));
+        expect_close(magneticY(grid, i,5), magneticY(grid, i,1));
 #endif
     }
     //No corners = no corners
+    fill_2D(grid);
+    Periodic(Y,false).apply(grid);
     expect_close(grid[-1,-1],G);
     //Corner
     fill_2D(grid);
@@ -88,19 +104,29 @@ void DRAGON_Test::verify_boundary_periodic_3D() {
     
     //X
     fill_3D(grid);
-    Periodic("X",false).apply(grid);
+    Periodic("X").apply(grid);
     for (int j = 0; j < grid.getSizeY(); j++) {
         for (int k = 0; k < grid.getSizeZ(); k++) {
             expect_close(grid[-1, j,k], grid[2, j,k]);
             expect_close(grid[3, j,k],  grid[0, j,k]);
 #ifdef MHD
-            expect_close(grid.getA()[-1, j, k], grid.getA()[2, j, k]);
-            expect_close(grid.getA()[3, j, k],  grid.getA()[0, j, k]);
-            expect_close(grid.getA()[5, j, k],  grid.getA()[2, j, k]);
+            expect_close(magneticX(grid, -1, j,k), magneticX(grid, 2, j,k));
+            expect_close(magneticY(grid, -1, j,k), magneticY(grid, 2, j,k));
+            expect_close(magneticZ(grid, -1, j,k), magneticZ(grid, 2, j,k));
+
+            expect_close(magneticX(grid, 3, j,k), magneticX(grid, 0, j,k));
+            expect_close(magneticY(grid, 3, j,k), magneticY(grid, 0, j,k));
+            expect_close(magneticZ(grid, 3, j,k), magneticZ(grid, 0, j,k));
+
+            expect_close(magneticX(grid, 4, j,k), magneticX(grid, 1, j,k));
+            expect_close(magneticY(grid, 4, j,k), magneticY(grid, 1, j,k));
+            expect_close(magneticZ(grid, 4, j,k), magneticZ(grid, 1, j,k));
 #endif
         }
     }
     //No corners = no corners
+    fill_3D(grid);
+    Periodic(X).apply(grid);
     expect_close(grid[-1,1,-1],G);
     //Y
     fill_3D(grid);
@@ -110,9 +136,17 @@ void DRAGON_Test::verify_boundary_periodic_3D() {
             expect_close(grid[i,-1, k], grid[i,3, k]);
             expect_close(grid[i,4, k],  grid[i,0,k]);
 #ifdef MHD
-            expect_close(grid.getA()[i, -1, k], grid.getA()[i, 3, k]);
-            expect_close(grid.getA()[i, 4, k],  grid.getA()[i, 0, k]);
-            expect_close(grid.getA()[i, 6, k],  grid.getA()[i, 2, k]);
+            expect_close(magneticX(grid, i,-1,k), magneticX(grid, i,3,k));
+            expect_close(magneticY(grid, i,-1,k), magneticY(grid, i,3,k));
+            expect_close(magneticZ(grid, i,-1,k), magneticZ(grid, i,3,k));
+
+            expect_close(magneticX(grid, i,4,k), magneticX(grid, i,0,k));
+            expect_close(magneticY(grid, i,4,k), magneticY(grid, i,0,k));
+            expect_close(magneticZ(grid, i,4,k), magneticZ(grid, i,0,k));
+
+            expect_close(magneticX(grid, i,5,k), magneticX(grid, i,1,k));
+            expect_close(magneticY(grid, i,5,k), magneticY(grid, i,1,k));
+            expect_close(magneticZ(grid, i,5,k), magneticZ(grid, i,1,k));
 #endif
         }
     }
@@ -124,9 +158,17 @@ void DRAGON_Test::verify_boundary_periodic_3D() {
             expect_close(grid[i,j,-1], grid[i,j,4]);
             expect_close(grid[i,j,5],  grid[i,j,0]);
 #ifdef MHD
-            expect_close(grid.getA()[i, j, -1], grid.getA()[i, j, 4]);
-            expect_close(grid.getA()[i, j, 5],  grid.getA()[i, j, 0]);
-            expect_close(grid.getA()[i, j, 7],  grid.getA()[i, j, 2]);
+            expect_close(magneticX(grid, i,j,-1), magneticX(grid, i,j,4));
+            expect_close(magneticY(grid, i,j,-1), magneticY(grid, i,j,4));
+            expect_close(magneticZ(grid, i,j,-1), magneticZ(grid, i,j,4));
+
+            expect_close(magneticX(grid, i,j,5), magneticX(grid, i,j,0));
+            expect_close(magneticY(grid, i,j,5), magneticY(grid, i,j,0));
+            expect_close(magneticZ(grid, i,j,5), magneticZ(grid, i,j,0));
+
+            expect_close(magneticX(grid, i,j,6), magneticX(grid, i,j,1));
+            expect_close(magneticY(grid, i,j,6), magneticY(grid, i,j,1));
+            expect_close(magneticZ(grid, i,j,6), magneticZ(grid, i,j,1));
 #endif
         }
     }

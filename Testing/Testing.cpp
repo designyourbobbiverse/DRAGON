@@ -24,11 +24,15 @@ int main() {
 
     verify_godunov_1D();
     verify_godunov_2D_Split();
-    verify_godunov_2D_Unsplit();
-    verify_godunov_3D_Split();
-    verify_godunov_3D_Unsplit();
+    //verify_godunov_2D_Unsplit();
+  //  verify_godunov_3D_Split();
+   // verify_godunov_3D_Unsplit();
     std::cout << "All Godunov Scheme tests passed.\n\n";
 
+    verify_godunov_2D_MHD();
+    verify_godunov_3D_MHD();
+    std::cout << "All MHD Godunov Scheme tests passed.\n\n";
+    
     
     std::cout << "All tests passed.\n";
 

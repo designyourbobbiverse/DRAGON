@@ -15,6 +15,9 @@ using namespace DRAGON_Test;
 using namespace Boundary;
 
 void DRAGON_Test::verify_godunov_1D(bool output){
+    int prev = CONFIG::riemann_choice;
+    CONFIG::riemann_choice = RIEMANN_EXACT;
+    
     if(output) std::cout<<"1D Godunov Scheme: \n";
     if(output) std::cout<<"- Uniform Flows: ";
     verify_god_uniform_stationary_1D();
@@ -23,11 +26,21 @@ void DRAGON_Test::verify_godunov_1D(bool output){
     if(output) std::cout<<"- Periodic Conservation: ";
     verify_god_periodic_conservation_1D();
     if(output) std::cout<<"Passed\n";
+    
+    #ifdef MHD
+    verify_godunov_1D_MHD();
+    #endif
+    
     if(output) std::cout<<"- Zero Time: ";
     verify_god_dt0_1D();
     if(output) std::cout<<"Passed\n";
+    
+    CONFIG::riemann_choice = prev;
 }
 void DRAGON_Test::verify_godunov_2D_Split(bool output){
+    int prev = CONFIG::riemann_choice;
+    CONFIG::riemann_choice = RIEMANN_EXACT;
+
     if(output) std::cout<<"2D Split Scheme: \n";
     if(output) std::cout<<"- Uniform Flows: ";
     verify_god_uniform_stationary_2D(true);
@@ -45,9 +58,13 @@ void DRAGON_Test::verify_godunov_2D_Split(bool output){
     if(output) std::cout<<"- 1D Match (Y): ";
     verify_2D_Y_match_1D(true);
     if(output) std::cout<<"Passed\n";
+    
+    CONFIG::riemann_choice = prev;
 }
 void DRAGON_Test::verify_godunov_2D_Unsplit(bool output){
+    int prev = CONFIG::riemann_choice;
     CONFIG::riemann_choice = RIEMANN_EXACT;
+    
     if(output) std::cout<<"2D Unsplit Scheme: \n";
     if(output) std::cout<<"- Uniform Flows: ";
     verify_god_uniform_stationary_2D(false);
@@ -73,8 +90,12 @@ void DRAGON_Test::verify_godunov_2D_Unsplit(bool output){
     verify_ctu_blast_2D();
     if(output) std::cout<<"Passed\n";
 #endif
+    CONFIG::riemann_choice = prev;
 }
 void DRAGON_Test::verify_godunov_3D_Split(bool output){
+    int prev = CONFIG::riemann_choice;
+    CONFIG::riemann_choice = RIEMANN_EXACT;
+
     if(output) std::cout<<"3D Split Scheme: \n";
     if(output) std::cout<<"- Uniform Flows: ";
     verify_god_uniform_stationary_3D(true);
@@ -95,9 +116,13 @@ void DRAGON_Test::verify_godunov_3D_Split(bool output){
     if(output) std::cout<<"- 1D Match (Z): ";
     verify_3D_Z_match_1D(true);
     if(output) std::cout<<"Passed\n";
+    
+    CONFIG::riemann_choice = prev;
 }
 void DRAGON_Test::verify_godunov_3D_Unsplit(bool output){
+    int prev = CONFIG::riemann_choice;
     CONFIG::riemann_choice = RIEMANN_HLLC;
+
     if(output) std::cout<<"3D Unsplit Scheme: \n";
     if(output) std::cout<<"- Uniform Flows: ";
     verify_god_uniform_stationary_3D(false);
@@ -126,6 +151,7 @@ void DRAGON_Test::verify_godunov_3D_Unsplit(bool output){
     verify_ctu_blast_3D();
     if(output) std::cout<<"Passed\n";
 #endif
+    CONFIG::riemann_choice = prev;
 }
 
 //MARK: Uniform Flow Tests

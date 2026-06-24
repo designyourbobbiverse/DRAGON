@@ -81,6 +81,7 @@
 				Core/Godunov/CTU_Tests.cpp,
 				Core/Godunov/DimMatch_Tests.cpp,
 				Core/Godunov/Godunov_Tests.cpp,
+				Core/Godunov/MHDGodunov_Tests.cpp,
 				Core/Godunov/TVD_Tests.cpp,
 				Core/Grid_Tests.cpp,
 				Core/Riemann/HLL_Tests.cpp,
@@ -105,6 +106,7 @@
 				Core/Godunov/CTU_Tests.cpp,
 				Core/Godunov/DimMatch_Tests.cpp,
 				Core/Godunov/Godunov_Tests.cpp,
+				Core/Godunov/MHDGodunov_Tests.cpp,
 				Core/Godunov/TVD_Tests.cpp,
 				Core/Grid_Tests.cpp,
 				Core/Riemann/HLL_Tests.cpp,
@@ -443,7 +445,7 @@
 				DEVELOPMENT_TEAM = UR2T3Z854C;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu23;
-				GCC_OPTIMIZATION_LEVEL = 3;
+				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"DEBUG=1",
 					"$(inherited)",
@@ -462,7 +464,7 @@
 				DEVELOPMENT_TEAM = UR2T3Z854C;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu23;
-				GCC_OPTIMIZATION_LEVEL = 3;
+				GCC_OPTIMIZATION_LEVEL = 0;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
