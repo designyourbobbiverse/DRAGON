@@ -290,6 +290,17 @@ void computeHalfStates_X(FluidArray2D& _L, const Grid2D& _W, FluidArray2D& _R, d
     const double dt_dL = dt/_W.dx;//Compute once
     const int nx = _W.getSizeX(), ny = _W.getSizeY(), g = _W.getGhosts();
 
+    for(int i=-g; i<nx+g; i++){
+        for(int j=-g; j<ny+g; j++){
+                #ifdef MHD
+                double BL = _L[i,j].B.x, BR = _R[i,j].B.x;
+                #endif
+                _L[i,j] = _W[i,j]; _R[i,j] = _W[i,j];
+                #ifdef MHD
+                _L[i,j].B.x = BL; _R[i,j].B.x = BR;
+                #endif
+        }
+    }
     for(int i=-g + 1; i<nx+g - 1; i++){
         for(int j=-g; j<ny+g; j++){
             auto wL =_W[i-1,j], wR = _W[i+1,j];
@@ -301,6 +312,17 @@ void computeHalfStates_Y(FluidArray2D& _L, const Grid2D& _W, FluidArray2D& _R, d
     const double dt_dL = dt/_W.dy;//Compute once
     const int nx = _W.getSizeX(), ny = _W.getSizeY(), g = _W.getGhosts();
 
+    for(int i=-g; i<nx+g; i++){
+        for(int j=-g; j<ny+g; j++){
+                #ifdef MHD
+                double BL = _L[i,j].B.y, BR = _R[i,j].B.y;
+                #endif
+                _L[i,j] = _W[i,j]; _R[i,j] = _W[i,j];
+                #ifdef MHD
+                _L[i,j].B.y = BL; _R[i,j].B.y = BR;
+                #endif
+        }
+    }
     for(int i=-g; i<nx+g; i++){
         for(int j=-g + 1; j<ny+g - 1; j++){
             #ifdef MHD//By has already set, but MUSCL needs to see it as Bx
@@ -320,15 +342,13 @@ void computeHalfStates_X(FluidArray3D& _L, const Grid3D& _W, FluidArray3D& _R, d
     for(int i=-g; i<nx+g; i++){
         for(int j=-g; j<ny+g; j++){
             for(int k=-g; k<nz+g; k++){
-#ifdef MHD
+                #ifdef MHD
                 double BL = _L[i,j,k].B.x, BR = _R[i,j,k].B.x;
-#endif
-                _L[i,j,k] = _W[i,j,k];
-                _R[i,j,k] = _W[i,j,k];
-#ifdef MHD
-                _L[i,j,k].B.x = BL;
-                _R[i,j,k].B.x = BR;
-#endif
+                #endif
+                _L[i,j,k] = _W[i,j,k]; _R[i,j,k] = _W[i,j,k];
+                #ifdef MHD
+                _L[i,j,k].B.x = BL; _R[i,j,k].B.x = BR;
+                #endif
             }
         }
     }
@@ -348,15 +368,13 @@ void computeHalfStates_Y(FluidArray3D& _L, const Grid3D& _W, FluidArray3D& _R, d
     for(int i=-g; i<nx+g; i++){
         for(int j=-g; j<ny+g; j++){
             for(int k=-g; k<nz+g; k++){
-#ifdef MHD
+                #ifdef MHD
                 double BL = _L[i,j,k].B.y, BR = _R[i,j,k].B.y;
-#endif
-                _L[i,j,k] = _W[i,j,k];
-                _R[i,j,k] = _W[i,j,k];
-#ifdef MHD
-                _L[i,j,k].B.y = BL;
-                _R[i,j,k].B.y = BR;
-#endif
+                #endif
+                _L[i,j,k] = _W[i,j,k]; _R[i,j,k] = _W[i,j,k];
+                #ifdef MHD
+                _L[i,j,k].B.y = BL; _R[i,j,k].B.y = BR;
+                #endif
             }
         }
     }
@@ -381,15 +399,13 @@ void computeHalfStates_Z(FluidArray3D& _L, const Grid3D& _W, FluidArray3D& _R, d
     for(int i=-g; i<nx+g; i++){
         for(int j=-g; j<ny+g; j++){
             for(int k=-g; k<nz+g; k++){
-#ifdef MHD
+                #ifdef MHD
                 double BL = _L[i,j,k].B.z, BR = _R[i,j,k].B.z;
-#endif
-                _L[i,j,k] = _W[i,j,k];
-                _R[i,j,k] = _W[i,j,k];
-#ifdef MHD
-                _L[i,j,k].B.z = BL;
-                _R[i,j,k].B.z = BR;
-#endif
+                #endif
+                _L[i,j,k] = _W[i,j,k]; _R[i,j,k] = _W[i,j,k];
+                #ifdef MHD
+                _L[i,j,k].B.z = BL; _R[i,j,k].B.z = BR;
+                #endif
             }
         }
     }
