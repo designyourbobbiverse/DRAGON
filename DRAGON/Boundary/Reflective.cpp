@@ -202,7 +202,7 @@ void Boundary::Reflective::apply(Grid3D& grid) {
                     #ifdef MHD
                     if (conductive) { //Mirror Transverse Magnetic Fields
                         _A[i,ny+g,k] = _A[i,ny-g,k]; //A reflects over zero, w reflects over -1/2
-                        _A[i,ny-1+g,k].x = -_A[i,ny-g,k].y; //Except normal A does reflect over -1/2
+                        _A[i,ny-1+g,k].y = -_A[i,ny-g,k].y; //Except normal A does reflect over -1/2
                     } else {
                         _A[i,ny+g,k] = 2*_A[i,ny+g-1,k] - _A[i,ny+g-2,k];
                         _A[i,ny+g,k].y = _A[i,ny+g-1,k].y;

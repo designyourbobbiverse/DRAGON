@@ -361,9 +361,9 @@ void DRAGON_Test::verify_boundary_reflective_conductive_3D(){
             w = grid[i,3,k]; reflectY3D(w);
             expect_close(grid[i,4,k], w);
             A = grid.getA()[i, 3, k];
-            A.x = -grid.getA()[i, 2, k].y;
+            A.y = -grid.getA()[i, 2, k].y;
             expect_close(grid.getA()[i, 5, k], A);
-            assert(approx(grid.getA()[i, 4, k].x, -grid.getA()[i, 3, k].y));
+            assert(approx(grid.getA()[i, 4, k].y, -grid.getA()[i, 3, k].y));
         }
     }
 
