@@ -39,7 +39,7 @@ void Boundary::Periodic::apply(Grid2D& grid) {
     if (faces & X){
         for(int j = j0 ; j < jn; j++){
             #ifdef MHD
-            if(_A[nx,j]*_A[nx,j] < 1e-12) _A[nx,j] = _A[0,j]; //User might not have intialized
+            if(_A[nx,j] == vec3{0,0,0}) _A[nx,j] = _A[0,j]; //User might not have intialized
             else _A[nx,j].y = _A[0,j].y; _A[nx,j].z = _A[0,j].z;
             auto dA = _A[nx,j] - _A[0,j];
             #endif
@@ -56,7 +56,7 @@ void Boundary::Periodic::apply(Grid2D& grid) {
     if (faces & Y){
         for(int i = i0 ; i < in; i++){
             #ifdef MHD
-            if(_A[i,ny]*_A[i,ny] < 1e-12) _A[i,ny] = _A[i,0]; //User might not have intialized
+            if(_A[i,ny] == vec3{0,0,0}) _A[i,ny] = _A[i,0]; //User might not have intialized
             else _A[i,ny].x = _A[i,0].x; _A[i,ny].z = _A[i,0].z;
             auto dA = _A[i,ny].y - _A[i,0].y;
             #endif
@@ -86,7 +86,7 @@ void Boundary::Periodic::apply(Grid3D& grid) {
         for(int j = j0 ; j < jn; j++){
             for(int k = k0 ; k < kn; k++){
                 #ifdef MHD
-                if(_A[nx,j,k]*_A[nx,j,k] < 1e-12) _A[nx,j,k] = _A[0,j,k]; //User might not have intialized
+                if(_A[nx,j,k]== vec3{0,0,0}) _A[nx,j,k] = _A[0,j,k]; //User might not have intialized
                 else _A[nx,j,k].z = _A[0,j,k].z + (_A[nx,j,k].y - _A[0,j,k].y)*grid.dy/grid.dz; //Enforce Bx[nx]=Bx[0]
                 auto dA = _A[nx,j,k] - _A[0,j,k];
                 #endif
@@ -105,7 +105,7 @@ void Boundary::Periodic::apply(Grid3D& grid) {
         for(int i = i0 ; i < in; i++){
             for(int k = k0 ; k < kn; k++){
                 #ifdef MHD
-                if(_A[i,ny,k]*_A[i,ny,k] < 1e-12) _A[i,ny,k] = _A[i,0,k]; //User might not have intialized
+                if(_A[i,ny,k] == vec3{0,0,0}) _A[i,ny,k] = _A[i,0,k]; //User might not have intialized
                 else _A[i,ny,k].z = _A[i,0,k].z + (_A[i,ny,k].x - _A[i,0,k].x)*grid.dx/grid.dz; //Enforce By[ny]=By[0]
                 auto dA = _A[i,ny,k] - _A[i,0,k];
                 #endif
@@ -124,7 +124,7 @@ void Boundary::Periodic::apply(Grid3D& grid) {
         for(int i = i0 ; i < in; i++){
             for(int j = j0 ; j < jn; j++){
                 #ifdef MHD
-                if(_A[i,j,nz]*_A[i,j,nz] < 1e-12) _A[i,j,nz] = _A[i,j,0]; //User might not have intialized
+                if(_A[i,j,nz] == vec3{0,0,0}) _A[i,j,nz] = _A[i,j,0]; //User might not have intialized
                 else _A[i,j,nz].x = _A[i,j,0].x + (_A[i,j,nz].y - _A[i,j,0].y)*grid.dx/grid.dy; //Enforce Bz[nz]=Bz[0]
                 auto dA = _A[i,j,nz] - _A[i,j,0];
                 #endif
