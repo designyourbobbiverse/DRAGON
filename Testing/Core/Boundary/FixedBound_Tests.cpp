@@ -55,43 +55,13 @@ static double magneticZ(Grid3D& grid, int i, int j, int k) {
          - (grid.getA()[i, j + 1, k].x - grid.getA()[i, j, k].x) / grid.dy;
 }
 
-static void expect_fixed_transverse_B_X(Grid2D& grid, const PrimitiveState& state, int i, int j) {
-    assert(approx(magneticY(grid, i, j), state.B.y));
-}
-
-static void expect_fixed_transverse_B_Y(Grid2D& grid, const PrimitiveState& state, int i, int j) {
-    assert(approx(magneticX(grid, i, j), state.B.x));
-}
-
-static void expect_fixed_transverse_B_X(Grid3D& grid, const PrimitiveState& state, int i, int j, int k) {
-    assert(approx(magneticY(grid, i, j, k), state.B.y));
-    assert(approx(magneticZ(grid, i, j, k), state.B.z));
-}
-
-static void expect_fixed_transverse_B_Y(Grid3D& grid, const PrimitiveState& state, int i, int j, int k) {
-    assert(approx(magneticX(grid, i, j, k), state.B.x));
-    assert(approx(magneticZ(grid, i, j, k), state.B.z));
-}
-
-static void expect_fixed_Bx(Grid3D& grid, const PrimitiveState& state, int i, int j, int k) {
-    assert(approx(magneticX(grid, i, j, k), state.B.x));
-}
-
-static void expect_fixed_Bz(Grid3D& grid, const PrimitiveState& state, int i, int j, int k) {
-    assert(approx(magneticZ(grid, i, j, k), state.B.z));
-}
-
-static void expect_fixed_transverse_B_Z(Grid3D& grid, const PrimitiveState& state, int i, int j, int k) {
-    assert(approx(magneticX(grid, i, j, k), state.B.x));
-    assert(approx(magneticY(grid, i, j, k), state.B.y));
-}
 #endif
 
 void fill_1D(Grid1D& grid);
 void fill_2D(Grid2D& grid);
 void fill_3D(Grid3D& grid);
 
-//MARK: Fixed
+//MARK: Fixed - 1D
 void DRAGON_Test::verify_boundary_fixed_1D() {
     Grid1D grid(4, 1.0, 2);
     PrimitiveState W = make_tagged_state(2112);
@@ -132,8 +102,8 @@ void DRAGON_Test::verify_boundary_fixed_2D() {
         expect_close(grid[-1, j], W);
         expect_close(grid[3, j],  W);
 #ifdef MHD
-        expect_fixed_transverse_B_X(grid, W, -1, j);
-        expect_fixed_transverse_B_X(grid, W, 3, j);
+        approx(magneticY(grid, -1, j), W.B.y);
+        approx(magneticY(grid, 3, j), W.B.y);
 #endif
     }
     //No Corners = No Corners
@@ -145,8 +115,8 @@ void DRAGON_Test::verify_boundary_fixed_2D() {
         expect_close(grid[i,-1], W);
         expect_close(grid[i,4],  W);
 #ifdef MHD
-        expect_fixed_transverse_B_Y(grid, W, i, -1);
-        expect_fixed_transverse_B_Y(grid, W, i, 4);
+        approx(magneticX(grid, i, -1), W.B.x);
+        approx(magneticX(grid, i, 4), W.B.x);
 #endif
     }
     //Corner
@@ -167,8 +137,10 @@ void DRAGON_Test::verify_boundary_fixed_3D() {
             expect_close(grid[-1, j,k], W);
             expect_close(grid[3, j,k],  W);
 #ifdef MHD
-            expect_fixed_transverse_B_X(grid, W, -1, j, k);
-            expect_fixed_transverse_B_X(grid, W, 3, j, k);
+            approx(magneticY(grid, -1,j,k), W.B.y);
+            approx(magneticZ(grid, -1,j,k), W.B.z);
+            approx(magneticY(grid, 3,j,k), W.B.y);
+            approx(magneticZ(grid, 3,j,k), W.B.z);
 #endif
         }
     }
@@ -181,12 +153,12 @@ void DRAGON_Test::verify_boundary_fixed_3D() {
             expect_close(grid[i,4, k],  W);
 #ifdef MHD
             if (k + 1 < grid.getSizeZ()) {
-                expect_fixed_Bx(grid, W, i, -1, k);
-                expect_fixed_Bx(grid, W, i, 4, k);
+                approx(magneticX(grid, i,-1,k), W.B.x);
+                approx(magneticX(grid, i,4,k), W.B.x);
             }
             if (i + 1 < grid.getSizeX()) {
-                expect_fixed_Bz(grid, W, i, -1, k);
-                expect_fixed_Bz(grid, W, i, 4, k);
+                approx(magneticZ(grid, i,-1,k), W.B.z);
+                approx(magneticZ(grid, i,4,k), W.B.z);
             }
 #endif
         }
@@ -201,8 +173,10 @@ void DRAGON_Test::verify_boundary_fixed_3D() {
             expect_close(grid[i,j,-1], W);
             expect_close(grid[i,j,5],  W);
 #ifdef MHD
-            expect_fixed_transverse_B_Z(grid, W, i, j, -1);
-            expect_fixed_transverse_B_Z(grid, W, i, j, 5);
+            approx(magneticX(grid, i, j, -1), W.B.x);
+            approx(magneticY(grid, i, j, -1), W.B.y);
+            approx(magneticX(grid, i, j, 5), W.B.x);
+            approx(magneticY(grid, i, j, 5), W.B.y);
 #endif
         }
     }

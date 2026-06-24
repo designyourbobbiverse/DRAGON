@@ -1,6 +1,6 @@
 //
 //  TVD_Tests.cpp
-//  DRAGON
+//  DRAGON/Testing/Core/Godunov
 //
 //  Created by Bobbie Markwick on 18/06/2026.
 //
@@ -57,6 +57,7 @@ void DRAGON_Test::verify_tvd(bool output) {
     if(output) std::cout << "All TVD Tests Passed.\n\n";
 }
 
+//MARK: Scalar Limiters
 void DRAGON_Test::verify_tvd_scalar_minmod() {
     assert(approx(TVD::minmod(2.0, 3.0), 2.0));
     assert(approx(TVD::minmod(3.0, 2.0), 2.0));
@@ -90,6 +91,7 @@ void DRAGON_Test::verify_tvd_scalar_vanalbada() {
     assert(approx(TVD::vanAlbada(2.0, -4.0), 0.0));
 }
 
+//MARK: Vector/State Limiters
 void DRAGON_Test::verify_tvd_vec3_limiters() {
     vec3 a = {2.0, -2.0, 2.0};
     vec3 b = {4.0, -4.0, -4.0};
@@ -121,9 +123,12 @@ void DRAGON_Test::verify_tvd_primitive_limiters() {
     expect_close(got, make_tvd_state(2.4, 2.4, -70.0 / 29.0, 0.0, 3.6));
 }
 
+//MARK: Dispatch
 void DRAGON_Test::verify_tvd_limiter_dispatch() {
     PrimitiveState a = make_tvd_state(2.0, 4.0, -2.0, 3.0, 6.0);
     PrimitiveState b = make_tvd_state(4.0, 2.0, -5.0, -3.0, 3.0);
+    
+    int prev = CONFIG::limiter_choice;
 
     CONFIG::limiter_choice = LIMITER_MINMOD;
     expect_close(TVD::limit(a, b), TVD::minmod(a, b));
@@ -135,10 +140,13 @@ void DRAGON_Test::verify_tvd_limiter_dispatch() {
     expect_close(TVD::limit(a, b), TVD::superbee(a, b));
     CONFIG::limiter_choice = LIMITER_VANALBADA;
     expect_close(TVD::limit(a, b), TVD::vanAlbada(a, b));
-    CONFIG::limiter_choice = LIMITER_MINMOD;
+    
+    CONFIG::limiter_choice = prev; //Be a good citizen
 }
 
+//MARK: MUSCL
 void DRAGON_Test::verify_tvd_muscl_constant_state() {
+    int prev = CONFIG::limiter_choice;
     CONFIG::limiter_choice = LIMITER_MINMOD;
     PrimitiveState W = make_tvd_state(1.0, 0.2, -0.3, 0.4, 2.0);
     PrimitiveState L, R;
@@ -147,9 +155,13 @@ void DRAGON_Test::verify_tvd_muscl_constant_state() {
 
     expect_close(L, W);
     expect_close(R, W);
+    
+    CONFIG::limiter_choice = prev; //Be a good citizen
 }
 
 void DRAGON_Test::verify_tvd_muscl_zero_dt_spatial_reconstruction() {
+    int prev = CONFIG::limiter_choice;
+
     CONFIG::limiter_choice = LIMITER_MINMOD;
     PrimitiveState wL = make_state(1.0, 1.0, 2.0, 3.0, 4.0);
     PrimitiveState wC = make_state(2.0, 2.0, 3.0, 4.0, 5.0);
@@ -160,9 +172,13 @@ void DRAGON_Test::verify_tvd_muscl_zero_dt_spatial_reconstruction() {
 
     expect_close(L, make_state(1.5, 1.5, 2.5, 3.5, 4.5));
     expect_close(R, make_state(2.5, 2.5, 3.5, 4.5, 5.5));
+    
+    CONFIG::limiter_choice = prev; //Be a good citizen
 }
 
 void DRAGON_Test::verify_tvd_muscl_nonzero_dt_predictor() {
+    int prev = CONFIG::limiter_choice;
+
     CONFIG::limiter_choice = LIMITER_MINMOD;
     PrimitiveState wL = make_state(1.0, 0.0, 0.0, 0.0, 1.0);
     PrimitiveState wC = make_state(2.0, 0.0, 0.0, 0.0, 2.0);
@@ -181,9 +197,13 @@ void DRAGON_Test::verify_tvd_muscl_nonzero_dt_predictor() {
 
     expect_close(L, expectedL, 1e-12, 1e-12);
     expect_close(R, expectedR, 1e-12, 1e-12);
+    
+    CONFIG::limiter_choice = prev; //Be a good citizen
 }
 
 void DRAGON_Test::verify_tvd_muscl_falls_back_when_unphysical() {
+    int prev = CONFIG::limiter_choice;
+
     CONFIG::limiter_choice = LIMITER_SUPERBEE;
     PrimitiveState wL = make_state(1.0, 0.0, 0.0, 0.0, 1.0);
     PrimitiveState wC = make_state(1.0, 0.0, 0.0, 0.0, 1.0);
@@ -194,5 +214,7 @@ void DRAGON_Test::verify_tvd_muscl_falls_back_when_unphysical() {
 
     expect_close(L, wC);
     expect_close(R, wC);
-    CONFIG::limiter_choice = LIMITER_MINMOD;
+    
+    CONFIG::limiter_choice = prev; //Be a good citizen
+
 }
