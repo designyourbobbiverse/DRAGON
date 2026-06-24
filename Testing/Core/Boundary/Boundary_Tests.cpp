@@ -201,7 +201,7 @@ void DRAGON_Test::verify_boundary_composition(bool output){
     verify_boundary_composition_overlap_order();
     if(output) std::cout<<"Passed\n";
 }
-void reflectX2D(PrimitiveState& w);
+void reflectX2D(PrimitiveState& w, bool conductive=true);
 void DRAGON_Test::verify_boundary_set_missing_faces_outflow_2D() {
 
     Grid2D grid(3, 4, 1.0, 1.0, 1);

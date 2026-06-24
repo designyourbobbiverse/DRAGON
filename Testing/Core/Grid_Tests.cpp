@@ -8,6 +8,7 @@
 #include "Testing.hpp"
 #include "Boundary.hpp"
 #include "Grid.hpp"
+#include "Config.h"
 #include <iostream>
 
 using namespace DRAGON_Test;
@@ -87,3 +88,28 @@ void DRAGON_Test::verify_grid3D(){
         }
     }
 }
+//MARK: MHD Helpers
+#ifdef MHD
+double MagneticGrid::magneticX(Grid2D& grid, int i, int j) {
+    return (grid.getA()[i, j + 1].z - grid.getA()[i, j].z) / grid.dy;
+}
+
+double MagneticGrid::magneticY(Grid2D& grid, int i, int j) {
+    return (grid.getA()[i, j].z - grid.getA()[i + 1, j].z) / grid.dx;
+}
+
+double MagneticGrid::magneticX(Grid3D& grid, int i, int j, int k) {
+    return (grid.getA()[i, j + 1, k].z - grid.getA()[i, j, k].z) / grid.dy
+    - (grid.getA()[i, j, k + 1].y - grid.getA()[i, j, k].y) / grid.dz;
+}
+
+double MagneticGrid::magneticY(Grid3D& grid, int i, int j, int k) {
+    return (grid.getA()[i, j, k + 1].x - grid.getA()[i, j, k].x) / grid.dz
+    - (grid.getA()[i + 1, j, k].z - grid.getA()[i, j, k].z) / grid.dx;
+}
+
+double MagneticGrid::magneticZ(Grid3D& grid, int i, int j, int k) {
+    return (grid.getA()[i + 1, j, k].y - grid.getA()[i, j, k].y) / grid.dx
+    - (grid.getA()[i, j + 1, k].x - grid.getA()[i, j, k].x) / grid.dy;
+}
+#endif

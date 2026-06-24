@@ -11,6 +11,8 @@
 #include <stdio.h>
 #include <cassert>
 #include "FluidElement.hpp"
+#include "Grid.hpp"
+#include "Config.h"
 
 namespace DRAGON_Test{
 
@@ -231,4 +233,18 @@ void verify_ctu_blast_3D();
 
 
 }
+
+
+//MARK: MHD Helpers
+
+#ifdef MHD
+namespace MagneticGrid{
+double magneticX(Grid2D& grid, int i, int j);
+double magneticY(Grid2D& grid, int i, int j);
+double magneticX(Grid3D& grid, int i, int j, int k);
+double magneticY(Grid3D& grid, int i, int j, int k);
+double magneticZ(Grid3D& grid, int i, int j, int k);
+}
+#endif
+
 #endif /* Testing_hpp */

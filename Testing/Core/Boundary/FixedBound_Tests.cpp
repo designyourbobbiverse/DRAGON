@@ -13,6 +13,9 @@
 
 using namespace DRAGON_Test;
 using namespace Boundary;
+#ifdef MHD
+using namespace MagneticGrid;
+#endif
 
 
 
@@ -30,32 +33,6 @@ void DRAGON_Test::verify_boundary_fixed(bool output){
 
 //MARK: Helpers
 static PrimitiveState G = make_tagged_state(-666);
-
-#ifdef MHD
-static double magneticX(Grid2D& grid, int i, int j) {
-    return (grid.getA()[i, j + 1].z - grid.getA()[i, j].z) / grid.dy;
-}
-
-static double magneticY(Grid2D& grid, int i, int j) {
-    return (grid.getA()[i, j].z - grid.getA()[i + 1, j].z) / grid.dx;
-}
-
-static double magneticX(Grid3D& grid, int i, int j, int k) {
-    return (grid.getA()[i, j + 1, k].z - grid.getA()[i, j, k].z) / grid.dy
-         - (grid.getA()[i, j, k + 1].y - grid.getA()[i, j, k].y) / grid.dz;
-}
-
-static double magneticY(Grid3D& grid, int i, int j, int k) {
-    return (grid.getA()[i, j, k + 1].x - grid.getA()[i, j, k].x) / grid.dz
-         - (grid.getA()[i + 1, j, k].z - grid.getA()[i, j, k].z) / grid.dx;
-}
-
-static double magneticZ(Grid3D& grid, int i, int j, int k) {
-    return (grid.getA()[i + 1, j, k].y - grid.getA()[i, j, k].y) / grid.dx
-         - (grid.getA()[i, j + 1, k].x - grid.getA()[i, j, k].x) / grid.dy;
-}
-
-#endif
 
 void fill_1D(Grid1D& grid);
 void fill_2D(Grid2D& grid);

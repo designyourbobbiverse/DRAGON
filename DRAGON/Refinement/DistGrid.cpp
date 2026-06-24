@@ -276,7 +276,9 @@ void DistGrid3D::loadFromChildren(){
                     for(int j=0; j < _ny; j++){
                         for(int k=0; k < _nz; k++){
                             data[i+x_offset, j+y_offset, k+z_offset] = (*child)[i,j,k];
+                            #ifdef MHD
                             A()[i+x_offset, j+y_offset, k+z_offset] = child->A()[i,j,k];
+                            #endif
                         }
                     }
                 }
