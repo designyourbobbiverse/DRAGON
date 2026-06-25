@@ -18,7 +18,7 @@ void DRAGON_Test::verify_godunov_1D(bool output){
     int prev = CONFIG::riemann_choice;
     CONFIG::riemann_choice = RIEMANN_EXACT;
     
-    if(output) std::cout<<"1D Godunov Scheme: \n";
+    if(output) std::cout<<"Godunov Scheme (1D): \n";
     if(output) std::cout<<"- Uniform Flows: ";
     verify_god_uniform_stationary_1D();
     verify_god_uniform_moving_1D();
@@ -41,7 +41,7 @@ void DRAGON_Test::verify_godunov_2D_Split(bool output){
     int prev = CONFIG::riemann_choice;
     CONFIG::riemann_choice = RIEMANN_EXACT;
 
-    if(output) std::cout<<"2D Split Scheme: \n";
+    if(output) std::cout<<"Split Scheme (2D): \n";
     if(output) std::cout<<"- Uniform Flows: ";
     verify_god_uniform_stationary_2D(true);
     verify_god_uniform_moving_2D(true);
@@ -65,7 +65,7 @@ void DRAGON_Test::verify_godunov_2D_Unsplit(bool output){
     int prev = CONFIG::riemann_choice;
     CONFIG::riemann_choice = RIEMANN_EXACT;
     
-    if(output) std::cout<<"2D Unsplit Scheme: \n";
+    if(output) std::cout<<"Unsplit Scheme (2D): \n";
     if(output) std::cout<<"- Uniform Flows: ";
     verify_god_uniform_stationary_2D(false);
     verify_god_uniform_moving_2D(false);
@@ -101,7 +101,7 @@ void DRAGON_Test::verify_godunov_3D_Split(bool output){
     int prev = CONFIG::riemann_choice;
     CONFIG::riemann_choice = RIEMANN_EXACT;
 
-    if(output) std::cout<<"3D Split Scheme: \n";
+    if(output) std::cout<<"Split Scheme (3D): \n";
     if(output) std::cout<<"- Uniform Flows: ";
     verify_god_uniform_stationary_3D(true);
     verify_god_uniform_moving_3D(true);
@@ -128,7 +128,7 @@ void DRAGON_Test::verify_godunov_3D_Unsplit(bool output){
     int prev = CONFIG::riemann_choice;
     CONFIG::riemann_choice = RIEMANN_HLLC;
 
-    if(output) std::cout<<"3D Unsplit Scheme: \n";
+    if(output) std::cout<<"Unsplit Scheme (3D): \n";
     if(output) std::cout<<"- Uniform Flows: ";
     verify_god_uniform_stationary_3D(false);
     verify_god_uniform_moving_3D(false);
