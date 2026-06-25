@@ -11,7 +11,7 @@
 //How to use this file
 //If something is indented once and sits above something else, it is one of the options for the something else
     //For example, RIEMANN default has several choices listed above it, such as RIEMANN_EXACT, RIEMANN_HLLC, RIEMANN_ROE, etc
-    //For any of these choice items, you also have this option available, which allows you to choose the option at runtime
+    //For any of these choice items, you also have this option available, which allows you to choose the option at runtime (see the bottom of this header file)
         #define CHOOSE_RUNTIME -1
 //If something is indented and sits below something else, it is an option specific to that setting.
     //For example, RIEMANN_ROE has Harten_Hyman  below it.
@@ -28,7 +28,7 @@
     
 //MARK: Riemann Solver
 //DRAGON offers several different choices of Riemann Solver in Hydrodynamic mode, and choice of HLL/D/E in MHD
-    #define RIEMANN_EXACT 0 //Produces an exact solution to the Euler Equations using an iterative procedure
+    #define RIEMANN_EXACT 0 //Produces an exact solution to the Hydrodynamic Euler Equations using an iterative procedure
         #define Exact_Rarefactions_Check //Checks for the 2-rarefaction case before attempting an iterative procedure
         constexpr double ExactRiemann_Tolerance = 1E-12; //Defines the convergence threshold for the iterative procedure
         constexpr double ExactRiemann_MaxIters = 6; //Use a nonpostiive value for unlimited iterations
@@ -96,8 +96,5 @@ extern int limiter_choice;
 extern int cfl_choice;
 #endif
 }
-
-
-
 
 #endif
