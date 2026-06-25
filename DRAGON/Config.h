@@ -98,9 +98,6 @@ extern int cfl_choice;
 }
 
 
-//Macro which tells hydro only code to not compile if using MHD, except for unit testing where both modes are needed.
-#if !defined(MHD) || defined(TESTMODE)
-#define HYDRO_AVAILABLE
-#endif
+
 
 #endif

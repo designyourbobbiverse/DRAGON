@@ -8,13 +8,17 @@
 #ifndef Constants_h
 #define Constants_h
 
-#include <cmath>
 
 //MARK: Physical Constants
 
 constexpr double _gamma = 5.0/3.0;
 
 
+
+
+//******************************************************************//
+//*DO NOT TOUCH anything below this line (but feel free to read it)*//
+//******************************************************************//
 
 //MARK: Gamma-dependent constants
 constexpr double  _Gm1_2G = (_gamma - 1.0)/(2.0 * _gamma);
