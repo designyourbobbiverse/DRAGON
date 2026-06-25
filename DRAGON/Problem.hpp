@@ -9,8 +9,5 @@
 
 namespace Problem{
     Advanceable& makeProblem();
-    
     void cycleComplete(Advanceable& problem, int cycle, double time);
-    
-    
 }

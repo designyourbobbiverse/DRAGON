@@ -23,15 +23,21 @@ Adaptive mesh refinement is planned for future development. The current `AMRGrid
 
 ```text
 DRAGON/
-  Boundary/       Boundary-condition implementations and composition helpers
-  FluidElement/   Primitive/conservative states, fluxes, arithmetic, physicality checks
-  Godunov/        Structured grids, sweep logic, split/unsplit updates
-    Math/         CFL and TVD
-  Refinement/     Experimental AMR grid wrappers
-  Riemann/        Exact and approximate Riemann solvers
-  Config.h        Solver, reconstruction, CFL, MHD, and threading configuration
-  Constants.h     Physical constants
-  main.cpp        Example 2D blast-wave driver
+  Boundary/         Boundary-condition implementations and composition helpers
+    BoundaryTypes/  Pre-defined boundary conditions (Reflective, Periodic, Outflow, etc)
+  FluidElement/     Primitive/conservative states, fluxes, arithmetic, physicality checks
+  Godunov/          Structured grids, sweep logic, split/unsplit updates
+    CFL/            CFL Timestep Constraint
+    Sweeping/       Godunov Scheme (including 1D, Split, and Unsplit) 
+    TVD/            MUSCL Reconstruction and limiter options
+  MHD/              Constrained Transport
+  Refinement/       Experimental AMR grid wrappers
+  Riemann/          Exact and approximate Riemann solvers
+  Config.h          Solver, reconstruction, CFL, MHD, and threading configuration
+  Constants.h       Physical constants
+  Problem.hpp       Problem setup and cycle-completion interface
+  Problem.cpp       Example problem initialization and output handling
+  main.cpp          Generic simulation loop using the configured problem
 
 DRAGONWING/       Parallel launch/synchronization helpers for AMR grids
 Testing/          Test executable and component-level verification routines
@@ -57,7 +63,7 @@ When `TESTMODE` is enabled, several normally compile-time choices can be selecte
 
 ## Running the Example
 
-The `DRAGON` executable currently runs a 2D blast-wave setup:
+The `DRAGON` executable currently runs the 2D blast-wave setup defined in `Problem.cpp`. Problem construction is exposed through `Problem::makeProblem()`, while per-cycle reporting and output are handled by `Problem::cycleComplete()`:
 
 - grid size: `1000 x 1000`
 - cell size: `dx = dy = 0.01`
@@ -67,13 +73,13 @@ The `DRAGON` executable currently runs a 2D blast-wave setup:
 - blast radius: `0.3`
 - output: one CSV density field per frame
 
-The output path is currently hard-coded in `main.cpp`:
+The output path is currently hard-coded in `Problem.cpp`:
 
 ```text
 /Users/bobbiemarkwick/DRAGON_OUT/frame-####.csv
 ```
 
-Change the path in `main.cpp` for your local run.
+Change the path in `Problem.cpp` for your local run. To configure a different simulation, update the problem initialization and cycle-completion behavior there; `main.cpp` now contains only the simulation loop.
 
 ## Running Tests
 
