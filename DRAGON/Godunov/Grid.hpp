@@ -15,7 +15,13 @@
 #include "Config.h"
 
 
-struct Grid1D{
+class Advanceable{
+public:
+    virtual void advance(double dt, bool check_cfl=true) = 0;
+};
+
+
+class Grid1D: public Advanceable{
 private:
     ExtendedArray1D<PrimitiveState> w;
 public:
@@ -40,7 +46,7 @@ public:
     void god_sweep(double dt, ExtendedArray1D<PrimitiveState>& _L, ExtendedArray1D<PrimitiveState>& _R);
 };
 
-struct Grid2D{
+class Grid2D: public Advanceable{
 private:
     ExtendedArray2D<PrimitiveState> w;
 #ifdef MHD
@@ -87,7 +93,7 @@ private:
 
 };
 
-struct Grid3D{
+class Grid3D: public Advanceable{
 private:
     ExtendedArray3D<PrimitiveState>  w;
 #ifdef MHD

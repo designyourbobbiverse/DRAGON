@@ -15,7 +15,7 @@
 #include <memory>
 
 
-struct DistGrid1D{
+struct DistGrid1D: public Advanceable{
     
     DistGrid1D(int nx, double dx, int ghosts=3, bool root=true);
     DistGrid1D(const DistGrid1D&) = delete; //No copying
@@ -46,7 +46,7 @@ private:
 };
 
 
-struct DistGrid2D{
+struct DistGrid2D: public Advanceable{
     
     DistGrid2D(int nx, int ny, double dx, double dy, int ghosts=3, bool root=true);
     DistGrid2D(const DistGrid2D&) = delete; //No copying
@@ -83,7 +83,7 @@ private:
 };
 
 
-struct DistGrid3D{
+struct DistGrid3D: public Advanceable{
     
     DistGrid3D(int nx, int ny, int nz, double dx, double dy, double dz, int ghosts=3, bool root=true);
     DistGrid3D(const DistGrid3D&) = delete; //No copying
