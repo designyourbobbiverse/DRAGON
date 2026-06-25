@@ -373,7 +373,7 @@ void DRAGON_Test::verify_cfl_mhd_speed_3D() {
     PrimitiveState W = make_state(2.0, 3.0, -4.0, 5.0, 5.0);
     W.B = {2.0, -1.0, 3.0};
     double dx = 0.25, dy = 0.10, dz = 0.50;
-    double a = W.c_fast();
+    double a = W.c_fast_max();
 
     double sx = (std::fabs(W.v.x) + a) / dx;
     double sy = (std::fabs(W.v.y) + a) / dy;
@@ -401,7 +401,7 @@ void DRAGON_Test::verify_cfl_mhd_time_3D() {
         }
     }
 
-    double a = W.c_fast();
+    double a = W.c_fast_max();
     double speed = (std::fabs(W.v.x) + a) / g.dx + (std::fabs(W.v.y) + a) / g.dy + (std::fabs(W.v.z) + a) / g.dz;
     assert(approx(CFL::cfl_time(g), CFL_coeff / speed));
     CONFIG::cfl_choice = previous;

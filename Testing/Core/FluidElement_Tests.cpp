@@ -209,7 +209,7 @@ void DRAGON_Test::verify_wavespeeds(){
     W.B = {1,2,3};
     assert(approx(W.c_alfven(), sqrt(14/(8*M_PI)) ));
     double c2 = _gamma * 5.0, a2 = 14/(8*M_PI), ax2 = 1/(8*M_PI) ;
-    assert(approx(W.c_fast(), sqrt((c2+a2)/2 + sqrt(pow(c2+a2,2)/4 - ax2*c2))  ));
+    assert(approx(W.c_fast_max(), sqrt((c2+a2)/2 + sqrt(pow(c2+a2,2)/4 - ax2*c2))  ));
 
 #endif
     

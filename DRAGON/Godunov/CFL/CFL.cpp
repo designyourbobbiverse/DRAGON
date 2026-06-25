@@ -17,7 +17,7 @@
 //CFL speed = highest (|v|+a)/dL of any one side
 double CFL::cfl_max_speed(const PrimitiveState& W, double dx, double dy, double dz){
 #ifdef MHD //Use Magnetosonic fast speed for MHD
-    double a = W.c_fast();
+    double a = W.c_fast_max();
 #else //Use sound speed for Hydro
     double a = W.cs();
 #endif
@@ -31,7 +31,7 @@ double CFL::cfl_max_speed(const PrimitiveState& W, double dx, double dy, double 
 //CFL speed = sum of (|v|+a)/dL over all applicable sides
 double CFL::cfl_add_speed(const PrimitiveState& W, double dx, double dy, double dz){
 #ifdef MHD //Use Magnetosonic fast speed for MHD
-    double a = W.c_fast();
+    double a = W.c_fast_max();
 #else //Use sound speed for Hydro
     double a = W.cs();
 #endif
@@ -45,7 +45,7 @@ double CFL::cfl_add_speed(const PrimitiveState& W, double dx, double dy, double 
 //CFL speed = [sum of ((|v|+a)/dL)^p]^(1/p)
 double CFL::cfl_pow_speed(const PrimitiveState& W, double p, double dx, double dy, double dz){
 #ifdef MHD //Use Magnetosonic fast speed for MHD
-    double a = W.c_fast();
+    double a = W.c_fast_max();
 #else //Use sound speed for Hydro
     double a = W.cs();
 #endif
@@ -87,7 +87,7 @@ double CFL::cfl_time(const Grid1D& g){
     for(int i = 0; i<g.getSize(); i++){
         const PrimitiveState& W = g[i];
         #ifdef MHD //Use Magnetosonic fast speed for MHD
-        double a = W.c_fast();
+        double a = W.c_fast_max();
         #else //Use sound speed for Hydro
         double a = W.cs();
         #endif

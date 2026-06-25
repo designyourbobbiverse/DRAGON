@@ -261,7 +261,7 @@ void computeFlux_Z(const FluidArray3D& _L, const FluidArray3D& _R, FluxArray3D& 
     }
 }
 
-//MARK: TVD
+//MARK: MUSCL
 //Apply MUSCL over the entire grid
 void computeHalfStates_X(FluidArray2D& _L, const Grid2D& _W, FluidArray2D& _R, double dt){
     const double dt_dL = dt/_W.dx;//Compute once

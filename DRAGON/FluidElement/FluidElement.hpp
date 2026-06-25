@@ -52,7 +52,11 @@ struct PrimitiveState {
     double cs() const; //Speed of hydrodynamic sound waves
 #ifdef MHD
     double c_alfven() const; //Alfven wave speed
-    double c_fast() const; //Wave speed for the fast magnetosonic mode
+    double c_fast() const; //Wave speed for the fast magnetosonic mode (along x)
+    double c_fast_max() const; //Wave speed for the fast magnetosonic mode (fastest of x/y/z)
+private:
+    double c_fast(double Bk) const; //Wave speed for the fast magnetosonic mode along the k direction
+public:
 #endif
     
     //Computes the x-direction flux

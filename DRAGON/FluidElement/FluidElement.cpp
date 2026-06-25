@@ -97,13 +97,20 @@ double PrimitiveState::cs() const {
 double PrimitiveState::c_alfven() const {
     return sqrt( (B*B) / (4*M_PI*rho) ); //Alfven speed, given in gaussian units
 }
-double PrimitiveState::c_fast() const {
+double PrimitiveState::c_fast() const { return c_fast(B.x); }
+double PrimitiveState::c_fast(double Bk) const {
     //Precompute the sound and alvfen speeds
-    double c = cs(), a = c_alfven(), c2 = pow(c,2), a2 = pow(a,2), ax2 = B.x*B.x/(4*M_PI*rho);
+    double c = cs(), a = c_alfven(), c2 = pow(c,2), a2 = pow(a,2), ak2 = Bk * Bk /(4*M_PI*rho);
     // fmax(0,__) to protect against numerical issues
-    double disc = fmax(0, pow(c2+a2,2)*0.25 - ax2*c2);
+    double disc = fmax(0, pow(c2+a2,2)*0.25 - ak2*c2);
     //Compute fast speed
     return sqrt( (c2 + a2)*0.5 + sqrt(disc) );
+}
+double PrimitiveState::c_fast_max() const {
+    double Bk;
+    if(B.x*B.x < B.y*B.y) Bk = (B.x*B.x < B.z*B.z) ?  B.x : B.z;
+    else  Bk = (B.y*B.y < B.z*B.z) ?  B.y : B.z;
+    return c_fast(Bk);
 }
 #endif
 
