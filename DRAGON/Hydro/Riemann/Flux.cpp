@@ -85,12 +85,14 @@ void Riemann::verify_and_fallback(ConservativeState& flux, double dt_dx){
     dt_dx *= Riemann_ExactFallback_Parameter;//Scale time by the desired amount
     //Check whether both states would still be physical after update
     if((L - flux*dt_dx).isPhysical() &&  (R+flux*dt_dx).isPhysical()) return;
+    #ifdef RIEMANN_FALLBACK_TRY_HLLE
     //If not, try HLLE
     flux = HLLE();
     //Check whether both states would still be physical after update
     if((L - flux*dt_dx).isPhysical() &&  (R+flux*dt_dx).isPhysical()) return;
-    //If not, try Exact
+    #endif
     #if defined(HYDRO_AVAILABLE) && RIEMANN_DEFAULT != RIEMANN_EXACT
+    //If not, try Exact
     flux = exact().flux();
     //Check whether both states would still be physical after update
     if((L - flux*dt_dx).isPhysical() &&  (R+flux*dt_dx).isPhysical()) return;

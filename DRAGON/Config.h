@@ -45,6 +45,7 @@
 //If not physical, recalculate using HLLE, then (hydro only) if that fails, Exact
 #define RIEMANN_VERIFY_FALLBACK
     constexpr double Riemann_ExactFallback_Parameter = 1.0; //Scales F*dt/dx for the purpose of physicality verificaiton
+    #define RIEMANN_FALLBACK_TRY_HLLE //if disabled, skips HLLE and goes straight to Exact (Hydro) or restart (MHD)
 
 
 //MARK: CFL Calculation
