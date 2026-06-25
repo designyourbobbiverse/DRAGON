@@ -1,6 +1,6 @@
 //
 //  TVD.hpp
-//  DRAGON
+//  DRAGON/Godunov/Math
 //
 //  Created by Bobbie Markwick on 10/06/2026.
 //

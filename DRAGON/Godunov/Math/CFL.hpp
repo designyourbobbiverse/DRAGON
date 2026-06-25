@@ -1,6 +1,6 @@
 //
 //  CFL.hpp
-//  DRAGON
+//  DRAGON/Godunov/Math
 //
 //  Created by Bobbie Markwick on 09/06/2026.
 //

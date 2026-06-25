@@ -1,6 +1,6 @@
 //
 //  TVD.cpp
-//  DRAGON
+//  DRAGON/Godunov/Math
 //
 //  Created by Bobbie Markwick on 10/06/2026.
 //  Implementation based mostly on Toro (2009). https://doi.org/10.1007/b79761
@@ -32,7 +32,6 @@ void TVD::MUSCL(const PrimitiveState& wL, PrimitiveState& _L, const PrimitiveSta
     _L.p = wC.p - 0.5*dW.p;
     _R.p = wC.p + 0.5*dW.p;
 #ifdef MHD
-    dW.B.x = 0; //Normal B should be handled separately
     _L.B = wC.B - 0.5*dW.B;
     _R.B = wC.B + 0.5*dW.B;
 #endif
@@ -87,8 +86,7 @@ PrimitiveState TVD::limit(const PrimitiveState& a, const PrimitiveState& b) {
 //MARK: MINMOD
 double TVD::minmod(double a, double b) {
     if(a*b <= 0) return 0;
-    if(fabs(a) < fabs(b)) return a;
-    return a < 0 ? -fabs(b) : fabs(b);
+    return (fabs(a) < fabs(b)) ? a : b;
 }
 //Apply Limiter to each component of a vector
 vec3 TVD::minmod(const vec3& a, const vec3& b) {

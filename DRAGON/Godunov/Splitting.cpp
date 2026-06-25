@@ -1,6 +1,6 @@
 //
 //  Godunov/Splitting.cpp
-//  DRAGON
+//  DRAGON/Godunov
 //
 //  Created by Bobbie Markwick on 16/05/2026.
 //  Implementation based mostly on Toro (2009). https://doi.org/10.1007/b79761
