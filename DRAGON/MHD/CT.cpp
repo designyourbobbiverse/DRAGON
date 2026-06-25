@@ -84,6 +84,8 @@ void CT::computeFaceFields(const MagneticArray3D& _A, MagneticArray3D& _B, doubl
 //MARK: Body Fields
 void Grid2D::initialize_B_fields(){
     const int nx = w.getSizeX(), ny = w.getSizeY();
+    boundary.apply(*this);
+
     MagneticArray2D B(nx+1,ny+1,w.getGhosts());
     CT::computeFaceFields(A, B, dx, dy);
     
@@ -96,6 +98,7 @@ void Grid2D::initialize_B_fields(){
 }
 void Grid2D::computeBodyAveragedFields(const MagneticArray2D& B){
     const int nx = w.getSizeX(), ny = w.getSizeY();
+    boundary.apply(*this);
 
     for(int i=0; i<nx; i++){
         for(int j=0; j<ny; j++){
