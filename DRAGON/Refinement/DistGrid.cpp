@@ -305,6 +305,7 @@ void DistGrid1D::advance(double dt, bool check_cfl){
     if(ncx == 1 ){
         data.boundary = std::move(boundary);
         data.advance(dt, check_cfl);
+        DRARGONWING::reportCheckpoint2();
         return;
     }
     while(dt > Timestep_Tolerance){
@@ -335,6 +336,7 @@ void DistGrid2D::advance(double dt, bool check_cfl){
     if(ncx*ncy == 1 ){
         data.boundary = std::move(boundary);
         data.advance(dt, check_cfl);
+        DRARGONWING::reportCheckpoint2();
         return;
     }
     while(dt > Timestep_Tolerance){
@@ -365,6 +367,7 @@ void DistGrid3D::advance(double dt, bool check_cfl){
     if(ncx*ncy*ncz == 1 ){
         data.boundary = std::move(boundary);
         data.advance(dt, check_cfl);
+        DRARGONWING::reportCheckpoint2();
         return;
     }
     while(dt > Timestep_Tolerance){

@@ -71,6 +71,7 @@ constexpr double Timestep_Tolerance = 1e-14; //Timesteps smaller than this are t
 //MARK: Split vs Unsplit
 #define DIMENSION_UNSPLIT //Use an Unsplit advancement scheme for multidimensional flows
     #define CTU //Corner Transport Upwind.  Colella (1990). https://doi.org/10.1016/0021-9991(90)90233-Q
+    #define UNSPLIT_VERIFY_PHYSICAL //Check phsyicality of each cell before committing to it
 
 
 //MARK: Grid Operation

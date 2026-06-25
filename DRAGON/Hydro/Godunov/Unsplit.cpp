@@ -123,6 +123,17 @@ void Grid2D::advanceXY(double dt){
     computeFlux_X(_xL, _xR, F_X, 0, nx, -1, ny+1, dt/dx); //F_X needs (0...nx, 0...ny-1), (0...nx, -1...ny) for MHD
     computeFlux_Y(_yL, _yR, F_Y, -1, nx+1, 0, ny, dt/dy); //F_Y needs (0...nx-1, 0...ny), (-1...nx, 0...ny) for MHD
     
+    #ifdef UNSPLIT_VERIFY_PHYSICAL//Safety check
+    for(int i=0; i<nx; i++){
+        for(int j=0; j<ny; j++){
+            auto _w = w[i,j];
+            _w += (dt/dx) * (F_X[i,j] - F_X[i+1,j]);
+            _w += (dt/dy) * (F_Y[i,j] - F_Y[i,j+1]);
+            if(!_w.isPhysical()) throw "Unphsyical state would be produced";
+        }
+    }
+    #endif
+    
     //Wait for any parallel grids to finish
     DRARGONWING::reportCheckpoint1();
     if(!DRARGONWING::waitForCheckpoint1()) return;
@@ -141,8 +152,6 @@ void Grid2D::advanceXY(double dt){
     CT::computeFaceFields(A, B, dx, dy);
     computeBodyAveragedFields(B);
     #endif
-    
-    DRARGONWING::reportCheckpoint2();
 }
 
 //MARK: 3D Unsplit Step
@@ -221,6 +230,21 @@ void Grid3D::advanceXYZ(double dt){
     computeFlux_Y(_yL, _yR, F_Y, -1, nx+1, 0, ny, -1, nz+1, dt/dy); //F_Y needs (-1...nx, 0...ny, -1...nz)
     computeFlux_Z(_zL, _zR, F_Z, -1, nx+1, -1, ny+1, 0, nz, dt/dz); //F_Z needs (-1...nx, -1...ny, 0...nz)
     
+    #ifdef UNSPLIT_VERIFY_PHYSICAL//Safety check
+    for(int i=0; i<nx; i++){
+        for(int j=0; j<ny; j++){
+            for(int k=0; k<nz; k++){
+                auto _w = w[i,j,k];
+                _w += (dt/dx) * (F_X[i,j,k] - F_X[i+1,j,k]);
+                _w += (dt/dy) * (F_Y[i,j,k] - F_Y[i,j+1,k]);
+                _w += (dt/dz) * (F_Z[i,j,k] - F_Z[i,j,k+1]);
+                if(!_w.isPhysical()) throw "Unphsyical state would be produced";
+            }
+        }
+    }
+    #endif
+    
+    
     //Wait for any parallel grids to finish
     DRARGONWING::reportCheckpoint1();
     if(!DRARGONWING::waitForCheckpoint1()) return;
@@ -241,8 +265,6 @@ void Grid3D::advanceXYZ(double dt){
     CT::computeFaceFields(A, B, dx, dy, dz);
     computeBodyAveragedFields(B);
     #endif
-    
-    DRARGONWING::reportCheckpoint2();
 }
 
 //MARK: Flux Calculation
