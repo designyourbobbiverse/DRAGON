@@ -1,5 +1,5 @@
 //
-//  AMRGrid.cpp
+//  Refinement/DistGrid.cpp
 //  DRAGON
 //
 //  Created by Bobbie Markwick on 12/06/2026.

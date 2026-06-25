@@ -1,6 +1,6 @@
 //
-//  Dragon_Wing.hpp
-//  DRAGON
+//  DragonWing.hpp
+//  DRAGONWING
 //
 //  Created by Bobbie Markwick on 11/06/2026.
 //

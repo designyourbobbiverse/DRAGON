@@ -1,7 +1,7 @@
 
 //
-//  Reflecting_Tests.cpp
-//  DRAGON/Testing/Core/Boundary
+//  Core/Boundary/Reflecting_Tests.cpp
+//  DRAGON/Testing
 //
 //  Created by Bobbie Markwick on 20/06/2026.
 //
@@ -42,8 +42,6 @@ void DRAGON_Test::verify_boundary_reflective(bool output){
 
 
 //MARK: Helpers
-static vec3 make_tagged_vec(double tag){ return vec3(tag + 100, tag + 200, tag + 300); }
-
 static PrimitiveState G = make_tagged_state(-666);
 
 void fill_1D(Grid1D& grid);

@@ -1,6 +1,6 @@
 //
 //  pthread_parallel.cpp
-//  DRAGON
+//  DRAGONWING
 //
 //  Created by Bobbie Markwick on 11/06/2026.
 //

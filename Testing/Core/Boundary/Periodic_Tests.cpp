@@ -1,7 +1,7 @@
 
 //
-//  Periodic_Tests.cpp
-//  DRAGON/Testing/Core/Boundary
+//  Core/Boundary/Periodic_Tests.cpp
+//  DRAGON/Testing
 //
 //  Created by Bobbie Markwick on 20/06/2026.
 //
@@ -18,7 +18,6 @@ using namespace MagneticGrid;
 #endif
 
 //MARK: Helpers
-static vec3 make_tagged_vec(double tag){ return vec3(tag + 100, tag + 200, tag + 300); }
 
 static PrimitiveState G = make_tagged_state(-666);
 

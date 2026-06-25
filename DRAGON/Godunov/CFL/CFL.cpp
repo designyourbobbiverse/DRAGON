@@ -1,6 +1,6 @@
 //
-//  CFL.cpp
-//  DRAGON/Godunov/Math
+//  Godunov/CFL/CFL.cpp
+//  DRAGON
 //
 //  Created by Bobbie Markwick on 09/06/2026.
 //  Implementation based in part on Toro (2009). https://doi.org/10.1007/b79761

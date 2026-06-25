@@ -1,5 +1,5 @@
 //
-//  AMRGrid.hpp
+//  Refinement/DistGrid.hpp
 //  DRAGON
 //  User-Facing Header file
 //

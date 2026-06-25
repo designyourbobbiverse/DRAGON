@@ -1,5 +1,5 @@
 //
-//  Boundary/Reflective.cpp
+//  Boundary/BoundaryTypes/Reflective.cpp
 //  DRAGON
 //
 //  Created by Bobbie Markwick on 28/05/2026.

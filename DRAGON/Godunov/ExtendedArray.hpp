@@ -1,6 +1,6 @@
 //
-//  Storage.hpp
-//  DRAGON/Godunov
+//  Godunov/ExtendedArray.hpp
+//  DRAGON
 //
 //  Created by Bobbie Markwick on 16/06/2026.
 //

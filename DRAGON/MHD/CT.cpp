@@ -1,34 +1,22 @@
 
 //
-//  ConstrainedTransport.cpp
-//  DRAGON/Godunov
+//  CT.cpp
+//  DRAGON/MHD
 //
-//  Created by Bobbie Markwick on 10/06/2026.
+//  Created by Bobbie Markwick on 24/06/2026.
 //  CT Implementaiton based in part on https://doi.org/10.1088/0067-0049/182/2/519
 //      Evans and Hawley (1988). https://doi.org/10.1086/166684
 //      Gardiner and Stone (2005). https://doi.org/10.1016/j.jcp.2004.11.016
 
 
-#include "Grid.hpp"
-#include "Riemann.hpp"
+#include "MHD.hpp"
 #include "Config.h"
-#include "CFL.hpp"
-#include "TVD.hpp"
-#include <cassert>
-#include <iostream>
 
 #ifdef MHD
-typedef ExtendedArray2D<PrimitiveState> FluidArray2D;
-typedef ExtendedArray2D<ConservativeState> FluxArray2D;
-typedef ExtendedArray2D<vec3> MagneticArray2D;
-typedef ExtendedArray3D<PrimitiveState> FluidArray3D;
-typedef ExtendedArray3D<ConservativeState> FluxArray3D;
-typedef ExtendedArray3D<vec3> MagneticArray3D;
-
 
 //MARK: CT Updates
 
-void updatePotential(MagneticArray2D& _A, const FluxArray2D& F_X,const FluxArray2D& F_Y, double dt){
+void CT::updatePotential(MagneticArray2D& _A, const FluxArray2D& F_X,const FluxArray2D& F_Y, double dt){
     const int nx = _A.getSizeX()-1, ny = _A.getSizeY()-1;
     
     for(int i=0; i<=nx; i++){
@@ -37,7 +25,7 @@ void updatePotential(MagneticArray2D& _A, const FluxArray2D& F_X,const FluxArray
         }
     }
 }
-void updatePotential(MagneticArray3D& _A, const FluxArray3D& F_X,const FluxArray3D& F_Y, const FluxArray3D& F_Z,  double dt){
+void CT::updatePotential(MagneticArray3D& _A, const FluxArray3D& F_X,const FluxArray3D& F_Y, const FluxArray3D& F_Z,  double dt){
     const int nx = _A.getSizeX()-1, ny = _A.getSizeY()-1, nz = _A.getSizeZ()-1;
     
     for(int i=0; i<=nx; i++){
@@ -51,7 +39,7 @@ void updatePotential(MagneticArray3D& _A, const FluxArray3D& F_X,const FluxArray
     }
 }
 //MARK: Face Fields
-void computeFaceFields(const MagneticArray2D& _A, MagneticArray2D& _B, double dx, double dy){
+void CT::computeFaceFields(const MagneticArray2D& _A, MagneticArray2D& _B, double dx, double dy){
     const int nx = _A.getSizeX()-1, ny = _A.getSizeY()-1, g = _B.getGhosts();
     const double _dx = 1/dx, _dy = 1/dy; //One division + n^2 multiplications > n^2 divisions
     
@@ -66,7 +54,7 @@ void computeFaceFields(const MagneticArray2D& _A, MagneticArray2D& _B, double dx
         }
     }
 }
-void computeFaceFields(const MagneticArray3D& _A, MagneticArray3D& _B, double dx, double dy, double dz){
+void CT::computeFaceFields(const MagneticArray3D& _A, MagneticArray3D& _B, double dx, double dy, double dz){
     const int nx = _A.getSizeX()-1, ny = _A.getSizeY()-1, nz = _A.getSizeZ()-1, g = _B.getGhosts();
     const double _dx = 1/dx, _dy = 1/dy, _dz = 1/dz; //One division + n^3 multiplications > n^3 divisions
     
@@ -94,51 +82,57 @@ void computeFaceFields(const MagneticArray3D& _A, MagneticArray3D& _B, double dx
 }
 
 //MARK: Body Fields
-void Grid2D::computeBodyAveragedFields(){
-    MagneticArray2D B(w.getSizeX()+1,w.getSizeY()+1,w.getGhosts());
-    computeFaceFields(A, B, dx, dy);
-    computeBodyAveragedFields(B,false);
+void Grid2D::initialize_B_fields(){
+    const int nx = w.getSizeX(), ny = w.getSizeY();
+    MagneticArray2D B(nx+1,ny+1,w.getGhosts());
+    CT::computeFaceFields(A, B, dx, dy);
+    
+    for(int i=0; i<nx; i++){
+        for(int j=0; j<ny; j++){
+            w[i,j].B.x = (B[i,j].x + B[i+1,j].x)/2;
+            w[i,j].B.y = (B[i,j].y + B[i,j+1].y)/2;
+        }
+    }
 }
-void Grid2D::computeBodyAveragedFields(const MagneticArray2D& B, bool conservative){
+void Grid2D::computeBodyAveragedFields(const MagneticArray2D& B){
     const int nx = w.getSizeX(), ny = w.getSizeY();
 
     for(int i=0; i<nx; i++){
         for(int j=0; j<ny; j++){
-            if(conservative){
-                ConservativeState U(w[i,j]);//Update the conservative element to keep quantities conserved
-                U.B.x = (B[i,j].x + B[i+1,j].x)/2;
-                U.B.y = (B[i,j].y + B[i,j+1].y)/2;
-                w[i,j] = U;
-            } else {
-                w[i,j].B.x = (B[i,j].x + B[i+1,j].x)/2;
-                w[i,j].B.y = (B[i,j].y + B[i,j+1].y)/2;
-            }
+            ConservativeState U(w[i,j]);//Update the conservative element to keep quantities conserved
+            U.B.x = (B[i,j].x + B[i+1,j].x)/2;
+            U.B.y = (B[i,j].y + B[i,j+1].y)/2;
+            w[i,j] = U;
         }
     }
 }
-void Grid3D::computeBodyAveragedFields(){
-    MagneticArray3D B(w.getSizeX()+1,w.getSizeY()+1,w.getSizeZ()+1,w.getGhosts());
-    computeFaceFields(A, B, dx, dy, dz);
-    computeBodyAveragedFields(B,false);
+void Grid3D::initialize_B_fields(){
+    const int nx = w.getSizeX(), ny = w.getSizeY(), nz = w.getSizeZ();
+    MagneticArray3D B(nx+1,ny+1,nz+1,w.getGhosts());
+    CT::computeFaceFields(A, B, dx, dy, dz);
+    
+    for(int i=0; i<nx; i++){
+        for(int j=0; j<ny; j++){
+            for(int k=0; k<nz; k++){
+                w[i,j,k].B.x = (B[i,j,k].x + B[i+1,j,k].x)/2;
+                w[i,j,k].B.y = (B[i,j,k].y + B[i,j+1,k].y)/2;
+                w[i,j,k].B.z = (B[i,j,k].z + B[i,j,k+1].z)/2;
+            }
+        }
+    }
 
 }
-void Grid3D::computeBodyAveragedFields(const MagneticArray3D& B, bool conservative){
+void Grid3D::computeBodyAveragedFields(const MagneticArray3D& B){
     const int nx = w.getSizeX(), ny = w.getSizeY(), nz = w.getSizeZ();
 
     for(int i=0; i<nx; i++){
         for(int j=0; j<ny; j++){
             for(int k=0; k<nz; k++){
-                if(conservative){
-                    ConservativeState U(w[i,j,k]);//Update the conservative element to keep quantities conserved
-                    U.B.x = (B[i,j,k].x + B[i+1,j,k].x)/2;
-                    U.B.y = (B[i,j,k].y + B[i,j+1,k].y)/2;
-                    U.B.z = (B[i,j,k].z + B[i,j,k+1].z)/2;
-                    w[i,j,k] = U;
-                } else {
-                    w[i,j,k].B.x = (B[i,j,k].x + B[i+1,j,k].x)/2;
-                    w[i,j,k].B.y = (B[i,j,k].y + B[i,j+1,k].y)/2;
-                    w[i,j,k].B.z = (B[i,j,k].z + B[i,j,k+1].z)/2;
-                }
+                ConservativeState U(w[i,j,k]);//Update the conservative element to keep quantities conserved
+                U.B.x = (B[i,j,k].x + B[i+1,j,k].x)/2;
+                U.B.y = (B[i,j,k].y + B[i,j+1,k].y)/2;
+                U.B.z = (B[i,j,k].z + B[i,j,k+1].z)/2;
+                w[i,j,k] = U;
             }
         }
     }
@@ -148,7 +142,7 @@ void Grid3D::computeBodyAveragedFields(const MagneticArray3D& B, bool conservati
 
 
 //MARK: Face-Centred Field Copy
-void copyFaceFields_X( FluidArray2D& _L,const MagneticArray2D& _B, FluidArray2D& _R){
+void CT::copyFaceFields_X( FluidArray2D& _L,const MagneticArray2D& _B, FluidArray2D& _R){
     const int nx = _L.getSizeX(), ny = _L.getSizeY(), g = _B.getGhosts();
     for(int i=-g; i<nx+g; i++){
         for(int j=-g; j<ny+g; j++){
@@ -157,7 +151,7 @@ void copyFaceFields_X( FluidArray2D& _L,const MagneticArray2D& _B, FluidArray2D&
         }
     }
 }
-void copyFaceFields_Y( FluidArray2D& _L,const MagneticArray2D& _B, FluidArray2D& _R){
+void CT::copyFaceFields_Y( FluidArray2D& _L,const MagneticArray2D& _B, FluidArray2D& _R){
     const int nx = _L.getSizeX(), ny = _L.getSizeY(), g = _B.getGhosts();
     for(int i=-g; i<nx+g; i++){
         for(int j=-g; j<ny+g; j++){
@@ -166,7 +160,7 @@ void copyFaceFields_Y( FluidArray2D& _L,const MagneticArray2D& _B, FluidArray2D&
         }
     }
 }
-void copyFaceFields_X( FluidArray3D& _L,const MagneticArray3D& _B, FluidArray3D& _R){
+void CT::copyFaceFields_X( FluidArray3D& _L,const MagneticArray3D& _B, FluidArray3D& _R){
     const int nx = _L.getSizeX(), ny = _L.getSizeY(), nz = _L.getSizeZ(), g = _B.getGhosts();
     for(int i=-g; i<nx+g; i++){
         for(int j=-g; j<ny+g; j++){
@@ -177,7 +171,7 @@ void copyFaceFields_X( FluidArray3D& _L,const MagneticArray3D& _B, FluidArray3D&
         }
     }
 }
-void copyFaceFields_Y( FluidArray3D& _L,const MagneticArray3D& _B, FluidArray3D& _R){
+void CT::copyFaceFields_Y( FluidArray3D& _L,const MagneticArray3D& _B, FluidArray3D& _R){
     const int nx = _L.getSizeX(), ny = _L.getSizeY(), nz = _L.getSizeZ(), g = _B.getGhosts();
     for(int i=-g; i<nx+g; i++){
         for(int j=-g; j<ny+g; j++){
@@ -188,7 +182,7 @@ void copyFaceFields_Y( FluidArray3D& _L,const MagneticArray3D& _B, FluidArray3D&
         }
     }
 }
-void copyFaceFields_Z( FluidArray3D& _L,const MagneticArray3D& _B, FluidArray3D& _R){
+void CT::copyFaceFields_Z( FluidArray3D& _L,const MagneticArray3D& _B, FluidArray3D& _R){
     const int nx = _L.getSizeX(), ny = _L.getSizeY(), nz = _L.getSizeZ(), g = _B.getGhosts();
     for(int i=-g; i<nx+g; i++){
         for(int j=-g; j<ny+g; j++){
