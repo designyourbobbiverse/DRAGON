@@ -124,7 +124,7 @@ void Grid2D::advanceXY(double dt){
     computeFlux_Y(_yL, _yR, F_Y, -1, nx+1, 0, ny, dt/dy); //F_Y needs (0...nx-1, 0...ny), (-1...nx, 0...ny) for MHD
     
     //Preliminarily apply all fluxes
-    FluidArray2D _w(nx,ny);
+    FluidArray2D& _w = _xL; //Repurpose grid that isn't being used anymore
     for(int i=0; i<nx; i++){
         for(int j=0; j<ny; j++){
             _w[i,j] = w[i,j];
@@ -184,29 +184,31 @@ void Grid3D::advanceXYZ(double dt){
     computeFlux_X(_xL, _xR, F_X, -1, nx+1, -2, ny+2, -2, nz+2, dt/dx); //F_X needs (0...nx, -1...ny, -1...nz)
     computeFlux_Y(_yL, _yR, F_Y, -2, nx+2, -1, ny+1, -2, nz+2, dt/dy); //F_Y needs (-1...nx, 0...ny, -1...nz)
     computeFlux_Z(_zL, _zR, F_Z, -2, nx+2, -2, ny+2, -1, nz+1, dt/dz); //F_Z needs (-1...nx, -1...ny, 0...nz)
-    //Apply first round of transverse corrections
-    FluidArray3D _xyL(nx,ny,nz,ghosts), _xyR(nx,ny,nz,ghosts); //_xyLR needs (-1...nx, 0...ny-1, -1...nz)
-    correctState(_xL, _xR, _xyL, _xyR, F_Y, (0.5*dt/dy) , -2, nx+2, -1, ny+1, -1, nz+1, 1);
-    FluidArray3D _xzL(nx,ny,nz,ghosts), _xzR(nx,ny,nz,ghosts);//_xzLR needs (-1...nx, -1...ny, 0...nz-1)
-    correctState(_xL, _xR, _xzL, _xzR, F_Z, (0.5*dt/dz) , -2, nx+2, -1, ny+1, -1, nz+1, 2);
-    FluidArray3D _yxL(nx,ny,nz,ghosts), _yxR(nx,ny,nz,ghosts);//_yxLR needs (0...nx-1, -1...ny, -1...nz)
-    correctState(_yL, _yR, _yxL, _yxR, F_X, (0.5*dt/dx), -1, nx+1, -2, ny+2, -1, nz+1, 0);
-    FluidArray3D _yzL(nx,ny,nz,ghosts), _yzR(nx,ny,nz,ghosts);//_yzLR needs (-1...nx, -1...ny, 0...nz-1)
-    correctState(_yL, _yR, _yzL, _yzR, F_Z, (0.5*dt/dz), -1, nx+1, -2, ny+2, -1, nz+1, 2);
-    FluidArray3D _zxL(nx,ny,nz,ghosts), _zxR(nx,ny,nz,ghosts); //_zxLR needs (0...nx-1, -1...ny, -1...nz)
-    correctState(_zL, _zR, _zxL, _zxR, F_X, (0.5*dt/dx), -1, nx+1, -1, ny+1, -2, nz+2, 0);
-    FluidArray3D _zyL(nx,ny,nz,ghosts), _zyR(nx,ny,nz,ghosts);//_zyLR needs (-1...nx, 0...ny-1, -1...nz)
-    correctState(_zL, _zR, _zyL, _zyR, F_Y, (0.5*dt/dy), -1, nx+1, -1, ny+1, -2, nz+2, 1);
-    //Recompute fluxes
+    
+    //Compute Edge-correct the fluxes
+    FluidArray3D __L(nx,ny,nz,ghosts), __R(nx,ny,nz,ghosts);
     FluxArray3D F_Xy(nx, ny,nz,2), F_Xz(nx, ny,nz,2);
-    computeFlux_X(_xyL, _xyR, F_Xy, -1, nx+1, -1, ny+1, -1, nz+1, dt/dx); //F_Xy needs (0...nx, 0...ny-1, -1...nz)
-    computeFlux_X(_xzL, _xzR, F_Xz, -1, nx+1, -1, ny+1, -1, nz+1, dt/dx); //F_Xz needs (0...nx, -1...ny, 0...nz-1)
     FluxArray3D F_Yx(nx, ny,nz,2), F_Yz(nx, ny,nz,2);
-    computeFlux_Y(_yxL, _yxR, F_Yx, -1, nx+1, -1, ny+1, -1, nz+1, dt/dy); //F_Yx needs (0...nx-1, 0...ny, -1...nz)
-    computeFlux_Y(_yzL, _yzR, F_Yz, -1, nx+1, -1, ny+1, -1, nz+1, dt/dy); //F_Yz needs (-1...nx, 0...ny, 0...nz-1)
     FluxArray3D F_Zx(nx,ny,nz,2), F_Zy(nx, ny,nz,2);
-    computeFlux_Z(_zxL, _zxR, F_Zx, -1, nx+1, -1, ny+1, -1, nz+1, dt/dz); //F_Zx needs (0...nx-1, -1...ny, 0...nz)
-    computeFlux_Z(_zyL, _zyR, F_Zy, -1, nx+1, -1, ny+1, -1, nz+1, dt/dz); //F_Zy needs (-1...nx, 0...ny-1, 0...nz)
+    //F_Xy (needs 0...nx, 0...ny-1, -1...nz) from _xyLR (needs -1...nx, 0...ny-1, -1...nz)
+    correctState(_xL, _xR, __L, __R, F_Y, (0.5*dt/dy) , -2, nx+2, -1, ny+1, -1, nz+1, 1);
+    computeFlux_X(__L, __R, F_Xy, -1, nx+1, -1, ny+1, -1, nz+1, dt/dx);
+    //F_Xz (needs 0...nx, -1...ny, 0...nz-1) from _xzLR (needs -1...nx, -1...ny, 0...nz-1)
+    correctState(_xL, _xR, __L, __R, F_Z, (0.5*dt/dz) , -2, nx+2, -1, ny+1, -1, nz+1, 2);
+    computeFlux_X(__L, __R, F_Xz, -1, nx+1, -1, ny+1, -1, nz+1, dt/dx);
+    //F_Yx (needs 0...nx-1, 0...ny, -1...nz) from _yxLR (needs 0...nx-1, -1...ny, -1...nz)
+    correctState(_yL, _yR, __L, __R, F_X, (0.5*dt/dx), -1, nx+1, -2, ny+2, -1, nz+1, 0);
+    computeFlux_Y(__L, __R, F_Yx, -1, nx+1, -1, ny+1, -1, nz+1, dt/dy);
+    //F_Yz (needs -1...nx, 0...ny, 0...nz-1) from _yzLR (needs -1...nx, -1...ny, 0...nz-1)
+    correctState(_yL, _yR, __L, __R, F_Z, (0.5*dt/dz), -1, nx+1, -2, ny+2, -1, nz+1, 2);
+    computeFlux_Y(__L, __R, F_Yz, -1, nx+1, -1, ny+1, -1, nz+1, dt/dy);
+    //F_Zx (needs 0...nx-1, -1...ny, 0...nz) from _zxLR (needs 0...nx-1, -1...ny, -1...nz)
+    correctState(_zL, _zR, __L, __R, F_X, (0.5*dt/dx), -1, nx+1, -1, ny+1, -2, nz+2, 0);
+    computeFlux_Z(__L, __R, F_Zx, -1, nx+1, -1, ny+1, -1, nz+1, dt/dz);
+    //F_Zy (needs -1...nx, 0...ny-1, 0...nz) from _zyLR (needs -1...nx, 0...ny-1, -1...nz)
+    correctState(_zL, _zR, __L, __R, F_Y, (0.5*dt/dy), -1, nx+1, -1, ny+1, -2, nz+2, 1);
+    computeFlux_Z(__L, __R, F_Zy, -1, nx+1, -1, ny+1, -1, nz+1, dt/dz);
+    
     //Apply second round of transverse corrections
     correctState(_xL, _xR, _xL,_xR, F_Yz, (0.5*dt/dy), -1, nx+1, -1, ny+1, -1, nz+1, 1); //_xLR needs (-1...nx, -1...ny, -1...nz)
     correctState(_xL, _xR, _xL,_xR, F_Zy, (0.5*dt/dz), -1, nx+1, -1, ny+1, -1, nz+1, 2);
@@ -230,7 +232,7 @@ void Grid3D::advanceXYZ(double dt){
     computeFlux_Z(_zL, _zR, F_Z, -1, nx+1, -1, ny+1, 0, nz, dt/dz); //F_Z needs (-1...nx, -1...ny, 0...nz)
     
     //Preliminarily apply all fluxes
-    FluidArray3D _w(nx,ny,nz);
+    FluidArray3D& _w = _xL; //Repurpose grid that isn't being used anymore
     for(int i=0; i<nx; i++){
         for(int j=0; j<ny; j++){
             for(int k=0; k<nz; k++){
