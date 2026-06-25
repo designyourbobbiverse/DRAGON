@@ -1,6 +1,6 @@
 //
 //  Problem.hpp
-//  DRAGON
+//  DRAGON/main
 //
 //  Created by Bobbie Markwick on 24/06/2026.
 //

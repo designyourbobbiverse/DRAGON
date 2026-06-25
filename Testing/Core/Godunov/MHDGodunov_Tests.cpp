@@ -1,6 +1,6 @@
 //
-//  Core/Godunov/MHDGodunov_Tests.cpp
-//  DRAGON/Testing
+//  MHDGodunov_Tests.cpp
+//  DRAGON/Testing/Core/Godunov
 //
 //  Created by Bobbie Markwick on 09/06/2026.
 //

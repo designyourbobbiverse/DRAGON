@@ -1,6 +1,6 @@
 //
-//  Godunov/TVD/TVD.hpp
-//  DRAGON
+//  TVD.hpp
+//  DRAGON/Hydro/TVD
 //
 //  Created by Bobbie Markwick on 10/06/2026.
 //
@@ -35,4 +35,3 @@ namespace TVD{
     PrimitiveState vanAlbada(const PrimitiveState& a, const PrimitiveState& b);
 
 }
-

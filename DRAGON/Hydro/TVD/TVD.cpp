@@ -1,6 +1,6 @@
 //
-//  Godunov/TVD/TVD.cpp
-//  DRAGON
+//  TVD.cpp
+//  DRAGON/Hydro/TVD
 //
 //  Created by Bobbie Markwick on 10/06/2026.
 //  Implementation based mostly on Toro (2009). https://doi.org/10.1007/b79761

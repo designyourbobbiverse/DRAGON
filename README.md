@@ -26,14 +26,15 @@ DRAGON/
   Boundary/         Boundary-condition implementations and composition helpers
     BoundaryTypes/  Pre-defined boundary conditions (Reflective, Periodic, Outflow, etc)
   FluidElement/     Primitive/conservative states, fluxes, arithmetic, physicality checks
-  Godunov/          Structured grids, sweep logic, split/unsplit updates
+  Hydro/            Godunov Scheme Components
+    Grid.hpp        Grid structure which holds fluid elements
     CFL/            CFL Timestep Constraint
-    Sweeping/       Godunov Scheme (including 1D, Split, and Unsplit) 
+    Godunov/        Sweep logic, split/unsplit updates
+    Riemann/        Exact and approximate Riemann solvers
     TVD/            MUSCL Reconstruction and limiter options
   main/             Program Main
   MHD/              Constrained Transport
   Refinement/       Experimental AMR grid wrappers
-  Riemann/          Exact and approximate Riemann solvers
   
   Config.h          Solver, reconstruction, CFL, MHD, and threading configuration
   Constants.h       Physical constants

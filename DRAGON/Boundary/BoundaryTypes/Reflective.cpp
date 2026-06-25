@@ -1,6 +1,6 @@
 //
-//  Boundary/BoundaryTypes/Reflective.cpp
-//  DRAGON
+//  BoundaryTypes/Reflective.cpp
+//  DRAGON/Boundary
 //
 //  Created by Bobbie Markwick on 28/05/2026.
 //

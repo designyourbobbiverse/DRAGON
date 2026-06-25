@@ -1,6 +1,6 @@
 //
-//  Boundary/BoundaryTypes/Fixed.cpp
-//  DRAGON
+//  BoundaryTypes/Fixed.cpp
+//  DRAGON/Boundary
 //
 //  Created by Bobbie Markwick on 28/05/2026.
 //

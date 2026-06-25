@@ -5,8 +5,8 @@
 //  Created by Bobbie Markwick on 24/06/2026.
 //
 
-#include "Problem.hpp"
-#include "DistGrid.hpp"
+#include "main/Problem.hpp"
+#include "Refinement/DistGrid.hpp"
 #include <cmath>
 #include <iostream>
 #include <fstream>

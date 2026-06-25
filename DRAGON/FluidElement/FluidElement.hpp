@@ -1,6 +1,6 @@
 //
-//  FluidElement/FluidElement.hpp
-//  DRAGON
+//  FluidElement.hpp
+//  DRAGON/FluidElement
 //  User-Facing Header file
 //
 //  Created by Bobbie Markwick on 28/04/2026.

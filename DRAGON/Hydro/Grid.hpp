@@ -1,6 +1,6 @@
 //
-//  Godunov/Grid.hpp
-//  DRAGON
+//  Grid.hpp
+//  DRAGON/Hydro
 //  User-Facing Header file
 //
 //  Created by Bobbie Markwick on 12/05/2026.

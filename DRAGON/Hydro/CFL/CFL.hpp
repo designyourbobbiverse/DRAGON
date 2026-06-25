@@ -1,6 +1,6 @@
 //
-//  Godunov/CFL/CFL.hpp
-//  DRAGON
+//  CFL.hpp
+//  DRAGON/Hydro/CFL
 //
 //  Created by Bobbie Markwick on 09/06/2026.
 //

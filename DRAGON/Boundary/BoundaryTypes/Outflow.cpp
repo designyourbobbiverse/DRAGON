@@ -1,6 +1,6 @@
 //
-//  Boundary/BoundaryTypes/Outflow.cpp
-//  DRAGON
+//  BoundaryTypes/Outflow.cpp
+//  DRAGON/Boundary
 //
 //  Created by Bobbie Markwick on 28/05/2026.
 //

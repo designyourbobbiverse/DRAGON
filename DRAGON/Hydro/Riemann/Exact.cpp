@@ -1,6 +1,6 @@
 //
-//  Riemann/Exact.cpp
-//  DRAGON
+//  Exact.cpp
+//  DRAGON/Hydro/Riemann
 //
 //  Created by Bobbie Markwick on 28/04/2026.
 //  Implementation based mostly on Toro (2009). https://doi.org/10.1007/b79761

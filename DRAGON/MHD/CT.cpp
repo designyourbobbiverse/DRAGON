@@ -1,7 +1,7 @@
 
 //
-//  MHD/CT.cpp
-//  DRAGON
+//  CT.cpp
+//  DRAGON/MHD
 //
 //  Created by Bobbie Markwick on 24/06/2026.
 //  CT Implementaiton based in part on https://doi.org/10.1088/0067-0049/182/2/519

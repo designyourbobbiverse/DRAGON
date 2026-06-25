@@ -1,6 +1,6 @@
 //
-//  Boundary/Boundary.hpp
-//  DRAGON
+//  Boundary.hpp
+//  DRAGON/Boundary
 //  User-Facing Header file
 //
 //  Created by Bobbie Markwick on 28/05/2026.

@@ -1,6 +1,6 @@
 //
-//  Riemann/Roe.cpp
-//  DRAGON
+//  Roe.cpp
+//  DRAGON/Hydro/Riemann
 //
 //  Created by Bobbie Markwick on 29/04/2026.
 //  Implementation based mostly on Toro (2009). https://doi.org/10.1007/b79761

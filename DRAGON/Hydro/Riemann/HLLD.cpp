@@ -1,6 +1,6 @@
 //
-//  Riemann/HLLD.cpp
-//  DRAGON
+//  HLLD.cpp
+//  DRAGON/Hydro/Riemann
 //
 //  Created by Bobbie Markwick on 15/06/2026.
 //  Implementation based on https://robertcaddy.com/posts/HLLD-Algorithm/

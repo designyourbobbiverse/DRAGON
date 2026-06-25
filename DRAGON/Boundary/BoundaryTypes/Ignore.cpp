@@ -1,6 +1,6 @@
 //
-//  Boundary/BoundaryTypes/Ignore.cpp
-//  DRAGON
+//  BoundaryTypes/Ignore.cpp
+//  DRAGON/Boundary
 //
 //  Created by Bobbie Markwick on 12/06/2026.
 //

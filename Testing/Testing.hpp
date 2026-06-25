@@ -8,7 +8,6 @@
 #ifndef Testing_hpp
 #define Testing_hpp
 
-#include <stdio.h>
 #include <cassert>
 #include "FluidElement.hpp"
 #include "Grid.hpp"

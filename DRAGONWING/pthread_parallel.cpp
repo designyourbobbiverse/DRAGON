@@ -53,4 +53,3 @@ void DRARGONWING::synchronize(void* thread){
         pthread_join(_thread, nullptr);
     }
 }
-

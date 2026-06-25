@@ -1,6 +1,6 @@
 //
-//  Boundary/BoundaryTypes/Periodic.cpp
-//  DRAGON
+//  BoundaryTypes/Periodic.cpp
+//  DRAGON/Boundary
 //
 //  Created by Bobbie Markwick on 28/05/2026.
 //

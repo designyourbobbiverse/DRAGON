@@ -1,7 +1,7 @@
 
 //
-//  Core/Boundary/OutflowGate_Tests.cpp
-//  DRAGON/Testing
+//  OutflowGate_Tests.cpp
+//  DRAGON/Testing/Core/Boundary
 //
 //  Created by Bobbie Markwick on 20/06/2026.
 //

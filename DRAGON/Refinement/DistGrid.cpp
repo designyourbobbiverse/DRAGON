@@ -1,6 +1,6 @@
 //
-//  Refinement/DistGrid.cpp
-//  DRAGON
+//  DistGrid.cpp
+//  DRAGON/Refinement
 //
 //  Created by Bobbie Markwick on 12/06/2026.
 //

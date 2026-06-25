@@ -1,6 +1,6 @@
 //
-//  Boundary/GhostFill.hpp
-//  DRAGON
+//  GhostFill.hpp
+//  DRAGON/Boundary
 //
 //  Created by Bobbie Markwick on 28/05/2026.
 //

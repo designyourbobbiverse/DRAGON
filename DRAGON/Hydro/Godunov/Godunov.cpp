@@ -1,6 +1,6 @@
 //
 //  Godunov.cpp
-//  DRAGON/Godunov/Sweeps
+//  DRAGON/Hydro/Godunov
 //
 //  Created by Bobbie Markwick on 12/05/2026.
 //  Implementation based mostly on Toro (2009). https://doi.org/10.1007/b79761
@@ -64,5 +64,4 @@ void Grid1D::god_sweep(double dt, ExtendedArray1D<PrimitiveState>& _L, ExtendedA
         fL = fR; //Right flux on this cell must equal Left flux on next cell
     }
 }
-
 
