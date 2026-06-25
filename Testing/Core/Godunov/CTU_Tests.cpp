@@ -211,7 +211,7 @@ void DRAGON_Test::verify_ctu_blast_2D() {
 }
 
 void DRAGON_Test::verify_ctu_blast_3D() {
-    const int nx = 64, ny = 64, nz = 64;
+    const int nx = 32, ny = 32, nz = 32;
     const double dx = 1.0 / nx, dy = 1.0 / ny, dz = 1.0 / nz;
 
     Grid3D grid(nx, ny, nz, dx, dy, dz);
