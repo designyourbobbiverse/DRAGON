@@ -30,14 +30,14 @@ DRAGON/
     CFL/            CFL Timestep Constraint
     Sweeping/       Godunov Scheme (including 1D, Split, and Unsplit) 
     TVD/            MUSCL Reconstruction and limiter options
+  main/             Program Main
   MHD/              Constrained Transport
   Refinement/       Experimental AMR grid wrappers
   Riemann/          Exact and approximate Riemann solvers
+  
   Config.h          Solver, reconstruction, CFL, MHD, and threading configuration
   Constants.h       Physical constants
-  Problem.hpp       Problem setup and cycle-completion interface
   Problem.cpp       Example problem initialization and output handling
-  main.cpp          Generic simulation loop using the configured problem
 
 DRAGONWING/       Parallel launch/synchronization helpers for AMR grids
 Testing/          Test executable and component-level verification routines
