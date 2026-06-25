@@ -275,16 +275,8 @@ void computeHalfStates_X(FluidArray2D& _L, const Grid2D& _W, FluidArray2D& _R, d
     }
     //Leftmost and rightmost ghosts
     for(int j=-g; j<ny+g; j++){
-        #ifdef MHD
-        double BLL = _L[-g,j].B.x, BRL = _R[-g,j].B.x;
-        double BLR = _L[nx-1+g,j].B.x, BRR = _R[nx-1+g,j].B.x;
-        #endif
         _L[-g,j] = _W[-g,j]; _R[-g,j] = _W[-g,j];
         _L[nx-1+g,j] = _W[nx-1+g,j]; _R[nx-1+g,j] = _W[nx-1+g,j];
-        #ifdef MHD
-        _L[-g,j].B.x = BLL; _R[-g,j].B.x = BRL;
-        _L[nx-1+g,j].B.x = BLR; _R[nx-1+g,j].B.x = BRR;
-        #endif
     }
 }
 void computeHalfStates_Y(FluidArray2D& _L, const Grid2D& _W, FluidArray2D& _R, double dt){
@@ -302,16 +294,8 @@ void computeHalfStates_Y(FluidArray2D& _L, const Grid2D& _W, FluidArray2D& _R, d
     }
     //Leftmost and rightmost ghosts
     for(int i=-g; i<nx+g; i++){
-        #ifdef MHD
-        double BLL = _L[i,-g].B.y, BRL = _R[i,-g].B.y;
-        double BLR = _L[i,ny-1+g].B.y, BRR = _R[i,ny-1+g].B.y;
-        #endif
         _L[i,-g] = _W[i,-g]; _R[i,-g] = _W[i,-g];
         _L[i,ny-1+g] = _W[i,ny-1+g]; _R[i,ny-1+g] = _W[i,ny-1+g];
-        #ifdef MHD
-        _L[i,-g].B.y = BLL; _R[i,-g].B.y = BRL;
-        _L[i,ny-1+g].B.y = BLR; _R[i,ny-1+g].B.y = BRR;
-        #endif
     }
 }
 void computeHalfStates_X(FluidArray3D& _L, const Grid3D& _W, FluidArray3D& _R, double dt){
@@ -330,17 +314,8 @@ void computeHalfStates_X(FluidArray3D& _L, const Grid3D& _W, FluidArray3D& _R, d
     //Leftmost and rightmost ghosts
     for(int j=-g; j<ny+g; j++){
         for(int k=-g; k<nz+g; k++){
-            #ifdef MHD
-            double BLL = _L[-g,j,k].B.x, BRL = _R[-g,j,k].B.x;
-            double BLR = _L[nx-1+g,j,k].B.x, BRR = _R[nx-1+g,j,k].B.x;
-            #endif
             _L[-g,j,k] = _W[-g,j,k]; _R[-g,j,k] = _W[-g,j,k];
             _L[nx-1+g,j,k] = _W[nx-1+g,j,k]; _R[nx-1+g,j,k] = _W[nx-1+g,j,k];
-
-            #ifdef MHD
-            _L[-g,j,k].B.x = BLL; _R[-g,j,k].B.x = BRL;
-            _L[nx-1+g,j,k].B.x = BLR; _R[nx-1+g,j,k].B.x = BRR;
-            #endif
         }
     }
 }
@@ -362,16 +337,8 @@ void computeHalfStates_Y(FluidArray3D& _L, const Grid3D& _W, FluidArray3D& _R, d
     //Leftmost and rightmost ghosts
     for(int i=-g; i<nx+g; i++){
         for(int k=-g; k<nz+g; k++){
-            #ifdef MHD
-            double BLL = _L[i,-g,k].B.y, BRL = _R[i,-g,k].B.y;
-            double BLR = _L[i,ny-1+g,k].B.y, BRR = _R[i,ny-1+g,k].B.y;
-            #endif
             _L[i,-g,k] = _W[i,-g,k]; _R[i,-g,k] = _W[i,-g,k];
             _L[i,ny-1+g,k] = _W[i,ny-1+g,k]; _R[i,ny-1+g,k] = _W[i,ny-1+g,k];
-            #ifdef MHD
-            _L[i,-g,k].B.y = BLL; _R[i,-g,k].B.y = BRL;
-            _L[i,ny-1+g,k].B.y = BLR; _R[i,ny-1+g,k].B.y = BRR;
-            #endif
         }
     }
 }
@@ -393,16 +360,8 @@ void computeHalfStates_Z(FluidArray3D& _L, const Grid3D& _W, FluidArray3D& _R, d
     //Leftmost and rightmost ghosts
     for(int i=-g; i<nx+g; i++){
         for(int j=-g; j<ny+g; j++){
-            #ifdef MHD
-            double BLL = _L[i,j,-g].B.z, BRL = _R[i,j,-g].B.z;
-            double BLR = _L[i,j,nz-1+g].B.z, BRR = _R[i,j,nz-1+g].B.z;
-            #endif
             _L[i,j,-g] = _W[i,j,-g]; _R[i,j,-g] = _W[i,j,-g];
             _L[i,j,nz-1+g] = _W[i,j,nz-1+g]; _R[i,j,nz-1+g] = _W[i,j,nz-1+g];
-            #ifdef MHD
-            _L[i,j,-g].B.z = BLL; _R[i,j,-g].B.z = BRL;
-            _L[i,j,nz-1+g].B.z = BLR; _R[i,j,nz-1+g].B.z = BRR;
-            #endif
         }
     }
 }
