@@ -29,6 +29,10 @@ int main() {
     verify_godunov_3D_Unsplit();
     std::cout << "All Godunov Scheme tests passed.\n\n";
     
+    verify_ct_2D();
+    verify_ct_3D();
+    std::cout << "All Constrained Transport Tests passed.\n\n";
+    
     
     std::cout << "All tests passed.\n";
 

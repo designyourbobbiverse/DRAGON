@@ -228,8 +228,16 @@ void verify_3D_Z_match_1D(bool split);
 void verify_ctu_diagonal_contact_3D();
 void verify_ctu_blast_3D();
 
-//MARK: Godunov Scheme (MHD)
 #ifdef MHD
+//MARK: Godunov Scheme (MHD)
+//Helpers
+namespace MagneticGrid{
+double magneticX(Grid2D& grid, int i, int j);
+double magneticY(Grid2D& grid, int i, int j);
+double magneticX(Grid3D& grid, int i, int j, int k);
+double magneticY(Grid3D& grid, int i, int j, int k);
+double magneticZ(Grid3D& grid, int i, int j, int k);
+}
 //1D
 void verify_godunov_1D_MHD(bool output = true);
 void verify_god_uniform_stationary_1D_MHD();
@@ -245,23 +253,31 @@ void verify_godunov_3D_MHD(bool output = true);
 void verify_god_uniform_stationary_3D_MHD();
 void verify_god_uniform_moving_3D_MHD();
 void verify_god_periodic_conservation_3D_MHD();
+
+
+//MARK: Constrained Transport
+//2D
+void verify_ct_2D(bool output = true);
+void verify_ct_divergence_2D();
+void verify_ct_copy_face_fields_2D();
+void verify_ct_body_fields_2D();
+void verify_ct_stationary_2D();
+void verify_ct_loop_advection_2D();
+void verify_ct_alfven_wave_2D();
+//3D
+void verify_ct_3D(bool output = true);
+void verify_ct_divergence_3D();
+void verify_ct_copy_face_fields_3D();
+void verify_ct_body_fields_3D();
+void verify_ct_stationary_3D();
+void verify_ct_loop_advection_3D();
+void verify_ct_alfven_wave_3D();
+
+
 #endif
 
 
 
 }
-
-
-//MARK: MHD Helpers
-
-#ifdef MHD
-namespace MagneticGrid{
-double magneticX(Grid2D& grid, int i, int j);
-double magneticY(Grid2D& grid, int i, int j);
-double magneticX(Grid3D& grid, int i, int j, int k);
-double magneticY(Grid3D& grid, int i, int j, int k);
-double magneticZ(Grid3D& grid, int i, int j, int k);
-}
-#endif
 
 #endif /* Testing_hpp */
