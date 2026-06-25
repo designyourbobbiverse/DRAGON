@@ -1,6 +1,6 @@
 //
-//  MHDGodunov_Tests.cpp
-//  DRAGON/Testing/Core/Godunov
+//  Core/Godunov/MHDGodunov_Tests.cpp
+//  DRAGON/Testing
 //
 //  Created by Bobbie Markwick on 09/06/2026.
 //
@@ -92,13 +92,13 @@ void DRAGON_Test::verify_god_uniform_stationary_2D_MHD(){
     }
     grid.boundary = Outflow();
     grid.boundary.apply(grid);
-    grid.computeBodyAveragedFields();
+    grid.initialize_B_fields();
     W = grid[1,1];
     
     
     grid.advance(1.0);
     
-    grid.computeBodyAveragedFields();
+    grid.initialize_B_fields();
 
     for (int i = 0; i < grid.getSizeX(); i++){
         for (int j = 0; j < grid.getSizeY(); j++){
@@ -118,7 +118,7 @@ void DRAGON_Test::verify_god_uniform_moving_2D_MHD(){
     }
     grid.boundary = Outflow();
     grid.boundary.apply(grid);
-    grid.computeBodyAveragedFields();
+    grid.initialize_B_fields();
     W = grid[1,1];
     
     grid.advance(1.0);
@@ -143,7 +143,7 @@ void DRAGON_Test::verify_god_uniform_stationary_3D_MHD(){
     }
     grid.boundary = Reflective();
     grid.boundary.apply(grid);
-    grid.computeBodyAveragedFields();
+    grid.initialize_B_fields();
     W = grid[1,1,1];
     
     grid.advance(1.0);
@@ -167,7 +167,7 @@ void DRAGON_Test::verify_god_uniform_moving_3D_MHD(){
             }
         }
     }
-    grid.computeBodyAveragedFields();
+    grid.initialize_B_fields();
     W = grid[2,2,2];
 
     grid.boundary = Fixed(W);
@@ -217,7 +217,7 @@ void DRAGON_Test::verify_god_periodic_conservation_2D_MHD(){
         }
     }
     grid.boundary.apply(grid);
-    grid.computeBodyAveragedFields();
+    grid.initialize_B_fields();
     
     ConservativeState expected = ConservativeState();
     for (int i = 0; i < grid.getSizeX(); i++){
@@ -252,7 +252,7 @@ void DRAGON_Test::verify_god_periodic_conservation_3D_MHD(){
         }
     }
     grid.boundary.apply(grid);
-    grid.computeBodyAveragedFields();
+    grid.initialize_B_fields();
 
     
     ConservativeState expected = ConservativeState();
@@ -266,7 +266,7 @@ void DRAGON_Test::verify_god_periodic_conservation_3D_MHD(){
     expected.B = {0,0,0};//B isn't a conserved quanitty
 
     
-    grid.advance(2.0);
+    grid.advance(3.0);
     
     ConservativeState got = ConservativeState();
     for (int i = 0; i < grid.getSizeX(); i++){

@@ -1,5 +1,5 @@
 //
-//  Godunov.hpp
+//  Godunov/Grid.hpp
 //  DRAGON
 //  User-Facing Header file
 //
@@ -73,7 +73,7 @@ public:
     void advance_unsplit(double dt, bool check_cfl = true);
 
     #ifdef MHD
-    void computeBodyAveragedFields();
+    void initialize_B_fields();
     #endif
 private:
     int sweep_step = 0;
@@ -81,6 +81,9 @@ private:
     void advanceX(double dt); //Advance a single split step in X
     void advanceY(double dt); //Advance a single split step in Y
     void advanceXY(double dt); //Advance a single unsplit step
+    #ifdef MHD
+    void computeBodyAveragedFields(const ExtendedArray2D<vec3>& B);
+    #endif
 
 };
 
@@ -118,7 +121,7 @@ public:
     void advance_unsplit(double dt, bool check_cfl = true);
     
     #ifdef MHD
-    void computeBodyAveragedFields();
+    void initialize_B_fields();
     #endif
 private:
     int sweep_step = 0;
@@ -127,6 +130,9 @@ private:
     void advanceY(double dt); //Advance a single split step in Y
     void advanceZ(double dt); //Advance a single split step in Z
     void advanceXYZ(double dt); //Advance a single unsplit step
+    #ifdef MHD
+    void computeBodyAveragedFields(const ExtendedArray3D<vec3>& B);
+    #endif
 };
 
 

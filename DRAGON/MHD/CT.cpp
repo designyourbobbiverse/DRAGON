@@ -1,7 +1,7 @@
 
 //
-//  CT.cpp
-//  DRAGON/MHD
+//  MHD/CT.cpp
+//  DRAGON
 //
 //  Created by Bobbie Markwick on 24/06/2026.
 //  CT Implementaiton based in part on https://doi.org/10.1088/0067-0049/182/2/519
@@ -9,7 +9,7 @@
 //      Gardiner and Stone (2005). https://doi.org/10.1016/j.jcp.2004.11.016
 
 
-#include "MHD.hpp"
+#include "CT.hpp"
 #include "Config.h"
 
 #ifdef MHD

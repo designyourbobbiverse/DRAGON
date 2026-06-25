@@ -1,6 +1,6 @@
 //
 //  Unsplit.cpp
-//  DRAGON/Godunov
+//  DRAGON/Godunov/Sweeps
 //
 //  Created by Bobbie Markwick on 10/06/2026.
 //  Implementation based in part on  Toro (2009). https://doi.org/10.1007/b79761

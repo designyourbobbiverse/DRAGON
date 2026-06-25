@@ -1,6 +1,6 @@
 //
-//  MHD.hpp
-//  DRAGON/MHD
+//  MHD/CT.hpp
+//  DRAGON
 //
 //  Created by Bobbie Markwick on 24/06/2026.
 //
