@@ -95,7 +95,7 @@ void Riemann::verify_and_fallback(ConservativeState& flux, double dt_dx){
     //Check whether both states would still be physical after update
     if((L - flux*dt_dx).isPhysical() &&  (R+flux*dt_dx).isPhysical()) return;
     #endif
-    //TODO: Throw Exception
+    throw "Riemann Solution is unphysical";
 }
 
 

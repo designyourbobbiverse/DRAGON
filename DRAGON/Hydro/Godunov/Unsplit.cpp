@@ -15,7 +15,7 @@
 #include "CT.hpp"
 #include <cassert>
 #include <iostream>
-
+#include "DragonWing.hpp"
 
 //MARK: Split vs Unsplit
 //Use split or unsplit depending on whether DIMENSION_UNSPLIT is defined in Config.h
@@ -45,9 +45,19 @@ void Grid2D::advance_unsplit(double dt, bool check_cfl){
     while(dt > Timestep_Tolerance){
         //CFL Time Constraint
         double t1 = check_cfl ? std::min(dt,CFL::cfl_time(*this)) : dt;
-        dt -= t1;
         //Advance
-        advanceXY(t1);
+        bool success = false;
+        do{
+            try{
+                advanceXY(t1);
+                success = true;
+            } catch(...){
+                if(DRARGONWING::requestRestart()){ return; }
+                t1 /= 2;
+            }
+        } while(!success);
+        
+        dt -= t1;
     }
 }
 void Grid3D::advance_unsplit(double dt, bool check_cfl){
@@ -57,9 +67,19 @@ void Grid3D::advance_unsplit(double dt, bool check_cfl){
     while(dt > Timestep_Tolerance){
         //CFL Time Constraint
         double t1 = check_cfl ? std::min(dt,CFL::cfl_time(*this)) : dt;
-        dt -= t1;
         //Advance
-        advanceXYZ(t1);
+        bool success = false;
+        do{
+            try{
+                advanceXYZ(t1);
+                success = true;
+            } catch(...){
+                if(DRARGONWING::requestRestart()){ return; }
+                t1 /= 2;
+            }
+        } while(!success);
+        
+        dt -= t1;
     }
 }
 
@@ -103,6 +123,10 @@ void Grid2D::advanceXY(double dt){
     computeFlux_X(_xL, _xR, F_X, 0, nx, -1, ny+1, dt/dx); //F_X needs (0...nx, 0...ny-1), (0...nx, -1...ny) for MHD
     computeFlux_Y(_yL, _yR, F_Y, -1, nx+1, 0, ny, dt/dy); //F_Y needs (0...nx-1, 0...ny), (-1...nx, 0...ny) for MHD
     
+    //Wait for any parallel grids to finish
+    DRARGONWING::reportCheckpoint1();
+    if(!DRARGONWING::waitForCheckpoint1()) return;
+    
     //Apply all Fluxes
     for(int i=0; i<nx; i++){
         for(int j=0; j<ny; j++){
@@ -117,6 +141,8 @@ void Grid2D::advanceXY(double dt){
     CT::computeFaceFields(A, B, dx, dy);
     computeBodyAveragedFields(B);
     #endif
+    
+    DRARGONWING::reportCheckpoint2();
 }
 
 //MARK: 3D Unsplit Step
@@ -195,6 +221,10 @@ void Grid3D::advanceXYZ(double dt){
     computeFlux_Y(_yL, _yR, F_Y, -1, nx+1, 0, ny, -1, nz+1, dt/dy); //F_Y needs (-1...nx, 0...ny, -1...nz)
     computeFlux_Z(_zL, _zR, F_Z, -1, nx+1, -1, ny+1, 0, nz, dt/dz); //F_Z needs (-1...nx, -1...ny, 0...nz)
     
+    //Wait for any parallel grids to finish
+    DRARGONWING::reportCheckpoint1();
+    if(!DRARGONWING::waitForCheckpoint1()) return;
+    
     //Apply Fluxes
     for(int i=0; i<nx; i++){
         for(int j=0; j<ny; j++){
@@ -211,6 +241,8 @@ void Grid3D::advanceXYZ(double dt){
     CT::computeFaceFields(A, B, dx, dy, dz);
     computeBodyAveragedFields(B);
     #endif
+    
+    DRARGONWING::reportCheckpoint2();
 }
 
 //MARK: Flux Calculation

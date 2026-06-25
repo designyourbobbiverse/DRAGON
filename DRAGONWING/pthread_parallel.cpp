@@ -6,7 +6,9 @@
 //
 
 #include "DragonWing.hpp"
-#include <pthread.h>
+#include <thread>
+#include <mutex>
+#include <condition_variable>
 #include <iostream>
 #include <deque>
 #include "Grid.hpp"
@@ -27,9 +29,33 @@ namespace DRARGONWING{
 
     std::deque<pthread_t> threads;
     std::deque<ThreadArgs> args;
+    int nthreads = 0;
+
+    std::mutex mutex;
+    std::condition_variable cv;
+    int reached_checkpoint_1 = 0;
+    int reached_checkpoint_2 = 0;
+    bool abort_requested = false;
+
 }
 
+//MARK: Launching
+void DRARGONWING::initialize(int nthreads){
+    DRARGONWING::nthreads = nthreads;
+    threads.clear();
+    args.clear();
+    reached_checkpoint_1 = 0;
+    reached_checkpoint_2 = 0;
+    abort_requested = false;
+}
+
+
 void* DRARGONWING::launchParallel(Advanceable* grid, double dt){
+    if (nthreads == 0) {
+        std::cerr << "Did not initialize DRAGONWING before attempting to launch parallel task";
+        return nullptr;
+    }
+    
     args.push_back({grid,dt});
     pthread_t thread;
 
@@ -45,11 +71,54 @@ void* DRARGONWING::launchParallel(Advanceable* grid, double dt){
 }
 
 
-void DRARGONWING::synchronize(void* thread){
-    if(thread == nullptr) {
-        for (pthread_t& thread : threads) pthread_join(thread, nullptr);
-    } else {
-        pthread_t _thread = *static_cast<pthread_t*>(thread);
-        pthread_join(_thread, nullptr);
-    }
+//MARK: Checkpoint reporting
+void DRARGONWING::reportCheckpoint1(){
+    if(nthreads == 0) return; //Single thread mode
+
+    std::unique_lock lock(mutex);
+    bool done = (++reached_checkpoint_1 == nthreads);
+    lock.unlock();
+    if (done) cv.notify_all();
 }
+void DRARGONWING::reportCheckpoint2(){
+    if(nthreads == 0) return; //Single thread mode
+
+    std::unique_lock lock(mutex);
+    bool done = (++reached_checkpoint_2 == nthreads);
+    lock.unlock();
+    if (done) cv.notify_all();
+}
+bool DRARGONWING::requestRestart(){
+    if(nthreads == 0) return false; //Single thread mode
+
+    std::unique_lock lock(mutex);
+    abort_requested = true;
+    lock.unlock();
+    cv.notify_all();
+    
+    return true;
+}
+
+//MARK: Synchronization
+bool DRARGONWING::waitForCheckpoint1(){
+    if(nthreads == 0) return true; //Single thread mode
+
+    std::unique_lock lock(mutex);
+    //Wait until everybody else is done
+    cv.wait(lock, [&] { return abort_requested || reached_checkpoint_1 == nthreads; });
+    return !abort_requested;
+}
+bool DRARGONWING::waitForCheckpoint2(){
+    if(nthreads == 0) return true; //Single thread mode
+    
+    //Wait until everybody else is done
+    std::unique_lock lock(mutex);
+    cv.wait(lock, [&] { return abort_requested || reached_checkpoint_2 == nthreads; });
+    bool success = !abort_requested;
+    lock.unlock();
+    //Wait for all the threads to clean up
+    for (pthread_t& thread : threads) pthread_join(thread, nullptr);
+    return success;
+}
+
+

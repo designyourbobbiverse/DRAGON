@@ -13,7 +13,13 @@ class Advanceable;
 
 namespace DRARGONWING{
     void* launchParallel(Advanceable* grid, double dt);
-    void synchronize(void* thread = nullptr);
+
+    void initialize(int nthreads);
+    bool requestRestart(); //Returns true if genuinely in multithread mode
+    void reportCheckpoint1();
+    void reportCheckpoint2();
+    bool waitForCheckpoint1(); //Returns false iff someone requested a restart
+    bool waitForCheckpoint2(); //Returns false iff someone requested a restart
 }
 
 

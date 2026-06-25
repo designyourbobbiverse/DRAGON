@@ -312,16 +312,19 @@ void DistGrid1D::advance(double dt, bool check_cfl){
         boundary.apply(data);
         pushToChildren();
         
-        //debugCheckChildGhosts();
         //CFL Time Constraint
         double t1 = check_cfl ? std::min(dt,CFL::cfl_time(data)) : dt;
-        dt -= t1;
         //Execute the Advancement
-        for(auto& child : children){
-            DRARGONWING::launchParallel(child.get(), t1);
-        }
-        DRARGONWING::synchronize();
-        
+        bool success = false;
+        do{
+            DRARGONWING::initialize(ncx);
+            for(auto& child : children){
+                DRARGONWING::launchParallel(child.get(), t1);
+            }
+            success = DRARGONWING::waitForCheckpoint2(); //Wait for children to finish
+            if(!success) t1 /= 2; //If we failed, try again with half time step
+        } while (!success);
+        dt -= t1;
         //Copy Back
         loadFromChildren();
     }
@@ -341,13 +344,17 @@ void DistGrid2D::advance(double dt, bool check_cfl){
         
         //CFL Time Constraint
         double t1 = check_cfl ? std::min(dt,CFL::cfl_time(data)) : dt;
-        dt -= t1;
         //Execute the Advancement
-        for(auto& child : children){
-            DRARGONWING::launchParallel(child.get(), t1);
-        }
-        DRARGONWING::synchronize();//Wait for children to finish
-        
+        bool success = false;
+        do{
+            DRARGONWING::initialize(ncx*ncy);
+            for(auto& child : children){
+                DRARGONWING::launchParallel(child.get(), t1);
+            }
+            success = DRARGONWING::waitForCheckpoint2(); //Wait for children to finish
+            if(!success) t1 /= 2; //If we failed, try again with half time step
+        } while (!success);
+        dt -= t1;
         //Copy Back
         loadFromChildren();
     }
@@ -365,16 +372,19 @@ void DistGrid3D::advance(double dt, bool check_cfl){
         boundary.apply(data);
         pushToChildren();
         
-        //debugCheckChildGhosts();
         //CFL Time Constraint
         double t1 = check_cfl ? std::min(dt,CFL::cfl_time(data)) : dt;
-        dt -= t1;
         //Execute the Advancement
-        for(auto& child : children){
-            DRARGONWING::launchParallel(child.get(), t1);
-        }
-        DRARGONWING::synchronize();
-        
+        bool success = false;
+        do{
+            DRARGONWING::initialize(ncx*ncy*ncz);
+            for(auto& child : children){
+                DRARGONWING::launchParallel(child.get(), t1);
+            }
+            success = DRARGONWING::waitForCheckpoint2(); //Wait for children to finish
+            if(!success) t1 /= 2; //If we failed, try again with half time step
+        } while (!success);
+        dt -= t1;
         //Copy Back
         loadFromChildren();
     }
