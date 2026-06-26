@@ -15,13 +15,15 @@
 #include "Config.h"
 
 
-class Advanceable{
+class Grid{
 public:
     virtual void advance(double dt, bool check_cfl=true) = 0;
+    //Boundary
+    Boundary::BoundaryList boundary = Boundary::BoundaryList();
 };
 
 
-class Grid1D: public Advanceable{
+class Grid1D: public Grid{
 private:
     ExtendedArray1D<PrimitiveState> w;
 public:
@@ -37,8 +39,7 @@ public:
     const PrimitiveState& operator[](int k) const;
     int getSize() const, getGhosts() const;
     
-    //Boundary
-    Boundary::BoundaryList boundary = Boundary::BoundaryList();
+    
     
     //Advance forward in time
     void advance(double dt, bool check_cfl=true);
@@ -46,7 +47,7 @@ public:
     void god_sweep(double dt, ExtendedArray1D<PrimitiveState>& _L, ExtendedArray1D<PrimitiveState>& _R);
 };
 
-class Grid2D: public Advanceable{
+class Grid2D: public Grid{
 private:
     ExtendedArray2D<PrimitiveState> w;
 #ifdef MHD
@@ -70,9 +71,6 @@ public:
     ExtendedArray2D<vec3>& getA(){return A;}
     #endif
     
-    //Boundary
-    Boundary::BoundaryList boundary = Boundary::BoundaryList();
-    
     //Advance Forward in time
     void advance(double dt, bool check_cfl = true); //Automatically split or unsplit based whether DIMENSION_UNSPLIT is set in Config.h
     void advance_split(double dt, bool check_cfl = true);
@@ -93,7 +91,7 @@ private:
 
 };
 
-class Grid3D: public Advanceable{
+class Grid3D: public Grid{
 private:
     ExtendedArray3D<PrimitiveState>  w;
 #ifdef MHD
@@ -116,10 +114,6 @@ public:
     //A[i,j,k] is the corner w[i-1/2,j-1/2,k-1/2] to each of the 3 adjacent corners of w[i,j,k]
     ExtendedArray3D<vec3>& getA(){return A;}
     #endif
-    
-    
-    //Boundary
-    Boundary::BoundaryList boundary = Boundary::BoundaryList();
     
     //Advance Forward in time
     void advance(double dt, bool check_cfl = true);//Automatically split or unsplit based whether DIMENSION_UNSPLIT is set in Config.h

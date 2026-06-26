@@ -14,7 +14,7 @@ int main(int argc, const char * argv[]) {
     
     auto start = std::chrono::system_clock::now();
 
-    Advanceable& problem = Problem::makeProblem();
+    Grid& problem = Problem::makeProblem();
 
     for(int n = 0; n<10000; n++){
         if(n>0) problem.advance(0.01);

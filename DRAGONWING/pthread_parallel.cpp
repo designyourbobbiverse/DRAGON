@@ -16,7 +16,7 @@
 
 namespace DRARGONWING{
     struct ThreadArgs{
-        Advanceable* grid;
+        Grid* grid;
         double dt;
     };
 
@@ -50,7 +50,7 @@ void DRARGONWING::initialize(int nthreads){
 }
 
 
-void* DRARGONWING::launchParallel(Advanceable* grid, double dt){
+void* DRARGONWING::launchParallel(Grid* grid, double dt){
     if (nthreads == 0) {
         std::cerr << "Did not initialize DRAGONWING before attempting to launch parallel task";
         return nullptr;

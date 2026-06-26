@@ -15,7 +15,7 @@
 #include <memory>
 
 
-struct DistGrid1D: public Advanceable{
+struct DistGrid1D: public Grid{
     
     DistGrid1D(int nx, double dx, int ghosts=3, bool root=true);
     DistGrid1D(const DistGrid1D&) = delete; //No copying
@@ -28,9 +28,6 @@ struct DistGrid1D: public Advanceable{
     const PrimitiveState& operator[](int i) const;
     int getSize() const, getGhosts() const;
 
-    //Boundary
-    Boundary::BoundaryList boundary = Boundary::BoundaryList();
-    
     //Advance Forward in time
     void advance(double dt, bool check_cfl = true);
     
@@ -46,7 +43,7 @@ private:
 };
 
 
-struct DistGrid2D: public Advanceable{
+struct DistGrid2D: public Grid{
     
     DistGrid2D(int nx, int ny, double dx, double dy, int ghosts=3, bool root=true);
     DistGrid2D(const DistGrid2D&) = delete; //No copying
@@ -64,9 +61,6 @@ struct DistGrid2D: public Advanceable{
     ExtendedArray2D<vec3>& A(){ return data.getA();}
     #endif
 
-    //Boundary
-    Boundary::BoundaryList boundary = Boundary::BoundaryList();
-    
     //Advance Forward in time
     void advance(double dt, bool check_cfl = true);
     
@@ -83,7 +77,7 @@ private:
 };
 
 
-struct DistGrid3D: public Advanceable{
+struct DistGrid3D: public Grid{
     
     DistGrid3D(int nx, int ny, int nz, double dx, double dy, double dz, int ghosts=3, bool root=true);
     DistGrid3D(const DistGrid3D&) = delete; //No copying
@@ -100,9 +94,6 @@ struct DistGrid3D: public Advanceable{
     //A[i,j,k] is the corner w[i-1/2,j-1/2,k-1/2] to each of the 3 adjacent corners of w[i,j,k]
     ExtendedArray3D<vec3>& A(){ return data.getA();}
     #endif
-    
-    //Boundary
-    Boundary::BoundaryList boundary = Boundary::BoundaryList();
     
     //Advance Forward in time
     void advance(double dt, bool check_cfl = true);

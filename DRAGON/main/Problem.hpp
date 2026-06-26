@@ -8,6 +8,6 @@
 #include "Grid.hpp"
 
 namespace Problem{
-    Advanceable& makeProblem();
-    void cycleComplete(Advanceable& problem, int cycle, double time);
+    Grid& makeProblem();
+    void cycleComplete(Grid& problem, int cycle, double time);
 }

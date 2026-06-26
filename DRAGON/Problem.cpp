@@ -10,7 +10,6 @@
 #include <cmath>
 #include <iostream>
 #include <fstream>
-#include <chrono>
 
 
 const double rho0 = 1.0;
@@ -18,7 +17,7 @@ const double p_ambient = 0.1;
 const double p_blast   = 10.0;
 const double r0 = 0.3;
 
-Advanceable& Problem::makeProblem(){
+Grid& Problem::makeProblem(){
     double dx = 0.01, dy = 0.01;
     auto _grid = new DistGrid2D(1000, 1000, dx, dy);
     DistGrid2D& grid = *_grid;
@@ -41,7 +40,7 @@ Advanceable& Problem::makeProblem(){
 }
 
 
-void Problem::cycleComplete(Advanceable& problem, int cycle, double time){
+void Problem::cycleComplete(Grid& problem, int cycle, double time){
     DistGrid2D& grid = *dynamic_cast<DistGrid2D*>(&problem);
     
     //Frame Number

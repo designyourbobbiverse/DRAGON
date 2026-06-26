@@ -8,11 +8,11 @@
 #ifndef DRAGONWING
 #define DRAGONWING
 
-class Advanceable;
+class Grid;
 
 
 namespace DRARGONWING{
-    void* launchParallel(Advanceable* grid, double dt);
+    void* launchParallel(Grid* grid, double dt);
 
     void initialize(int nthreads);
     bool requestRestart(); //Returns true if genuinely in multithread mode
