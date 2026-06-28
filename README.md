@@ -2,7 +2,7 @@
 
 **Divergence-Regulation by A-field Grid Operations & Numerics**
 
-DRAGON is a modern C++ Eulerian hydrodynamics and magnetohydrodynamics code implementing finite-volume Godunov methods. The code features configurable Riemann solvers, CFL timestep calculation, MUSCL reconstruction, and boundary-condition handling for 1D, 2D, and 3D grids. 
+DRAGON is a modern C++ Eulerian hydrodynamics and magnetohydrodynamics code implementing finite-volume Godunov methods. The code features configurable Riemann solvers, CFL timestep calculation, MUSCL reconstruction, and boundary-condition handling for 1D, 2D, and 3D grids.  The code uses C++23.
 
 
 ## Current Features
@@ -14,10 +14,10 @@ DRAGON is a modern C++ Eulerian hydrodynamics and magnetohydrodynamics code impl
 - Riemann safety checks and fallback behaviour for non-physical approximate fluxes.
 - First-order Godunov and MUSCL-Hancock reconstruction.
 - TVD limiters: minmod, monotonized central, van Leer, superbee, and van Albada.
-- Boundary conditions: outflow, gated outflow, fixed, reflective, periodic. Additional options can be added by subclassing GhostFill
-- Boundary options can be combined using a BoundaryList, which can be invoked by syntax such as Reflective(X) + Periodic(Y)
+- Boundary conditions: outflow, gated outflow, fixed, reflective, periodic. Additional options can be added by subclassing GhostFill.
+- Boundary options can be combined using a BoundaryList, which can be invoked by syntax such as 
+`Boundary::Reflective("X") + Boundary::Periodic("YZ")`
 - A unit test suite covering fluid elements, Riemann Solvers, Boundary Condtions, Godunov methods, Constrained Transport, and more
-
 
 
 ## Project Layout
@@ -61,6 +61,8 @@ Important switches include:
 - `DIMENSION_UNSPLIT`: unsplit multidimensional advancement (turn off for strang splitting).
 - `core_count`: when using DistGrid, helps the root choose how many child grids to create.
 
+Physical parameters meanwhile can be found in `DRAGON/Constants.h`. Currently, the only such value is the specific heat ratio `_gamma`, which by default is set to 5/3.
+
 ## Running a Problem
 
 TODO: Fill me in once you've reconfigured this
@@ -85,14 +87,6 @@ All tests passed.
 
 DRAGON is licensed under the Apache License 2.0. See `LICENSE` for details.
 
-## Development Notes
-
-- The code uses C++23 features
-- The default gas index is `_gamma = 5/3` in `Constants.h`.
-- Grid indices outside the physical range access ghost cells, which are filled by the configured boundary list.
-- Boundary lists are composable with `+`; later boundary conditions override earlier ones on overlapping ghost cells.
-- The demo driver is intentionally simple and is not yet a general runtime configuration interface.
-
 
 ## Roadmap
 
@@ -103,4 +97,4 @@ DRAGON is licensed under the Apache License 2.0. See `LICENSE` for details.
 
 ## Use of Generative AI
 
-I, Bobbie Markwick, developed DRAGON as an independent C++ MHD code.  I have made some use of Generative AI tools (speicfically ChatGPT & Codex) during development. Example uses include algorithm discussion, typo-hunting, and unit test writing (I wrote some of the tests, AI wrote some). However, 100% of DRAGON itself was written manually by me.
+I, Bobbie Markwick, developed DRAGON as an independent C++ MHD code.  During development I have made some use of Generative AI tools (speicfically ChatGPT & Codex). Example uses include algorithm discussion, typo-hunting, and unit test writing (I wrote some of the tests, AI wrote some). However, 100% of DRAGON itself was written manually by me.
