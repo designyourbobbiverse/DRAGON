@@ -97,4 +97,4 @@ DRAGON is licensed under the Apache License 2.0. See `LICENSE` for details.
 
 ## Use of Generative AI
 
-I, Bobbie Markwick, developed DRAGON as an independent C++ MHD code.  During development I have made some use of Generative AI tools (speicfically ChatGPT & Codex). Example uses include learning modern c++ features, discussing established numerical algorithms,  typo-hunting, and unit test writing (I wrote some of the tests, AI wrote some). However, 100% of DRAGON itself was written manually by me.
+I, Bobbie Markwick, developed DRAGON as an independent C++ MHD code.  During development I have made some use of Generative AI tools (speicfically ChatGPT & Codex). Example uses include learning modern c++ features, discussing established numerical algorithms,  typo-hunting, and unit test writing (some tests were still written manually, and all AI-written tests were human-inspected for accuracy). However, 100% of the DRAGON code itself was written manually by me.
