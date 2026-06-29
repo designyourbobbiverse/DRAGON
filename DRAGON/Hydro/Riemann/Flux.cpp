@@ -45,7 +45,7 @@ ConservativeState Riemann::flux(double dt_dx){
     switch (CONFIG::riemann_choice){
         case RIEMANN_HLLX:
         case RIEMANN_HLLC: flux =  HLLC(); break;
-        case RIEMANN_EXACT: flux = exact().flux();
+        case RIEMANN_EXACT: flux = exact().flux(); break;
         case RIEMANN_HLL: flux =  HLL(); break;
         case RIEMANN_HLLE: flux =  HLLE(); break;
         case RIEMANN_ROE: flux =  Roe(); break;

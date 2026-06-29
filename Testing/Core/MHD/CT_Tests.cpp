@@ -9,7 +9,7 @@
 #include "CT.hpp"
 #include <iostream>
 
-
+#ifdef MHD
 using namespace DRAGON_Test;
 
 void DRAGON_Test::verify_ct_2D(bool output){
@@ -350,7 +350,7 @@ void DRAGON_Test::verify_ct_alfven_wave_3D(){
 }
 
 //Tests above this line, I wrote myself from scratch
-//Tests below this line, AI originally drafted but I have since revised
+//Tests below this line, AI originally drafted.  I have since revised the tests to better match my coding style.
 
 //MARK: Body-Centred Fields
 void DRAGON_Test::verify_ct_body_fields_2D(){
@@ -545,3 +545,4 @@ void DRAGON_Test::verify_ct_copy_face_fields_3D(){
         }
     }
 }
+#endif

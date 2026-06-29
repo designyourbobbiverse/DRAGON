@@ -107,7 +107,7 @@ PrimitiveState TVD::minmod(const PrimitiveState& a, const PrimitiveState& b) {
     return W;
 }
 
-//MARK: Monotonised Central
+//MARK: Monotone-Centred
 double TVD::MC(double a, double b) {
     if(a*b <= 0) return 0;
     double c = fabs(a+b);
