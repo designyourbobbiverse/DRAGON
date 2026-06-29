@@ -18,24 +18,23 @@ Boundary::ToroidalJet::ToroidalJet(double rho, double v, double p, double beta, 
 //MARK: 1D
 void Boundary::ToroidalJet::apply(Grid1D& grid) {
     //Construct a jet with reduced thermal pressure
-    double p_amb = p;
-    p *= beta/(1.0+ beta);
+    double pj = p * fabs(beta)/(1.0+ fabs(beta));
+    std::swap(pj,p);
     Jet::apply(grid);
-    p = p_amb;
-
+    std::swap(pj,p);
     
     int ng = grid.getGhosts();
-    double B = sqrt(p * 8*M_PI/(1.0+ beta));
-    
+    double B = sqrt(pj * 8*M_PI/fabs(beta)) * (beta/fabs(beta));
+
     if (jetface & X_negative){
         for(int g = 1; g <= ng; g++){
-            grid[-g].B = B;
+            grid[-g].B.z = B;
         }
     }
     if (jetface & X_positive){
         int nx = grid.getSize();
         for(int g = 1; g <= ng; g++){
-            grid[nx-1+g].B = B;
+            grid[nx-1+g].B.z = B;
         }
     }
 }
@@ -43,8 +42,50 @@ void Boundary::ToroidalJet::apply(Grid1D& grid) {
 //MARK: 2D
 //All applicable ghost cells are set to equal this->state
 void Boundary::ToroidalJet::apply(Grid2D& grid) {
+    //Construct a jet with reduced thermal pressure
+    double pj = p * fabs(beta)/(1.0+ fabs(beta));
+    std::swap(pj,p);
     Jet::apply(grid);
-    //TODO: figure out appropriate profile for 2D
+    std::swap(pj,p);
+
+    
+    double dx = grid.dx, dy = grid.dy;
+    int ng = grid.getGhosts(), nx = grid.getSizeX(), ny = grid.getSizeY();
+    int i0 = std::max(0.0,floor(nx*0.5 - rj/dx)), in = fmin(nx,ceil(nx*0.5 + rj/dx));
+    int j0 = std::max(0.0,floor(ny*0.5 - rj/dy)), jn = fmin(ny,ceil(ny*0.5 + rj/dy));
+
+
+    double B = sqrt(pj * 8*M_PI/fabs(beta)) * (beta/fabs(beta));
+    
+    if (jetface & X_negative){
+        for(int j = j0; j < jn; j++){
+            for(int g = 1; g <= ng; g++){
+                grid[-g,j].B.z = B * (j*2 > ny ? 1 : -1);
+            }
+        }
+    }
+    if (jetface & X_positive){
+        for(int j = j0; j < jn; j++){
+            for(int g = 1; g <= ng; g++){
+                grid[nx-1+g,j].B.z = B * (j*2 > ny ? 1 : -1);
+            }
+        }
+    }
+    if (jetface & Y_negative){
+        for(int i = i0; i < in; i++){
+            for(int g = 1; g <= ng; g++){
+                grid[i,-g].B.z = B * (i*2 > nx ? -1 : 1);
+            }
+        }
+    }
+    if (jetface & Y_positive){
+        for(int i = i0; i < in; i++){
+            for(int g = 1; g <= ng; g++){
+                grid[i,ny-1+g].B.z = B * (i*2 > nx ? -1 : 1);
+            }
+        }
+    }
+    
 }
 
 
