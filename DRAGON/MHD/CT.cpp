@@ -83,25 +83,24 @@ void CT::computeFaceFields(const MagneticArray3D& _A, MagneticArray3D& _B, doubl
 
 //MARK: Body Fields
 void Grid2D::initialize_B_fields(){
-    const int nx = w.getSizeX(), ny = w.getSizeY();
+    const int nx = w.getSizeX(), ny = w.getSizeY(), ng = w.getGhosts();
     boundary.apply(*this);
 
     MagneticArray2D B(nx+1,ny+1,w.getGhosts());
     CT::computeFaceFields(A, B, dx, dy);
     
-    for(int i=0; i<nx; i++){
-        for(int j=0; j<ny; j++){
+    for(int i=-ng; i<nx+ng; i++){
+        for(int j=-ng; j<ny+ng; j++){
             w[i,j].B.x = (B[i,j].x + B[i+1,j].x)/2;
             w[i,j].B.y = (B[i,j].y + B[i,j+1].y)/2;
         }
     }
 }
 void Grid2D::computeBodyAveragedFields(const MagneticArray2D& B){
-    const int nx = w.getSizeX(), ny = w.getSizeY();
-    boundary.apply(*this);
+    const int nx = w.getSizeX(), ny = w.getSizeY(), ng = w.getGhosts();
 
-    for(int i=0; i<nx; i++){
-        for(int j=0; j<ny; j++){
+    for(int i=-ng; i<nx+ng; i++){
+        for(int j=-ng; j<ny+ng; j++){
             ConservativeState U(w[i,j]);//Update the conservative element to keep quantities conserved
             U.B.x = (B[i,j].x + B[i+1,j].x)/2;
             U.B.y = (B[i,j].y + B[i,j+1].y)/2;
@@ -110,13 +109,15 @@ void Grid2D::computeBodyAveragedFields(const MagneticArray2D& B){
     }
 }
 void Grid3D::initialize_B_fields(){
-    const int nx = w.getSizeX(), ny = w.getSizeY(), nz = w.getSizeZ();
+    const int nx = w.getSizeX(), ny = w.getSizeY(), nz = w.getSizeZ(), ng = w.getGhosts();
+    boundary.apply(*this);
+
     MagneticArray3D B(nx+1,ny+1,nz+1,w.getGhosts());
     CT::computeFaceFields(A, B, dx, dy, dz);
     
-    for(int i=0; i<nx; i++){
-        for(int j=0; j<ny; j++){
-            for(int k=0; k<nz; k++){
+    for(int i=-ng; i<nx+ng; i++){
+        for(int j=-ng; j<ny+ng; j++){
+            for(int k=-ng; k<nz+ng; k++){
                 w[i,j,k].B.x = (B[i,j,k].x + B[i+1,j,k].x)/2;
                 w[i,j,k].B.y = (B[i,j,k].y + B[i,j+1,k].y)/2;
                 w[i,j,k].B.z = (B[i,j,k].z + B[i,j,k+1].z)/2;
@@ -126,11 +127,11 @@ void Grid3D::initialize_B_fields(){
 
 }
 void Grid3D::computeBodyAveragedFields(const MagneticArray3D& B){
-    const int nx = w.getSizeX(), ny = w.getSizeY(), nz = w.getSizeZ();
+    const int nx = w.getSizeX(), ny = w.getSizeY(), nz = w.getSizeZ(), ng = w.getGhosts();
 
-    for(int i=0; i<nx; i++){
-        for(int j=0; j<ny; j++){
-            for(int k=0; k<nz; k++){
+    for(int i=-ng; i<nx+ng; i++){
+        for(int j=-ng; j<ny+ng; j++){
+            for(int k=-ng; k<nz+ng; k++){
                 ConservativeState U(w[i,j,k]);//Update the conservative element to keep quantities conserved
                 U.B.x = (B[i,j,k].x + B[i+1,j,k].x)/2;
                 U.B.y = (B[i,j,k].y + B[i,j+1,k].y)/2;
