@@ -137,8 +137,9 @@ public:
 
 
 
-//Fixed Boundary condition
-//Sets each boundary cell to be equal to some specified state
+//Jet Boundary condition
+//Constructs an inflow of (rho,v,p) on the specified face
+//Only overrides the boundary on the specified face, not outside the jet
 class Jet : public GhostFill {
 public:
     Jet(double rho, double v, double p, double radius, std::string face);
@@ -153,6 +154,21 @@ protected:
     
 };
 
+#ifdef MHD
+//MHD Jet Boundary condition
+//Similar to Jet, but includes a pressure-balanced toroidal field
+class ToroidalJet : public Jet {
+public:
+    ToroidalJet(double rho, double v, double p_amb, double beta, double rm, double rj, std::string face);
+    ToroidalJet(double rho, double v, double p_amb, double beta, double rm, double rj, int face);
+    
+    void apply(Grid1D& grid) override;
+    void apply(Grid2D& grid) override;
+    void apply(Grid3D& grid) override;
+protected:
+    double beta, rm;
+};
+#endif
 
 }
 

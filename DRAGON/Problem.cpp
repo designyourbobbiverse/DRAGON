@@ -12,25 +12,30 @@
 #include <fstream>
 
 typedef DistGrid3D MyGrid;
-const double p_amb = 7.5e-6;
+constexpr double rho_jet = 3;
+constexpr double rho_amb = rho_jet/6.0;
+constexpr double p_amb = rho_amb * 1.5e-5 ;
 
 Grid& Problem::makeProblem(){
-    double dx = 0.05, dy = 0.05, dz = 0.05;
-    auto _grid = new MyGrid(128, 128,128, dx, dy, dz);
+    int res = 1;
+    double dx = 0.1/res, dy = 0.1/res, dz = 0.1/res;
+    auto _grid = new MyGrid(64*res, 64*res,64*res, dx, dy, dz);
     MyGrid& grid = *_grid;
     
-    grid.boundary = Boundary::Jet(3, 7e-2, p_amb, 2.4, "Z");
+    grid.boundary = Boundary::ToroidalJet(rho_jet, 7e-2, p_amb, 10.0, 1.0, 2.4, "Z");
     
-    for(int i=0; i<grid.getSizeX(); i++){
-        for(int j=0; j<grid.getSizeY(); j++){
-            for(int k=0; k<grid.getSizeZ(); k++){
-                grid[i,j,k].rho = 0.5;
+    for(int i=0; i<=grid.getSizeX(); i++){
+        for(int j=0; j<=grid.getSizeY(); j++){
+            for(int k=0; k<=grid.getSizeZ(); k++){
+                grid[i,j,k].rho = rho_amb;
                 grid[i,j,k].p = p_amb;
                 grid[i,j,k].v = {0,0,0};
+                grid.A()[i,j,k] = {0,0,0};
             }
         }
     }
-    
+    grid.initialize_B_fields();
+        
     return grid;
 }
 
@@ -52,7 +57,7 @@ void Problem::cycleComplete(Grid& problem, int cycle, double time){
     
     for(int k=0; k<grid.getSizeZ(); k++){
         for(int i=0; i<grid.getSizeX(); i++){
-            out<< grid[i,grid.getSizeY()/2,k].rho << (i+1 == grid.getSizeX() ? "\n" : ",");
+            out<< grid[i,grid.getSizeY()/2,k].rho  * (3/rho_jet) << (i+1 == grid.getSizeX() ? "\n" : ",");
         }
     }
     out.close();

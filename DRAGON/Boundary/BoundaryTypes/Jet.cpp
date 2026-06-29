@@ -28,8 +28,6 @@ void Boundary::Jet::apply(Grid1D& grid) {
         state.v = {v,0,0};
         for(int g = 1; g <= ng; g++){
             grid[-g] = state;
-            grid[-g].v.x = v;
-            grid[-g].p = p;
         }
     }
     if (jetface & X_positive){
@@ -47,8 +45,8 @@ void Boundary::Jet::apply(Grid2D& grid) {
     //Calculate the bounds ahead of time
     double dx = grid.dx, dy = grid.dy;
     int ng = grid.getGhosts(), nx = grid.getSizeX(), ny = grid.getSizeY();
-    int i0 = floor(nx*0.5 - rj/dx), in = ceil(nx*0.5 + rj/dx);
-    int j0 = floor(ny*0.5 - rj/dy), jn = ceil(ny*0.5 + rj/dy);
+    int i0 = fmax(0,floor(nx*0.5 - rj/dx)), in = fmin(nx,ceil(nx*0.5 + rj/dx));
+    int j0 = fmax(0,floor(ny*0.5 - rj/dy)), jn = fmin(ny,ceil(ny*0.5 + rj/dy));
 
     PrimitiveState state;
     state.rho = rho;
@@ -86,10 +84,6 @@ void Boundary::Jet::apply(Grid2D& grid) {
             }
         }
     }
-//MARK: 2D MHD
-    #ifdef MHD
-    //TODO: Implement
-    #endif
 }
 //MARK: 3D
 //All applicable ghost cells are set to equal this->state
@@ -97,9 +91,9 @@ void Boundary::Jet::apply(Grid3D& grid) {
     //Calculate the bounds ahead of time
     double dx = grid.dx, dy = grid.dy, dz = grid.dz;
     int ng = grid.getGhosts(), nx = grid.getSizeX(), ny = grid.getSizeY(), nz = grid.getSizeZ();
-    int i0 = floor(nx*0.5 - rj/dx), in = ceil(nx*0.5 + rj/dx);
-    int j0 = floor(ny*0.5 - rj/dy), jn = ceil(ny*0.5 + rj/dy);
-    int k0 = floor(nz*0.5 - rj/dz), kn = ceil(nz*0.5 + rj/dz);
+    int i0 = fmax(0,floor(nx*0.5 - rj/dx)), in = fmin(nx,ceil(nx*0.5 + rj/dx));
+    int j0 = fmax(0,floor(ny*0.5 - rj/dy)), jn = fmin(ny,ceil(ny*0.5 + rj/dy));
+    int k0 = fmax(0,floor(nz*0.5 - rj/dz)), kn = fmin(nz,ceil(nz*0.5 + rj/dz));
 
     PrimitiveState state;
     state.rho = rho;
@@ -182,8 +176,4 @@ void Boundary::Jet::apply(Grid3D& grid) {
             }
         }
     }
-//MARK: 3D MHD
-#ifdef MHD
-//TODO: Implement
-#endif
 }
