@@ -17,7 +17,7 @@ constexpr double rho_amb = rho_jet/6.0;
 constexpr double p_amb = rho_amb * 1.5e-5 ;
 
 Grid& Problem::makeProblem(){
-    int res = 1;
+    int res = 2;
     double dx = 0.1/res, dy = 0.1/res, dz = 0.1/res;
     auto _grid = new MyGrid(64*res, 64*res,64*res, dx, dy, dz);
     MyGrid& grid = *_grid;

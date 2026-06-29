@@ -340,8 +340,12 @@ void DistGrid2D::advance(double dt, bool check_cfl){
     if(ncx*ncy == 1 ){
         data.advance(dt, check_cfl);
         DRARGONWING::reportCheckpoint2();
+        boundary = std::move(data.boundary);
         return;
     }
+    data.initialize_B_fields();
+    boundary = std::move(data.boundary);
+    
     while(dt > Timestep_Tolerance){
         //Apply Boundary Conditions
         boundary.apply(data);
@@ -397,7 +401,6 @@ void DistGrid3D::advance(double dt, bool check_cfl){
             if(!success) t1 /= 2; //If we failed, try again with half time step
         } while (!success);
         dt -= t1;
-        std::cout<<"\t evolved "<<t1<<", "<<dt<<" to go\n";
         //Copy Back
         loadFromChildren();
     }
