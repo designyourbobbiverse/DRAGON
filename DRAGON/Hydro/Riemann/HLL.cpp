@@ -81,18 +81,23 @@ ConservativeState Riemann::HLL(double sl, double sr){
 
 //MARK: HLLC
 ConservativeState Riemann::HLLC(){
-    double SL = L.cs(), SR = R.cs();//Compute Sound Speeds
-    //Estimate the pressure
-    double p_pvrs = fmax(0,(L.p + R.p)/2 + (L.rho + R.rho)*(L.v.x - R.v.x)*(SL + SR)/8);
-    //Left Speed
-    if(p_pvrs > L.p) SL *= sqrt(1 + _Gp1_2G*(p_pvrs/L.p - 1)); //Use Shock Speed if applicable
-    SL = L.v.x - SL;
-    if(SL >= 0) return L.flux();//Left Exterior Region
-    //Right Speed
-    if(p_pvrs > R.p) SR *= sqrt(1 + _Gp1_2G*(p_pvrs/R.p - 1)); //Use Shock Speed if applicable
-    SR = R.v.x + SR;
-    if(SR <= 0) return R.flux();//Right Exterior Region
-
+    //Roe averages
+    double sql = sqrt(L.rho), sqr = sqrt(R.rho);
+    PrimitiveState M = (sql*L + sqr*R) / (sql + sqr);
+    //Compute Sound/Fast Speed
+#ifdef MHD
+    //Set Normal Magnetic Fields
+    double Bx = (L.B.x+R.B.x)/2;
+    L.B.x = Bx; R.B.x = Bx;
+    //Calculate Fast Mode
+    double aL = L.c_fast(), aR = R.c_fast(), aM = M.c_fast();
+#else
+    //Sound Speed
+    double aL = L.cs(), aR = R.cs(), aM = M.cs();
+#endif
+    //Compare to v +- a
+    double SL = fmin(L.v.x - aL, M.v.x-aM);
+    double SR = fmax(R.v.x + aR, M.v.x+aM);
     return HLLC(SL, SR);
 }
 
