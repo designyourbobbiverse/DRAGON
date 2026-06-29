@@ -72,6 +72,7 @@ void Boundary::ToroidalJet::apply(Grid3D& grid) {
     double _rm = 1/rm;
     double _rm2 = _rm*_rm;
     double Am = Bm*rm*log(rj/rm);
+    double rs = rj+ 2*sqrt(dx*dx+dy*dy+dz*dz);//Create a shell around the jet where A=0
     
     if (jetface & X_negative){
         for(int j = j0; j < jn; j++){
@@ -79,7 +80,7 @@ void Boundary::ToroidalJet::apply(Grid3D& grid) {
                 //Pressure on Body-centered cells
                 double y = (j+0.5-ny*0.5)*dy, z = (k+0.5-nz*0.5)*dz;
                 double r = sqrt(y*y+z*z);
-                if (r<=rm){
+                if (r < rm){
                     for(int g = 1; g <= ng; g++){
                         grid[-g,j,k].p += pmag * (1 - (r*r)*_rm2);
                     }
@@ -87,19 +88,15 @@ void Boundary::ToroidalJet::apply(Grid3D& grid) {
                 //A field is edge-centered
                 y -= 0.5*dy; z -= 0.5*dz;
                 r = sqrt(y*y+z*z);
-                if(r<=rj) {
-                    A[0,j,k].y = 0;
-                    A[0,j,k].z = 0;
-                }
-                if(r<rm) {
+                if(r < rm) {
                     for(int g = 0; g <= ng; g++){
                         A[-g,j,k] = {Am + (Bm*0.5)*(rm -r*r*_rm),0,0};
                     }
-                } else if(r<=rj) {
+                } else if(r <= rj) {
                     for(int g = 0; g <= ng; g++){
                         A[-g,j,k] = {Bm*rm*log(rj/r),0,0};
                     }
-                } else {
+                } else if(r <= rs){
                     for(int g = 0; g <= ng; g++){
                         A[-g,j,k] = {g>0 ? 0 : A[0,j,k].x, 0, 0};
                     }
@@ -113,7 +110,7 @@ void Boundary::ToroidalJet::apply(Grid3D& grid) {
                 //Pressure on Body-centered cells
                 double y = (j+0.5-ny*0.5)*dy, z = (k+0.5-nz*0.5)*dz;
                 double r = sqrt(y*y+z*z);
-                if (r<=rm){
+                if (r < rm){
                     for(int g = 1; g <= ng; g++){
                         grid[nx-1+g,j,k].p += pmag * (1 - (r*r)*_rm2);
                     }
@@ -121,15 +118,15 @@ void Boundary::ToroidalJet::apply(Grid3D& grid) {
                 //A field is edge-centered
                 y -= 0.5*dy; z -= 0.5*dz;
                 r = sqrt(y*y+z*z);
-                if(r<rm) {
+                if(r < rm) {
                     for(int g = 0; g <= ng; g++){
                         A[nx+g,j,k] = {Am + (Bm*0.5)*(rm -r*r*_rm),0,0};
                     }
-                } else if(r<=rj) {
+                } else if(r <= rj) {
                     for(int g = 0; g <= ng; g++){
                         A[nx+g,j,k] = {Bm*rm*log(rj/r),0,0};
                     }
-                } else {
+                } else if(r <= rs){
                     for(int g = 0; g <= ng; g++){
                         A[nx+g,j,k] = {0,0,0};
                     }
@@ -143,7 +140,7 @@ void Boundary::ToroidalJet::apply(Grid3D& grid) {
                 //Pressure on Body-centered cells
                 double x = (i+0.5-nx*0.5)*dx, z = (k+0.5-nz*0.5)*dz;
                 double r = sqrt(x*x+z*z);
-                if (r<=rm){
+                if (r < rm){
                     for(int g = 1; g <= ng; g++){
                         grid[i,-g,k].p += pmag * (1 - (r*r)*_rm2);
                     }
@@ -151,15 +148,15 @@ void Boundary::ToroidalJet::apply(Grid3D& grid) {
                 //A field is edge-centered
                 x -= 0.5*dx; z -= 0.5*dz;
                 r = sqrt(x*x+z*z);
-                if(r<rm) {
+                if(r < rm) {
                     for(int g = 0; g <= ng; g++){
                         A[i,-g,k] = {0, Am + (Bm*0.5)*(rm -r*r*_rm),0};
                     }
-                } else if(r<=rj) {
+                } else if(r <= rj) {
                     for(int g = 0; g <= ng; g++){
                         A[i,-g,k] = {0,Bm*rm*log(rj/r),0};
                     }
-                } else {
+                } else if(r <= rs){
                     for(int g = 0; g <= ng; g++){
                         A[i,-g,k] = {0, g>0 ? 0 : A[i,0,k].y, 0};
                     }
@@ -173,7 +170,7 @@ void Boundary::ToroidalJet::apply(Grid3D& grid) {
                 //Pressure on Body-centered cells
                 double x = (i+0.5-nx*0.5)*dx, z = (k+0.5-nz*0.5)*dz;
                 double r = sqrt(x*x+z*z);
-                if (r<=rm){
+                if (r < rm){
                     for(int g = 1; g <= ng; g++){
                         grid[i,ny-1+g,k].p += pmag * (1 - (r*r)*_rm2);
                     }
@@ -181,15 +178,15 @@ void Boundary::ToroidalJet::apply(Grid3D& grid) {
                 //A field is edge-centered
                 x -= 0.5*dx; z -= 0.5*dz;
                 r = sqrt(x*x+z*z);
-                if(r<rm) {
+                if(r < rm) {
                     for(int g = 0; g <= ng; g++){
                         A[i,ny+g,k] = {0,Am + (Bm*0.5)*(rm -r*r*_rm),0};
                     }
-                } else if(r<=rj) {
+                } else if(r <= rj) {
                     for(int g = 0; g <= ng; g++){
                         A[i,ny+g,k] = {0,Bm*rm*log(rj/r),0};
                     }
-                } else {
+                } else if(r <= rs){
                     for(int g = 0; g <= ng; g++){
                         A[i,ny+g,k] = {0,0,0};
                     }
@@ -203,7 +200,7 @@ void Boundary::ToroidalJet::apply(Grid3D& grid) {
                 //Pressure on Body-centered cells
                 double x = (i+0.5-nx*0.5)*dx, y = (j+0.5-ny*0.5)*dy;
                 double r = sqrt(x*x+y*y);
-                if (r<=rm){
+                if (r < rm){
                     for(int g = 1; g <= ng; g++){
                         grid[i,j,-g].p += pmag * (1 - (r*r)*_rm2);
                     }
@@ -211,15 +208,15 @@ void Boundary::ToroidalJet::apply(Grid3D& grid) {
                 //A field is edge-centered
                 x -= 0.5*dx; y -= 0.5*dy;
                 r = sqrt(x*x+y*y);
-                if (r<rm) {
+                if (r < rm) {
                     for(int g = 0; g <= ng; g++){
                         A[i,j,-g] = {0, 0,Am + (Bm*0.5)*(rm -r*r*_rm)};
                     }
-                } else if (r<=rj) {
+                } else if(r <= rj) {
                     for(int g = 0; g <= ng; g++){
                         A[i,j,-g] = {0,0,Bm*rm*log(rj/r)};
                     }
-                } else {
+                } else if(r <= rs){
                     for(int g = 0; g <= ng; g++){
                         A[i,j,-g] = {0,0, g>0 ? 0 : A[i,j,0].z};
                     }
@@ -234,7 +231,7 @@ void Boundary::ToroidalJet::apply(Grid3D& grid) {
                 //Pressure on Body-centered cells
                 double x = (i+0.5-nx*0.5)*dx, y = (j+0.5-ny*0.5)*dy;
                 double r = sqrt(x*x+y*y);
-                if (r<=rm){
+                if (r < rm){
                     for(int g = 1; g <= ng; g++){
                         grid[i,j,nz-1+g].p += pmag * (1 - (r*r)*_rm2);
                     }
@@ -242,15 +239,15 @@ void Boundary::ToroidalJet::apply(Grid3D& grid) {
                 //A field is edge-centered
                 x -= 0.5*dx; y -= 0.5*dy;
                 r = sqrt(x*x+y*y);
-                if(r<rm) {
+                if(r < rm) {
                     for(int g = 0; g <= ng; g++){
                         A[i,j,nz+g] = {0, 0,Am + (Bm*0.5)*(rm -r*r*_rm)};
                     }
-                } else if(r<=rj) {
+                } else if(r <= rj) {
                     for(int g = 0; g <= ng; g++){
                         A[i,j,nz+g] = {0,0,Bm*rm*log(rj/r)};
                     }
-                }  else {
+                }  else if(r <= rs){
                     for(int g = 0; g <= ng; g++){
                         A[i,j,nz+g] = {0,0,0};
                     }
