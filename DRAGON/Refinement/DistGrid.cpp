@@ -10,6 +10,7 @@
 #include "CFL.hpp"
 #include <math.h>
 #include <cassert>
+#include <iostream>
 
 //MARK: Bin Setup
 //Compute the size of the ith children, given that we have nx cells spread across ncx bins
@@ -38,6 +39,7 @@ DistGrid1D::DistGrid1D(int nx, double dx_, int g, bool root): size_x(nx*dx_),dx(
             int _nx = computeChildSize(nx, ncx, i);
         
             auto child = std::make_unique<DistGrid1D>(_nx, dx, ghosts, false);
+            child->data.boundary = Boundary::Ignore();
             children.push_back(std::move(child));
         }
     }
@@ -60,6 +62,7 @@ DistGrid2D::DistGrid2D(int nx, int ny, double dx_, double dy_, int g, bool root)
                 int _ny = computeChildSize(ny, ncy, j);
 
                 auto child = std::make_unique<DistGrid2D>(_nx, _ny, dx, dy, ghosts, false);
+                child->data.boundary = Boundary::Ignore();
                 children.push_back(std::move(child));
             }
         }
@@ -88,6 +91,7 @@ DistGrid3D::DistGrid3D(int nx, int ny, int nz, double dx_, double dy_, double dz
                     int _nz = computeChildSize(nz, ncz, k);
                     
                     auto child = std::make_unique<DistGrid3D>(_nx, _ny, _nz, dx, dy, dz, ghosts, false);
+                    child->data.boundary = Boundary::Ignore();
                     children.push_back(std::move(child));
                 }
             }
@@ -133,6 +137,7 @@ void DistGrid1D::pushToChildren(){
             
         }
         child->boundary = Boundary::Ignore(); //Don't let the boundary API overwrite this
+        child->data.boundary = Boundary::Ignore();
         child->pushToChildren(); //If children have children, make them sync too
            
         x_offset += child->getSize();
@@ -161,6 +166,7 @@ void DistGrid2D::pushToChildren(){
             }
             #endif
             child->boundary = Boundary::Ignore();//Don't let the boundary API overwrite this
+            child->data.boundary = Boundary::Ignore();
             child->pushToChildren();//If children have children, make them sync too
             
             y_offset += _ny;
@@ -198,6 +204,7 @@ void DistGrid3D::pushToChildren(){
                 }
                 #endif
                 child->boundary = Boundary::Ignore();//Don't let the boundary API overwrite this
+                child->data.boundary = Boundary::Ignore();
                 child->pushToChildren();//If children have children, make them sync too
                 
                 z_offset += _nz;
@@ -298,8 +305,8 @@ void DistGrid3D::loadFromChildren(){
 
 //MARK: Advance
 void DistGrid1D::advance(double dt, bool check_cfl){
+    data.boundary = std::move(boundary);
     if(ncx == 1 ){
-        data.boundary = std::move(boundary);
         data.advance(dt, check_cfl);
         DRARGONWING::reportCheckpoint2();
         return;
@@ -329,8 +336,8 @@ void DistGrid1D::advance(double dt, bool check_cfl){
 
 
 void DistGrid2D::advance(double dt, bool check_cfl){
+    data.boundary = std::move(boundary);
     if(ncx*ncy == 1 ){
-        data.boundary = std::move(boundary);
         data.advance(dt, check_cfl);
         DRARGONWING::reportCheckpoint2();
         return;
@@ -338,6 +345,7 @@ void DistGrid2D::advance(double dt, bool check_cfl){
     while(dt > Timestep_Tolerance){
         //Apply Boundary Conditions
         boundary.apply(data);
+        data.initialize_B_fields();
         pushToChildren();
         
         //CFL Time Constraint
@@ -356,16 +364,21 @@ void DistGrid2D::advance(double dt, bool check_cfl){
         //Copy Back
         loadFromChildren();
     }
+    boundary = std::move(data.boundary);
 }
 
 
 void DistGrid3D::advance(double dt, bool check_cfl){
+    data.boundary = std::move(boundary);
     if(ncx*ncy*ncz == 1 ){
-        data.boundary = std::move(boundary);
         data.advance(dt, check_cfl);
         DRARGONWING::reportCheckpoint2();
+        boundary = std::move(data.boundary);
         return;
     }
+    data.initialize_B_fields();
+    boundary = std::move(data.boundary);
+
     while(dt > Timestep_Tolerance){
         //Apply Boundary Conditions
         boundary.apply(data);
@@ -384,6 +397,7 @@ void DistGrid3D::advance(double dt, bool check_cfl){
             if(!success) t1 /= 2; //If we failed, try again with half time step
         } while (!success);
         dt -= t1;
+        std::cout<<"\t evolved "<<t1<<", "<<dt<<" to go\n";
         //Copy Back
         loadFromChildren();
     }

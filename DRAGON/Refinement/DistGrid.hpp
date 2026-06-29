@@ -93,6 +93,7 @@ struct DistGrid3D: public Grid{
     //Access Edge Magnetic potentials.
     //A[i,j,k] is the corner w[i-1/2,j-1/2,k-1/2] to each of the 3 adjacent corners of w[i,j,k]
     ExtendedArray3D<vec3>& A(){ return data.getA();}
+    void initialize_B_fields() { data.initialize_B_fields(); }
     #endif
     
     //Advance Forward in time
