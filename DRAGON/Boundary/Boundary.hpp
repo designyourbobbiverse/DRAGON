@@ -137,6 +137,23 @@ public:
 
 
 
+//Fixed Boundary condition
+//Sets each boundary cell to be equal to some specified state
+class Jet : public GhostFill {
+public:
+    Jet(double rho, double v, double p, double radius, std::string face);
+    Jet(double rho, double v, double p, double radius, int face);
+    
+    void apply(Grid1D& grid) override;
+    void apply(Grid2D& grid) override;
+    void apply(Grid3D& grid) override;
+protected:
+    double rho, v, p, rj;
+    int jetface; //Distinct from Ghostfill.face to allow implicit outflow outside of jet radius
+    
+};
+
+
 }
 
 

@@ -11,28 +11,23 @@
 #include <iostream>
 #include <fstream>
 
-
-const double rho0 = 1.0;
-const double p_ambient = 0.1;
-const double p_blast   = 10.0;
-const double r0 = 0.3;
+typedef DistGrid3D MyGrid;
+const double p_amb = 7.5e-6;
 
 Grid& Problem::makeProblem(){
-    double dx = 0.01, dy = 0.01;
-    auto _grid = new DistGrid2D(1000, 1000, dx, dy);
-    DistGrid2D& grid = *_grid;
+    double dx = 0.05, dy = 0.05, dz = 0.05;
+    auto _grid = new MyGrid(128, 128,128, dx, dy, dz);
+    MyGrid& grid = *_grid;
     
-    grid.boundary = Boundary::Reflective();
+    grid.boundary = Boundary::Jet(3, 7e-2, p_amb, 2.4, "Z");
     
     for(int i=0; i<grid.getSizeX(); i++){
         for(int j=0; j<grid.getSizeY(); j++){
-            grid[i,j].rho = rho0;
-            grid[i,j].v.x = 0; grid[i,j].v.y = 0; grid[i,j].v.z = 0;
-            
-            double x = (i + 0.5 - grid.getSizeX()/2) * dx;
-            double y = (j + 0.5 - grid.getSizeY()/2) * dy;
-            double r = sqrt(x*x + y*y);
-            grid[i,j].p = (r < r0) ? p_blast : p_ambient;
+            for(int k=0; k<grid.getSizeZ(); k++){
+                grid[i,j,k].rho = 0.5;
+                grid[i,j,k].p = p_amb;
+                grid[i,j,k].v = {0,0,0};
+            }
         }
     }
     
@@ -41,7 +36,7 @@ Grid& Problem::makeProblem(){
 
 
 void Problem::cycleComplete(Grid& problem, int cycle, double time){
-    DistGrid2D& grid = *dynamic_cast<DistGrid2D*>(&problem);
+    MyGrid& grid = *dynamic_cast<MyGrid*>(&problem);
     
     //Frame Number
     auto numStr = std::string(cycle<1000 ? "0" : "") + std::string(cycle<100 ? "0" : "") + std::string(cycle<10 ? "0" : "") +  std::to_string(cycle);
@@ -49,21 +44,16 @@ void Problem::cycleComplete(Grid& problem, int cycle, double time){
     //Time
     int h = floor(time/3600.0), m = floor((time-h*3600.0)/60.0);
     double s = round((time - h*3600 - m*60)*100)/100.0;
-    std::cout << "Time: "<< h << "h "<< m <<"m " << s <<"s, ";
+    std::cout << "Time: "<< h << "h "<< m <<"m " << s <<"s\n";
     //Output
     std::string filename = "/Users/bobbiemarkwick/DRAGON_OUT/frame-" + numStr  +".csv";
     std::ofstream out;
     out.open (filename);
     
-    double rho_min = rho0,rho_max = 0;
-    for(int i=0; i<grid.getSizeX(); i++){
-        for(int j=0; j<grid.getSizeY(); j++){
-            out<< grid[i,j].rho << (j+1 == grid.getSizeY() ? "\n" : ",");
-            rho_min = std::min(rho_min, grid[i,j].rho);
-            rho_max = std::max(rho_max, grid[i,j].rho);
+    for(int k=0; k<grid.getSizeZ(); k++){
+        for(int i=0; i<grid.getSizeX(); i++){
+            out<< grid[i,grid.getSizeY()/2,k].rho << (i+1 == grid.getSizeX() ? "\n" : ",");
         }
     }
-    std::cout<< "rho range: ("<<rho_min<<","<<rho_max<<")\n";
-    
     out.close();
 }

@@ -22,7 +22,7 @@
     //Indented and below generally priority over Indented and above (e.g. ExactRiemann_MaxIters is a parameter for RIEMANN_EXACT, not one of the options for RIEMANN_HLL [which doesn't even have options])
 
 
-#define MHD //Determines whether the simulation is run using MHD or Pure Hydrodynamics
+//#define MHD //Determines whether the simulation is run using MHD or Pure Hydrodynamics
 
 
     

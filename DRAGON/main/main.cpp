@@ -16,8 +16,8 @@ int main(int argc, const char * argv[]) {
 
     Grid& problem = Problem::makeProblem();
 
-    for(int n = 0; n<10000; n++){
-        if(n>0) problem.advance(0.01);
+    for(int n = 0; n<1000; n++){
+        if(n>0) problem.advance(1);
         
         auto now = std::chrono::system_clock::now();
         std::chrono::duration<double> elapsed_seconds = now - start;

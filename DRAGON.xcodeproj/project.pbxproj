@@ -47,6 +47,7 @@
 			membershipExceptions = (
 				Boundary/BoundaryTypes/Fixed.cpp,
 				Boundary/BoundaryTypes/Ignore.cpp,
+				Boundary/BoundaryTypes/Jet.cpp,
 				Boundary/BoundaryTypes/Outflow.cpp,
 				Boundary/BoundaryTypes/Periodic.cpp,
 				Boundary/BoundaryTypes/Reflective.cpp,
