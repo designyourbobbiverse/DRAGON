@@ -14,13 +14,9 @@
 //MARK: Bin Setup
 //Compute the size of the ith children, given that we have nx cells spread across ncx bins
 static int computeChildSize(int nx, int ncx, int i){
-    int bin_size = ceil(double(nx)/double(ncx));
-    int _nx = bin_size;
-    if (i == 0 || i+1 == ncx) { //Reduce bin size if leftmost or rightmost
-        _nx -=  (ncx*bin_size - nx)/2;
-        if (i==0 && nx%2==1) _nx -= 1;
-    }
-    return _nx;
+    int base_size = nx / ncx;
+    int remainder = nx % ncx;
+    return base_size + (i < remainder ? 1 : 0);
 }
 
 static int validGhosts(int g){ //How many ghost cells are needed to do this correctly
@@ -75,7 +71,7 @@ DistGrid3D::DistGrid3D(int nx, int ny, int nz, double dx_, double dy_, double dz
     size_x(nx*dx_),size_y(ny*dy_), size_z(nz*dz_), dx(dx_), dy(dy_), dz(dz_), ghosts(validGhosts(g)),
     data(nx, ny, nz, dx_, dy_, dz_, validGhosts(g)) {
 
-    if(!root){ ncx = 1; ncy = 1; return;}
+    if(!root){ ncx = 1; ncy = 1; ncz = 1; return;}
     //Goal: nx/ncx = ny/ncy = nz/ncz,  ncx*ncy*ncz = core_count
     double rxy = double(nx)/double(ny), rxz = double(nx)/double(nz), ryz = double(ny)/double(nz);
     ncx = ceil(pow( core_count * rxy*rxz, 0.3333) ); //ncx = core_count / (ncy*ncz) =  core_count * (nx/ny) * (nx/nz)/ ncx^2
@@ -267,8 +263,8 @@ void DistGrid3D::loadFromChildren(){
         for(int zj = 0; zj<ncy; zj++){
             int _ny = children[ncz*(ncy*zi+zj)]->getSizeY();
             int z_offset = 0;
-            for(int zi = 0; zi<ncx; zi++){
-                std::unique_ptr<DistGrid3D>& child = children[ncy*zi + zj];
+            for(int zk = 0; zk<ncz; zk++){
+                std::unique_ptr<DistGrid3D>& child = children[ncz*(ncy*zi + zj) + zk];
                 child->loadFromChildren();//If children have children, make them sync first
                 int _nz = child->getSizeZ();
                 //Copy child fluid to parent
