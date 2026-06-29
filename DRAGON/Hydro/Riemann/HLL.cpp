@@ -16,7 +16,6 @@
 #include "Constants.h"
 
 
-
 //MARK: HLL/E
 ConservativeState Riemann::HLL(){
     //Roe averages
@@ -84,20 +83,12 @@ ConservativeState Riemann::HLLC(){
     //Roe averages
     double sql = sqrt(L.rho), sqr = sqrt(R.rho);
     PrimitiveState M = (sql*L + sqr*R) / (sql + sqr);
-    //Compute Sound/Fast Speed
-#ifdef MHD
-    //Set Normal Magnetic Fields
-    double Bx = (L.B.x+R.B.x)/2;
-    L.B.x = Bx; R.B.x = Bx;
-    //Calculate Fast Mode
-    double aL = L.c_fast(), aR = R.c_fast(), aM = M.c_fast();
-#else
-    //Sound Speed
+    //Compute Sound Speed
     double aL = L.cs(), aR = R.cs(), aM = M.cs();
-#endif
     //Compare to v +- a
     double SL = fmin(L.v.x - aL, M.v.x-aM);
     double SR = fmax(R.v.x + aR, M.v.x+aM);
+    
     return HLLC(SL, SR);
 }
 
