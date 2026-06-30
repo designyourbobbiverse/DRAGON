@@ -113,7 +113,7 @@ void Boundary::ToroidalJet::apply(Grid3D& grid) {
     double _rm = 1/rm;
     double _rm2 = _rm*_rm;
     double Am = Bm*rm*log(rj/rm);
-    double rs = rj+ 2*sqrt(dx*dx+dy*dy+dz*dz);//Create a shell around the jet where A=0
+    double rs = rj+ 2*sqrt(dx*dx+dy*dy+dz*dz);//Create a shell around the jet where A is extrapolated
     
     if (jetface & X_negative){
         for(int j = j0; j < jn; j++){
@@ -129,17 +129,15 @@ void Boundary::ToroidalJet::apply(Grid3D& grid) {
                 //A field is edge-centered
                 y -= 0.5*dy; z -= 0.5*dz;
                 r = sqrt(y*y+z*z);
-                if(r < rm) {
-                    for(int g = 0; g <= ng; g++){
-                        A[-g,j,k] = {Am + (Bm*0.5)*(rm -r*r*_rm),0,0};
-                    }
-                } else if(r <= rj) {
-                    for(int g = 0; g <= ng; g++){
-                        A[-g,j,k] = {Bm*rm*log(rj/r),0,0};
-                    }
-                } else if(r <= rs){
-                    for(int g = 0; g <= ng; g++){
-                        A[-g,j,k] = {g>0 ? 0 : A[0,j,k].x, 0, 0};
+                if(r <= rs){ //Start by copying existing data
+                    for(int g = 1; g <= ng; g++) A[-g,j,k] = A[0,j,k];
+                }
+                if(r <= rj) {
+                    double Ax;
+                    if(r < rm)  Ax = Am + (Bm*0.5)*(rm -r*r*_rm);
+                    else Ax = Bm*rm*log(rj/r);
+                    for(int g = 1; g <= ng; g++){ //A[0].x is interior, so exclude g=0
+                        A[-g,j,k].x = Ax;
                     }
                 }
             }
@@ -159,17 +157,15 @@ void Boundary::ToroidalJet::apply(Grid3D& grid) {
                 //A field is edge-centered
                 y -= 0.5*dy; z -= 0.5*dz;
                 r = sqrt(y*y+z*z);
-                if(r < rm) {
-                    for(int g = 0; g <= ng; g++){
-                        A[nx+g,j,k] = {Am + (Bm*0.5)*(rm -r*r*_rm),0,0};
-                    }
-                } else if(r <= rj) {
-                    for(int g = 0; g <= ng; g++){
-                        A[nx+g,j,k] = {Bm*rm*log(rj/r),0,0};
-                    }
-                } else if(r <= rs){
-                    for(int g = 0; g <= ng; g++){
-                        A[nx+g,j,k] = {0,0,0};
+                if(r <= rs){ //Start by copying existing data
+                    for(int g = 1; g <= ng; g++) A[nx+g,j,k] = A[nx,j,k];
+                }
+                if(r <= rj) {
+                    double Ax;
+                    if(r < rm)  Ax = Am + (Bm*0.5)*(rm -r*r*_rm);
+                    else Ax = Bm*rm*log(rj/r);
+                    for(int g = 0; g <= ng; g++){ //A[nx].x is exterior, so include g=0
+                        A[nx+g,j,k].x = Ax;
                     }
                 }
             }
@@ -189,17 +185,15 @@ void Boundary::ToroidalJet::apply(Grid3D& grid) {
                 //A field is edge-centered
                 x -= 0.5*dx; z -= 0.5*dz;
                 r = sqrt(x*x+z*z);
-                if(r < rm) {
-                    for(int g = 0; g <= ng; g++){
-                        A[i,-g,k] = {0, Am + (Bm*0.5)*(rm -r*r*_rm),0};
-                    }
-                } else if(r <= rj) {
-                    for(int g = 0; g <= ng; g++){
-                        A[i,-g,k] = {0,Bm*rm*log(rj/r),0};
-                    }
-                } else if(r <= rs){
-                    for(int g = 0; g <= ng; g++){
-                        A[i,-g,k] = {0, g>0 ? 0 : A[i,0,k].y, 0};
+                if(r <= rs){ //Start by copying existing data
+                    for(int g = 1; g <= ng; g++) A[i,-g,k] = A[i,0,k];
+                }
+                if(r <= rj) {
+                    double Ay;
+                    if(r < rm)  Ay = Am + (Bm*0.5)*(rm -r*r*_rm);
+                    else Ay = Bm*rm*log(rj/r);
+                    for(int g = 1; g <= ng; g++){ //A[0].y is interior, so exclude g=0
+                        A[i,-g,k].y = Ay;
                     }
                 }
             }
@@ -219,17 +213,15 @@ void Boundary::ToroidalJet::apply(Grid3D& grid) {
                 //A field is edge-centered
                 x -= 0.5*dx; z -= 0.5*dz;
                 r = sqrt(x*x+z*z);
-                if(r < rm) {
-                    for(int g = 0; g <= ng; g++){
-                        A[i,ny+g,k] = {0,Am + (Bm*0.5)*(rm -r*r*_rm),0};
-                    }
-                } else if(r <= rj) {
-                    for(int g = 0; g <= ng; g++){
-                        A[i,ny+g,k] = {0,Bm*rm*log(rj/r),0};
-                    }
-                } else if(r <= rs){
-                    for(int g = 0; g <= ng; g++){
-                        A[i,ny+g,k] = {0,0,0};
+                if(r <= rs){ //Start by copying existing data
+                    for(int g = 1; g <= ng; g++) A[i,ny+g,k] = A[i,ny,k];
+                }
+                if(r <= rj) {
+                    double Ay;
+                    if(r < rm)  Ay = Am + (Bm*0.5)*(rm -r*r*_rm);
+                    else Ay = Bm*rm*log(rj/r);
+                    for(int g = 0; g <= ng; g++){ //A[ny].y is exterior, so include g=0
+                        A[i,ny+g,k].y = Ay;
                     }
                 }
             }
@@ -249,20 +241,17 @@ void Boundary::ToroidalJet::apply(Grid3D& grid) {
                 //A field is edge-centered
                 x -= 0.5*dx; y -= 0.5*dy;
                 r = sqrt(x*x+y*y);
-                if (r < rm) {
-                    for(int g = 0; g <= ng; g++){
-                        A[i,j,-g] = {0, 0,Am + (Bm*0.5)*(rm -r*r*_rm)};
-                    }
-                } else if(r <= rj) {
-                    for(int g = 0; g <= ng; g++){
-                        A[i,j,-g] = {0,0,Bm*rm*log(rj/r)};
-                    }
-                } else if(r <= rs){
-                    for(int g = 0; g <= ng; g++){
-                        A[i,j,-g] = {0,0, g>0 ? 0 : A[i,j,0].z};
+                if(r <= rs){ //Start by copying existing data
+                    for(int g = 1; g <= ng; g++) A[i,j,-g] = A[i,j,0];
+                }
+                if(r <= rj) {
+                    double Az;
+                    if(r < rm)  Az = Am + (Bm*0.5)*(rm -r*r*_rm);
+                    else Az = Bm*rm*log(rj/r);
+                    for(int g = 1; g <= ng; g++){ //A[0].z is interior, so exclude g=0
+                        A[i,j,-g].z = Az;
                     }
                 }
-
             }
         }
     }
@@ -280,17 +269,15 @@ void Boundary::ToroidalJet::apply(Grid3D& grid) {
                 //A field is edge-centered
                 x -= 0.5*dx; y -= 0.5*dy;
                 r = sqrt(x*x+y*y);
-                if(r < rm) {
-                    for(int g = 0; g <= ng; g++){
-                        A[i,j,nz+g] = {0, 0,Am + (Bm*0.5)*(rm -r*r*_rm)};
-                    }
-                } else if(r <= rj) {
-                    for(int g = 0; g <= ng; g++){
-                        A[i,j,nz+g] = {0,0,Bm*rm*log(rj/r)};
-                    }
-                }  else if(r <= rs){
-                    for(int g = 0; g <= ng; g++){
-                        A[i,j,nz+g] = {0,0,0};
+                if(r <= rs){ //Start by copying existing data
+                    for(int g = 1; g <= ng; g++) A[i,j,nz+g] = A[i,j,nz];
+                }
+                if(r <= rj) {
+                    double Az;
+                    if(r < rm)  Az = Am + (Bm*0.5)*(rm -r*r*_rm);
+                    else Az = Bm*rm*log(rj/r);
+                    for(int g = 0; g <= ng; g++){ //A[nz].z is exterior, so include g=0
+                        A[i,j,nz+g].z = Az;
                     }
                 }
             }
