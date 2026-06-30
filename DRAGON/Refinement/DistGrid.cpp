@@ -123,6 +123,17 @@ int DistGrid3D::getSizeY() const{ return data.getSizeY(); }
 int DistGrid3D::getSizeZ() const{ return data.getSizeZ(); }
 int DistGrid3D::getGhosts() const{ return data.getGhosts(); }
 
+void DistGrid2D::initialize_B_fields() {
+    data.boundary = std::move(boundary);
+    data.initialize_B_fields();
+    boundary = std::move(data.boundary);
+}
+
+void DistGrid3D::initialize_B_fields() {
+    data.boundary = std::move(boundary);
+    data.initialize_B_fields();
+    boundary = std::move(data.boundary);
+}
 
 //MARK: Parent -> Child
 
