@@ -52,13 +52,18 @@ void Problem::cycleComplete(Grid& problem, int cycle, double time){
     std::cout << "Time: "<< h << "h "<< m <<"m " << s <<"s\n";
     //Output
     std::string filename = "/Users/bobbiemarkwick/DRAGON_OUT/frame-" + numStr  +".csv";
-    std::ofstream out;
+    std::string filename_B = "/Users/bobbiemarkwick/DRAGON_OUT/frame-B-" + numStr  +".csv";
+
+    std::ofstream out, out_B;
     out.open (filename);
+    out_B.open (filename_B);
     
     for(int k=0; k<grid.getSizeZ(); k++){
         for(int i=0; i<grid.getSizeX(); i++){
             out<< grid[i,grid.getSizeY()/2,k].rho  * (3/rho_jet) << (i+1 == grid.getSizeX() ? "\n" : ",");
+            out_B<< grid[i,grid.getSizeY()/2,k].B.y / sqrt(5*p_amb) << (i+1 == grid.getSizeX() ? "\n" : ",");
         }
     }
     out.close();
+    out_B.close();
 }
