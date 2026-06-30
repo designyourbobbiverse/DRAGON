@@ -216,7 +216,6 @@ void DRAGON_Test::verify_god_periodic_conservation_2D_MHD(){
             
         }
     }
-    grid.boundary.apply(grid);
     grid.initialize_B_fields();
     
     ConservativeState expected = ConservativeState();
