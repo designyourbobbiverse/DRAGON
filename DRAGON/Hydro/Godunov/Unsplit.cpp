@@ -51,7 +51,12 @@ void Grid2D::advance_unsplit(double dt, bool check_cfl){
             try{
                 advanceXY(t1);
                 success = true;
-            } catch(...){
+            } catch(const std::string& s){
+                std::cout<<"\t"<<s<<"\n";
+                if(DRARGONWING::requestRestart()){ return; }
+                t1 /= 2;
+            } catch(const std::exception &exc){
+                std::cout<<"\t"<<exc.what()<<"\n";
                 if(DRARGONWING::requestRestart()){ return; }
                 t1 /= 2;
             }
@@ -73,7 +78,12 @@ void Grid3D::advance_unsplit(double dt, bool check_cfl){
             try{
                 advanceXYZ(t1);
                 success = true;
-            } catch(...){
+            } catch(const std::string& s){
+                std::cout<<"\t"<<s<<"\n";
+                if(DRARGONWING::requestRestart()){ return; }
+                t1 /= 2;
+            } catch(const std::exception &exc){
+                std::cout<<"\t"<<exc.what()<<"\n";
                 if(DRARGONWING::requestRestart()){ return; }
                 t1 /= 2;
             }
@@ -96,11 +106,19 @@ void Grid2D::advanceXY(double dt){
     FluidArray2D _yL(nx,ny,ghosts), _yR(nx,ny,ghosts);//y Half States
     FluxArray2D F_X(nx,ny,ghosts), F_Y(nx,ny,ghosts); //Fluxes
     
+
     boundary.apply(*this);
     
     //Compute Half States
     computeHalfStates_X(_xL, (*this), _xR, dt);//_xLR needs (-1...nx, -1...ny), (-2...nx+1, -1...ny)for MHD
     computeHalfStates_Y(_yL, (*this), _yR, dt);//_yLR needs (-1...nx, -1...ny), (-1...nx, -2...ny+1) for MHD
+    
+    #ifdef MHD//Compute face-normal fields
+    MagneticArray2D B(nx+1,ny+1,ghosts);
+    CT::computeFaceFields(A, B, dx, dy);
+    CT::copyFaceFields_X(_xL, B, _xR);
+    CT::copyFaceFields_Y(_yL, B, _yR);
+    #endif
     
 #ifdef CTU //Colella (1990). https://doi.org/10.1016/0021-9991(90)90233-Q
     //Compute preliminary Fluxes
@@ -110,14 +128,13 @@ void Grid2D::advanceXY(double dt){
     correctState(_xL, _xR, F_Y, (0.5*dt/dy), -1, nx+1, -1, ny+1, 1); //_xLR needs (-1...nx, 0...ny-1), (-1...nx, -1...ny) for MHD
     correctState(_yL, _yR, F_X, (0.5*dt/dx), -1, nx+1, -1, ny+1, 0); //_yLR needs (0...nx-1, -1...ny), (-1...nx, -1...ny) for MHD
  
-#endif
-
     #ifdef MHD//Restore face-normal fields
-    MagneticArray2D B(nx+1,ny+1,ghosts);
-    CT::computeFaceFields(A, B, dx, dy);
     CT::copyFaceFields_X(_xL, B, _xR);
     CT::copyFaceFields_Y(_yL, B, _yR);
     #endif
+#endif
+
+    
     
     //Compute Fluxes
     computeFlux_X(_xL, _xR, F_X, 0, nx, -1, ny+1, dt/dx); //F_X needs (0...nx, 0...ny-1), (0...nx, -1...ny) for MHD
@@ -130,7 +147,9 @@ void Grid2D::advanceXY(double dt){
             _w[i,j] = w[i,j];
             _w[i,j] += (dt/dx) * (F_X[i,j] - F_X[i+1,j]);
             _w[i,j] += (dt/dy) * (F_Y[i,j] - F_Y[i,j+1]);
-            if(!_w[i,j].isPhysical()) throw "Unphsyical state would be produced";
+            if(!_w[i,j].isPhysical()) {
+                throw std::format("Unphsyical state would be produced at ({},{})",i,j);
+            }
         }
     }
     
@@ -178,6 +197,14 @@ void Grid3D::advanceXYZ(double dt){
     computeHalfStates_X(_xL, (*this), _xR, dt);
     computeHalfStates_Y(_yL, (*this), _yR, dt);
     computeHalfStates_Z(_zL, (*this), _zR, dt);
+    
+    #ifdef MHD//Compute face-normal fields
+    MagneticArray3D B(nx+1,ny+1,nz+1,ghosts);
+    CT::computeFaceFields(A, B, dx, dy, dz);
+    CT::copyFaceFields_X(_xL, B, _xR);
+    CT::copyFaceFields_Y(_yL, B, _yR);
+    CT::copyFaceFields_Z(_zL, B, _zR);
+    #endif
 
 #ifdef CTU //Colella (1990). https://doi.org/10.1016/0021-9991(90)90233-Q
     //Compute preliminary face fluxes
@@ -216,16 +243,14 @@ void Grid3D::advanceXYZ(double dt){
     correctState(_yL, _yR, _yL,_yR, F_Zx, (0.5*dt/dz), -1, nx+1, -1, ny+1, -1, nz+1, 2);
     correctState(_zL, _zR, _zL,_zR, F_Xy, (0.5*dt/dx), -1, nx+1, -1, ny+1, -1, nz+1, 0);//_zLR needs (-1...nx, -1...ny, -1...nz)
     correctState(_zL, _zR, _zL,_zR, F_Yx, (0.5*dt/dy), -1, nx+1, -1, ny+1, -1, nz+1, 1);
-#endif
-
+    
     #ifdef MHD//Restore face-normal fields
-    MagneticArray3D B(nx+1,ny+1,nz+1,ghosts);
-    CT::computeFaceFields(A, B, dx, dy, dz);
     CT::copyFaceFields_X(_xL, B, _xR);
     CT::copyFaceFields_Y(_yL, B, _yR);
     CT::copyFaceFields_Z(_zL, B, _zR);
     #endif
-    
+#endif
+
     //Compute Fluxes
     computeFlux_X(_xL, _xR, F_X, 0, nx, -1, ny+1, -1, nz+1, dt/dx); //F_X needs (0...nx, -1...ny, -1...nz)
     computeFlux_Y(_yL, _yR, F_Y, -1, nx+1, 0, ny, -1, nz+1, dt/dy); //F_Y needs (-1...nx, 0...ny, -1...nz)
@@ -240,7 +265,9 @@ void Grid3D::advanceXYZ(double dt){
                 _w[i,j,k] += (dt/dx) * (F_X[i,j,k] - F_X[i+1,j,k]);
                 _w[i,j,k] += (dt/dy) * (F_Y[i,j,k] - F_Y[i,j+1,k]);
                 _w[i,j,k] += (dt/dz) * (F_Z[i,j,k] - F_Z[i,j,k+1]);
-                if(!_w[i,j,k].isPhysical()) throw "Unphsyical state would be produced";
+                if(!_w[i,j,k].isPhysical()) {
+                    throw std::format("Unphsyical state would be produced at ({},{},{})",i,j,k);
+                }
             }
         }
     }
