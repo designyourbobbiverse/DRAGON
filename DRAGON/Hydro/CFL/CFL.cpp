@@ -84,7 +84,8 @@ double CFL::cfl_speed(const PrimitiveState& W, double dx, double dy, double dz){
 double CFL::cfl_time(const Grid1D& g){
     //Calculate the highest speed over the entire grid
     double max_speed = 0;
-    for(int i = 0; i<g.getSize(); i++){
+    int ng = std::min(1,g.getGhosts());
+    for(int i = -ng; i<g.getSize()+ng; i++){
         const PrimitiveState& W = g[i];
         #ifdef MHD //Use Magnetosonic fast speed for MHD
         double a = W.c_fast_max();
@@ -102,8 +103,9 @@ double CFL::cfl_time(const Grid1D& g){
 double CFL::cfl_time(const Grid2D& g){
     //Calculate the highest speed over the entire grid
     double max_speed = 0;
-    for(int i = 0; i<g.getSizeX(); i++){
-        for(int j = 0; j<g.getSizeY(); j++){
+    int ng = std::min(1,g.getGhosts());
+    for(int i = -ng; i<g.getSizeX()+ng; i++){
+        for(int j = -ng; j<g.getSizeY()+ng; j++){
             double speed = cfl_speed(g[i,j], g.dx, g.dy);
             max_speed = fmax(max_speed, speed);
         }
@@ -116,9 +118,10 @@ double CFL::cfl_time(const Grid2D& g){
 double CFL::cfl_time(const Grid3D& g){
     //Calculate the highest speed over the entire grid
     double max_speed = 0;
-    for(int i = 0; i<g.getSizeX(); i++){
-        for(int j = 0; j<g.getSizeY(); j++){
-            for(int k = 0; k<g.getSizeZ(); k++){
+    int ng = std::min(1,g.getGhosts());
+    for(int i = -ng; i<g.getSizeX()+ng; i++){
+        for(int j = -ng; j<g.getSizeY()+ng; j++){
+            for(int k = -ng; k<g.getSizeZ()+ng; k++){
                 double speed = cfl_speed(g[i,j,k], g.dx, g.dy, g.dz);
                 max_speed = fmax(max_speed, speed);
             }

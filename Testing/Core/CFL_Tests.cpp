@@ -236,11 +236,11 @@ void DRAGON_Test::verify_cfl_time_1D_uses_fastest_cell() {
 
 void DRAGON_Test::verify_cfl_time_1D_ignores_ghost_cells() {
     CONFIG::cfl_choice = CFL_ADD;
-    Grid1D g(5, 0.25, 1);
+    Grid1D g(5, 0.25, 2);
     PrimitiveState slow = make_state(1.0, 0.1, 0.0, 0.0, 1.0);
-    for(int i = -1; i < 5 + 1; i++) g[i] = slow;
-    g[-1] = make_state(1.0, 1000.0, 0.0, 0.0, 1.0);
-    g[5] = make_state(1.0, 1000.0, 0.0, 0.0, 1.0);
+    for(int i = -2; i < 5 + 2; i++) g[i] = slow;
+    g[-2] = make_state(1.0, 1000.0, 0.0, 0.0, 1.0);
+    g[6] = make_state(1.0, 1000.0, 0.0, 0.0, 1.0);
 
     double expected = CFL_coeff * g.dx / (0.1 + sqrt(_gamma));
     double got = CFL::cfl_time(g);
@@ -299,12 +299,12 @@ void DRAGON_Test::verify_cfl_time_2D_visits_last_cell() {
 
 void DRAGON_Test::verify_cfl_time_2D_ignores_ghost_cells() {
     CONFIG::cfl_choice = CFL_ADD;
-    Grid2D g(3,4, 0.5,0.25, 1);
+    Grid2D g(3,4, 0.5,0.25, 2);
     PrimitiveState slow = make_state(1.0, 0.1, 0.0, 0.0, 1.0);
     PrimitiveState fast = make_state(1.0, 100.0, 0.0, 0.0, 1.0);
     for(int i = -1; i < 3 + 1; i++){
         for(int j = -1; j < 4 + 1; j++){
-            g[i,j] = (i<0 || i>=3 || j<0 || j>= 4) ? fast : slow;
+            g[i,j] = (i<-1 || i>=3+1 || j<-1 || j>= 4+1) ? fast : slow;
         }
     }
 
@@ -316,11 +316,11 @@ void DRAGON_Test::verify_cfl_time_2D_ignores_ghost_cells() {
 //MARK: 3D Grid
 void DRAGON_Test::verify_cfl_time_3D_uniform() {
     CONFIG::cfl_choice = CFL_ADD;
-    Grid3D g(3,4,5, 0.5, 0.25,5.0, 1);
+    Grid3D g(3,4,5, 0.5, 0.25,5.0, 2);
     PrimitiveState W = make_state(1.0, 2.0, 3.0, 4.0, 1.0);
-    for(int i = -1; i < 3 + 1; i++){
-        for(int j = -1; j < 4 + 1; j++){
-            for(int k = -1; k < 5 + 1; k++){
+    for(int i = -2; i < 3 + 2; i++){
+        for(int j = -2; j < 4 + 2; j++){
+            for(int k = -2; k < 5 + 2; k++){
                 g[i,j,k] = W;
             }
         }
@@ -352,13 +352,13 @@ void DRAGON_Test::verify_cfl_time_3D_uses_fastest_cell() {
 
 void DRAGON_Test::verify_cfl_time_3D_ignores_ghost_cells() {
     CONFIG::cfl_choice = CFL_ADD;
-    Grid3D g(3,4,5, 0.5, 0.25,5.0, 1);
+    Grid3D g(3,4,5, 0.5, 0.25,5.0, 2);
     PrimitiveState slow = make_state(1.0, 0.1, 0.0, 0.0, 1.0);
     PrimitiveState fast = make_state(1.0, 100.0, 0.0, 0.0, 1.0);
-    for(int i = -1; i < 3 + 1; i++){
-        for(int j = -1; j < 4 + 1; j++){
+    for(int i = -2; i < 3 + 2; i++){
+        for(int j = -2; j < 4 + 2; j++){
             for(int k = -1; k < 5 + 1; k++){
-                g[i,j,k] = (i<0 || i>=3 || j<0 || j>= 4 || k<0 || k>=5) ? fast : slow;
+                g[i,j,k] = (i<-1 || i>=3+1 || j<-1 || j>= 4+1 || k<-1 || k>=5+1) ? fast : slow;
             }
         }
     }
