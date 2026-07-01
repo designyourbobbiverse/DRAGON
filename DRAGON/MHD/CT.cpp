@@ -32,7 +32,7 @@ void CT::updatePotential(MagneticArray3D& _A, const FluxArray3D& F_X,const FluxA
         for(int j=0; j<=ny; j++){
             for(int k=0; k<=nz; k++){
                 _A[i,j,k].x -= (F_Z[i,j-1,k].B.y -  F_Y[i,j,k-1].B.z + F_Z[i,j,k].B.y  - F_Y[i,j,k].B.z) * 0.25 * dt;
-                _A[i,j,k].y -= (F_X[i,j,k-1].B.z -  F_Z[i-1,j,k].B.x + F_X[i,j,k].B.z  - F_Z[i,j,k].B.x) * 0.25* dt;
+                _A[i,j,k].y -= (F_X[i,j,k-1].B.z -  F_Z[i-1,j,k].B.x + F_X[i,j,k].B.z  - F_Z[i,j,k].B.x) * 0.25 * dt;
                 _A[i,j,k].z -= (F_Y[i-1,j,k].B.x -  F_X[i,j-1,k].B.y + F_Y[i,j,k].B.x  - F_X[i,j,k].B.y) * 0.25 * dt;
             }
         }
@@ -45,12 +45,12 @@ void CT::computeFaceFields(const MagneticArray2D& _A, MagneticArray2D& _B, doubl
     
     for(int i=-g; i<=nx+g; i++){
         for(int j=-g; j<ny+g; j++){
-            _B[i,j].x = (_A[i,j+1].z - _A[i,j].z)*_dy;
+            _B[i,j].x = (_A[i,j+1].z - _A[i,j].z) * _dy;
         }
     }
     for(int i=-g; i<nx+g; i++){
         for(int j=-g; j<=ny+g; j++){
-            _B[i,j].y = (_A[i,j].z - _A[i+1,j].z)*_dx;
+            _B[i,j].y = (_A[i,j].z - _A[i+1,j].z) * _dx;
         }
     }
 }
@@ -61,21 +61,21 @@ void CT::computeFaceFields(const MagneticArray3D& _A, MagneticArray3D& _B, doubl
     for(int i=-g; i<=nx+g; i++){
         for(int j=-g; j<ny+g; j++){
             for(int k=-g; k<nz+g; k++){
-                _B[i,j,k].x = (_A[i,j+1,k].z - _A[i,j,k].z)*_dy - (_A[i,j,k+1].y - _A[i,j,k].y)*_dz;
+                _B[i,j,k].x = (_A[i,j+1,k].z - _A[i,j,k].z)*_dy - (_A[i,j,k+1].y - _A[i,j,k].y) * _dz;
             }
         }
     }
     for(int i=-g; i<nx+g; i++){
         for(int j=-g; j<=ny+g; j++){
             for(int k=-g; k<nz+g; k++){
-                _B[i,j,k].y = (_A[i,j,k+1].x - _A[i,j,k].x)*_dz - (_A[i+1,j,k].z - _A[i,j,k].z)*_dx;
+                _B[i,j,k].y = (_A[i,j,k+1].x - _A[i,j,k].x)*_dz - (_A[i+1,j,k].z - _A[i,j,k].z) * _dx;
             }
         }
     }
     for(int i=-g; i<nx+g; i++){
         for(int j=-g; j<ny+g; j++){
             for(int k=-g; k<=nz+g; k++){
-                _B[i,j,k].z = (_A[i+1,j,k].y - _A[i,j,k].y)*_dx -  (_A[i,j+1,k].x - _A[i,j,k].x)*_dy;
+                _B[i,j,k].z = (_A[i+1,j,k].y - _A[i,j,k].y)*_dx -  (_A[i,j+1,k].x - _A[i,j,k].x) * _dy;
             }
         }
     }
