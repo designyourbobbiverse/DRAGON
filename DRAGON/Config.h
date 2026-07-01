@@ -35,6 +35,7 @@
     #define RIEMANN_HLL 1 // Harten, Lax, and van Leer (1983). https://doi.org/10.1137/1025002
     #define RIEMANN_HLLC 2 // Toro, Spruce, and Speares (1994). https://doi.org/10.1007/BF01414629
     #define RIEMANN_HLLD 3 // Miyoshi and Kusano (2005). https://doi.org/10.1016/j.jcp.2005.02.017
+        #define HLLD_PHYSICAL_SAFETY //Falls back to HLLE if star state is nonphysical
     #define RIEMANN_HLLE 4 //Einfeldt (1988). https://doi.org/10.1137/0725021
     #define RIEMANN_HLLX 5 //HLLC for Pure Hydro, HLLD for MHD
     #define RIEMANN_ROE 6 // Roe (1981). https://doi.org/10.1016/0021-9991(81)90128-5
@@ -42,11 +43,12 @@
 #define RIEMANN_DEFAULT RIEMANN_HLLX
 
 //When using an approximate solver, verify that L-F*dt/dx and R+F*dt/dx are physical
-//Check if physical. If not, recalculate using HLLE, then (hydro only) if that fails, Exact
+//Check if physical. If not, recalculate tries Exact (Hydro only). Failing that, forces a restart
+#ifndef MHD //I found this option to be somewhat detrimental if HLLD_PHYSICAL_SAFETY is on
 #define RIEMANN_VERIFY_FALLBACK
     constexpr double Riemann_ExactFallback_Parameter = 1.0; //Scales F*dt/dx for the purpose of physicality verificaiton
-    #define RIEMANN_FALLBACK_TRY_HLLE //if disabled, skips HLLE and goes straight to Exact (Hydro) or restart (MHD)
-
+    #define RIEMANN_FALLBACK_TRY_HLLE //try HLLE before Exact (Hydro) or restart (MHD)
+#endif
 
 //MARK: CFL Calculation
 //Courant, Friedrichs, and Lewy (1928). https://doi.org/10.1007/BF01448839

@@ -83,6 +83,7 @@ ConservativeState Riemann::flux(double dt_dx){
 //MARK: Fallback to HLLE/Exact
 //Verify that the solution produces a physical result, fallback if not
 void Riemann::verify_and_fallback(ConservativeState& flux, double dt_dx){
+#ifdef RIEMANN_VERIFY_FALLBACK
     dt_dx *= Riemann_ExactFallback_Parameter;//Scale time by the desired amount
     //Check whether both states would still be physical after update
     if((L - flux*dt_dx).isPhysical() &&  (R+flux*dt_dx).isPhysical()) return;
@@ -100,6 +101,7 @@ void Riemann::verify_and_fallback(ConservativeState& flux, double dt_dx){
     #endif
     if(!L.isPhysical() || !R.isPhysical()) throw std::string("Riemann Solution is unphysical because inputs were not physical");
     else throw std::string("Riemann Solution to physical inputs is unphysical");
+#endif
 }
 
 
