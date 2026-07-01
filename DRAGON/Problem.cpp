@@ -30,7 +30,7 @@ Grid& Problem::makeProblem(){
                 grid[i,j,k].rho = rho_amb;
                 grid[i,j,k].p = p_amb;
                 grid[i,j,k].v = {0,0,0};
-                grid.A()[i,j,k] = {0,0,0};
+                grid._A()[i,j,k] = {0,0,0};
             }
         }
     }
@@ -49,7 +49,8 @@ void Problem::cycleComplete(Grid& problem, int cycle, double time){
     //Time
     int h = floor(time/3600.0), m = floor((time-h*3600.0)/60.0);
     double s = round((time - h*3600 - m*60)*100)/100.0;
-    std::cout << "Time: "<< h << "h "<< m <<"m " << s <<"s\n";
+    std::cout << "Time: "<< h << "h "<< m <<"m " << s <<"s \n";
+    
     //Output
     std::string filename = "/Users/bobbiemarkwick/DRAGON_OUT/frame-" + numStr  +".csv";
     std::string filename_B = "/Users/bobbiemarkwick/DRAGON_OUT/frame-B-" + numStr  +".csv";

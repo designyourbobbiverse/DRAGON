@@ -75,9 +75,11 @@ struct Riemann{
 #endif
     
 private:
-    RiemannSolution TRRS();//Two-Rarefaction Riemann Solver
-    
     void verify_and_fallback(ConservativeState& flux, double dt_dx);
+    RiemannSolution TRRS();//Two-Rarefaction Riemann Solver
+    #ifdef MHD
+    ConservativeState HLLD_zero_B(double SL, double SR);
+    #endif
 };
     
 //MARK: Riemann Solution State
