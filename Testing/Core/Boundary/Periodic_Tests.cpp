@@ -73,8 +73,8 @@ void DRAGON_Test::verify_boundary_periodic_2D() {
     }
     #ifdef MHD//A field corner check
     int ng = grid.getGhosts(), nx = grid.getSizeX(), ny = grid.getSizeY();
-    vec3 dA = grid.getA()[nx,ny+ng] - grid.getA()[0,ny+ng];
-    expect_close(grid.getA()[nx+ng,ny+ng], grid.getA()[ng,ny+ng] + dA);
+    vec3 dA = grid._A()[nx,ny+ng] - grid._A()[0,ny+ng];
+    expect_close(grid._A()[nx+ng,ny+ng], grid._A()[ng,ny+ng] + dA);
     #endif
     //Y
     fill_2D(grid);
@@ -94,8 +94,8 @@ void DRAGON_Test::verify_boundary_periodic_2D() {
         #endif
     }
     #ifdef MHD//A field corner check
-    dA = vec3{grid.getA()[nx+ng,ny].y - grid.getA()[nx+ng,0].y,0,0};
-    expect_close(grid.getA()[nx+ng,ny+ng], grid.getA()[nx+ng,ng] + dA);
+    dA = vec3{grid._A()[nx+ng,ny].y - grid._A()[nx+ng,0].y,0,0};
+    expect_close(grid._A()[nx+ng,ny+ng], grid._A()[nx+ng,ng] + dA);
     #endif
     //No corners = no corners
     fill_2D(grid);
@@ -134,8 +134,8 @@ void DRAGON_Test::verify_boundary_periodic_3D() {
     }
     #ifdef MHD//A field corner check
     int ng = grid.getGhosts(), nx = grid.getSizeX(), ny = grid.getSizeY(), nz = grid.getSizeZ();
-    vec3 dA = grid.getA()[nx,ny+ng,nz+ng] - grid.getA()[0,ny+ng,nz+ng];
-    expect_close(grid.getA()[nx+ng,ny+ng,nz+ng], grid.getA()[ng,ny+ng,nz+ng] + dA);
+    vec3 dA = grid._A()[nx,ny+ng,nz+ng] - grid._A()[0,ny+ng,nz+ng];
+    expect_close(grid._A()[nx+ng,ny+ng,nz+ng], grid._A()[ng,ny+ng,nz+ng] + dA);
     #endif
     //No corners = no corners
     fill_3D(grid);
@@ -164,8 +164,8 @@ void DRAGON_Test::verify_boundary_periodic_3D() {
         }
     }
     #ifdef MHD//A field corner check
-    dA = grid.getA()[nx+ng,ny,nz+ng] - grid.getA()[nx+ng,0,nz+ng];
-    expect_close(grid.getA()[nx+ng,ny+ng,nz+ng], grid.getA()[nx+ng,ng,nz+ng] + dA);
+    dA = grid._A()[nx+ng,ny,nz+ng] - grid._A()[nx+ng,0,nz+ng];
+    expect_close(grid._A()[nx+ng,ny+ng,nz+ng], grid._A()[nx+ng,ng,nz+ng] + dA);
     #endif
     //Z
     fill_3D(grid);
@@ -190,8 +190,8 @@ void DRAGON_Test::verify_boundary_periodic_3D() {
         }
     }
     #ifdef MHD//A field corner check
-    dA = grid.getA()[nx+ng,ny+ng,nz] - grid.getA()[nx+ng,ny+ng,0];
-    expect_close(grid.getA()[nx+ng,ny+ng,nz+ng], grid.getA()[nx+ng,ny+ng,ng] + dA);
+    dA = grid._A()[nx+ng,ny+ng,nz] - grid._A()[nx+ng,ny+ng,0];
+    expect_close(grid._A()[nx+ng,ny+ng,nz+ng], grid._A()[nx+ng,ny+ng,ng] + dA);
     #endif
     //Corner
     fill_3D(grid);

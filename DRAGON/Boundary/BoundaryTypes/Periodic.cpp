@@ -51,7 +51,7 @@ void Boundary::Periodic::apply(Grid2D& grid) {
     }
 //MARK: 2D MHD
     #ifdef MHD
-    auto& _A = grid.getA();
+    auto& _A = grid._A();
     // A has one more physical point per dimension than w.
     if (faces & X){
         for(int j = j0 ; j <= jn; j++){
@@ -119,7 +119,7 @@ void Boundary::Periodic::apply(Grid3D& grid) {
     }
 //MARK: 3D MHD
     #ifdef MHD
-    auto& _A = grid.getA();
+    auto& _A = grid._A();
     // A has one more physical point per dimension than w.
     if (faces & X){
         for(int j = j0 ; j <= jn; j++){

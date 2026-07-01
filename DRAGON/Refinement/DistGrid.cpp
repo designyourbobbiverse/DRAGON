@@ -172,7 +172,7 @@ void DistGrid2D::pushToChildren(){
             #ifdef MHD//Copy parent magnetic potential to child
             for(int i = -ghosts; i <= _nx + ghosts; i++){
                 for(int j = -ghosts; j <= _ny +ghosts; j++){
-                    child->A()[i,j] = A()[i+x_offset, j+y_offset];
+                    child->_A()[i,j] = _A()[i+x_offset, j+y_offset];
                 }
             }
             #endif
@@ -209,7 +209,7 @@ void DistGrid3D::pushToChildren(){
                 for(int i = -ghosts; i <= _nx + ghosts; i++){
                     for(int j = -ghosts; j <= _ny + ghosts; j++){
                         for(int k = -ghosts; k <= _nz + ghosts; k++){
-                            child->A()[i,j,k] = A()[i+x_offset, j+y_offset, k+z_offset];
+                            child->_A()[i,j,k] = _A()[i+x_offset, j+y_offset, k+z_offset];
                         }
                     }
                 }
@@ -261,7 +261,7 @@ void DistGrid2D::loadFromChildren(){
             #ifdef MHD//Copy child magnetic potential to parent
             for(int i = 0; i <= _nx; i++){
                 for(int j=0; j <= _ny; j++){
-                    A()[i+x_offset, j+y_offset] = child->A()[i,j];
+                    _A()[i+x_offset, j+y_offset] = child->_A()[i,j];
                 }
             }
             #endif
@@ -291,7 +291,7 @@ void DistGrid3D::loadFromChildren(){
                         for(int k=0; k < _nz; k++){
                             data[i+x_offset, j+y_offset, k+z_offset] = (*child)[i,j,k];
                             #ifdef MHD
-                            A()[i+x_offset, j+y_offset, k+z_offset] = child->A()[i,j,k];
+                            _A()[i+x_offset, j+y_offset, k+z_offset] = child->_A()[i,j,k];
                             #endif
                         }
                     }
@@ -300,7 +300,7 @@ void DistGrid3D::loadFromChildren(){
                 for(int i = 0; i <= _nx; i++){
                     for(int j=0; j <= _ny; j++){
                         for(int k=0; k <= _nz; k++){
-                            A()[i+x_offset, j+y_offset, k+z_offset] = child->A()[i,j,k];
+                            _A()[i+x_offset, j+y_offset, k+z_offset] = child->_A()[i,j,k];
                         }
                     }
                 }

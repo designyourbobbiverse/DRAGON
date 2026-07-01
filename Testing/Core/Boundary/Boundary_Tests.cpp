@@ -72,7 +72,7 @@ void fill_2D(Grid2D& grid) {
 #ifdef MHD
     for (int i = -grid.getGhosts(); i <= grid.getSizeX()+grid.getGhosts(); i++) {
         for (int j = -grid.getGhosts(); j <= grid.getSizeY()+grid.getGhosts(); j++) {
-            grid.getA()[i, j] = make_tagged_vec(10*i + j);
+            grid._A()[i, j] = make_tagged_vec(10*i + j);
         }
     }
 #endif
@@ -98,7 +98,7 @@ void fill_3D(Grid3D& grid) {
     for (int i = -grid.getGhosts(); i <= grid.getSizeX()+grid.getGhosts(); i++) {
         for (int j = -grid.getGhosts(); j <= grid.getSizeY()+grid.getGhosts(); j++) {
             for (int k = -grid.getGhosts(); k <= grid.getSizeZ()+grid.getGhosts(); k++) {
-                grid.getA()[i, j, k] = make_tagged_vec(100*i + 10*j + k);
+                grid._A()[i, j, k] = make_tagged_vec(100*i + 10*j + k);
             }
         }
     }
@@ -320,7 +320,7 @@ void DRAGON_Test::verify_boundary_ignore_2D(){
 #ifdef MHD
     for(int i = -grid.getGhosts(); i <= grid.getSizeX() + grid.getGhosts(); i++) {
         for(int j = -grid.getGhosts(); j <= grid.getSizeY() + grid.getGhosts(); j++) {
-            expect_close(grid.getA()[i,j], make_tagged_vec(10*i + j));
+            expect_close(grid._A()[i,j], make_tagged_vec(10*i + j));
         }
     }
 #endif
@@ -343,7 +343,7 @@ void DRAGON_Test::verify_boundary_ignore_3D(){
     for(int i = -grid.getGhosts(); i <= grid.getSizeX() + grid.getGhosts(); i++) {
         for(int j = -grid.getGhosts(); j <= grid.getSizeY() + grid.getGhosts(); j++) {
             for(int k = -grid.getGhosts(); k <= grid.getSizeZ() + grid.getGhosts(); k++) {
-                expect_close(grid.getA()[i,j,k], make_tagged_vec(100*i + 10*j + k));
+                expect_close(grid._A()[i,j,k], make_tagged_vec(100*i + 10*j + k));
             }
         }
     }

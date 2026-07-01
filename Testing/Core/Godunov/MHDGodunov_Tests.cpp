@@ -87,7 +87,7 @@ void DRAGON_Test::verify_god_uniform_stationary_2D_MHD(){
     for (int i = 0; i <= grid.getSizeX(); i++){
         for (int j = 0; j <= grid.getSizeY(); j++){
             grid[i,j] = W;
-            grid.getA()[i,j] = vec3{0,0,0.1*i};
+            grid._A()[i,j] = vec3{0,0,0.1*i};
         }
     }
     grid.boundary = Outflow();
@@ -113,7 +113,7 @@ void DRAGON_Test::verify_god_uniform_moving_2D_MHD(){
     for (int i = 0; i <= grid.getSizeX(); i++){
         for (int j = 0; j <= grid.getSizeY(); j++){
             grid[i,j] = W;
-            grid.getA()[i,j] = vec3{0,0,0.2*i};
+            grid._A()[i,j] = vec3{0,0,0.2*i};
         }
     }
     grid.boundary = Outflow();
@@ -137,7 +137,7 @@ void DRAGON_Test::verify_god_uniform_stationary_3D_MHD(){
         for (int j = 0; j <= grid.getSizeY(); j++){
             for(int k = 0; k <= grid.getSizeZ(); k++){
                 grid[i,j,k] = W;
-                grid.getA()[i,j,k] = vec3{0,0,0.1*i};
+                grid._A()[i,j,k] = vec3{0,0,0.1*i};
             }
         }
     }
@@ -163,7 +163,7 @@ void DRAGON_Test::verify_god_uniform_moving_3D_MHD(){
         for (int j = 0; j <= grid.getSizeY(); j++){
             for (int k = 0; k <= grid.getSizeZ(); k++){
                 grid[i,j,k] = W;
-                grid.getA()[i,j,k] = vec3{0,0,0.125*i};
+                grid._A()[i,j,k] = vec3{0,0,0.125*i};
             }
         }
     }
@@ -212,7 +212,7 @@ void DRAGON_Test::verify_god_periodic_conservation_2D_MHD(){
         for (int j = 0; j <= grid.getSizeY(); j++){
             grid[i,j] = make_state(1.0+0.1*i+0.1*j, 1.0+0.1*i, 1.0-0.1*j, 0.1*i*j, 10.0-0.1*i+0.1*j);
             grid[i,j].B = vec3{0.1*i, -0.2*j, -0.3*i};
-            grid.getA()[i,j] = vec3{0.1*i, -0.2*j, -0.3*i};
+            grid._A()[i,j] = vec3{0.1*i, -0.2*j, -0.3*i};
             
         }
     }
@@ -246,7 +246,7 @@ void DRAGON_Test::verify_god_periodic_conservation_3D_MHD(){
         for (int j = 0; j < grid.getSizeY(); j++){
             for(int k = 0; k < grid.getSizeZ(); k++){
                 grid[i,j,k] = make_state(1.0+0.1*i+0.1*j, 1.0+0.1*i, 1.0-0.1*j, 0.1*k, 10.0-0.1*i+0.1*j-0.1*k);
-                grid.getA()[i,j,k] = vec3{0.1*i, -0.2*j, -0.3*k};
+                grid._A()[i,j,k] = vec3{0.1*i, -0.2*j, -0.3*k};
             }
         }
     }

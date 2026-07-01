@@ -122,7 +122,7 @@ void DRAGON_Test::verify_ct_stationary_2D(){
     for (int i = 0; i <= grid.getSizeX(); i++){
         for (int j = 0; j <= grid.getSizeY(); j++){
             grid[i,j] = W;
-            grid.getA()[i,j] = vec3{0,0,-cos(i*dx)-cos(j*dx)};
+            grid._A()[i,j] = vec3{0,0,-cos(i*dx)-cos(j*dx)};
         }
     }
     grid.boundary = Boundary::Periodic();
@@ -135,7 +135,7 @@ void DRAGON_Test::verify_ct_stationary_2D(){
             expected[i,j] = grid[i,j];
         }
     }
-    assert_divergenceless(grid.getA(),dx,dx);
+    assert_divergenceless(grid._A(),dx,dx);
 
     
     grid.advance(1.0);
@@ -145,7 +145,7 @@ void DRAGON_Test::verify_ct_stationary_2D(){
             expect_close(grid[i,j].B, expected[i,j].B);
         }
     }
-    assert_divergenceless(grid.getA(),dx,dx);
+    assert_divergenceless(grid._A(),dx,dx);
 }
 
 void DRAGON_Test::verify_ct_stationary_3D(){
@@ -158,7 +158,7 @@ void DRAGON_Test::verify_ct_stationary_3D(){
         for (int j = 0; j <= grid.getSizeY(); j++){
             for (int k = 0; k <= grid.getSizeZ(); k++){
                 grid[i,j,k] = W;
-                grid.getA()[i,j,k] = vec3{-cos(k*dx)-cos(j*dx),-cos(i*dx)-cos(k*dx),-cos(i*dx)-cos(j*dx)};
+                grid._A()[i,j,k] = vec3{-cos(k*dx)-cos(j*dx),-cos(i*dx)-cos(k*dx),-cos(i*dx)-cos(j*dx)};
             }
         }
     }
@@ -174,7 +174,7 @@ void DRAGON_Test::verify_ct_stationary_3D(){
             }
         }
     }
-    assert_divergenceless(grid.getA(),dx,dx,dx);
+    assert_divergenceless(grid._A(),dx,dx,dx);
 
     
     grid.advance(0.2);
@@ -186,7 +186,7 @@ void DRAGON_Test::verify_ct_stationary_3D(){
             }
         }
     }
-    assert_divergenceless(grid.getA(),dx,dx,dx);
+    assert_divergenceless(grid._A(),dx,dx,dx);
 }
 //MARK: Loop Advection
 void DRAGON_Test::verify_ct_loop_advection_2D(){
@@ -200,7 +200,7 @@ void DRAGON_Test::verify_ct_loop_advection_2D(){
             grid[i,j] = W;
             double x = i*dx-5, y = j*dx - 5, r2 = x*x + y*y;
             double Az = fmax(4.0-r2, 0);
-            grid.getA()[i,j] = vec3{0,0,Az};
+            grid._A()[i,j] = vec3{0,0,Az};
         }
     }
     grid.boundary = Boundary::Periodic();
@@ -213,7 +213,7 @@ void DRAGON_Test::verify_ct_loop_advection_2D(){
             expected[i,j] = grid[i,j];
         }
     }
-    assert_divergenceless(grid.getA(),dx,dx);
+    assert_divergenceless(grid._A(),dx,dx);
 
     
     grid.advance(2.0);
@@ -223,7 +223,7 @@ void DRAGON_Test::verify_ct_loop_advection_2D(){
             expect_close(grid[i,j].B, expected[i,j].B);
         }
     }
-    assert_divergenceless(grid.getA(),dx,dx);
+    assert_divergenceless(grid._A(),dx,dx);
 }
 
 void DRAGON_Test::verify_ct_loop_advection_3D(){
@@ -238,7 +238,7 @@ void DRAGON_Test::verify_ct_loop_advection_3D(){
                 grid[i,j,k] = W;
                 double x = i*dx-5, y = j*dx - 5, z = k*dx - 5, r2 = x*x + y*y * z*z;
                 double Az = fmax(4.0-r2, 0);
-                grid.getA()[i,j,k] = vec3{0,0,Az};
+                grid._A()[i,j,k] = vec3{0,0,Az};
             }
         }
     }
@@ -254,7 +254,7 @@ void DRAGON_Test::verify_ct_loop_advection_3D(){
             }
         }
     }
-    assert_divergenceless(grid.getA(),dx,dx,dx);
+    assert_divergenceless(grid._A(),dx,dx,dx);
 
     
     grid.advance(2.0);
@@ -266,7 +266,7 @@ void DRAGON_Test::verify_ct_loop_advection_3D(){
             }
         }
     }
-    assert_divergenceless(grid.getA(),dx,dx,dx);
+    assert_divergenceless(grid._A(),dx,dx,dx);
 }
 //MARK: Alfven Wave
 void DRAGON_Test::verify_ct_alfven_wave_2D(){
@@ -279,10 +279,10 @@ void DRAGON_Test::verify_ct_alfven_wave_2D(){
         for (int j = 0; j <= grid.getSizeY(); j++){
             grid[i,j] = W;
             double x = i*dx, y = j*dx;
-            grid.getA()[i,j] = vec3{0,0,y};
+            grid._A()[i,j] = vec3{0,0,y};
             //Perturb
             grid[i,j].v.y += amp*sin(2*M_PI*(x+0.5));
-            grid.getA()[i,j].z -= amp/sqrt(M_PI) * cos(2*M_PI*x);
+            grid._A()[i,j].z -= amp/sqrt(M_PI) * cos(2*M_PI*x);
         }
     }
     grid.boundary = Boundary::Periodic();
@@ -294,7 +294,7 @@ void DRAGON_Test::verify_ct_alfven_wave_2D(){
         }
     }
     
-    assert_divergenceless(grid.getA(),dx,dx);
+    assert_divergenceless(grid._A(),dx,dx);
     
     grid.advance(sqrt(4*M_PI));
     
@@ -303,7 +303,7 @@ void DRAGON_Test::verify_ct_alfven_wave_2D(){
             expect_close(grid[i,j].B, expected[i,j].B);
         }
     }
-    assert_divergenceless(grid.getA(),dx,dx);
+    assert_divergenceless(grid._A(),dx,dx);
 }
 
 void DRAGON_Test::verify_ct_alfven_wave_3D(){
@@ -317,12 +317,12 @@ void DRAGON_Test::verify_ct_alfven_wave_3D(){
             for (int k = 0; k <= grid.getSizeZ(); k++){
                 grid[i,j,k] = W;
                 double x = i*dx, y = j*dx, z = k*dx;
-                grid.A()[i,j,k] = vec3{0,-z,y};
+                grid._A()[i,j,k] = vec3{0,-z,y};
                 //Perturb
                 grid[i,j,k].v.y += amp*sin(2*M_PI*(x+0.5));
                 grid[i,j,k].v.z += amp*cos(2*M_PI*(x+0.5));
-                grid.A()[i,j,k].y -= amp/sqrt(M_PI) * sin(2*M_PI*x);
-                grid.A()[i,j,k].z -= amp/sqrt(M_PI) * cos(2*M_PI*x);
+                grid._A()[i,j,k].y -= amp/sqrt(M_PI) * sin(2*M_PI*x);
+                grid._A()[i,j,k].z -= amp/sqrt(M_PI) * cos(2*M_PI*x);
             }
         }
     }
@@ -337,7 +337,7 @@ void DRAGON_Test::verify_ct_alfven_wave_3D(){
         }
     }
     
-    assert_divergenceless(grid.A(),dx,dx,dx);
+    assert_divergenceless(grid._A(),dx,dx,dx);
     
     grid.advance(sqrt(4*M_PI));
     
@@ -348,7 +348,7 @@ void DRAGON_Test::verify_ct_alfven_wave_3D(){
             }
         }
     }
-    assert_divergenceless(grid.A(),dx,dx,dx);
+    assert_divergenceless(grid._A(),dx,dx,dx);
     
     DRAGONWING::initialize(0);
 }
@@ -364,7 +364,7 @@ void DRAGON_Test::verify_ct_body_fields_2D(){
     for(int i = -ng; i < nx+1+ng; i++){
         for(int j = -ng; j < ny+1+ng; j++){
             double Az = i*i + 3*i*j + 2*j*j;
-            grid.getA()[i,j] = vec3{7, -4, Az};
+            grid._A()[i,j] = vec3{7, -4, Az};
         }
     }
     for(int i = 0; i < nx; i++){
@@ -374,7 +374,7 @@ void DRAGON_Test::verify_ct_body_fields_2D(){
     }
 
     MagneticArray2D B_face(nx+1,ny+1,ng);
-    CT::computeFaceFields(grid.getA(), B_face, dx, dy);
+    CT::computeFaceFields(grid._A(), B_face, dx, dy);
     grid.initialize_B_fields();
 
     for(int i = 0; i < nx; i++){
@@ -395,13 +395,13 @@ void DRAGON_Test::verify_ct_body_fields_3D(){
     for(int i = -ng; i < nx+1+ng; i++){
         for(int j = -ng; j < ny+1+ng; j++){
             for(int k = -ng; k < nz+1+ng; k++){
-                grid.getA()[i,j,k] = vec3{ i*j + 2.0*k*k, j*k + 3.0*i*i, k*i + 4.0*j*j };
+                grid._A()[i,j,k] = vec3{ i*j + 2.0*k*k, j*k + 3.0*i*i, k*i + 4.0*j*j };
             }
         }
     }
 
     MagneticArray3D B_face(nx+1,ny+1,nz+1,ng);
-    CT::computeFaceFields(grid.getA(), B_face, dx, dy, dz);
+    CT::computeFaceFields(grid._A(), B_face, dx, dy, dz);
     grid.initialize_B_fields();
 
     for(int i = 0; i < nx; i++){

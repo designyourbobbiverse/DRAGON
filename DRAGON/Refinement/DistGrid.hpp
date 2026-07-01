@@ -58,7 +58,7 @@ struct DistGrid2D: public Grid{
     #ifdef MHD
     //Access Edge Magnetic potentials. Only Az is used in 2D
     //A[i,j] is on the corner between w[i-1,j-1] and w[i,j]
-    ExtendedArray2D<vec3>& A(){ return data.getA();}
+    ExtendedArray2D<vec3>& _A(){ return data._A();}
     void initialize_B_fields();
     #endif
 
@@ -93,7 +93,7 @@ struct DistGrid3D: public Grid{
     #ifdef MHD
     //Access Edge Magnetic potentials.
     //A[i,j,k] is the corner w[i-1/2,j-1/2,k-1/2] to each of the 3 adjacent corners of w[i,j,k]
-    ExtendedArray3D<vec3>& A(){ return data.getA();}
+    ExtendedArray3D<vec3>& _A(){ return data._A();}
     void initialize_B_fields();
     #endif
     

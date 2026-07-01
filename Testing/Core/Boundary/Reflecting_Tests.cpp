@@ -177,11 +177,11 @@ void DRAGON_Test::verify_boundary_reflective_2D(){
     int ng = grid.getGhosts(), nx = grid.getSizeX(), ny = grid.getSizeY();
     fill_2D(grid);
     Reflective(X, true, false).apply(grid);
-    assert(approx(grid.getA()[nx+ng,ny+ng].z, 2*grid.getA()[nx+ng-1,ny+ng].z - grid.getA()[nx+ng-2,ny+ng].z));
+    assert(approx(grid._A()[nx+ng,ny+ng].z, 2*grid._A()[nx+ng-1,ny+ng].z - grid._A()[nx+ng-2,ny+ng].z));
 
     fill_2D(grid);
     Reflective(Y, true, false).apply(grid);
-    assert(approx(grid.getA()[nx+ng,ny+ng].z, 2*grid.getA()[nx+ng,ny+ng-1].z - grid.getA()[nx+ng,ny+ng-2].z));
+    assert(approx(grid._A()[nx+ng,ny+ng].z, 2*grid._A()[nx+ng,ny+ng-1].z - grid._A()[nx+ng,ny+ng-2].z));
     #endif
 }
 //MARK: Reflecting - 3D
@@ -289,21 +289,21 @@ void DRAGON_Test::verify_boundary_reflective_3D(){
     int ng = grid.getGhosts(), nx = grid.getSizeX(), ny = grid.getSizeY(), nz = grid.getSizeZ();
     fill_3D(grid);
     Reflective(X, true, false).apply(grid);
-    vec3 expected = 2*grid.getA()[nx+ng-1,ny+ng,nz+ng] - grid.getA()[nx+ng-2,ny+ng,nz+ng];
-    expected.x = grid.getA()[nx+ng-1,ny+ng,nz+ng].x;
-    expect_close(grid.getA()[nx+ng,ny+ng,nz+ng], expected);
+    vec3 expected = 2*grid._A()[nx+ng-1,ny+ng,nz+ng] - grid._A()[nx+ng-2,ny+ng,nz+ng];
+    expected.x = grid._A()[nx+ng-1,ny+ng,nz+ng].x;
+    expect_close(grid._A()[nx+ng,ny+ng,nz+ng], expected);
 
     fill_3D(grid);
     Reflective(Y, true, false).apply(grid);
-    expected = 2*grid.getA()[nx+ng,ny+ng-1,nz+ng] - grid.getA()[nx+ng,ny+ng-2,nz+ng];
-    expected.y = grid.getA()[nx+ng,ny+ng-1,nz+ng].y;
-    expect_close(grid.getA()[nx+ng,ny+ng,nz+ng], expected);
+    expected = 2*grid._A()[nx+ng,ny+ng-1,nz+ng] - grid._A()[nx+ng,ny+ng-2,nz+ng];
+    expected.y = grid._A()[nx+ng,ny+ng-1,nz+ng].y;
+    expect_close(grid._A()[nx+ng,ny+ng,nz+ng], expected);
 
     fill_3D(grid);
     Reflective(Z, true, false).apply(grid);
-    expected = 2*grid.getA()[nx+ng,ny+ng,nz+ng-1] - grid.getA()[nx+ng,ny+ng,nz+ng-2];
-    expected.z = grid.getA()[nx+ng,ny+ng,nz+ng-1].z;
-    expect_close(grid.getA()[nx+ng,ny+ng,nz+ng], expected);
+    expected = 2*grid._A()[nx+ng,ny+ng,nz+ng-1] - grid._A()[nx+ng,ny+ng,nz+ng-2];
+    expected.z = grid._A()[nx+ng,ny+ng,nz+ng-1].z;
+    expect_close(grid._A()[nx+ng,ny+ng,nz+ng], expected);
     #endif
 }
 //MARK: Conductive - 1D
@@ -332,11 +332,11 @@ void DRAGON_Test::verify_boundary_reflective_conductive_2D(){
     for (int j = 0; j < grid.getSizeY(); j++) {
         PrimitiveState w = grid[0,j]; reflectX2D(w);
         expect_close(grid[-1, j], w);
-        expect_close(grid.getA()[-1, j], grid.getA()[1, j]);
+        expect_close(grid._A()[-1, j], grid._A()[1, j]);
 
         w = grid[2,j]; reflectX2D(w);
         expect_close(grid[3, j], w);
-        expect_close(grid.getA()[4, j], grid.getA()[2, j]);
+        expect_close(grid._A()[4, j], grid._A()[2, j]);
     }
 
     fill_2D(grid);
@@ -344,11 +344,11 @@ void DRAGON_Test::verify_boundary_reflective_conductive_2D(){
     for (int i = 0; i < grid.getSizeX(); i++) {
         PrimitiveState w = grid[i,0]; reflectY2D(w);
         expect_close(grid[i,-1], w);
-        expect_close(grid.getA()[i, -1], grid.getA()[i, 1]);
+        expect_close(grid._A()[i, -1], grid._A()[i, 1]);
 
         w = grid[i,3]; reflectY2D(w);
         expect_close(grid[i,4], w);
-        expect_close(grid.getA()[i, 5], grid.getA()[i, 3]);
+        expect_close(grid._A()[i, 5], grid._A()[i, 3]);
     }
 }
 
@@ -363,16 +363,16 @@ void DRAGON_Test::verify_boundary_reflective_conductive_3D(){
         for (int k = 0; k < grid.getSizeZ(); k++) {
             PrimitiveState w = grid[0,j,k]; reflectX3D(w);
             expect_close(grid[-1, j,k], w);
-            vec3 A = grid.getA()[1, j, k];
-            A.x = grid.getA()[0, j, k].x;
-            expect_close(grid.getA()[-1, j, k], A);
+            vec3 A = grid._A()[1, j, k];
+            A.x = grid._A()[0, j, k].x;
+            expect_close(grid._A()[-1, j, k], A);
 
             w = grid[2,j,k]; reflectX3D(w);
             expect_close(grid[3, j,k], w);
-            A = grid.getA()[2, j, k];
-            A.x = -grid.getA()[1, j, k].x;
-            expect_close(grid.getA()[4, j, k], A);
-            assert(approx(grid.getA()[3, j, k].x, -grid.getA()[2, j, k].x));
+            A = grid._A()[2, j, k];
+            A.x = -grid._A()[1, j, k].x;
+            expect_close(grid._A()[4, j, k], A);
+            assert(approx(grid._A()[3, j, k].x, -grid._A()[2, j, k].x));
         }
     }
 
@@ -382,16 +382,16 @@ void DRAGON_Test::verify_boundary_reflective_conductive_3D(){
         for (int k = 0; k < grid.getSizeZ(); k++) {
             PrimitiveState w = grid[i,0,k]; reflectY3D(w);
             expect_close(grid[i,-1,k], w);
-            vec3 A = grid.getA()[i, 1, k];
-            A.y = -grid.getA()[i, 0, k].y;
-            expect_close(grid.getA()[i, -1, k], A);
+            vec3 A = grid._A()[i, 1, k];
+            A.y = -grid._A()[i, 0, k].y;
+            expect_close(grid._A()[i, -1, k], A);
 
             w = grid[i,3,k]; reflectY3D(w);
             expect_close(grid[i,4,k], w);
-            A = grid.getA()[i, 3, k];
-            A.y = -grid.getA()[i, 2, k].y;
-            expect_close(grid.getA()[i, 5, k], A);
-            assert(approx(grid.getA()[i, 4, k].y, -grid.getA()[i, 3, k].y));
+            A = grid._A()[i, 3, k];
+            A.y = -grid._A()[i, 2, k].y;
+            expect_close(grid._A()[i, 5, k], A);
+            assert(approx(grid._A()[i, 4, k].y, -grid._A()[i, 3, k].y));
         }
     }
 
@@ -401,16 +401,16 @@ void DRAGON_Test::verify_boundary_reflective_conductive_3D(){
         for (int j = 0; j < grid.getSizeY(); j++) {
             PrimitiveState w = grid[i,j,0]; reflectZ3D(w);
             expect_close(grid[i,j,-1], w);
-            vec3 A = grid.getA()[i, j, 1];
-            A.z = -grid.getA()[i, j, 0].z;
-            expect_close(grid.getA()[i, j, -1], A);
+            vec3 A = grid._A()[i, j, 1];
+            A.z = -grid._A()[i, j, 0].z;
+            expect_close(grid._A()[i, j, -1], A);
 
             w = grid[i,j,4]; reflectZ3D(w);
             expect_close(grid[i,j,5], w);
-            A = grid.getA()[i, j, 4];
-            A.z = -grid.getA()[i, j, 3].z;
-            expect_close(grid.getA()[i, j, 6], A);
-            assert(approx(grid.getA()[i, j, 5].z, -grid.getA()[i, j, 4].z));
+            A = grid._A()[i, j, 4];
+            A.z = -grid._A()[i, j, 3].z;
+            expect_close(grid._A()[i, j, 6], A);
+            assert(approx(grid._A()[i, j, 5].z, -grid._A()[i, j, 4].z));
         }
     }
 }

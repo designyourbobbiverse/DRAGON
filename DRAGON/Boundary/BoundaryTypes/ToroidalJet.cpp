@@ -106,7 +106,7 @@ void Boundary::ToroidalJet::apply(Grid3D& grid) {
     int j0 = i0, jn = ny + ng;
     int k0 = i0, kn = nz + ng;
     
-    auto& A = grid.getA();
+    auto& A = grid._A();
     
     double pmag = (pj/fabs(beta));
     double Bm = sqrt(8*M_PI*pmag) * (beta < 0 ? -1 : 1);

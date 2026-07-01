@@ -105,11 +105,11 @@ void DRAGON_Test::verify_boundary_fixed_2D() {
     int ng = grid.getGhosts(), nx = grid.getSizeX(), ny = grid.getSizeY();
     fill_2D(grid);
     Boundary::Fixed(W, X).apply(grid);
-    assert(approx(grid.getA()[nx+ng,ny+ng].z, grid.getA()[nx+ng-1,ny+ng].z - W.B.y*grid.dx));
+    assert(approx(grid._A()[nx+ng,ny+ng].z, grid._A()[nx+ng-1,ny+ng].z - W.B.y*grid.dx));
 
     fill_2D(grid);
     Boundary::Fixed(W, Y).apply(grid);
-    assert(approx(grid.getA()[nx+ng,ny+ng].z, grid.getA()[nx+ng,ny+ng-1].z + W.B.x*grid.dy));
+    assert(approx(grid._A()[nx+ng,ny+ng].z, grid._A()[nx+ng,ny+ng-1].z + W.B.x*grid.dy));
     #endif
 }
 //MARK: Fixed - 3D
@@ -176,17 +176,17 @@ void DRAGON_Test::verify_boundary_fixed_3D() {
     int ng = grid.getGhosts(), nx = grid.getSizeX(), ny = grid.getSizeY(), nz = grid.getSizeZ();
     fill_3D(grid);
     Boundary::Fixed(W, X).apply(grid);
-    assert(approx(grid.getA()[nx+ng,ny+ng,nz+ng].y, grid.getA()[nx+ng-1,ny+ng,nz+ng].y + W.B.z*grid.dx));
-    assert(approx(grid.getA()[nx+ng,ny+ng,nz+ng].z, grid.getA()[nx+ng-1,ny+ng,nz+ng].z - W.B.y*grid.dx));
+    assert(approx(grid._A()[nx+ng,ny+ng,nz+ng].y, grid._A()[nx+ng-1,ny+ng,nz+ng].y + W.B.z*grid.dx));
+    assert(approx(grid._A()[nx+ng,ny+ng,nz+ng].z, grid._A()[nx+ng-1,ny+ng,nz+ng].z - W.B.y*grid.dx));
 
     fill_3D(grid);
     Boundary::Fixed(W, Y).apply(grid);
-    assert(approx(grid.getA()[nx+ng,ny+ng,nz+ng].x, grid.getA()[nx+ng,ny+ng-1,nz+ng].x - W.B.z*grid.dy));
-    assert(approx(grid.getA()[nx+ng,ny+ng,nz+ng].z, grid.getA()[nx+ng,ny+ng-1,nz+ng].z + W.B.x*grid.dy));
+    assert(approx(grid._A()[nx+ng,ny+ng,nz+ng].x, grid._A()[nx+ng,ny+ng-1,nz+ng].x - W.B.z*grid.dy));
+    assert(approx(grid._A()[nx+ng,ny+ng,nz+ng].z, grid._A()[nx+ng,ny+ng-1,nz+ng].z + W.B.x*grid.dy));
 
     fill_3D(grid);
     Boundary::Fixed(W, Z).apply(grid);
-    assert(approx(grid.getA()[nx+ng,ny+ng,nz+ng].x, grid.getA()[nx+ng,ny+ng,nz+ng-1].x + W.B.y*grid.dz));
-    assert(approx(grid.getA()[nx+ng,ny+ng,nz+ng].y, grid.getA()[nx+ng,ny+ng,nz+ng-1].y - W.B.x*grid.dz));
+    assert(approx(grid._A()[nx+ng,ny+ng,nz+ng].x, grid._A()[nx+ng,ny+ng,nz+ng-1].x + W.B.y*grid.dz));
+    assert(approx(grid._A()[nx+ng,ny+ng,nz+ng].y, grid._A()[nx+ng,ny+ng,nz+ng-1].y - W.B.x*grid.dz));
     #endif
 }
