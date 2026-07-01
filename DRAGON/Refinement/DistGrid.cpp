@@ -319,7 +319,7 @@ void DistGrid1D::advance(double dt, bool check_cfl){
     data.boundary = std::move(boundary);
     if(ncx == 1 ){
         data.advance(dt, check_cfl);
-        DRARGONWING::reportCheckpoint2();
+        DRAGONWING::reportCheckpoint2();
         return;
     }
     while(dt > Timestep_Tolerance){
@@ -332,11 +332,11 @@ void DistGrid1D::advance(double dt, bool check_cfl){
         //Execute the Advancement
         bool success = false;
         do{
-            DRARGONWING::initialize(ncx);
+            DRAGONWING::initialize(ncx);
             for(auto& child : children){
-                DRARGONWING::launchParallel(child.get(), t1);
+                DRAGONWING::launchParallel(child.get(), t1);
             }
-            success = DRARGONWING::waitForCheckpoint2(); //Wait for children to finish
+            success = DRAGONWING::waitForCheckpoint2(); //Wait for children to finish
             if(!success) t1 /= 2; //If we failed, try again with half time step
         } while (!success);
         dt -= t1;
@@ -350,7 +350,7 @@ void DistGrid2D::advance(double dt, bool check_cfl){
     data.boundary = std::move(boundary);
     if(ncx*ncy == 1 ){
         data.advance(dt, check_cfl);
-        DRARGONWING::reportCheckpoint2();
+        DRAGONWING::reportCheckpoint2();
         boundary = std::move(data.boundary);
         return;
     }
@@ -368,11 +368,11 @@ void DistGrid2D::advance(double dt, bool check_cfl){
         //Execute the Advancement
         bool success = false;
         do{
-            DRARGONWING::initialize(ncx*ncy);
+            DRAGONWING::initialize(ncx*ncy);
             for(auto& child : children){
-                DRARGONWING::launchParallel(child.get(), t1);
+                DRAGONWING::launchParallel(child.get(), t1);
             }
-            success = DRARGONWING::waitForCheckpoint2(); //Wait for children to finish
+            success = DRAGONWING::waitForCheckpoint2(); //Wait for children to finish
             if(!success) t1 /= 2; //If we failed, try again with half time step
         } while (!success);
         dt -= t1;
@@ -387,7 +387,7 @@ void DistGrid3D::advance(double dt, bool check_cfl){
     data.boundary = std::move(boundary);
     if(ncx*ncy*ncz == 1 ){
         data.advance(dt, check_cfl);
-        DRARGONWING::reportCheckpoint2();
+        DRAGONWING::reportCheckpoint2();
         boundary = std::move(data.boundary);
         return;
     }
@@ -404,11 +404,11 @@ void DistGrid3D::advance(double dt, bool check_cfl){
         //Execute the Advancement
         bool success = false;
         do{
-            DRARGONWING::initialize(ncx*ncy*ncz);
+            DRAGONWING::initialize(ncx*ncy*ncz);
             for(auto& child : children){
-                DRARGONWING::launchParallel(child.get(), t1);
+                DRAGONWING::launchParallel(child.get(), t1);
             }
-            success = DRARGONWING::waitForCheckpoint2(); //Wait for children to finish
+            success = DRAGONWING::waitForCheckpoint2(); //Wait for children to finish
             if(!success) t1 /= 2; //If we failed, try again with half time step
         } while (!success);
         dt -= t1;

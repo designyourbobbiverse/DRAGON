@@ -53,11 +53,11 @@ void Grid2D::advance_unsplit(double dt, bool check_cfl){
                 success = true;
             } catch(const std::string& s){
                 std::cout<<"\t"<<s<<"\n";
-                if(DRARGONWING::requestRestart()){ return; }
+                if(DRAGONWING::requestRestart()){ return; }
                 t1 /= 2;
             } catch(const std::exception &exc){
                 std::cout<<"\t"<<exc.what()<<"\n";
-                if(DRARGONWING::requestRestart()){ return; }
+                if(DRAGONWING::requestRestart()){ return; }
                 t1 /= 2;
             }
         } while(!success);
@@ -80,11 +80,11 @@ void Grid3D::advance_unsplit(double dt, bool check_cfl){
                 success = true;
             } catch(const std::string& s){
                 std::cout<<"\t"<<s<<"\n";
-                if(DRARGONWING::requestRestart()){ return; }
+                if(DRAGONWING::requestRestart()){ return; }
                 t1 /= 2;
             } catch(const std::exception &exc){
                 std::cout<<"\t"<<exc.what()<<"\n";
-                if(DRARGONWING::requestRestart()){ return; }
+                if(DRAGONWING::requestRestart()){ return; }
                 t1 /= 2;
             }
         } while(!success);
@@ -154,8 +154,8 @@ void Grid2D::advanceXY(double dt){
     }
     
     //Wait for any parallel grids to finish
-    DRARGONWING::reportCheckpoint1();
-    if(!DRARGONWING::waitForCheckpoint1()) return;
+    DRAGONWING::reportCheckpoint1();
+    if(!DRAGONWING::waitForCheckpoint1()) return;
     
     //Commit flux updates
     for(int i=0; i<nx; i++){
@@ -266,15 +266,21 @@ void Grid3D::advanceXYZ(double dt){
                 _w[i,j,k] += (dt/dy) * (F_Y[i,j,k] - F_Y[i,j+1,k]);
                 _w[i,j,k] += (dt/dz) * (F_Z[i,j,k] - F_Z[i,j,k+1]);
                 if(!_w[i,j,k].isPhysical()) {
-                    throw std::format("Unphsyical state would be produced at ({},{},{})",i,j,k);
+                    _w[i,j,k].rho = 1e-15;
+                    _w[i,j,k].p = 1e-15;
+                    if(_w[i,j,k].isPhysical()){
+                        std::cout<<"\tDensity/Pressure Protection\n";
+                    } else {
+                        throw std::format("Unphsyical state would be produced at ({},{},{})",i,j,k);
+                    }
                 }
             }
         }
     }
         
     //Wait for any parallel grids to finish
-    DRARGONWING::reportCheckpoint1();
-    if(!DRARGONWING::waitForCheckpoint1()) return;
+    DRAGONWING::reportCheckpoint1();
+    if(!DRAGONWING::waitForCheckpoint1()) return;
     
     //Commit Flux updates
     for(int i=0; i<nx; i++){

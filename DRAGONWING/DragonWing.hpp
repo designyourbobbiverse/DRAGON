@@ -5,13 +5,13 @@
 //  Created by Bobbie Markwick on 11/06/2026.
 //
 
-#ifndef DRAGONWING
-#define DRAGONWING
+#ifndef DRAGON_WING_hpp
+#define DRAGON_WING_hpp
 
 class Grid;
 
 
-namespace DRARGONWING{
+namespace DRAGONWING{
     void* launchParallel(Grid* grid, double dt);
 
     void initialize(int nthreads);

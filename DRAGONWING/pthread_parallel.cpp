@@ -14,7 +14,7 @@
 #include "Grid.hpp"
 
 
-namespace DRARGONWING{
+namespace {
     struct ThreadArgs{
         Grid* grid;
         double dt;
@@ -40,8 +40,8 @@ namespace DRARGONWING{
 }
 
 //MARK: Launching
-void DRARGONWING::initialize(int nthreads){
-    DRARGONWING::nthreads = nthreads;
+void DRAGONWING::initialize(int _nthreads){
+    nthreads = _nthreads;
     threads.clear();
     args.clear();
     reached_checkpoint_1 = 0;
@@ -50,7 +50,7 @@ void DRARGONWING::initialize(int nthreads){
 }
 
 
-void* DRARGONWING::launchParallel(Grid* grid, double dt){
+void* DRAGONWING::launchParallel(Grid* grid, double dt){
     if (nthreads == 0) {
         std::cerr << "Did not initialize DRAGONWING before attempting to launch parallel task";
         return nullptr;
@@ -72,7 +72,7 @@ void* DRARGONWING::launchParallel(Grid* grid, double dt){
 
 
 //MARK: Checkpoint reporting
-void DRARGONWING::reportCheckpoint1(){
+void DRAGONWING::reportCheckpoint1(){
     if(nthreads == 0) return; //Single thread mode
 
     std::unique_lock lock(mutex);
@@ -80,7 +80,7 @@ void DRARGONWING::reportCheckpoint1(){
     lock.unlock();
     if (done) cv.notify_all();
 }
-void DRARGONWING::reportCheckpoint2(){
+void DRAGONWING::reportCheckpoint2(){
     if(nthreads == 0) return; //Single thread mode
 
     std::unique_lock lock(mutex);
@@ -88,7 +88,7 @@ void DRARGONWING::reportCheckpoint2(){
     lock.unlock();
     if (done) cv.notify_all();
 }
-bool DRARGONWING::requestRestart(){
+bool DRAGONWING::requestRestart(){
     if(nthreads == 0) return false; //Single thread mode
 
     std::unique_lock lock(mutex);
@@ -100,7 +100,7 @@ bool DRARGONWING::requestRestart(){
 }
 
 //MARK: Synchronization
-bool DRARGONWING::waitForCheckpoint1(){
+bool DRAGONWING::waitForCheckpoint1(){
     if(nthreads == 0) return true; //Single thread mode
 
     std::unique_lock lock(mutex);
@@ -108,7 +108,7 @@ bool DRARGONWING::waitForCheckpoint1(){
     cv.wait(lock, [&] { return abort_requested || reached_checkpoint_1 == nthreads; });
     return !abort_requested;
 }
-bool DRARGONWING::waitForCheckpoint2(){
+bool DRAGONWING::waitForCheckpoint2(){
     if(nthreads == 0) return true; //Single thread mode
     
     //Wait until everybody else is done
