@@ -52,14 +52,13 @@ void Grid2D::advance_unsplit(double dt, bool check_cfl){
                 advanceXY(t1);
                 success = true;
             } catch(const std::string& s){
-                std::cout<<"\t"<<s<<"\n";
-                if(DRAGONWING::requestRestart()){ return; }
-                t1 /= 2;
+                if(DRAGONWING::requestRestart(s)){ return; }
+                else std::cout<<"\t"<<s<<"\n";
             } catch(const std::exception &exc){
-                std::cout<<"\t"<<exc.what()<<"\n";
-                if(DRAGONWING::requestRestart()){ return; }
-                t1 /= 2;
+                if(DRAGONWING::requestRestart(exc.what())){ return; }
+                else std::cout<<"\t"<<exc.what()<<"\n";
             }
+            if(!success) t1 /= 2;
         } while(!success);
         
         dt -= t1;
@@ -79,14 +78,13 @@ void Grid3D::advance_unsplit(double dt, bool check_cfl){
                 advanceXYZ(t1);
                 success = true;
             } catch(const std::string& s){
-                std::cout<<"\t"<<s<<"\n";
-                if(DRAGONWING::requestRestart()){ return; }
-                t1 /= 2;
+                if(DRAGONWING::requestRestart(s)){ return; }
+                else std::cout<<"\t"<<s<<"\n";
             } catch(const std::exception &exc){
-                std::cout<<"\t"<<exc.what()<<"\n";
-                if(DRAGONWING::requestRestart()){ return; }
-                t1 /= 2;
+                if(DRAGONWING::requestRestart(exc.what())){ return; }
+                else std::cout<<"\t"<<exc.what()<<"\n";
             }
+            if(!success) t1 /= 2;
         } while(!success);
         
         dt -= t1;

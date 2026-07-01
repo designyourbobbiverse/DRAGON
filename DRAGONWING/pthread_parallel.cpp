@@ -31,6 +31,8 @@ namespace {
     std::deque<ThreadArgs> args;
     int nthreads = 0;
 
+    std::string restart_msg;
+
     std::mutex mutex;
     std::condition_variable cv;
     int reached_checkpoint_1 = 0;
@@ -88,16 +90,26 @@ void DRAGONWING::reportCheckpoint2(){
     lock.unlock();
     if (done) cv.notify_all();
 }
-bool DRAGONWING::requestRestart(){
-    if(nthreads == 0) return false; //Single thread mode
 
+bool DRAGONWING::requestRestart(std::string msg){
     std::unique_lock lock(mutex);
+    restart_msg = msg;
+    if(nthreads == 0) return false; //Single thread mode
     abort_requested = true;
     lock.unlock();
     cv.notify_all();
-    
     return true;
 }
+
+std::string DRAGONWING::restartMsg(){
+    std::lock_guard lock(mutex);
+    auto msg = restart_msg;
+    restart_msg = "";
+    return msg;
+}
+
+
+
 
 //MARK: Synchronization
 bool DRAGONWING::waitForCheckpoint1(){

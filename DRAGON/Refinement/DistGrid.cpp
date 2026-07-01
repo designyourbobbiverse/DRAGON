@@ -337,7 +337,14 @@ void DistGrid1D::advance(double dt, bool check_cfl){
                 DRAGONWING::launchParallel(child.get(), t1);
             }
             success = DRAGONWING::waitForCheckpoint2(); //Wait for children to finish
-            if(!success) t1 /= 2; //If we failed, try again with half time step
+            if(!success) { //If we failed, try again with half time step
+                t1 /= 2;
+                std::cout<<"\t"<<DRAGONWING::restartMsg()<<"\n";
+                if(t1 < Timestep_Tolerance){
+                    std::cout<<"Timestep has fallen below minimum. Exiting\n";
+                    abort();
+                }
+            }
         } while (!success);
         dt -= t1;
         //Copy Back
@@ -373,7 +380,14 @@ void DistGrid2D::advance(double dt, bool check_cfl){
                 DRAGONWING::launchParallel(child.get(), t1);
             }
             success = DRAGONWING::waitForCheckpoint2(); //Wait for children to finish
-            if(!success) t1 /= 2; //If we failed, try again with half time step
+            if(!success) { //If we failed, try again with half time step
+                t1 /= 2;
+                std::cout<<"\t"<<DRAGONWING::restartMsg()<<"\n";
+                if(t1 < Timestep_Tolerance){
+                    std::cout<<"Timestep has fallen below minimum. Exiting\n";
+                    abort();
+                }
+            }
         } while (!success);
         dt -= t1;
         //Copy Back
@@ -409,7 +423,14 @@ void DistGrid3D::advance(double dt, bool check_cfl){
                 DRAGONWING::launchParallel(child.get(), t1);
             }
             success = DRAGONWING::waitForCheckpoint2(); //Wait for children to finish
-            if(!success) t1 /= 2; //If we failed, try again with half time step
+            if(!success) { //If we failed, try again with half time step
+                t1 /= 2;
+                std::cout<<"\t"<<DRAGONWING::restartMsg()<<"\n";
+                if(t1 < Timestep_Tolerance){
+                    std::cout<<"Timestep has fallen below minimum. Exiting\n";
+                    abort();
+                }
+            }
         } while (!success);
         dt -= t1;
         //Copy Back
