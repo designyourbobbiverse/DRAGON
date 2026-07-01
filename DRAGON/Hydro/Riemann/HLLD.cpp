@@ -38,7 +38,7 @@ ConservativeState Riemann::HLLD(){
     if(SR <= 0) return R.flux(); //Right intial region
     
     //Check for zero-normal case
-    auto cutoff = fmin(L.B*L.B+ R.B*R.B,1e-100);
+    auto cutoff = fmax(L.B*L.B+ R.B*R.B,1e-100);
     if(Bx*Bx < 1e-12 * cutoff) return HLLD_zero_B(SL, SR);
             
     //Calculate the Contact Wave Speed
