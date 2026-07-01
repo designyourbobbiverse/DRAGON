@@ -7,6 +7,8 @@
 
 #include "Testing.hpp"
 #include "CT.hpp"
+#include "DistGrid.hpp"
+#include "DragonWing.hpp"
 #include <iostream>
 
 #ifdef MHD
@@ -306,7 +308,7 @@ void DRAGON_Test::verify_ct_alfven_wave_2D(){
 
 void DRAGON_Test::verify_ct_alfven_wave_3D(){
     double dx = 0.1, amp = 0.01;
-    Grid3D grid(10,10,10,dx,dx,dx, 2), expected(10,10,10,dx,dx,dx, 2);
+    DistGrid3D grid(10,10,10,dx,dx,dx, 2), expected(10,10,10,dx,dx,dx, 2);
     PrimitiveState W = make_state(1.0, 0.0,0.0,0.0, 1.0);
     
 
@@ -315,12 +317,12 @@ void DRAGON_Test::verify_ct_alfven_wave_3D(){
             for (int k = 0; k <= grid.getSizeZ(); k++){
                 grid[i,j,k] = W;
                 double x = i*dx, y = j*dx, z = k*dx;
-                grid.getA()[i,j,k] = vec3{0,-z,y};
+                grid.A()[i,j,k] = vec3{0,-z,y};
                 //Perturb
                 grid[i,j,k].v.y += amp*sin(2*M_PI*(x+0.5));
                 grid[i,j,k].v.z += amp*cos(2*M_PI*(x+0.5));
-                grid.getA()[i,j,k].y -= amp/sqrt(M_PI) * sin(2*M_PI*x);
-                grid.getA()[i,j,k].z -= amp/sqrt(M_PI) * cos(2*M_PI*x);
+                grid.A()[i,j,k].y -= amp/sqrt(M_PI) * sin(2*M_PI*x);
+                grid.A()[i,j,k].z -= amp/sqrt(M_PI) * cos(2*M_PI*x);
             }
         }
     }
@@ -335,7 +337,7 @@ void DRAGON_Test::verify_ct_alfven_wave_3D(){
         }
     }
     
-    assert_divergenceless(grid.getA(),dx,dx,dx);
+    assert_divergenceless(grid.A(),dx,dx,dx);
     
     grid.advance(sqrt(4*M_PI));
     
@@ -346,7 +348,9 @@ void DRAGON_Test::verify_ct_alfven_wave_3D(){
             }
         }
     }
-    assert_divergenceless(grid.getA(),dx,dx,dx);
+    assert_divergenceless(grid.A(),dx,dx,dx);
+    
+    DRAGONWING::initialize(0);
 }
 
 //Tests above this line, I wrote myself from scratch

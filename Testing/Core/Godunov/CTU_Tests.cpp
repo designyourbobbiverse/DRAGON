@@ -6,8 +6,9 @@
 //
 
 #include "Testing.hpp"
-#include "Grid.hpp"
+#include "DistGrid.hpp"
 #include "CFL.hpp"
+#include "DragonWing.hpp"
 #include <iostream>
 
 using namespace DRAGON_Test;
@@ -157,8 +158,8 @@ void DRAGON_Test::verify_ctu_blast_2D() {
     const int nx = 64, ny = 64;
     const double dx = 1.0 / nx, dy = 1.0 / ny;
 
-    Grid2D grid(nx, ny, dx, dy);
-    Grid2D initial(nx, ny, dx, dy);
+    DistGrid2D grid(nx, ny, dx, dy);
+    DistGrid2D initial(nx, ny, dx, dy);
 
     grid.boundary = Outflow();
     
@@ -207,15 +208,17 @@ void DRAGON_Test::verify_ctu_blast_2D() {
             expect_blast_mirror_y(grid[i,j], grid[i,ny-1-j]);
         }
     }
+    
+    DRAGONWING::initialize(0);
 
 }
 
 void DRAGON_Test::verify_ctu_blast_3D() {
-    const int nx = 32, ny = 32, nz = 32;
+    const int nx = 64, ny = 64, nz = 64;
     const double dx = 1.0 / nx, dy = 1.0 / ny, dz = 1.0 / nz;
 
-    Grid3D grid(nx, ny, nz, dx, dy, dz);
-    Grid3D initial(nx, ny,nz, dx, dy, dz);
+    DistGrid3D grid(nx, ny, nz, dx, dy, dz);
+    DistGrid3D initial(nx, ny,nz, dx, dy, dz);
 
     grid.boundary = Outflow();
 
@@ -274,5 +277,7 @@ void DRAGON_Test::verify_ctu_blast_3D() {
             }
         }
     }
-
+    
+    DRAGONWING::initialize(0);
+    
 }
