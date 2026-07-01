@@ -144,12 +144,16 @@ void Grid2D::advanceXY(double dt){
     FluidArray2D& _w = _xL; //Repurpose grid that isn't being used anymore
     for(int i=0; i<nx; i++){
         for(int j=0; j<ny; j++){
-            _w[i,j] = w[i,j];
-            _w[i,j] += (dt/dx) * (F_X[i,j] - F_X[i+1,j]);
-            _w[i,j] += (dt/dy) * (F_Y[i,j] - F_Y[i,j+1]);
-            if(!_w[i,j].isPhysical()) {
-                throw std::format("Unphsyical state would be produced at ({},{})",i,j);
+            ConservativeState  U(w[i,j]);
+            U += (dt/dx) * (F_X[i,j] - F_X[i+1,j]);
+            U += (dt/dy) * (F_Y[i,j] - F_Y[i,j+1]);
+            _w[i,j] = U;
+            
+            if(!U.isFinite())  {
+                
+                throw std::format("NaN state would be produced at ({},{})",i,j);
             }
+            if(!_w[i,j].isPhysical())  throw std::format("Unphsyical state would be produced at ({},{})",i,j);
         }
     }
     
@@ -261,19 +265,14 @@ void Grid3D::advanceXYZ(double dt){
     for(int i=0; i<nx; i++){
         for(int j=0; j<ny; j++){
             for(int k=0; k<nz; k++){
-                _w[i,j,k] = w[i,j,k];
-                _w[i,j,k] += (dt/dx) * (F_X[i,j,k] - F_X[i+1,j,k]);
-                _w[i,j,k] += (dt/dy) * (F_Y[i,j,k] - F_Y[i,j+1,k]);
-                _w[i,j,k] += (dt/dz) * (F_Z[i,j,k] - F_Z[i,j,k+1]);
-                if(!_w[i,j,k].isPhysical()) {
-                    _w[i,j,k].rho = 1e-15;
-                    _w[i,j,k].p = 1e-15;
-                    if(_w[i,j,k].isPhysical()){
-                        std::cout<<"\tDensity/Pressure Protection\n";
-                    } else {
-                        throw std::format("Unphsyical state would be produced at ({},{},{})",i,j,k);
-                    }
-                }
+                ConservativeState U(w[i,j,k]);
+                U += (dt/dx) * (F_X[i,j,k] - F_X[i+1,j,k]);
+                U += (dt/dy) * (F_Y[i,j,k] - F_Y[i,j+1,k]);
+                U += (dt/dz) * (F_Z[i,j,k] - F_Z[i,j,k+1]);
+                _w[i,j,k] = U;
+
+                if(!U.isFinite())  throw std::format("\tNaN state would be produced at ({},{},{})\n",i,j,k);
+                if(!_w[i,j,k].isPhysical()) throw std::format("Unphysical state would be produced at ({},{},{})",i,j,k);
             }
         }
     }
