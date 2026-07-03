@@ -7,6 +7,7 @@
 
 #include "Problem.hpp"
 #include "Refinement/DistGrid.hpp"
+#include "Jets.hpp"
 #include <cmath>
 #include <iostream>
 #include <fstream>
@@ -22,7 +23,7 @@ Grid& Problem::makeProblem(){
     auto _grid = new MyGrid(64*res, 64*res,64*res, dx, dy, dz);
     MyGrid& grid = *_grid;
     
-    grid.boundary = Boundary::ToroidalJet(rho_jet, 7e-2, p_amb, 5.0, 1.0, 2.4, "Z");
+    grid.boundary = MHDJet(rho_jet, 7e-2, p_amb, 5.0, 1.0, 2.4, "Z");
     
     for(int i=0; i<=grid.getSizeX(); i++){
         for(int j=0; j<=grid.getSizeY(); j++){

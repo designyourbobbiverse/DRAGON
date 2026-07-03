@@ -38,8 +38,9 @@
 		F73197CD2FF75E990012ACCF /* Exceptions for "Examples" folder in "DRAGON" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				CollidingFlows/Jets/Jet.cpp,
+				CollidingFlows/Jets/MHDJet.cpp,
 				CollidingFlows/Problem.cpp,
-				CollidingFlows/ToroidalJet.cpp,
 			);
 			target = F70D18F22FA12B5A00A2B235 /* DRAGON */;
 		};
@@ -188,9 +189,9 @@
 			isa = PBXGroup;
 			children = (
 				F77CE43B2FE49E9200DB6F31 /* README.md */,
-				F73197C92FF75E560012ACCF /* Examples */,
 				F70D18F52FA12B5A00A2B235 /* DRAGON */,
 				F76C27BD2FDB8F6500B706F5 /* DRAGONWING */,
+				F73197C92FF75E560012ACCF /* Examples */,
 				F790CF7D2FC9F8D80094987D /* Testing */,
 				F70D18F42FA12B5A00A2B235 /* Products */,
 				F77CE43C2FE4B0EE00DB6F31 /* LICENSE */,
