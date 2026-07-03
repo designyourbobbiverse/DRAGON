@@ -41,8 +41,9 @@ DRAGON/
   Constants.h       Physical constants
   Problem.cpp       Example problem initialization and output handling
 
-DRAGONWING/       Multithreading
-Testing/          Unit test suite
+DRAGONWING/         Multithreading
+Examples/           Example Problems
+Testing/            Unit test suite
 ```
 
 ## Configuration
