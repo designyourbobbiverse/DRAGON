@@ -270,11 +270,33 @@ void Grid3D::advanceXYZ(double dt){
                 _w[i,j,k] = U;
 
                 if(!U.isFinite())  throw std::format("\tNaN state would be produced at ({},{},{})\n",i,j,k);
+                #ifndef MHD //Do the safety check that MHD doesn't do yet
                 if(!_w[i,j,k].isPhysical()) throw std::format("Unphysical state would be produced at ({},{},{})",i,j,k);
+                #endif
             }
         }
     }
+    //Preliminary CT Update
+    #ifdef MHD
+    MagneticArray3D _A(nx+1,ny+1,nz+1,ghosts);
+    _A.clone(A);
+    CT::updatePotential(_A, F_X, F_Y, F_Z, dt);
+    CT::computeFaceFields(_A, B, dx, dy, dz);
+    CT::computeBodyFields(B, _w);
+
+    for(int i=0; i<nx; i++){
+        for(int j=0; j<ny; j++){
+            for(int k=0; k<nz; k++){
+                if(!_w[i,j,k].isPhysical())
+                    throw std::format("Unphysical state would be produced by CT at ({},{},{})",i,j,k);
+            }
+        }
+    }
+    #endif
         
+    
+    
+    
     //Wait for any parallel grids to finish
     DRAGONWING::reportCheckpoint1();
     if(!DRAGONWING::waitForCheckpoint1()) return;
@@ -287,11 +309,8 @@ void Grid3D::advanceXYZ(double dt){
             }
         }
     }
-    //CT Update
     #ifdef MHD
-    CT::updatePotential(A, F_X, F_Y, F_Z, dt);
-    CT::computeFaceFields(A, B, dx, dy, dz);
-    computeBodyAveragedFields(B);
+    A.clone(_A);
     #endif
 }
 

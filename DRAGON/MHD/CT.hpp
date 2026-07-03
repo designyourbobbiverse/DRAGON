@@ -17,11 +17,13 @@ typedef ExtendedArray2D<vec3> MagneticArray2D;
 typedef ExtendedArray3D<vec3> MagneticArray3D;
 
 namespace CT {
+    void computeBodyFields(const MagneticArray2D& B, FluidArray2D& w);
     void computeFaceFields(const MagneticArray2D& _A, MagneticArray2D& _B, double dx, double dy);
     void copyFaceFields_X( FluidArray2D& _L,const MagneticArray2D& _B, FluidArray2D& _R);
     void copyFaceFields_Y( FluidArray2D& _L,const MagneticArray2D& _B, FluidArray2D& _R);
     void updatePotential(MagneticArray2D& _B, const FluxArray2D& F_X,const FluxArray2D& F_Y, double dt);
 
+    void computeBodyFields(const MagneticArray3D& B, FluidArray3D& w);
     void computeFaceFields(const MagneticArray3D& _A, MagneticArray3D& _B, double dx, double dy, double dz);
     void copyFaceFields_X( FluidArray3D& _L,const MagneticArray3D& _B, FluidArray3D& _R);
     void copyFaceFields_Y( FluidArray3D& _L,const MagneticArray3D& _B, FluidArray3D& _R);

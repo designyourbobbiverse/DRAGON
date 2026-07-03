@@ -96,7 +96,7 @@ void Grid2D::initialize_B_fields(){
         }
     }
 }
-void Grid2D::computeBodyAveragedFields(const MagneticArray2D& B){
+void CT::computeBodyFields(const MagneticArray2D& B, FluidArray2D& w){
     const int nx = w.getSizeX(), ny = w.getSizeY(), ng = w.getGhosts();
 
     for(int i=-ng; i<nx+ng; i++){
@@ -108,6 +108,8 @@ void Grid2D::computeBodyAveragedFields(const MagneticArray2D& B){
         }
     }
 }
+void Grid2D::computeBodyAveragedFields(const MagneticArray2D& B){ CT::computeBodyFields(B, w); }
+
 void Grid3D::initialize_B_fields(){
     const int nx = w.getSizeX(), ny = w.getSizeY(), nz = w.getSizeZ(), ng = w.getGhosts();
     boundary.apply(*this);
@@ -126,22 +128,23 @@ void Grid3D::initialize_B_fields(){
     }
 
 }
-void Grid3D::computeBodyAveragedFields(const MagneticArray3D& B){
+
+void Grid3D::computeBodyAveragedFields(const MagneticArray3D& B){ CT::computeBodyFields(B, w); }
+void CT::computeBodyFields(const MagneticArray3D& B, FluidArray3D& w){
     const int nx = w.getSizeX(), ny = w.getSizeY(), nz = w.getSizeZ(), ng = w.getGhosts();
 
-    for(int i=-ng; i<nx+ng; i++){
-        for(int j=-ng; j<ny+ng; j++){
-            for(int k=-ng; k<nz+ng; k++){
-                ConservativeState U(w[i,j,k]);//Update the conservative element to keep quantities conserved
-                U.B.x = (B[i,j,k].x + B[i+1,j,k].x)/2;
-                U.B.y = (B[i,j,k].y + B[i,j+1,k].y)/2;
-                U.B.z = (B[i,j,k].z + B[i,j,k+1].z)/2;
-                w[i,j,k] = U;
+        for(int i=-ng; i<nx+ng; i++){
+            for(int j=-ng; j<ny+ng; j++){
+                for(int k=-ng; k<nz+ng; k++){
+                    ConservativeState U(w[i,j,k]);//Update the conservative element to keep quantities conserved
+                    U.B.x = (B[i,j,k].x + B[i+1,j,k].x)/2;
+                    U.B.y = (B[i,j,k].y + B[i,j+1,k].y)/2;
+                    U.B.z = (B[i,j,k].z + B[i,j,k+1].z)/2;
+                    w[i,j,k] = U;
+                }
             }
         }
-    }
 }
-
 
 
 
