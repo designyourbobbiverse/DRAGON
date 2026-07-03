@@ -73,7 +73,7 @@ To run a problem, edit `Config.h` to choose the numerical options and edit `Prob
 In future versions, several example problem files will also be provided as templates for common validation problems.
 
 
-## Building DRAGON on macOS (Xcode)
+## Building DRAGON on macOS
 
 DRAGON uses HDF5 for file output, so HDF5 must be installed before building and running the code.
 On macOS, HDF5 can be installed with Homebrew:
@@ -83,29 +83,19 @@ brew --prefix hdf5
 ```
 The second command prints the path to the HDF5 installation on your computer.  This is usually `/opt/homebrew/opt/hdf5` on Apple Silicon Macs or `/usr/local/opt/hdf5` on Intel Macs.
 
-In Xcode, open the project's build settings and add (using the path you got from the last step in place of `<Path_To_HDF5>`)
+If you are using Xcode, open the project's build settings and add (using the path you got from the last step in place of `<Path_To_HDF5>`)
 - `<Path_To_HDF5>/include` to *Header Search Paths*
 - `<Path_To_HDF5>/lib` to *Library Search Paths*
 - `<Path_To_HDF5>/lib` to *Runpath Search Paths*. 
 - `-lhdf5_cpp` to *Other Linker Flags*
 - `-lhdf5` to *Other Linker Flags*
 
-Once you do this, you should be able to build and run the DRAGON target.
-To run the unit test stuite, instead build the DRAGON_TESTS target.
+Once you do this, you should be able to build and run the DRAGON target, or the DRAGON_TESTS target for the unit test suite.
 
 If the project builds but fails when running, go to *Signing & Capabilities* for each executable target and ensure that `Disable Library Validation` is enabled under *Hardened Runtime*. If this was disabled, clean and build before trying to run the code again.
 
 
-## Building DRAGON on macOS (Terminal)
-
-On macOS, HDF5 can be installed with Homebrew:
-```bash
-brew install hdf5
-brew --prefix hdf5
-```
-
-Then navigate to the project root.
-You can compile the code with
+If you aren't using Xcode, you can build DRAGON from command line. From the project's root directory, run the following:
 ```bash
 HDF5_PATH=$(brew --prefix hdf5)
 ```
@@ -118,7 +108,7 @@ clang++ -std=c++23 -O3 \
     $(find DRAGON DRAGONWING -name "*.cpp") \
     -lhdf5_cpp -lhdf5
 ```
-The test suite can be built as follows:
+The test suite can be built similarly as follows:
 ```bash
 HDF5_PATH=$(brew --prefix hdf5)
 ```
