@@ -63,7 +63,7 @@ Important switches include:
 
 Physical parameters meanwhile can be found in `DRAGON/Constants.h`. Currently, the only such value is the specific heat ratio `_gamma`, which by default is set to 5/3.
 
-## Running a Problem
+## Setting up your Problem
 
 Along with `Config.h`, `Problem.cpp` contains the information needed to set up the problem you wish to run. Until HDF5 output is implemented, this file also includes the code to write selected simulation data to CSV files. 
 
@@ -71,24 +71,122 @@ To run a problem, edit `Config.h` to choose the numerical options and edit `Prob
 
 In future versions, several example problem files will also be provided as templates for common validation problems.
 
-## Running Tests
 
-If you are using Xcode, build and run `DRAGON_TESTS`.
-If you aren't using Xcode, you'll want to do the following
-- Exclude DRAGON/main/main.cpp and DRAGON/Problem.cpp from your build 
-- Add all files in Testing to your build
-- #define TESTMODE
+## Building DRAGON
 
-In either case, the test runner calls the verification routines and prints progress to standard output. A successful run ends with:
+DRAGON uses HDF5 for file output, so HDF5 must be installed before building and running the code.
 
-```text
-All tests passed.
+__Building on macOS with Xcode__
+
+
+On macOS, HDF5 can be installed with Homebrew:
+```bash
+brew install hdf5
+brew --prefix hdf5
+```
+The second command prints the path to the HDF5 installation on your computer.  This is usually `/opt/homebrew/opt/hdf5` on Apple Silicon Macs or `/usr/local/opt/hdf5` on Intel Macs.
+
+In Xcode, open the project's build settings and add (using the path you got from the last step in place of `<Path_To_HDF5>`)
+- `<Path_To_HDF5>/include` to *Header Search Paths*
+- `<Path_To_HDF5>/lib` to *Library Search Paths*
+- `<Path_To_HDF5>/lib` to *Runpath Search Paths*. 
+- `-lhdf5_cpp` to *Other Linker Flags*
+- `-lhdf5` to *Other Linker Flags*
+
+Once you do this, you should be able to build and run the DRAGON target.
+To run the unit test stuite, instead build the DRAGON_TESTS target.
+
+If the project builds but fails when running, go to *Signing & Capabilities* for each executable target and ensure that `Disable Library Validation` is enabled under *Hardened Runtime*. If this was disabled, clean and build before trying to run the code again.
+
+
+__Building on macOS Without Xcode__
+
+
+On macOS, HDF5 can be installed with Homebrew:
+```bash
+brew install hdf5
+brew --prefix hdf5
 ```
 
+Then navigate to the project root.
+You can compile the code with
+```bash
+HDF5_PATH=$(brew --prefix hdf5)
+```
+```bash
+clang++ -std=c++23 -O3 \
+    -I"$HDF5_PATH/include" \
+    -L"$HDF5_PATH/lib" \
+    -Wl,-rpath,"$HDF5_PATH/lib" \
+    -o DRAGON \
+    $(find DRAGON DRAGONWING -name "*.cpp") \
+    -lhdf5_cpp -lhdf5
+```
+The test suite can be built as follows:
+```bash
+HDF5_PATH=$(brew --prefix hdf5)
+```
+```bash
+clang++ -std=c++23 -O3 \
+    -DTESTMODE \
+    -I"$HDF5_PATH/include" \
+    -L"$HDF5_PATH/lib" \
+    -Wl,-rpath,"$HDF5_PATH/lib" \
+    -o DRAGON_TESTS \
+    $(find DRAGON DRAGONWING Testing -name "*.cpp") \
+    -lhdf5_cpp -lhdf5
+```
 
-## License
+__Building on Linux__
 
-DRAGON is licensed under the Apache License 2.0. See `LICENSE` for details.
+On Linux, use your system package manager. For example, on Debian/Ubuntu:
+```bash
+sudo apt install libhdf5-dev
+```
+
+You can compile with your normal C++ compiler and manually provide the HDF5 include and library paths. If HDF5 is installed in a standard system location, this may be sufficient:
+```bash
+g++ -std=c++23 -O3 \
+    -o DRAGON \
+    $(find DRAGON DRAGONWING -name "*.cpp") \
+    -lhdf5_cpp -lhdf5
+```
+
+The test suite can be built similarly
+```bash
+g++ -std=c++23 -O3 \
+    -DTESTMODE \
+    -o DRAGON_TESTS \
+    $(find DRAGON DRAGONWING Testing -name "*.cpp") \
+    -lhdf5_cpp -lhdf5
+```
+
+If your system provides the HDF5 compiler wrapper, you can use `h5c++` instead of manually specifying the linker flags:
+```bash
+h5c++ -std=c++23 -O3 \
+    -o DRAGON \
+    $(find DRAGON DRAGONWING -name "*.cpp")
+```
+```bash
+h5c++ -std=c++23 -O3 \
+    -DTESTMODE \
+    -o DRAGON_TESTS \
+    $(find DRAGON DRAGONWING Testing -name "*.cpp")
+```
+
+If the compiler cannot find `H5Cpp.h`, add the appropriate include path with `-I`. 
+
+If the linker cannot find the HDF5 libraries, add the appropriate library path with `-L`.
+
+
+You can check whether HDF5 is available with:
+```bash
+h5c++ -show
+```
+or:
+```bash
+h5ls --version
+```
 
 
 ## Status and Roadmap
@@ -108,6 +206,12 @@ Additional features planned for future versions include:
 - Source Terms
 - Passive Scalars
 - Resistivity and Extended MHD
+
+
+## License
+
+DRAGON is licensed under the Apache License 2.0. See `LICENSE` for details.
+
 
 ## Use of Generative AI
 
