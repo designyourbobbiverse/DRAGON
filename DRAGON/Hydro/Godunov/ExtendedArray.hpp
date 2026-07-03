@@ -38,6 +38,14 @@ struct ExtendedArray1D{
     }
     int getSize() const{ return size; }
     int getGhosts() const{ return ghosts; }
+    
+    //Cloning
+    void clone(const ExtendedArray1D& ref){
+        for(int i = -ghosts; i<size+ghosts;i++){
+            (*this)[i] = ref[i];
+        }
+    }
+    
 private:
     T* x; //The array storing all of the objects
     int ghosts, size;
@@ -75,6 +83,16 @@ struct ExtendedArray2D{
     int getSizeX() const{ return nx; }
     int getSizeY() const{ return ny; }
     int getGhosts() const{ return ghosts; }
+    
+    //Cloning
+    void clone(const ExtendedArray2D& ref){
+        for(int i = -ghosts; i<nx+ghosts;i++){
+            for(int j = -ghosts; j<ny+ghosts;j++){
+                (*this)[i,j] = ref[i,j];
+            }
+        }
+    }
+    
 private:
     T* x; //The array storing all of the objects
     int ghosts, nx, ny;
@@ -89,7 +107,7 @@ struct ExtendedArray3D{
         x = new T[(nx+2*ghosts)*(ny+2*ghosts)*(nz+2*ghosts)];
     }
     ~ExtendedArray3D(){ delete[] x; }
-    ExtendedArray3D(const ExtendedArray3D&) = delete; //No copying
+    ExtendedArray3D(const ExtendedArray3D&) = delete; //No implicit copying
     ExtendedArray3D& operator=(const ExtendedArray3D&) = delete;
     
     //Grid access
@@ -116,6 +134,17 @@ struct ExtendedArray3D{
     int getSizeY() const{ return ny; }
     int getSizeZ() const{ return nz; }
     int getGhosts() const{ return ghosts; }
+    
+    //Cloning
+    void clone(const ExtendedArray3D& ref){
+        for(int i = -ghosts; i<nx+ghosts;i++){
+            for(int j = -ghosts; j<ny+ghosts;j++){
+                for(int k = -ghosts; k<nz+ghosts;k++){
+                    (*this)[i,j,k] = ref[i,j,k];
+                }
+            }
+        }
+    }
 private:
     T* x; //The array storing all of the objects
     int ghosts, nx, ny, nz;
