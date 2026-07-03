@@ -73,7 +73,7 @@ To run a problem, edit `Config.h` to choose the numerical options and edit `Prob
 In future versions, several example problem files will also be provided as templates for common validation problems.
 
 
-## Building DRAGON with Xcode
+## Building DRAGON on macOS (Xcode)
 
 DRAGON uses HDF5 for file output, so HDF5 must be installed before building and running the code.
 On macOS, HDF5 can be installed with Homebrew:
