@@ -5,18 +5,18 @@
 //  Created by Bobbie Markwick on 28/06/2026.
 //
 
-#include "Boundary.hpp"
+#include "Jets.hpp"
 #include "Grid.hpp"
 #include <cmath>
 
 using namespace Boundary;
 #ifdef MHD
 //MARK: Constructors
-Boundary::ToroidalJet::ToroidalJet(double rho, double v, double p, double beta, double rm, double rj, int face): Jet(rho,v,p,rj,face), beta(beta), rm(rm) { }
-Boundary::ToroidalJet::ToroidalJet(double rho, double v, double p, double beta, double rm, double rj, std::string face): Jet(rho,v,p,rj,face), beta(beta), rm(rm){ }
+MHDJet::MHDJet(double rho, double v, double p, double beta, double rm, double rj, int face): Jet(rho,v,p,rj,face), beta(beta), rm(rm) { }
+MHDJet::MHDJet(double rho, double v, double p, double beta, double rm, double rj, std::string face): Jet(rho,v,p,rj,face), beta(beta), rm(rm){ }
 
 //MARK: 1D
-void Boundary::ToroidalJet::apply(Grid1D& grid) {
+void MHDJet::apply(Grid1D& grid) {
     //Construct a jet with reduced thermal pressure
     double pj = p * fabs(beta)/(1.0+ fabs(beta));
     std::swap(pj,p);
@@ -41,7 +41,7 @@ void Boundary::ToroidalJet::apply(Grid1D& grid) {
 
 //MARK: 2D
 //All applicable ghost cells are set to equal this->state
-void Boundary::ToroidalJet::apply(Grid2D& grid) {
+void MHDJet::apply(Grid2D& grid) {
     //Construct a jet with reduced thermal pressure
     double pj = p * fabs(beta)/(1.0+ fabs(beta));
     std::swap(pj,p);
@@ -91,7 +91,7 @@ void Boundary::ToroidalJet::apply(Grid2D& grid) {
 
 //MARK: 3D
 //All applicable ghost cells are set to equal this->state
-void Boundary::ToroidalJet::apply(Grid3D& grid) {
+void MHDJet::apply(Grid3D& grid) {
     //Reuse existing logic to set rho, v, and p
     double pj = p / (1.0 + (rm*rm)/(fabs(beta)*rj*rj)); //Lower thermal pressure to account for B
     std::swap(pj,p);
