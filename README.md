@@ -73,13 +73,9 @@ To run a problem, edit `Config.h` to choose the numerical options and edit `Prob
 In future versions, several example problem files will also be provided as templates for common validation problems.
 
 
-## Building DRAGON
+## Building DRAGON with Xcode
 
 DRAGON uses HDF5 for file output, so HDF5 must be installed before building and running the code.
-
-__Building on macOS with Xcode__
-
-
 On macOS, HDF5 can be installed with Homebrew:
 ```bash
 brew install hdf5
@@ -100,8 +96,7 @@ To run the unit test stuite, instead build the DRAGON_TESTS target.
 If the project builds but fails when running, go to *Signing & Capabilities* for each executable target and ensure that `Disable Library Validation` is enabled under *Hardened Runtime*. If this was disabled, clean and build before trying to run the code again.
 
 
-__Building on macOS Without Xcode__
-
+## Building DRAGON on macOS (Terminal)
 
 On macOS, HDF5 can be installed with Homebrew:
 ```bash
@@ -138,9 +133,9 @@ clang++ -std=c++23 -O3 \
     -lhdf5_cpp -lhdf5
 ```
 
-__Building on Linux__
+## Building DRAGON on Linux
 
-On Linux, use your system package manager. For example, on Debian/Ubuntu:
+On Linux, use your system package manager to install HDF5. For example, on Debian/Ubuntu:
 ```bash
 sudo apt install libhdf5-dev
 ```
