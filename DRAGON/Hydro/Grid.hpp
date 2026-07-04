@@ -24,7 +24,7 @@ public:
 
 
 class Grid1D: public Grid{
-private:
+protected:
     ExtendedArray1D<PrimitiveState> w;
 public:
     double dx; //Phsyical scale of a grid unit
@@ -48,7 +48,7 @@ public:
 };
 
 class Grid2D: public Grid{
-private:
+protected:
     ExtendedArray2D<PrimitiveState> w;
 #ifdef MHD
     ExtendedArray2D<vec3> A;//Magnetic Vector Potential
@@ -79,7 +79,7 @@ public:
     #ifdef MHD
     void initialize_B_fields();
     #endif
-private:
+protected:
     int sweep_step = 0;
 
     void advanceX(double dt); //Advance a single split step in X
@@ -92,7 +92,7 @@ private:
 };
 
 class Grid3D: public Grid{
-private:
+protected:
     ExtendedArray3D<PrimitiveState>  w;
 #ifdef MHD
     ExtendedArray3D<vec3> A;//Magnetic Vector Potential
@@ -123,7 +123,7 @@ public:
     #ifdef MHD
     void initialize_B_fields();
     #endif
-private:
+protected:
     int sweep_step = 0;
     
     void advanceX(double dt); //Advance a single split step in X
