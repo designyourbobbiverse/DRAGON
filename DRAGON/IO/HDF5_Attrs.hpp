@@ -30,10 +30,13 @@ constexpr std::string key_A = key_fluid +"/A";
 constexpr std::string key_Ax = key_A + "/x";
 constexpr std::string key_Ay = key_A + "/y";
 constexpr std::string key_Az = key_A + "/z";
+
 //Metadata
 constexpr std::string key_fmt = "format_version";
 constexpr std::string key_wrt_opt = "write_option";
 constexpr std::string key_dim = "dim";
+constexpr std::string key_mhd = "MHD";
+
 constexpr std::string key_nx = "nx";
 constexpr std::string key_ny = "ny";
 constexpr std::string key_nz = "nz";

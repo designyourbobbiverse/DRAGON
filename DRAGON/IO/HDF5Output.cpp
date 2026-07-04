@@ -6,10 +6,11 @@
 //
 
 #include "HDF5Output.hpp"
-#include <H5Cpp.h>
-#include <vector>
 #include "Config.h"
 #include "HDF5_Attrs.hpp"
+#include <H5Cpp.h>
+#include <vector>
+#include <format>
 
 #define HDF5_WRITE_ENERGY (HDF5_WRITE_PRIMITIVE_AND_ENERGY - HDF5_WRITE_PRIMITIVE)
 #define HDF5_WRITE_PRIMS (HDF5_WRITE_OPTION & HDF5_WRITE_PRIMITIVE)
@@ -59,10 +60,10 @@ void writeIntAttribute(H5::H5File& file, const std::string& name, int value) {
 
 
 //MARK: Dispatch
-void writeToFile(Grid& grid, double t, int cycle, const std::string& filename){
-    Grid1D* grid1D = dynamic_cast<Grid1D*>(&grid);
-    if(grid1D){
-        writeToFile(*grid1D, t, cycle, filename);
+void IO::writeToFile(Grid& grid, double t, int cycle, const std::string& filename){
+    Grid3D* grid3D = dynamic_cast<Grid3D*>(&grid);
+    if(grid3D){
+        writeToFile(*grid3D, t, cycle, filename);
         return;
     }
     Grid2D* grid2D = dynamic_cast<Grid2D*>(&grid);
@@ -70,9 +71,9 @@ void writeToFile(Grid& grid, double t, int cycle, const std::string& filename){
         writeToFile(*grid2D, t, cycle, filename);
         return;
     }
-    Grid3D* grid3D = dynamic_cast<Grid3D*>(&grid);
-    if(grid3D){
-        writeToFile(*grid3D, t, cycle, filename);
+    Grid1D* grid1D = dynamic_cast<Grid1D*>(&grid);
+    if(grid1D){
+        writeToFile(*grid1D, t, cycle, filename);
         return;
     }
     
@@ -95,6 +96,12 @@ void IO::writeToFile(Grid1D& grid, double t, int cycle, const std::string& filen
     writeIntAttribute(file, key_fmt, 1);
     writeIntAttribute(file, key_wrt_opt, HDF5_WRITE_OPTION);
     writeIntAttribute(file, key_dim, 1);
+    #ifdef MHD
+    writeIntAttribute(file, key_mhd, 1);
+    #else
+    writeIntAttribute(file, key_mhd, 0);
+    #endif
+    
     #ifdef WRITE_GHOSTS_TO_FILE
     writeIntAttribute(file, key_ng, ng);
     #else
@@ -197,6 +204,12 @@ void IO::writeToFile(Grid2D& grid, double t, int cycle, const std::string& filen
     writeIntAttribute(file, key_fmt, 1);
     writeIntAttribute(file, key_wrt_opt, HDF5_WRITE_OPTION);
     writeIntAttribute(file, key_dim, 2);
+    #ifdef MHD
+    writeIntAttribute(file, key_mhd, 1);
+    #else
+    writeIntAttribute(file, key_mhd, 0);
+    #endif
+    
     #ifdef WRITE_GHOSTS_TO_FILE
     writeIntAttribute(file, key_ng, ng);
     #else
@@ -314,6 +327,11 @@ void IO::writeToFile(Grid3D& grid, double t, int cycle, const std::string& filen
     writeIntAttribute(file, key_fmt, 1);
     writeIntAttribute(file, key_wrt_opt, HDF5_WRITE_OPTION);
     writeIntAttribute(file, key_dim, 3);
+    #ifdef MHD
+    writeIntAttribute(file, key_mhd, 1);
+    #else
+    writeIntAttribute(file, key_mhd, 0);
+    #endif
     #ifdef WRITE_GHOSTS_TO_FILE
     writeIntAttribute(file, key_ng, ng);
     #else
