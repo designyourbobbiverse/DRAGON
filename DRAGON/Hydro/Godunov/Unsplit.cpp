@@ -147,14 +147,29 @@ void Grid2D::advanceXY(double dt){
             U += (dt/dy) * (F_Y[i,j] - F_Y[i,j+1]);
             _w[i,j] = U;
             
-            if(!U.isFinite())  {
-                
-                throw std::format("NaN state would be produced at ({},{})",i,j);
-            }
+            if(!U.isFinite()) throw std::format("NaN state would be produced at ({},{})",i,j);
+            #ifndef MHD //Do the safety check that MHD doesn't do yet
             if(!_w[i,j].isPhysical())  throw std::format("Unphsyical state would be produced at ({},{})",i,j);
+            #endif
         }
     }
     
+    //Preliminary CT Update
+    #ifdef MHD
+    MagneticArray2D _A(nx+1,ny+1,ghosts);
+    _A.clone(A);
+    CT::updatePotential(_A, F_X, F_Y, dt);
+    CT::computeFaceFields(_A, B, dx, dy);
+    CT::computeBodyFields(B, _w);
+
+    for(int i=0; i<nx; i++){
+        for(int j=0; j<ny; j++){
+            if(!_w[i,j].isPhysical())
+                throw std::format("Unphysical state would be produced by CT at ({},{})",i,j);
+        }
+    }
+    #endif
+        
     //Wait for any parallel grids to finish
     DRAGONWING::reportCheckpoint1();
     if(!DRAGONWING::waitForCheckpoint1()) return;
@@ -165,13 +180,10 @@ void Grid2D::advanceXY(double dt){
             w[i,j] = _w[i,j];
         }
     }
-    
-    //CT Update
     #ifdef MHD
-    CT::updatePotential(A, F_X, F_Y, dt);
-    CT::computeFaceFields(A, B, dx, dy);
-    computeBodyAveragedFields(B);
+    A.clone(_A);
     #endif
+    
 }
 
 //MARK: 3D Unsplit Step
