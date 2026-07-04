@@ -76,6 +76,17 @@ constexpr double Timestep_Tolerance = 1e-14; //Timesteps smaller than this are t
     #define CTU //Corner Transport Upwind.  Colella (1990). https://doi.org/10.1016/0021-9991(90)90233-Q
 
 
+//MARK: Output
+    #define HDF5_WRITE_PRIMITIVE 1 //Only write the primitive values to the output files
+    #define HDF5_WRITE_CONSERVATIVE 6 //Only write the conservative values to the output files
+    #define HDF5_WRITE_PRIMITIVE_AND_ENERGY 3 //Write the primitive values, plus the energy density
+    #define HDF5_WRITE_PRIMITIVE_AND_CONSERVATIVE 7 //Write both Primitive and Conservative values (produces larger files)
+    //Unlike other configuration choices, CHOOSE_RUNTIME is not available here
+#define HDF5_WRITE_OPTION HDF5_WRITE_PRIMITIVE_AND_ENERGY //Determines which fluid representation to use for output files
+
+#define WRITE_GHOSTS_TO_FILE //Writes ghost cells to file. Useful for debugging, but typically you want to disable this in production runs
+
+
 //MARK: Grid Operation
 
 constexpr int core_count = 16; //Helps the Root level grid decide how many children to split into

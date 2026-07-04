@@ -38,8 +38,6 @@
 		F73197CD2FF75E990012ACCF /* Exceptions for "Examples" folder in "DRAGON" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				CollidingFlows/Jets/Jet.cpp,
-				CollidingFlows/Jets/MHDJet.cpp,
 				CollidingFlows/Problem.cpp,
 			);
 			target = F70D18F22FA12B5A00A2B235 /* DRAGON */;
@@ -72,6 +70,8 @@
 				Hydro/Riemann/HLLD.cpp,
 				Hydro/Riemann/Roe.cpp,
 				Hydro/TVD/TVD.cpp,
+				IO/HDF5Output.cpp,
+				IO/HDF5Restart.cpp,
 				MHD/CT.cpp,
 				Refinement/DistGrid.cpp,
 			);
@@ -131,11 +131,30 @@
 		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
+/* Begin PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
+		F73197E32FF8A9320012ACCF /* Exceptions for "DRAGON" folder in "Compile Sources" phase from "DRAGON" target */ = {
+			isa = PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet;
+			buildPhase = F70D18EF2FA12B5A00A2B235 /* Sources */;
+			membershipExceptions = (
+				IO/HDF5_Attrs.hpp,
+			);
+		};
+		F73197E42FF8A9320012ACCF /* Exceptions for "DRAGON" folder in "Compile Sources" phase from "DRAGON_TESTS" target */ = {
+			isa = PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet;
+			buildPhase = F77A71582FB415A5006C2776 /* Sources */;
+			membershipExceptions = (
+				IO/HDF5_Attrs.hpp,
+			);
+		};
+/* End PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		F70D18F52FA12B5A00A2B235 /* DRAGON */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
+				F73197E32FF8A9320012ACCF /* Exceptions for "DRAGON" folder in "Compile Sources" phase from "DRAGON" target */,
 				F77A71642FB415B4006C2776 /* Exceptions for "DRAGON" folder in "DRAGON_TESTS" target */,
+				F73197E42FF8A9320012ACCF /* Exceptions for "DRAGON" folder in "Compile Sources" phase from "DRAGON_TESTS" target */,
 			);
 			path = DRAGON;
 			sourceTree = "<group>";

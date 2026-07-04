@@ -16,6 +16,7 @@ typedef DistGrid3D MyGrid;
 constexpr double rho_jet = 3;
 constexpr double rho_amb = rho_jet/6.0;
 constexpr double p_amb = rho_amb * 1.5e-5 ;
+double Bz = 0.0;//sqrt(8*M_PI*p_amb)/10;
 
 Grid& Problem::makeProblem(){
     int res = 2;
@@ -23,7 +24,7 @@ Grid& Problem::makeProblem(){
     auto _grid = new MyGrid(64*res, 64*res,64*res, dx, dy, dz);
     MyGrid& grid = *_grid;
     
-    grid.boundary = MHDJet(rho_jet, 7e-2, p_amb, 5.0, 1.0, 2.4, "Z");
+    grid.boundary = MHDJet(rho_jet, 7e-2, p_amb, 10.0, 1.0, 2.4, "Z");
     
     for(int i=0; i<=grid.getSizeX(); i++){
         for(int j=0; j<=grid.getSizeY(); j++){
@@ -31,7 +32,7 @@ Grid& Problem::makeProblem(){
                 grid[i,j,k].rho = rho_amb;
                 grid[i,j,k].p = p_amb;
                 grid[i,j,k].v = {0,0,0};
-                grid._A()[i,j,k] = {0,0,0};
+                grid._A()[i,j,k] = 0.5*Bz * vec3{-j*dy,i*dx,0};
             }
         }
     }
@@ -41,17 +42,11 @@ Grid& Problem::makeProblem(){
 }
 
 
-void Problem::cycleComplete(Grid& problem, int cycle, double time){
+void Problem::cycleComplete(Grid& problem, int cycle){
     MyGrid& grid = *dynamic_cast<MyGrid*>(&problem);
     
     //Frame Number
     auto numStr = std::string(cycle<1000 ? "0" : "") + std::string(cycle<100 ? "0" : "") + std::string(cycle<10 ? "0" : "") +  std::to_string(cycle);
-    std::cout<<"Frame "<<numStr<<" computed, ";
-    //Time
-    int h = floor(time/3600.0), m = floor((time-h*3600.0)/60.0);
-    double s = round((time - h*3600 - m*60)*100)/100.0;
-    std::cout << "Time: "<< h << "h "<< m <<"m " << s <<"s \n";
-    
     //Output
     std::string filename = "/Users/bobbiemarkwick/DRAGON_OUT/frame-" + numStr  +".csv";
     std::string filename_B = "/Users/bobbiemarkwick/DRAGON_OUT/frame-B-" + numStr  +".csv";

@@ -1,0 +1,30 @@
+//
+//  HDF5Output.hpp
+//  DRAGON/IO
+//
+//  Created by Bobbie Markwick on 03/07/2026.
+//
+
+#ifndef HDF5Output_hpp
+#define HDF5Output_hpp
+
+#include "Grid.hpp"
+#include <string>
+
+namespace IO{
+    
+
+void writeToFile(Grid& grid, double t, int cycle, const std::string& filename);
+
+void writeToFile(Grid1D& grid, double t, int cycle, const std::string& filename);
+void writeToFile(Grid2D& grid, double t, int cycle, const std::string& filename);
+void writeToFile(Grid3D& grid, double t, int cycle, const std::string& filename);
+
+void loadFromFile(Grid1D& grid, double& t, int& cycle, const std::string filename);
+void loadFromFile(Grid2D& grid, double& t, int& cycle, const std::string filename);
+void loadFromFile(Grid3D& grid, double& t, int& cycle, const std::string filename);
+
+}
+
+
+#endif /* HDF5Output_hpp */
