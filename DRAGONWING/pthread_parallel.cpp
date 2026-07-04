@@ -93,7 +93,7 @@ void DRAGONWING::reportCheckpoint2(){
 
 bool DRAGONWING::requestRestart(std::string msg){
     std::unique_lock lock(mutex);
-    restart_msg = msg;
+    if(restart_msg.size() < 1) restart_msg = msg;
     if(nthreads == 0) return false; //Single thread mode
     abort_requested = true;
     lock.unlock();
