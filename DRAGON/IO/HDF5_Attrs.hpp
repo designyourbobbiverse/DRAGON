@@ -46,3 +46,6 @@ constexpr std::string key_dy = "dy";
 constexpr std::string key_dz = "dz";
 constexpr std::string key_cyc = "cycle";
 constexpr std::string key_time = "time";
+
+//HDF5 File extension
+constexpr std::string file_ext = ".h5";
