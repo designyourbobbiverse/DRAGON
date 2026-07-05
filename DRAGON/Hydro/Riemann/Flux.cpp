@@ -15,11 +15,6 @@
 
 
 //MARK: Selected Flux algorithm
-#if RIEMANN_DEFAULT == CHOOSE_RUNTIME || defined(TESTMODE)
-namespace CONFIG {
-    int riemann_choice = RIEMANN_EXACT;
-}
-#endif
 
 //Make sure to set RIEMANN_DEFAULT in Config.h
 ConservativeState Riemann::flux(double dt_dx){

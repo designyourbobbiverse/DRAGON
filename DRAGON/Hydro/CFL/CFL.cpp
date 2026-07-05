@@ -58,12 +58,6 @@ double CFL::cfl_pow_speed(const PrimitiveState& W, double p, double dx, double d
 }
 
 //MARK: Configuration-Control
-#if CFL_CALCULATION == CHOOSE_RUNTIME || defined(TESTMODE)
-namespace CONFIG {
-    int cfl_choice = CFL_ADD;
-}
-#endif
-
 double CFL::cfl_speed(const PrimitiveState& W, double dx, double dy, double dz){
 #if CFL_CALCULATION == CHOOSE_RUNTIME || defined(TESTMODE) //Choose at runtime (which is always the case when unit testing)
     switch(CONFIG::cfl_choice){

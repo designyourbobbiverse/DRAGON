@@ -53,12 +53,6 @@ void TVD::MUSCL(const PrimitiveState& wL, PrimitiveState& _L, const PrimitiveSta
 
 //MARK: Limiter Selection
 
-#if MUSCL_DEFAULT_LIMITER == CHOOSE_RUNTIME || defined(TESTMODE)
-namespace CONFIG {
-    int limiter_choice = LIMITER_MINMOD;
-}
-#endif
-
 PrimitiveState TVD::limit(const PrimitiveState& a, const PrimitiveState& b) {
 #if MUSCL_DEFAULT_LIMITER == CHOOSE_RUNTIME || defined(TESTMODE)
     //User wants to choose their limiter at runtime (or is unit testing and needs all of them)

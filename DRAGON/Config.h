@@ -106,15 +106,15 @@ constexpr int core_count = 16; //Helps the Root level grid decide how many child
 
 //MARK: Choose at Runtime
 #if RIEMANN_DEFAULT == CHOOSE_RUNTIME || defined(TESTMODE)
-extern int riemann_choice;
+static int riemann_choice = RIEMANN_EXACT;
 #endif
 #if MUSCL_DEFAULT_LIMITER == CHOOSE_RUNTIME || defined(TESTMODE)
-extern int limiter_choice;
+static int limiter_choice = LIMITER_MINMOD;
 #endif
 #if CFL_CALCULATION == CHOOSE_RUNTIME || defined(TESTMODE)
 //If set to p>0,  CFL uses  speed = [ ((|v.x|+a)/dx)^p + ((|v.y|+a)/dy)^p +... ]^(1/p)
 //If set to 0, CFL uses max[ (|v.x|+a)/dx, (|v.y|+a)/dy, ... ]
-extern int cfl_choice;
+static int cfl_choice = CFL_ADD;
 #endif
 }
 
