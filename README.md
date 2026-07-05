@@ -33,6 +33,7 @@ DRAGON/
     Godunov/        Sweep logic, split/unsplit updates
     Riemann/        Riemann solvers
     TVD/            MUSCL Reconstruction + limiter options
+  IO/               HDF5 output + simulation restart
   main/             Program Main
   MHD/              Constrained Transport
   Refinement/       Partitioning Grids into parallelisable subgrids (will eventually evolve into AMR)
