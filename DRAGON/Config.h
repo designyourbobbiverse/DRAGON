@@ -8,7 +8,9 @@
 #ifndef Config_h
 #define Config_h
 
-//How to use this file
+#include <string>
+
+//MARK: How to use this file
 //If something is indented once and sits above something else, it is one of the options for the something else
     //For example, RIEMANN default has several choices listed above it, such as RIEMANN_EXACT, RIEMANN_HLLC, RIEMANN_ROE, etc
     //For any of these choice items, you also have this option available, which allows you to choose the option at runtime (see the bottom of this header file)
@@ -22,8 +24,12 @@
     //Indented and below generally priority over Indented and above (e.g. ExactRiemann_MaxIters is a parameter for RIEMANN_EXACT, not one of the options for RIEMANN_HLL [which doesn't even have options])
 
 
+//MARK: Top level Options
+
 #define MHD //Determines whether the simulation is run using MHD or Pure Hydrodynamics
 
+#define DIMENSION_UNSPLIT //Use an Unsplit advancement scheme for multidimensional flows
+    #define CTU //Corner Transport Upwind.  Colella (1990). https://doi.org/10.1016/0021-9991(90)90233-Q
 
     
 //MARK: Riemann Solver
@@ -71,16 +77,18 @@ constexpr double Timestep_Tolerance = 1e-14; //Timesteps smaller than this are t
         #define LIMITER_VANALBADA 4 //Smooth, reduces clipping near smooth extrema while remaining shock-safe
     #define MUSCL_DEFAULT_LIMITER LIMITER_MINMOD
 
-//MARK: Split vs Unsplit
-#define DIMENSION_UNSPLIT //Use an Unsplit advancement scheme for multidimensional flows
-    #define CTU //Corner Transport Upwind.  Colella (1990). https://doi.org/10.1016/0021-9991(90)90233-Q
 
+//MARK: File I/O
+constexpr std::string output_dir = ""; //Set this to your output directory
 
-//MARK: Output
+#define RESTART_FROM_FILE //Attempt to restart from the output of a previous run
+    #define RESTART_FRAME -1 //Use a number <0 to automatically find the latest file and restart from that
+
+//Output parameters
     #define HDF5_WRITE_PRIMITIVE 1 //Only write the primitive values to the output files
     #define HDF5_WRITE_CONSERVATIVE 6 //Only write the conservative values to the output files
     #define HDF5_WRITE_PRIMITIVE_AND_ENERGY 3 //Write the primitive values, plus the energy density
-    #define HDF5_WRITE_PRIMITIVE_AND_CONSERVATIVE 7 //Write both Primitive and Conservative values (produces larger files)
+    #define HDF5_WRITE_PRIMITIVE_AND_CONSERVATIVE 7 //Write both Primitive & Conservative values (produces larger files)
     //Unlike other configuration choices, CHOOSE_RUNTIME is not available here
 #define HDF5_WRITE_OPTION HDF5_WRITE_PRIMITIVE_AND_ENERGY //Determines which fluid representation to use for output files
 

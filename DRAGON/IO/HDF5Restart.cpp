@@ -68,6 +68,7 @@ void IO::loadFromFile(Grid& grid, double& t, int& cycle, const std::string& file
 
 //MARK: 1D
 void IO::loadFromFile(Grid1D& grid, double& t, int& cycle, const std::string& filename){
+    std::string path = output_dir + "/" + filename;
     H5::H5File file(filename, H5F_ACC_RDONLY);
     
     //Verify compatibility
@@ -145,6 +146,7 @@ void IO::loadFromFile(Grid1D& grid, double& t, int& cycle, const std::string& fi
 
 //MARK: 2D
 void IO::loadFromFile(Grid2D& grid, double& t, int& cycle, const std::string& filename){
+    std::string path = output_dir + "/" + filename;
     H5::H5File file(filename, H5F_ACC_RDONLY);
     
     //Verify compatibility
@@ -242,6 +244,7 @@ void IO::loadFromFile(Grid2D& grid, double& t, int& cycle, const std::string& fi
 }
 //MARK: 3D
 void IO::loadFromFile(Grid3D& grid, double& t, int& cycle, const std::string& filename){
+    std::string path = output_dir + "/" + filename;
     H5::H5File file(filename, H5F_ACC_RDONLY);
     
     //Verify compatibility
