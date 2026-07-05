@@ -12,6 +12,7 @@
 #include "Constants.h"
 #include <math.h>
 #include <iostream>
+using namespace CONFIG;
 
 //MARK: Individual Speeds
 //CFL speed = highest (|v|+a)/dL of any one side

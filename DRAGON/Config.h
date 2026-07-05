@@ -31,7 +31,7 @@
 #define DIMENSION_UNSPLIT //Use an Unsplit advancement scheme for multidimensional flows
     #define CTU //Corner Transport Upwind.  Colella (1990). https://doi.org/10.1016/0021-9991(90)90233-Q
 
-    
+namespace CONFIG{
 //MARK: Riemann Solver
 //DRAGON offers several different choices of Riemann Solver in Hydrodynamic mode, and choice of HLL/D/E in MHD
     #define RIEMANN_EXACT 0 //Produces an exact solution to the Hydrodynamic Euler Equations using an iterative procedure
@@ -79,7 +79,7 @@ constexpr double Timestep_Tolerance = 1e-14; //Timesteps smaller than this are t
 
 
 //MARK: File I/O
-constexpr std::string output_dir = ""; //Set this to your output directory
+static std::string output_dir = ""; //Set this to your output directory
 
 #define RESTART_FROM_FILE //Attempt to restart from the output of a previous run
     #define RESTART_FRAME -1 //Use a number <0 to automatically find the latest file and restart from that
@@ -105,7 +105,6 @@ constexpr int core_count = 16; //Helps the Root level grid decide how many child
 //******************************************************************//
 
 //MARK: Choose at Runtime
-namespace CONFIG{
 #if RIEMANN_DEFAULT == CHOOSE_RUNTIME || defined(TESTMODE)
 extern int riemann_choice;
 #endif

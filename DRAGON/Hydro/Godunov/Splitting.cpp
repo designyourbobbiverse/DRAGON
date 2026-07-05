@@ -48,7 +48,7 @@ int Grid3D::getGhosts() const { return w.getGhosts(); }
 
 //MARK: 2D Split
 void Grid2D::advance_split(double dt, bool check_cfl){
-    while(dt > Timestep_Tolerance){
+    while(dt > CONFIG::Timestep_Tolerance){
         //CFL Time Constraint
         double t1 = check_cfl ? std::min(dt,CFL::cfl_time(*this)) : dt;
         dt -= t1;
@@ -67,7 +67,7 @@ void Grid2D::advance_split(double dt, bool check_cfl){
 }
 //MARK: 3D Split
 void Grid3D::advance_split(double dt, bool check_cfl){
-    while(dt > Timestep_Tolerance){
+    while(dt > CONFIG::Timestep_Tolerance){
         //CFL Time Constraint
         double t1 = check_cfl ? std::min(dt,CFL::cfl_time(*this)) : dt;
         dt -= t1;

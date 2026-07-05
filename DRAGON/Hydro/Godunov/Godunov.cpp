@@ -35,7 +35,7 @@ void Grid1D::advance(double dt, bool check_cfl){
     int size = getSize(), ghosts = getGhosts();
     ExtendedArray1D<PrimitiveState> _L(size,ghosts), _R(size,ghosts);//Buffer Grids
     
-    while(dt > Timestep_Tolerance){
+    while(dt > CONFIG::Timestep_Tolerance){
         //Apply Boundary Conditions
         boundary.apply(*this);
         //CFL Time Constraint

@@ -31,7 +31,7 @@ static int validGhosts(int g){ //How many ghost cells are needed to do this corr
 DistGrid1D::DistGrid1D(int nx, double dx_, int g, bool root): Grid1D(nx, dx_,validGhosts(g)), size_x(nx*dx_){
     
     
-    ncx = root ? core_count : 1;
+    ncx = root ? CONFIG::core_count : 1;
 
     if (ncx > 1){ //Children
         children.reserve(ncx);
@@ -50,8 +50,8 @@ DistGrid2D::DistGrid2D(int nx, int ny, double dx_, double dy_, int g, bool root)
     if(!root){ ncx = 1; ncy = 1; return;}
     
     //Goal: nx/ncx = ny/ncy,  ncx*ncy = core_count
-    ncx = ceil(sqrt( core_count * double(nx)/double(ny)) ); //ncx = core_count / ncy =  core_count * (nx/ny)/ ncx
-    ncy = ceil(sqrt( core_count * double(ny)/double(nx)) ); //ncy = core_count / ncx =  core_count * (ny/nx)/ ncy
+    ncx = ceil(sqrt( CONFIG::core_count * double(nx)/double(ny)) ); //ncx = core_count / ncy =  core_count * (nx/ny)/ ncx
+    ncy = ceil(sqrt( CONFIG::core_count * double(ny)/double(nx)) ); //ncy = core_count / ncx =  core_count * (ny/nx)/ ncy
 
     
     if (ncx > 1 || ncy > 1){ //Children
@@ -77,9 +77,9 @@ DistGrid3D::DistGrid3D(int nx, int ny, int nz, double dx_, double dy_, double dz
         
     //Goal: nx/ncx = ny/ncy = nz/ncz,  ncx*ncy*ncz = core_count
     double rxy = double(nx)/double(ny), rxz = double(nx)/double(nz), ryz = double(ny)/double(nz);
-    ncx = ceil(pow( core_count * rxy*rxz, 0.3333) ); //ncx = core_count / (ncy*ncz) =  core_count * (nx/ny) * (nx/nz)/ ncx^2
-    ncy = ceil(pow( core_count * ryz/rxy, 0.3333) ); //ncy = core_count / (ncx*ncz) =  core_count * (ny/nx) * (ny/nz)/ ncy^2
-    ncz = ceil(pow( core_count / (rxz*ryz), 0.3333) ); //ncz = core_count / (ncy*ncz) =  core_count * (nz/nx) * (nz/ny)/ ncz^2
+    ncx = ceil(pow( CONFIG::core_count * rxy*rxz, 0.3333) ); //ncx = core_count / (ncy*ncz) =  core_count * (nx/ny) * (nx/nz)/ ncx^2
+    ncy = ceil(pow( CONFIG::core_count * ryz/rxy, 0.3333) ); //ncy = core_count / (ncx*ncz) =  core_count * (ny/nx) * (ny/nz)/ ncy^2
+    ncz = ceil(pow( CONFIG::core_count / (rxz*ryz), 0.3333) ); //ncz = core_count / (ncy*ncz) =  core_count * (nz/nx) * (nz/ny)/ ncz^2
 
     if (ncx > 1 || ncy > 1 || ncz > 1){ //Children
         children.reserve(ncx * ncy * ncz);
@@ -288,7 +288,7 @@ void DistGrid1D::advance(double dt, bool check_cfl){
         DRAGONWING::reportCheckpoint2();
         return;
     }
-    while(dt > Timestep_Tolerance){
+    while(dt > CONFIG::Timestep_Tolerance){
         //Apply Boundary Conditions
         boundary.apply(*this);
         pushToChildren();
@@ -306,7 +306,7 @@ void DistGrid1D::advance(double dt, bool check_cfl){
             if(!success) { //If we failed, try again with half time step
                 t1 /= 2;
                 std::cout<<"\t"<<DRAGONWING::restartMsg()<<"\n";
-                if(t1 < Timestep_Tolerance){
+                if(t1 < CONFIG::Timestep_Tolerance){
                     std::cout<<"Timestep has fallen below minimum. Exiting\n";
                     abort();
                 }
@@ -327,7 +327,7 @@ void DistGrid2D::advance(double dt, bool check_cfl){
     }
     initialize_B_fields();
     
-    while(dt > Timestep_Tolerance){
+    while(dt > CONFIG::Timestep_Tolerance){
         //Apply Boundary Conditions
         boundary.apply(*this);
         pushToChildren();
@@ -345,7 +345,7 @@ void DistGrid2D::advance(double dt, bool check_cfl){
             if(!success) { //If we failed, try again with half time step
                 t1 /= 2;
                 std::cout<<"\t"<<DRAGONWING::restartMsg()<<"\n";
-                if(t1 < Timestep_Tolerance){
+                if(t1 < CONFIG::Timestep_Tolerance){
                     std::cout<<"Timestep has fallen below minimum. Exiting\n";
                     abort();
                 }
@@ -366,7 +366,7 @@ void DistGrid3D::advance(double dt, bool check_cfl){
     }
     initialize_B_fields();
 
-    while(dt > Timestep_Tolerance){
+    while(dt > CONFIG::Timestep_Tolerance){
         //Apply Boundary Conditions
         boundary.apply(*this);
         pushToChildren();
@@ -384,7 +384,7 @@ void DistGrid3D::advance(double dt, bool check_cfl){
             if(!success) { //If we failed, try again with half time step
                 t1 /= 2;
                 std::cout<<"\t"<<DRAGONWING::restartMsg()<<"\n";
-                if(t1 < Timestep_Tolerance){
+                if(t1 < CONFIG::Timestep_Tolerance){
                     std::cout<<"Timestep has fallen below minimum. Exiting\n";
                     abort();
                 }

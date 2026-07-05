@@ -13,6 +13,7 @@
 #include <iostream>
 
 using namespace DRAGON_Test;
+using namespace CONFIG;
 
 void DRAGON_Test::verify_cfl(bool output){
     std::cout << "CFL: \n";

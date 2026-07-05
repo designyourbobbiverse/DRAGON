@@ -42,7 +42,7 @@ void Grid2D::advance_unsplit(double dt, bool check_cfl){
     #ifdef MHD
     initialize_B_fields();
     #endif
-    while(dt > Timestep_Tolerance){
+    while(dt > CONFIG::Timestep_Tolerance){
         //CFL Time Constraint
         double t1 = check_cfl ? std::min(dt,CFL::cfl_time(*this)) : dt;
         //Advance
@@ -68,7 +68,7 @@ void Grid3D::advance_unsplit(double dt, bool check_cfl){
     #ifdef MHD //Ensure B is initialised
     initialize_B_fields();
     #endif
-    while(dt > Timestep_Tolerance){
+    while(dt > CONFIG::Timestep_Tolerance){
         //CFL Time Constraint
         double t1 = check_cfl ? std::min(dt,CFL::cfl_time(*this)) : dt;
         //Advance

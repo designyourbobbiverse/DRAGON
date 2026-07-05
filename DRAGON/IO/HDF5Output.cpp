@@ -90,7 +90,7 @@ void IO::writeToFile(Grid1D& grid, double t, int cycle, const std::string& filen
     const int i0 = 0, in = nx;
     #endif
  
-    std::string path = output_dir + "/" + filename;
+    std::string path = CONFIG::output_dir + "/" + filename;
     H5::H5File file(path, H5F_ACC_TRUNC);
     
     //Metadata
@@ -199,7 +199,7 @@ void IO::writeToFile(Grid2D& grid, double t, int cycle, const std::string& filen
     const int i0 = 0, in = nx, j0 = 0, jn = ny;
     #endif
 
-    std::string path = output_dir + "/" + filename;
+    std::string path = CONFIG::output_dir + "/" + filename;
     H5::H5File file(filename, H5F_ACC_TRUNC);
     
     //Metadata
@@ -324,7 +324,7 @@ void IO::writeToFile(Grid3D& grid, double t, int cycle, const std::string& filen
     const int i0 = 0, in = nx, j0 = 0, jn = ny, k0 = 0, kn = nz;
     #endif
 
-    std::string path = output_dir + "/" + filename;
+    std::string path = CONFIG::output_dir + "/" + filename;
     H5::H5File file(filename, H5F_ACC_TRUNC);
     
     //Metadata

@@ -71,14 +71,14 @@ RiemannSolution Riemann::exact(double pGuess){
 
 double Riemann::exact_StarP(double pGuess){
     double pStar = pGuess, CHA = 1;
-    int iters = ExactRiemann_MaxIters; //Keeps track of hwo many iterations we have left
+    int iters = CONFIG::ExactRiemann_MaxIters; //Keeps track of hwo many iterations we have left
     do{ //Newton's Method on the Velocity jump equation
         double fp = f(pStar, L) + f(pStar, R) + R.v.x - L.v.x;
         double dfdp = df(pStar, L) + df(pStar, R);
         double delta = fmin(fp/dfdp, 0.8*pStar);
         pStar -= delta;
         CHA = fabs(delta/(pStar+delta/2));
-    } while(CHA > ExactRiemann_Tolerance &&  --iters != 0 );
+    } while(CHA > CONFIG::ExactRiemann_Tolerance &&  --iters != 0 );
     return pStar;
 }
 //v* and rho* given p*
