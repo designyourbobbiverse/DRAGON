@@ -24,6 +24,11 @@ void loadFromFile(Grid1D& grid, double& t, int& cycle, const std::string& filena
 void loadFromFile(Grid2D& grid, double& t, int& cycle, const std::string& filename);
 void loadFromFile(Grid3D& grid, double& t, int& cycle, const std::string& filename);
 
+void verifyOutputDirectory();
+std::string restartFileName();
+
+std::string cycle_string(int n);
+
 }
 
 

@@ -11,6 +11,7 @@
 #include <H5Cpp.h>
 #include <vector>
 #include <format>
+#include <iostream>
 
 #define HDF5_WRITE_ENERGY (HDF5_WRITE_PRIMITIVE_AND_ENERGY - HDF5_WRITE_PRIMITIVE)
 #define HDF5_WRITE_PRIMS (HDF5_WRITE_OPTION & HDF5_WRITE_PRIMITIVE)
@@ -23,6 +24,10 @@
 #endif
 
 
+std::string IO::cycle_string(int n){
+    std::string zeroes = n<10 ? "0000" : (n<100 ? "000" : (n<1000 ? "00" : (n<10000 ? "0" : "")));
+    return zeroes +  std::to_string(n);
+}
 
 //MARK: Helpers
 namespace{
@@ -200,7 +205,7 @@ void IO::writeToFile(Grid2D& grid, double t, int cycle, const std::string& filen
     #endif
 
     std::string path = CONFIG::output_dir + "/" + filename + file_ext;
-    H5::H5File file(filename, H5F_ACC_TRUNC);
+    H5::H5File file(path, H5F_ACC_TRUNC);
     
     //Metadata
     writeIntAttribute(file, key_fmt, 1);
@@ -279,7 +284,7 @@ void IO::writeToFile(Grid2D& grid, double t, int cycle, const std::string& filen
     #ifdef MHD
     for(int i = i0; i<=in; i++){
         for(int j=j0; j<=jn; j++){
-            size_t n =  j*(in-i0+1) + i;
+            size_t n =  (j-j0)*(in-i0+1) + (i-i0);
             Az[n] = grid._A()[i,j].z;
         }
     }
@@ -325,7 +330,7 @@ void IO::writeToFile(Grid3D& grid, double t, int cycle, const std::string& filen
     #endif
 
     std::string path = CONFIG::output_dir + "/" + filename + file_ext;
-    H5::H5File file(filename, H5F_ACC_TRUNC);
+    H5::H5File file(path, H5F_ACC_TRUNC);
     
     //Metadata
     writeIntAttribute(file, key_fmt, 1);
@@ -412,7 +417,7 @@ void IO::writeToFile(Grid3D& grid, double t, int cycle, const std::string& filen
         for(int j=j0; j<=jn; j++){
             for(int k=k0; k<=kn; k++){
                 vec3 A = grid._A()[i,j,k];
-                size_t n = (k*(jn-j0+1) + j)*(in-i0+1) + i;
+                size_t n = ((k-k0)*(jn-j0+1) + j-j0)*(in-i0+1) + (i-i0);
                 Ax[n] = A.x;
                 Ay[n] = A.y;
                 Az[n] = A.z;

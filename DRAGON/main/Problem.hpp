@@ -9,5 +9,6 @@
 
 namespace Problem{
     Grid& makeProblem();
+    void initializeProblem(Grid& grid);
     void cycleComplete(Grid& problem, int cycle);
 }

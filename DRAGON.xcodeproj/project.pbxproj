@@ -72,6 +72,7 @@
 				Hydro/TVD/TVD.cpp,
 				IO/HDF5Output.cpp,
 				IO/HDF5Restart.cpp,
+				IO/OutputDir.cpp,
 				MHD/CT.cpp,
 				Refinement/DistGrid.cpp,
 			);

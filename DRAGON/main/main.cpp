@@ -2,41 +2,84 @@
 //  Created by Bobbie Markwick
 //
 
-#include <chrono>
-#include <iostream>
 #include "Problem.hpp"
+#include "Config.h"
 #include "HDF5Output.hpp"
+#include <iostream>
+#include <chrono>
 
-#ifdef TESTMODE
-#error Test mode was enabled, but main.cpp is compiled. Check your build settings
-#endif
+#ifndef TESTMODE
+
+
+static void verify_dir(){
+    try{
+        IO::verifyOutputDirectory();
+    } catch (std::exception& e){
+        std::cout<<e.what()<<std::endl;
+        throw e;
+    }
+}
+static void load(Grid& problem, double& time, int& cycle){
+    #ifdef RESTART_FROM_FILE
+    std::string file = IO::restartFileName();
+    if(file.size() > 0) {
+        IO::loadFromFile(problem, time, cycle, file);
+    } else {
+        Problem::initializeProblem(problem);
+        IO::writeToFile(problem, 0, 0, "Frame_"+IO::cycle_string(0));
+    }
+    #else
+    Problem::initializeProblem(problem);
+    IO::writeToFile(problem, 0, 0, "Frame_"+IO::cycle_string(0));
+    #endif
+}
+ 
+
+static void cycle_output(std::string cycleStr, double clock_time){
+    //Cycle Number
+    std::cout<<"Frame "<<cycleStr<<" computed, ";
+    //Time
+    int h = floor(clock_time/3600.0), m = floor((clock_time-h*3600.0)/60.0);
+    double s = round((clock_time - h*3600 - m*60)*100)/100.0;
+    std::cout << "Time: "<< h << "h "<< m <<"m " << s <<"s \n";
+}
 
 
 int main(int argc, const char * argv[]) {
     
+    
+    
     auto start = std::chrono::system_clock::now();
-
+    
     Grid& problem = Problem::makeProblem();
-
-    for(int n = 0; n<1000; n++){
-        if(n>0) problem.advance(1);
+    double time = 0.0;
+    int cycle = 0;
+    
+  
+    
+    load(problem, time, cycle);
+    //Monitor Output
+    std::string cycleStr = IO::cycle_string(cycle);
+    double clock_time = std::chrono::duration<double>(std::chrono::system_clock::now() - start).count();
+    cycle_output(cycleStr, clock_time);
+    
+    
+    while(++cycle < 100000){
+        problem.advance(1);
         //Let the problem code to do any special processing
-        Problem::cycleComplete(problem, n);
+        Problem::cycleComplete(problem, cycle);
         
-        //Ouptut Cycle Number
-        auto numStr = std::string(n<1000 ? "0" : "") + std::string(n<100 ? "0" : "") + std::string(n<10 ? "0" : "") +  std::to_string(n);
-        std::cout<<"Frame "<<numStr<<" computed, ";
-        //Time
-        std::chrono::duration<double> elapsed_seconds = std::chrono::system_clock::now() - start;
-        double time = elapsed_seconds.count();
-        int h = floor(time/3600.0), m = floor((time-h*3600.0)/60.0);
-        double s = round((time - h*3600 - m*60)*100)/100.0;
-        std::cout << "Time: "<< h << "h "<< m <<"m " << s <<"s \n";
-        
+        //Monitor Output
+        std::string cycleStr = IO::cycle_string(cycle);
+        double clock_time = std::chrono::duration<double>(std::chrono::system_clock::now() - start).count();
+        cycle_output(cycleStr, clock_time);
         
         //Write to File
-       // IO::writeToFile(problem, n, n, "Frame_"+numStr+".h5");
+        IO::writeToFile(problem, cycle, cycle, "Frame_"+cycleStr);
     }
     
     return 0;
 }
+
+
+#endif
