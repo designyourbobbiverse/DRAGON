@@ -42,7 +42,7 @@ void DRAGON_Test::verify_IO(bool output){
     if(output) std::cout << "Passed\n";
     if(output) std::cout << "All File I/O Tests Passed.\n\n";
 
-    std::remove((filename + ".h5").c_str());//Clean up
+    std::remove((CONFIG::output_dir + "/" + filename + ".h5").c_str());//Clean up
 }
 
 void DRAGON_Test::verify_IO1D(){
