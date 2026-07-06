@@ -12,6 +12,7 @@
 #include <vector>
 #include <format>
 #include <iostream>
+#include <stdexcept>
 
 #define HDF5_WRITE_ENERGY (HDF5_WRITE_PRIMITIVE_AND_ENERGY - HDF5_WRITE_PRIMITIVE)
 #define HDF5_WRITE_PRIMS (HDF5_WRITE_OPTION & HDF5_WRITE_PRIMITIVE)

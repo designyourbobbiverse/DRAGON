@@ -12,6 +12,7 @@
 #include <vector>
 #include <iostream>
 #include <format>
+#include <stdexcept>
 
 //MARK: Helpers
 namespace{
@@ -44,6 +45,11 @@ double readDoubleAttribute(H5::H5File& file, const std::string& name) {
     return value;
 }
 
+}
+std::string checkExtension(const std::string& filename) {
+    if (filename.size() <= file_ext.size()) return filename + file_ext; //Shorter = definitley missing
+    if (filename.substr(filename.size() - file_ext.size()) == file_ext) return filename;
+    return filename + file_ext;
 }
 
 //MARK: Dispatch
