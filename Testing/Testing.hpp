@@ -277,6 +277,11 @@ void verify_ct_alfven_wave_3D();
 #endif
 
 
+//MARK: I/O
+void verify_IO(bool output = true);
+void verify_IO1D();
+void verify_IO2D();
+void verify_IO3D();
 
 }
 

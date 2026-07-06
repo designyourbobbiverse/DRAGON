@@ -21,6 +21,8 @@ int main() {
     verify_boundary();
     verify_tvd();
     verify_cfl();
+    
+    verify_IO();
 
     verify_godunov_1D();
     verify_godunov_2D_Split();
