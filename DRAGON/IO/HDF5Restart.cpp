@@ -7,6 +7,7 @@
 
 #include "HDF5Output.hpp"
 #include "HDF5_Attrs.hpp"
+#include "Config.h"
 #include <H5Cpp.h>
 #include <vector>
 #include <iostream>
