@@ -31,35 +31,65 @@ std::string IO::cycle_string(int n){
 //MARK: Helpers
 namespace{
 
-void writeArray(H5::H5File& file,const std::string& name, const std::vector<double>& data, hsize_t nx){
+template <typename T> H5::PredType hdf5Type();
+    template <> H5::PredType hdf5Type<bool>() { return H5::PredType::NATIVE_INT8; }
+    template <> H5::PredType hdf5Type<int>() { return H5::PredType::NATIVE_INT; }
+    template <> H5::PredType hdf5Type<float>() { return H5::PredType::NATIVE_FLOAT; }
+    template <> H5::PredType hdf5Type<double>() { return H5::PredType::NATIVE_DOUBLE; }
+
+template <typename T>
+void writeArray(H5::H5File& file,const std::string& name, const std::vector<T>& data, hsize_t nx){
     hsize_t dims[1] = {nx};
     H5::DataSpace dataspace(1, dims);
-    H5::DataSet dataset = file.createDataSet(name, H5::PredType::NATIVE_DOUBLE, dataspace);
-    dataset.write(data.data(), H5::PredType::NATIVE_DOUBLE);
+    #if HDF5_COMPRESSION_LEVEL > 0
+    H5::DSetCreatPropList plist;
+    hsize_t chunk[1] = { std::min<hsize_t>(nx, 1024) };
+    plist.setChunk(1, chunk);
+    plist.setDeflate(HDF5_COMPRESSION_LEVEL);
+    H5::DataSet dataset = file.createDataSet(name, hdf5Type<T>(), dataspace, plist);
+    #else
+    H5::DataSet dataset = file.createDataSet(name, hdf5Type<T>(), dataspace);
+    #endif
+    dataset.write(data.data(), hdf5Type<T>());
 }
-void writeArray(H5::H5File& file,const std::string& name, const std::vector<double>& data, hsize_t nx,hsize_t ny){
+template <typename T>
+void writeArray(H5::H5File& file,const std::string& name, const std::vector<T>& data, hsize_t nx,hsize_t ny){
     hsize_t dims[2] = {ny, nx};
     H5::DataSpace dataspace(2, dims);
-    H5::DataSet dataset = file.createDataSet(name, H5::PredType::NATIVE_DOUBLE, dataspace);
-    dataset.write(data.data(), H5::PredType::NATIVE_DOUBLE);
+    #if HDF5_COMPRESSION_LEVEL > 0
+    H5::DSetCreatPropList plist;
+    hsize_t chunk[2] = { std::min<hsize_t>(ny, 32), std::min<hsize_t>(nx, 32) };
+    plist.setChunk(2, chunk);
+    plist.setDeflate(HDF5_COMPRESSION_LEVEL);
+    H5::DataSet dataset = file.createDataSet(name, hdf5Type<T>(), dataspace, plist);
+    #else
+    H5::DataSet dataset = file.createDataSet(name, hdf5Type<T>(), dataspace);
+    #endif
+    dataset.write(data.data(), hdf5Type<T>());
 }
-void writeArray(H5::H5File& file,const std::string& name, const std::vector<double>& data, hsize_t nx,hsize_t ny,hsize_t nz){
+template <typename T>
+void writeArray(H5::H5File& file,const std::string& name, const std::vector<T>& data, hsize_t nx,hsize_t ny,hsize_t nz){
     hsize_t dims[3] = {nz, ny, nx};
     H5::DataSpace dataspace(3, dims);
-    H5::DataSet dataset = file.createDataSet(name, H5::PredType::NATIVE_DOUBLE, dataspace);
-    dataset.write(data.data(), H5::PredType::NATIVE_DOUBLE);
-}
-void writeDoubleAttribute(H5::H5File& file, const std::string& name, double value) {
-    H5::DataSpace dataspace(H5S_SCALAR);
-    H5::Attribute attr = file.createAttribute(name, H5::PredType::NATIVE_DOUBLE, dataspace);
-    attr.write(H5::PredType::NATIVE_DOUBLE, &value);
+    #if HDF5_COMPRESSION_LEVEL > 0
+    H5::DSetCreatPropList plist;
+    hsize_t chunk[3] = { std::min<hsize_t>(nz, 16), std::min<hsize_t>(ny, 16), std::min<hsize_t>(nx, 16) };
+    plist.setChunk(3, chunk);
+    plist.setDeflate(HDF5_COMPRESSION_LEVEL);
+    H5::DataSet dataset = file.createDataSet(name, hdf5Type<T>(), dataspace, plist);
+    #else
+    H5::DataSet dataset = file.createDataSet(name, hdf5Type<T>(), dataspace);
+    #endif
+    dataset.write(data.data(), hdf5Type<T>());
 }
 
-void writeIntAttribute(H5::H5File& file, const std::string& name, int value) {
+template <typename T>
+void writeAttribute(H5::H5File& file, const std::string& name, T value) {
     H5::DataSpace dataspace(H5S_SCALAR);
-    H5::Attribute attr = file.createAttribute(name, H5::PredType::NATIVE_INT, dataspace);
-    attr.write(H5::PredType::NATIVE_INT, &value);
+    H5::Attribute attr = file.createAttribute(name, hdf5Type<T>(), dataspace);
+    attr.write(hdf5Type<T>(), &value);
 }
+
 }
 
 
@@ -87,8 +117,9 @@ void IO::writeToFile(Grid& grid, double t, int cycle, const std::string& filenam
 //MARK: Writing - 1D
 
 void IO::writeToFile(Grid1D& grid, double t, int cycle, const std::string& filename){
-    const int nx = grid.getSize(), ng = grid.getGhosts();
+    const int nx = grid.getSize();
     #ifdef WRITE_GHOSTS_TO_FILE
+    const int ng = grid.getGhosts();
     const int i0 = -ng, in = nx+ng;
     #else
     const int i0 = 0, in = nx;
@@ -98,24 +129,24 @@ void IO::writeToFile(Grid1D& grid, double t, int cycle, const std::string& filen
     H5::H5File file(path, H5F_ACC_TRUNC);
     
     //Metadata
-    writeIntAttribute(file, key_fmt, 1);
-    writeIntAttribute(file, key_wrt_opt, HDF5_WRITE_OPTION);
-    writeIntAttribute(file, key_dim, 1);
+    writeAttribute(file, key_fmt, 1);
+    writeAttribute(file, key_wrt_opt, HDF5_WRITE_OPTION);
+    writeAttribute(file, key_dim, 1);
     #ifdef MHD
-    writeIntAttribute(file, key_mhd, 1);
+    writeAttribute(file, key_mhd, 1);
     #else
-    writeIntAttribute(file, key_mhd, 0);
+    writeAttribute(file, key_mhd, 0);
     #endif
     
     #ifdef WRITE_GHOSTS_TO_FILE
-    writeIntAttribute(file, key_ng, ng);
+    writeAttribute(file, key_ng, ng);
     #else
-    writeIntAttribute(file, key_ng, 0);
+    writeAttribute(file, key_ng, 0);
     #endif
-    writeIntAttribute(file, key_nx, nx);
-    writeDoubleAttribute(file, key_dx, grid.dx);
-    writeIntAttribute(file, key_cyc, cycle);
-    writeDoubleAttribute(file, key_time, t);
+    writeAttribute(file, key_nx, nx);
+    writeAttribute(file, key_dx, grid.dx);
+    writeAttribute(file, key_cyc, cycle);
+    writeAttribute(file, key_time, t);
     
     //Flatten Grid
     size_t size = (in-i0);
@@ -126,13 +157,15 @@ void IO::writeToFile(Grid1D& grid, double t, int cycle, const std::string& filen
     std::vector<double> vz(size);
     std::vector<double> p(size);
     #endif
-    #if HDF5_WRITE_E
-    std::vector<double> E(size);
     #if HDF5_WRITE_CONSV
     std::vector<double> px(size);
     std::vector<double> py(size);
     std::vector<double> pz(size);
-    #endif
+    std::vector<double> E(size);
+    #elif HDF5_WRITE_E && HDF5_REDUNDANT_VALS_OPTION == HDF5_WRITE_DOUBLE
+    std::vector<double> E(size);
+    #elif HDF5_WRITE_E && HDF5_REDUNDANT_VALS_OPTION == HDF5_WRITE_FLOAT
+    std::vector<float> E(size);
     #endif
     #ifdef MHD
     std::vector<double> Bx(size);
@@ -196,8 +229,9 @@ void IO::writeToFile(Grid1D& grid, double t, int cycle, const std::string& filen
 
 //MARK: Writing - 2D
 void IO::writeToFile(Grid2D& grid, double t, int cycle, const std::string& filename){
-    const int nx = grid.getSizeX(), ny = grid.getSizeY(), ng = grid.getGhosts();
+    const int nx = grid.getSizeX(), ny = grid.getSizeY();
     #ifdef WRITE_GHOSTS_TO_FILE
+    const int ng = grid.getGhosts();
     const int i0 = -ng, in = nx+ng, j0 = -ng, jn = ny+ng;
     #else
     const int i0 = 0, in = nx, j0 = 0, jn = ny;
@@ -207,26 +241,26 @@ void IO::writeToFile(Grid2D& grid, double t, int cycle, const std::string& filen
     H5::H5File file(path, H5F_ACC_TRUNC);
     
     //Metadata
-    writeIntAttribute(file, key_fmt, 1);
-    writeIntAttribute(file, key_wrt_opt, HDF5_WRITE_OPTION);
-    writeIntAttribute(file, key_dim, 2);
+    writeAttribute(file, key_fmt, 1);
+    writeAttribute(file, key_wrt_opt, HDF5_WRITE_OPTION);
+    writeAttribute(file, key_dim, 2);
     #ifdef MHD
-    writeIntAttribute(file, key_mhd, 1);
+    writeAttribute(file, key_mhd, 1);
     #else
-    writeIntAttribute(file, key_mhd, 0);
+    writeAttribute(file, key_mhd, 0);
     #endif
     
     #ifdef WRITE_GHOSTS_TO_FILE
-    writeIntAttribute(file, key_ng, ng);
+    writeAttribute(file, key_ng, ng);
     #else
-    writeIntAttribute(file, key_ng, 0);
+    writeAttribute(file, key_ng, 0);
     #endif
-    writeIntAttribute(file, key_nx, nx);
-    writeIntAttribute(file, key_ny, ny);
-    writeDoubleAttribute(file, key_dx, grid.dx);
-    writeDoubleAttribute(file, key_dy, grid.dy);
-    writeIntAttribute(file, key_cyc, cycle);
-    writeDoubleAttribute(file, key_time, t);
+    writeAttribute(file, key_nx, nx);
+    writeAttribute(file, key_ny, ny);
+    writeAttribute(file, key_dx, grid.dx);
+    writeAttribute(file, key_dy, grid.dy);
+    writeAttribute(file, key_cyc, cycle);
+    writeAttribute(file, key_time, t);
     
     //Flatten Grid
     size_t size = (in-i0)*(jn-j0);
@@ -237,18 +271,25 @@ void IO::writeToFile(Grid2D& grid, double t, int cycle, const std::string& filen
     std::vector<double> vz(size);
     std::vector<double> p(size);
     #endif
-    #if HDF5_WRITE_E
-    std::vector<double> E(size);
     #if HDF5_WRITE_CONSV
     std::vector<double> px(size);
     std::vector<double> py(size);
     std::vector<double> pz(size);
-    #endif
+    std::vector<double> E(size);
+    #elif HDF5_WRITE_E && HDF5_REDUNDANT_VALS_OPTION == HDF5_WRITE_DOUBLE
+    std::vector<double> E(size);
+    #elif HDF5_WRITE_E && HDF5_REDUNDANT_VALS_OPTION == HDF5_WRITE_FLOAT
+    std::vector<float> E(size);
     #endif
     #ifdef MHD
     size_t size_A = (in+1-i0)*(jn+1-j0);
+    #if HDF5_REDUNDANT_VALS_OPTION == HDF5_WRITE_DOUBLE
     std::vector<double> Bx(size);
     std::vector<double> By(size);
+    #elif HDF5_REDUNDANT_VALS_OPTION == HDF5_WRITE_FLOAT
+    std::vector<float> Bx(size);
+    std::vector<float> By(size);
+    #endif
     std::vector<double> Bz(size);
     std::vector<double> Az(size_A);
     #endif
@@ -274,9 +315,11 @@ void IO::writeToFile(Grid2D& grid, double t, int cycle, const std::string& filen
             E[n] = w.energy();
             #endif
             #ifdef MHD
+            Bz[n] = w.B.z;
+            #if HDF5_REDUNDANT_VALS_OPTION != HDF5_WRITE_OMIT
             Bx[n] = w.B.x;
             By[n] = w.B.y;
-            Bz[n] = w.B.z;
+            #endif
             #endif
         }
     }
@@ -321,8 +364,9 @@ void IO::writeToFile(Grid2D& grid, double t, int cycle, const std::string& filen
 
 //MARK: Writing - 3D
 void IO::writeToFile(Grid3D& grid, double t, int cycle, const std::string& filename){
-    const int nx = grid.getSizeX(), ny = grid.getSizeY(), nz = grid.getSizeZ(), ng = grid.getGhosts();
+    const int nx = grid.getSizeX(), ny = grid.getSizeY(), nz = grid.getSizeZ();
     #ifdef WRITE_GHOSTS_TO_FILE
+    const int ng = grid.getGhosts();
     const int i0 = -ng, in = nx+ng, j0 = -ng, jn = ny+ng, k0 = -ng, kn = nz+ng;
     #else
     const int i0 = 0, in = nx, j0 = 0, jn = ny, k0 = 0, kn = nz;
@@ -332,27 +376,27 @@ void IO::writeToFile(Grid3D& grid, double t, int cycle, const std::string& filen
     H5::H5File file(path, H5F_ACC_TRUNC);
     
     //Metadata
-    writeIntAttribute(file, key_fmt, 1);
-    writeIntAttribute(file, key_wrt_opt, HDF5_WRITE_OPTION);
-    writeIntAttribute(file, key_dim, 3);
+    writeAttribute(file, key_fmt, 1);
+    writeAttribute(file, key_wrt_opt, HDF5_WRITE_OPTION);
+    writeAttribute(file, key_dim, 3);
     #ifdef MHD
-    writeIntAttribute(file, key_mhd, 1);
+    writeAttribute(file, key_mhd, 1);
     #else
-    writeIntAttribute(file, key_mhd, 0);
+    writeAttribute(file, key_mhd, 0);
     #endif
     #ifdef WRITE_GHOSTS_TO_FILE
-    writeIntAttribute(file, key_ng, ng);
+    writeAttribute(file, key_ng, ng);
     #else
-    writeIntAttribute(file, key_ng, 0);
+    writeAttribute(file, key_ng, 0);
     #endif
-    writeIntAttribute(file, key_nx, nx);
-    writeIntAttribute(file, key_ny, ny);
-    writeIntAttribute(file, key_nz, nz);
-    writeDoubleAttribute(file, key_dx, grid.dx);
-    writeDoubleAttribute(file, key_dy, grid.dy);
-    writeDoubleAttribute(file, key_dz, grid.dz);
-    writeIntAttribute(file, key_cyc, cycle);
-    writeDoubleAttribute(file, key_time, t);
+    writeAttribute(file, key_nx, nx);
+    writeAttribute(file, key_ny, ny);
+    writeAttribute(file, key_nz, nz);
+    writeAttribute(file, key_dx, grid.dx);
+    writeAttribute(file, key_dy, grid.dy);
+    writeAttribute(file, key_dz, grid.dz);
+    writeAttribute(file, key_cyc, cycle);
+    writeAttribute(file, key_time, t);
 
     
     //Flatten Grid
@@ -364,19 +408,27 @@ void IO::writeToFile(Grid3D& grid, double t, int cycle, const std::string& filen
     std::vector<double> vz(size);
     std::vector<double> p(size);
     #endif
-    #if HDF5_WRITE_E
-    std::vector<double> E(size);
     #if HDF5_WRITE_CONSV
     std::vector<double> px(size);
     std::vector<double> py(size);
     std::vector<double> pz(size);
-    #endif
+    std::vector<double> E(size);
+    #elif HDF5_WRITE_E && HDF5_REDUNDANT_VALS_OPTION == HDF5_WRITE_DOUBLE
+    std::vector<double> E(size);
+    #elif HDF5_WRITE_E && HDF5_REDUNDANT_VALS_OPTION == HDF5_WRITE_FLOAT
+    std::vector<float> E(size);
     #endif
     #ifdef MHD
     size_t size_A = (in+1-i0)*(jn+1-j0)*(kn+1-k0);
+    #if HDF5_REDUNDANT_VALS_OPTION == HDF5_WRITE_DOUBLE
     std::vector<double> Bx(size);
     std::vector<double> By(size);
     std::vector<double> Bz(size);
+    #elif HDF5_REDUNDANT_VALS_OPTION == HDF5_WRITE_FLOAT
+    std::vector<float> Bx(size);
+    std::vector<float> By(size);
+    std::vector<float> Bz(size);
+    #endif
     std::vector<double> Ax(size_A);
     std::vector<double> Ay(size_A);
     std::vector<double> Az(size_A);
@@ -403,7 +455,7 @@ void IO::writeToFile(Grid3D& grid, double t, int cycle, const std::string& filen
                 #elif HDF5_WRITE_E
                 E[n] = w.energy();
                 #endif
-                #ifdef MHD
+                #if defined(MHD) && HDF5_REDUNDANT_VALS_OPTION != HDF5_WRITE_OMIT
                 Bx[n] = w.B.x;
                 By[n] = w.B.y;
                 Bz[n] = w.B.z;

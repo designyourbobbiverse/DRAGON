@@ -15,6 +15,11 @@
 
 //MARK: Helpers
 namespace{
+template <typename T> H5::PredType hdf5Type();
+    template <> H5::PredType hdf5Type<int>() { return H5::PredType::NATIVE_INT; }
+    template <> H5::PredType hdf5Type<float>() { return H5::PredType::NATIVE_FLOAT; }
+    template <> H5::PredType hdf5Type<double>() { return H5::PredType::NATIVE_DOUBLE; }
+
 std::vector<double> readArray(H5::H5File& file, const std::string& key) {
     H5::DataSet dataset = file.openDataSet(key);
     H5::DataSpace dataspace = dataset.getSpace();
@@ -85,7 +90,9 @@ void IO::loadFromFile(Grid1D& grid, double& t, int& cycle, const std::string& fi
     const bool mhd = readIntAttribute(file, key_mhd);
     #ifndef MHD
     if(mhd) throw std::runtime_error("File was saved using MHD. Please enable MHD in Config.h");
+    const int B_option = readIntAttribute(file, key_B_opt);
     #endif
+
     
     //Extract size
     const int nx = readIntAttribute(file, key_nx);

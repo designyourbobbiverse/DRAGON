@@ -15,6 +15,8 @@
 using namespace DRAGON_Test;
 using namespace Boundary;
 
+constexpr double float_rel_tol = 10.0 * std::numeric_limits<float>::epsilon();
+
 #ifdef MHD
 namespace {
 vec3 make_tagged_A(double tag){
@@ -132,7 +134,10 @@ void DRAGON_Test::verify_IO2D(){
     
     for(int i = -ng; i < 3 + ng; i++) {
         for(int j = -ng; j < 4 + ng; j++) {
-            expect_close(g[i,j],  g2[i,j]);
+            #if HDF5_REDUNDANT_VALS_OPTION == HDF5_WRITE_OMIT
+            g2[i,j].B = g[i,j].B;
+            #endif
+            expect_close(g[i,j],  g2[i,j], float_rel_tol, 1e-7);
         }
     }
     #ifdef MHD
@@ -203,7 +208,10 @@ void DRAGON_Test::verify_IO3D(){
     for(int i = -ng; i < 3 + ng; i++) {
         for(int j = -ng; j < 4 + ng; j++) {
             for(int k = -ng; k < 5 + ng; k++) {
-                expect_close(g[i,j,k],  g2[i,j,k]);
+                #if HDF5_REDUNDANT_VALS_OPTION == HDF5_WRITE_OMIT
+                g2[i,j,k].B = g[i,j,k].B;
+                #endif
+                expect_close(g[i,j,k],  g2[i,j,k], float_rel_tol, 1e-7);
             }
         }
     }

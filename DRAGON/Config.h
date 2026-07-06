@@ -13,8 +13,8 @@
 //MARK: How to use this file
 //If something is indented once and sits above something else, it is one of the options for the something else
     //For example, RIEMANN default has several choices listed above it, such as RIEMANN_EXACT, RIEMANN_HLLC, RIEMANN_ROE, etc
-    //For any of these choice items, you also have this option available, which allows you to choose the option at runtime (see the bottom of this header file)
-        #define CHOOSE_RUNTIME -1
+    //For most of these choice items, you also have this option available, which allows you to choose the option at runtime (see the bottom of this header file)
+        #define CHOOSE_RUNTIME -1 //Not available for choices in the File I/O section
 //If something is indented and sits below something else, it is an option specific to that setting.
     //For example, RIEMANN_ROE has Harten_Hyman  below it.
         //If Harten_Hyman is enabled, the roe solver includes the entropy fix. If you turn it off, it skips that step
@@ -79,21 +79,30 @@ constexpr double Timestep_Tolerance = 1e-14; //Timesteps smaller than this are t
 
 
 //MARK: File I/O
+//For configuration choices in this section, CHOOSE_RUNTIME is not available
+
 inline std::string output_dir = "/Users/bobbiemarkwick/DRAGON_OUT"; //Set this to your output directory
 
 #define RESTART_FROM_FILE //Attempt to restart from the output of a previous run
     #define RESTART_FRAME -1 //Use a number <0 to automatically find the latest file and restart from that
 
 //Output parameters
+#define HDF5_COMPRESSION_LEVEL 4 //HDF5 compression level. Set to a nonpositive number for no compression
+
     #define HDF5_WRITE_PRIMITIVE 1 //Only write the primitive values to the output files
     #define HDF5_WRITE_CONSERVATIVE 6 //Only write the conservative values to the output files
     #define HDF5_WRITE_PRIMITIVE_AND_ENERGY 3 //Write the primitive values, plus the energy density
     #define HDF5_WRITE_PRIMITIVE_AND_CONSERVATIVE 7 //Write both Primitive & Conservative values (produces larger files)
-    //Unlike other configuration choices, CHOOSE_RUNTIME is not available here
 #define HDF5_WRITE_OPTION HDF5_WRITE_PRIMITIVE_AND_ENERGY //Determines which fluid representation to use for output files
 
-#define WRITE_GHOSTS_TO_FILE //Writes ghost cells to file. Useful for debugging, but typically you want to disable this in production runs
+//Writes ghost cells to file. Useful for debugging, but typically you want to disable this
+//#define WRITE_GHOSTS_TO_FILE
 
+    #define HDF5_WRITE_OMIT 0 //Omits B values if they can be calculated from A
+    #define HDF5_WRITE_FLOAT 1 //Writes B values as Floats if they can be calculated from A
+    #define HDF5_WRITE_DOUBLE 2 //Writes all B values as Doubles
+#define HDF5_REDUNDANT_VALS_OPTION HDF5_WRITE_FLOAT //Output precision of certain calculable values
+    //Specifically, applies to Bx (2D+3D), By (2D+3D), Bz (3D only), and E (HDF5_WRITE_PRIMITIVE_AND_ENERGY only)
 
 //MARK: Grid Operation
 
