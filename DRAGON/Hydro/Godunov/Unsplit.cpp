@@ -15,6 +15,7 @@
 #include "CT.hpp"
 #include <cassert>
 #include <iostream>
+#include <stdexcept>
 #include "DragonWing.hpp"
 
 //MARK: Split vs Unsplit
@@ -51,14 +52,11 @@ void Grid2D::advance_unsplit(double dt, bool check_cfl){
             try{
                 advanceXY(t1);
                 success = true;
-            } catch(const std::string& s){
-                if(DRAGONWING::requestRestart(s)){ return; }
-                else std::cout<<"\t"<<s<<"\n";
             } catch(const std::exception &exc){
                 if(DRAGONWING::requestRestart(exc.what())){ return; }
                 else std::cout<<"\t"<<exc.what()<<"\n";
             }
-            if(!success) t1 /= 2;
+            if(!success) t1 *= 0.5;
         } while(!success);
         
         dt -= t1;
@@ -77,14 +75,11 @@ void Grid3D::advance_unsplit(double dt, bool check_cfl){
             try{
                 advanceXYZ(t1);
                 success = true;
-            } catch(const std::string& s){
-                if(DRAGONWING::requestRestart(s)){ return; }
-                else std::cout<<"\t"<<s<<"\n";
             } catch(const std::exception &exc){
                 if(DRAGONWING::requestRestart(exc.what())){ return; }
                 else std::cout<<"\t"<<exc.what()<<"\n";
             }
-            if(!success) t1 /= 2;
+            if(!success) t1 *= 0.5;
         } while(!success);
         
         dt -= t1;
@@ -147,9 +142,9 @@ void Grid2D::advanceXY(double dt){
             U += (dt/dy) * (F_Y[i,j] - F_Y[i,j+1]);
             _w[i,j] = U;
             
-            if(!U.isFinite()) throw std::format("NaN state would be produced at ({},{})",i,j);
+            if(!U.isFinite()) throw std::runtime_error(std::format("NaN state would be produced at ({},{})",i,j));
             #ifndef MHD //Do the safety check that MHD doesn't do yet
-            if(!_w[i,j].isPhysical())  throw std::format("Unphsyical state would be produced at ({},{})",i,j);
+            if(!_w[i,j].isPhysical())  throw std::runtime_error(std::format("Unphsyical state would be produced at ({},{})",i,j));
             #endif
         }
     }
@@ -165,7 +160,7 @@ void Grid2D::advanceXY(double dt){
     for(int i=0; i<nx; i++){
         for(int j=0; j<ny; j++){
             if(!_w[i,j].isPhysical())
-                throw std::format("Unphysical state would be produced by CT at ({},{})",i,j);
+                throw std::runtime_error(std::format("Unphysical state would be produced by CT at ({},{})",i,j));
         }
     }
     #endif
@@ -281,9 +276,9 @@ void Grid3D::advanceXYZ(double dt){
                 U += (dt/dz) * (F_Z[i,j,k] - F_Z[i,j,k+1]);
                 _w[i,j,k] = U;
 
-                if(!U.isFinite())  throw std::format("\tNaN state would be produced at ({},{},{})\n",i,j,k);
+                if(!U.isFinite())  throw std::runtime_error(std::format("\tNaN state would be produced at ({},{},{})\n",i,j,k));
                 #ifndef MHD //Do the safety check that MHD doesn't do yet
-                if(!_w[i,j,k].isPhysical()) throw std::format("Unphysical state would be produced at ({},{},{})",i,j,k);
+                if(!_w[i,j,k].isPhysical()) throw std::runtime_error(std::format("Unphysical state would be produced at ({},{},{})",i,j,k));
                 #endif
             }
         }
@@ -300,7 +295,7 @@ void Grid3D::advanceXYZ(double dt){
         for(int j=0; j<ny; j++){
             for(int k=0; k<nz; k++){
                 if(!_w[i,j,k].isPhysical())
-                    throw std::format("Unphysical state would be produced by CT at ({},{},{})",i,j,k);
+                    throw std::runtime_error(std::format("Unphysical state would be produced by CT at ({},{},{})",i,j,k));
             }
         }
     }

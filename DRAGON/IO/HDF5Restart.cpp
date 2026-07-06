@@ -79,18 +79,18 @@ void IO::loadFromFile(Grid1D& grid, double& t, int& cycle, const std::string& fi
     
     //Verify compatibility
     const int fmt = readIntAttribute(file, key_fmt);
-    if(fmt > 1) throw "Please update to the latest version of DRAGON to read this file";
+    if(fmt > 1) throw std::runtime_error("Please update to the latest version of DRAGON to read this file");
     const int dim = readIntAttribute(file, key_dim);
-    if(dim != 1) throw std::format("Expected 1 dimension but got {}",dim);
+    if(dim != 1) throw std::runtime_error(std::format("Expected 1 dimension but got {}",dim));
     const bool mhd = readIntAttribute(file, key_mhd);
     #ifndef MHD
-    if(mhd) throw "File was saved using MHD. Please enable MHD in Config.h";
+    if(mhd) throw std::runtime_error("File was saved using MHD. Please enable MHD in Config.h");
     #endif
     
     //Extract size
     const int nx = readIntAttribute(file, key_nx);
-    if(nx != grid.getSize()) throw "File size does not match the grid size";
-    
+    if(nx != grid.getSize())
+        throw std::runtime_error("File size does not match the grid size");
     int ng = readIntAttribute(file, key_ng);
     if(ng > grid.getGhosts()) ng = grid.getGhosts();
     const int i0 = -ng, in = nx+ng;
@@ -157,19 +157,19 @@ void IO::loadFromFile(Grid2D& grid, double& t, int& cycle, const std::string& fi
     
     //Verify compatibility
     const int fmt = readIntAttribute(file, key_fmt);
-    if(fmt > 1) throw "Please update to the latest version of DRAGON to read this file";
+    if(fmt > 1) throw std::runtime_error("Please update to the latest version of DRAGON to read this file");
     const int dim = readIntAttribute(file, key_dim);
-    if(dim != 2) throw std::format("Expected 2 dimensions but got {}",dim);
+    if(dim != 2) throw std::runtime_error(std::format("Expected 2 dimensions but got {}",dim));
     const bool mhd = readIntAttribute(file, key_mhd);
     #ifndef MHD
-    if(mhd) throw "File was saved using MHD. Please enable MHD in Config.h";
+    if(mhd) throw std::runtime_error("File was saved using MHD. Please enable MHD in Config.h");
     #endif
     
     //Extract size
     const int nx = readIntAttribute(file, key_nx);
     const int ny = readIntAttribute(file, key_ny);
-    if(nx != grid.getSizeX() || ny != grid.getSizeY()) throw "File size does not match the grid size";
-    
+    if(nx != grid.getSizeX() || ny != grid.getSizeY())
+        throw std::runtime_error("File size does not match the grid size");
     int ng = readIntAttribute(file, key_ng);
     if(ng > grid.getGhosts()) ng = grid.getGhosts();
     const int i0 = -ng, in = nx+ng, j0 = -ng, jn = ny+ng;
@@ -255,19 +255,19 @@ void IO::loadFromFile(Grid3D& grid, double& t, int& cycle, const std::string& fi
     
     //Verify compatibility
     const int fmt = readIntAttribute(file, key_fmt);
-    if(fmt > 1) throw "Please update to the latest version of DRAGON to read this file";
+    if(fmt > 1) throw std::runtime_error("Please update to the latest version of DRAGON to read this file");
     const int dim = readIntAttribute(file, key_dim);
-    if(dim != 3) throw std::format("Expected 3 dimensions but got {}",dim);
+    if(dim != 3) throw std::runtime_error(std::format("Expected 3 dimensions but got {}",dim));
     const bool mhd = readIntAttribute(file, key_mhd);
     #ifndef MHD
-    if(mhd) throw "File was saved using MHD. Please enable MHD in Config.h";
+    if(mhd) throw std::runtime_error("File was saved using MHD. Please enable MHD in Config.h");
     #endif
     
     //Extract size
     const int nx = readIntAttribute(file, key_nx);
     const int ny = readIntAttribute(file, key_ny);
     const int nz = readIntAttribute(file, key_nz);
-    if(nx != grid.getSizeX() || ny != grid.getSizeY() || nz != grid.getSizeZ()) throw "File size does not match the grid size";
+    if(nx != grid.getSizeX() || ny != grid.getSizeY() || nz != grid.getSizeZ()) throw std::runtime_error("File size does not match the grid size");
     
     int ng = readIntAttribute(file, key_ng);
     if(ng > grid.getGhosts()) ng = grid.getGhosts();
