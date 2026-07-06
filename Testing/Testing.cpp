@@ -16,13 +16,14 @@ using namespace DRAGON_Test;
 
 int main() {
     verify_fluid_element();
-    verify_riemann();
+    
     verify_grid();
     verify_boundary();
+    verify_IO();
+    
+    verify_riemann();
     verify_tvd();
     verify_cfl();
-    
-    verify_IO();
 
     verify_godunov_1D();
     verify_godunov_2D_Split();
