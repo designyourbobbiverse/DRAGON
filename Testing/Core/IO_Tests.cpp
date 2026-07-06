@@ -9,6 +9,7 @@
 #include "Boundary.hpp"
 #include "HDF5Output.hpp"
 #include "Config.h"
+#include <fstream>
 #include <iostream>
 
 using namespace DRAGON_Test;
@@ -22,6 +23,8 @@ vec3 make_tagged_A(double tag){
 }
 #endif
 
+constexpr std::string filename = "__TESTING__";
+
 void DRAGON_Test::verify_IO(bool output){
     if(output) std::cout << "File I/O:\n";
     if(output) std::cout << "- 1D Restart: ";
@@ -34,6 +37,8 @@ void DRAGON_Test::verify_IO(bool output){
     verify_IO3D();
     if(output) std::cout << "Passed\n";
     if(output) std::cout << "All File I/O Tests Passed.\n\n";
+
+    std::remove((filename + ".h5").c_str());//Clean up
 }
 
 void DRAGON_Test::verify_IO1D(){
@@ -42,7 +47,7 @@ void DRAGON_Test::verify_IO1D(){
         g[i] = make_tagged_state(i*0.1);
     }
 
-    IO::writeToFile(g, 0.666, 666, "TEST");
+    IO::writeToFile(g, 0.666, 666, filename);
     //Write doesn't change grid
     for(int i = -2; i < 5 + 2; i++) {
         expect_close(g[i],  make_tagged_state(i*0.1));
@@ -52,7 +57,7 @@ void DRAGON_Test::verify_IO1D(){
     Grid1D g2(5, 0.1, 2);
 
     double t; int n;
-    IO::loadFromFile(g2, t, n, "TEST.h5");
+    IO::loadFromFile(g2, t, n, filename + ".h5");
     
     assert(t==0.666);
     assert(n==666);
@@ -80,7 +85,7 @@ void DRAGON_Test::verify_IO2D(){
     }
     #endif
 
-    IO::writeToFile(g, 0.666, 666, "TEST");
+    IO::writeToFile(g, 0.666, 666, filename);
     //Write doesn't change grid
     for(int i = -2; i < 3 + 2; i++) {
         for(int j = -2; j < 4 + 2; j++) {
@@ -100,7 +105,7 @@ void DRAGON_Test::verify_IO2D(){
     Grid2D g2(3,4,0.0, 0.0, 2);
 
     double t; int n;
-    IO::loadFromFile(g2, t, n, "TEST.h5");
+    IO::loadFromFile(g2, t, n, filename + ".h5");
     
 
     assert(t==0.666);
@@ -140,7 +145,7 @@ void DRAGON_Test::verify_IO3D(){
     }
     #endif
 
-    IO::writeToFile(g, 0.666, 666, "TEST");
+    IO::writeToFile(g, 0.666, 666, filename);
     //Write doesn't change grid
     for(int i = -2; i < 3 + 2; i++) {
         for(int j = -2; j < 4 + 2; j++) {
@@ -163,7 +168,7 @@ void DRAGON_Test::verify_IO3D(){
     Grid3D g2(3,4,5,0.0, 0.0,0.0, 2);
 
     double t; int n;
-    IO::loadFromFile(g2, t, n, "TEST.h5");
+    IO::loadFromFile(g2, t, n, filename + ".h5");
     
 
     assert(t==0.666);
