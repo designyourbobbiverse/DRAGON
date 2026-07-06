@@ -36,6 +36,9 @@ void DRAGON_Test::verify_IO(bool output){
     if(output) std::cout << "- 3D Restart: ";
     verify_IO3D();
     if(output) std::cout << "Passed\n";
+    if(output) std::cout << "- Dimension Check: ";
+    verify_IO_dim_assert();
+    if(output) std::cout << "Passed\n";
     if(output) std::cout << "All File I/O Tests Passed.\n\n";
 
     std::remove((filename + ".h5").c_str());//Clean up
@@ -180,17 +183,38 @@ void DRAGON_Test::verify_IO3D(){
     for(int i = 0; i < 3; i++) {
         for(int j = 0; j < 4; j++) {
             for(int k = 0; k < 5; k++) {
-            expect_close(g[i,j,k],  g2[i,j,k]);
-        }
-    }
-    #ifdef MHD
-    for(int i = 0; i <= 3; i++) {
-        for(int j = 0; j <= 4; j++) {
-            for(int k = 0; k <= 5; k++) {
-                expect_close(g._A()[i,j,k],  g2._A()[i,j,k]);
+                expect_close(g[i,j,k],  g2[i,j,k]);
             }
         }
-    }
-    #endif
+        #ifdef MHD
+        for(int i = 0; i <= 3; i++) {
+            for(int j = 0; j <= 4; j++) {
+                for(int k = 0; k <= 5; k++) {
+                    expect_close(g._A()[i,j,k],  g2._A()[i,j,k]);
+                }
+            }
+        }
+        #endif
 }
+}
+void DRAGON_Test::verify_IO_dim_assert(){
+    Grid2D g(3,4, 0.1,0.2, 2);
+    
+    for(int i = -2; i < 3 + 2; i++) {
+        for(int j = -2; j < 4 + 2; j++) {
+            g[i,j] = make_tagged_state(i*0.1 + j*0.01);
+        }
+    }
+
+    IO::writeToFile(g, 0.666, 666, filename);
+   
+    
+    try {
+        Grid3D g2(3,4,5,0.0, 0.0,0.0, 2);
+
+        double t; int n;
+        IO::loadFromFile(g2, t, n, filename + ".h5");
+    } catch (...) { return; } //Test passes on caught exception
+    
+    assert(false); //If exception isn't raised, test fails
 }
