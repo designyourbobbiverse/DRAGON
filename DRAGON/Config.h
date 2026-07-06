@@ -58,7 +58,7 @@ namespace CONFIG{
 
 //MARK: CFL Calculation
 //Courant, Friedrichs, and Lewy (1928). https://doi.org/10.1007/BF01448839
-//The following variants are available for computing the CFL time limit for each cell in a multidimensional grid
+//The following variants are available for computing the CFL heuristic for each cell in a multidimensional grid
     #define CFL_ADD 1 //Adds the speeds for each dimension together: (|v.x|+a)/dx + (|v.y|+a)/dy + ...
     #define CFL_MAX 0 //Uses max[ (|v.x|+a)/dx, (|v.y|+a)/dy, ...]
     //Can set to any p>0 to use [ ((|v.x|+a)/dx)^p + ((|v.y|+a)/dy)^p + ... ]^(1/p)
@@ -79,7 +79,7 @@ constexpr double Timestep_Tolerance = 1e-14; //Timesteps smaller than this are t
 
 
 //MARK: File I/O
-static std::string output_dir = ""; //Set this to your output directory
+inline std::string output_dir = "/Users/bobbiemarkwick/DRAGON_OUT"; //Set this to your output directory
 
 #define RESTART_FROM_FILE //Attempt to restart from the output of a previous run
     #define RESTART_FRAME -1 //Use a number <0 to automatically find the latest file and restart from that
@@ -106,15 +106,15 @@ constexpr int core_count = 16; //Helps the Root level grid decide how many child
 
 //MARK: Choose at Runtime
 #if RIEMANN_DEFAULT == CHOOSE_RUNTIME || defined(TESTMODE)
-static int riemann_choice = RIEMANN_EXACT;
+inline int riemann_choice = RIEMANN_EXACT;
 #endif
 #if MUSCL_DEFAULT_LIMITER == CHOOSE_RUNTIME || defined(TESTMODE)
-static int limiter_choice = LIMITER_MINMOD;
+inline int limiter_choice = LIMITER_MINMOD;
 #endif
 #if CFL_CALCULATION == CHOOSE_RUNTIME || defined(TESTMODE)
 //If set to p>0,  CFL uses  speed = [ ((|v.x|+a)/dx)^p + ((|v.y|+a)/dy)^p +... ]^(1/p)
 //If set to 0, CFL uses max[ (|v.x|+a)/dx, (|v.y|+a)/dy, ... ]
-static int cfl_choice = CFL_ADD;
+inline int cfl_choice = CFL_ADD;
 #endif
 }
 
