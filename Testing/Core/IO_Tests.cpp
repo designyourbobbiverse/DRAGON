@@ -61,7 +61,7 @@ void DRAGON_Test::verify_IO1D(){
     Grid1D g2(5, 0.1, 2);
 
     double t; int n;
-    IO::loadFromFile(g2, t, n, filename + ".h5");
+    IO::loadFromFile(g2, t, n, filename);
     
     assert(t==0.666);
     assert(n==666);
