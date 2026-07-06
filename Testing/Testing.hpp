@@ -283,6 +283,7 @@ void verify_IO1D();
 void verify_IO2D();
 void verify_IO3D();
 void verify_IO_dim_assert();
+void verify_IO_size_assert();
 
 }
 
