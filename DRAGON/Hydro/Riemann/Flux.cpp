@@ -79,7 +79,7 @@ ConservativeState Riemann::flux(double dt_dx){
 //Verify that the solution produces a physical result, fallback if not
 void Riemann::verify_and_fallback(ConservativeState& flux, double dt_dx){
 #ifdef RIEMANN_VERIFY_FALLBACK
-    dt_dx *= Riemann_ExactFallback_Parameter;//Scale time by the desired amount
+    dt_dx *= CONFIG::Riemann_ExactFallback_Parameter;//Scale time by the desired amount
     //Check whether both states would still be physical after update
     if((L - flux*dt_dx).isPhysical() &&  (R+flux*dt_dx).isPhysical()) return;
     #ifdef RIEMANN_FALLBACK_TRY_HLLE
