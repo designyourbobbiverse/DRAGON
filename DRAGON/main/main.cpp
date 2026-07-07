@@ -73,7 +73,7 @@ int main(int argc, const char * argv[]) {
         cycle_output(cycleStr, clock_time);
         
         //Write to File
-        IO::writeToFile(problem, cycle, cycle, CONFIG::output_base_name + "_" + cycleStr);
+        IO::writeToFile(problem, time, cycle, CONFIG::output_base_name + "_" + cycleStr);
     }
     
     return 0;
