@@ -26,11 +26,11 @@ static void load(Grid& problem, double& time, int& cycle){
         IO::loadFromFile(problem, time, cycle, file);
     } else {
         Problem::initializeProblem(problem);
-        IO::writeToFile(problem, 0, 0, "Frame_"+IO::cycle_string(0));
+        IO::writeToFile(problem, 0, 0, CONFIG::output_base_name + "_" + IO::cycle_string(0));
     }
     #else
     Problem::initializeProblem(problem);
-    IO::writeToFile(problem, 0, 0, "Frame_"+IO::cycle_string(0));
+    IO::writeToFile(problem, 0, 0, CONFIG::output_base_name + "_" + IO::cycle_string(0));
     #endif
 }
  
@@ -48,14 +48,10 @@ static void cycle_output(std::string cycleStr, double clock_time){
 int main(int argc, const char * argv[]) {
     
     
-    
     auto start = std::chrono::system_clock::now();
-    
     Grid& problem = Problem::makeProblem();
     double time = 0.0;
     int cycle = 0;
-    
-  
     
     load(problem, time, cycle);
     //Monitor Output
@@ -75,7 +71,7 @@ int main(int argc, const char * argv[]) {
         cycle_output(cycleStr, clock_time);
         
         //Write to File
-        IO::writeToFile(problem, cycle, cycle, "Frame_"+cycleStr);
+        IO::writeToFile(problem, cycle, cycle, CONFIG::output_base_name + "_" + cycleStr);
     }
     
     return 0;
