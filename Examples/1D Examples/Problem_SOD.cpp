@@ -17,7 +17,7 @@ constexpr double p_R = 0.1;
 const int nx = 1024;
 
 Grid& Problem::makeProblem(){
-    auto grid = new MyGrid(nx, 1.0);
+    auto grid = new MyGrid(nx, 1.0/nx);
     grid->boundary = Boundary::Outflow();
     return *grid;
 }
