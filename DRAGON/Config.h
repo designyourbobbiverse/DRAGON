@@ -58,8 +58,11 @@ namespace CONFIG{
 
 //MARK: Time Control
 
-constexpr double final_time = 10000.0;
-constexpr double dt = 1.0;
+constexpr double final_time = 10000.0; //The simulation will exit after this time (in simulation) has elapsed
+constexpr double dt = 1.0; //The base timestep (CFL may subdivide this)
+
+constexpr double CFL_coeff = 0.3; //The Coefficient used together with the above to determine the maximum timestep size
+constexpr double Timestep_Tolerance = 1e-14; //Timesteps smaller than this are treated as zero
 
 //Courant, Friedrichs, and Lewy (1928). https://doi.org/10.1007/BF01448839
 //The following variants are available for computing the CFL heuristic for each cell in a multidimensional grid
@@ -68,8 +71,6 @@ constexpr double dt = 1.0;
     //Can set to any p>0 to use [ ((|v.x|+a)/dx)^p + ((|v.y|+a)/dy)^p + ... ]^(1/p)
 #define CFL_CALCULATION CFL_ADD
 
-constexpr double CFL_coeff = 0.3; //The Coefficient used together with the above to determine the maximum timestep size
-constexpr double Timestep_Tolerance = 1e-14; //Timesteps smaller than this are treated as zero
 
 //MARK: MUSCL Reconstruction
 //Comment the following line to only use a first order Godunov scheme

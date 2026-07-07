@@ -6,24 +6,30 @@
 //
 
 #include "Problem.hpp"
-#include "Refinement/DistGrid.hpp"
-#include "Jets.hpp"
-#include <cmath>
-#include <iostream>
-#include <fstream>
+#include "DistGrid.hpp"
 
 typedef Grid1D MyGrid;//Choose the dimension of your grid here
 
+constexpr double rho_L = 1.0;
+constexpr double rho_R = 0.125;
+constexpr double p_L = 1.0;
+constexpr double p_R = 0.1;
+const int nx = 1024;
+
 Grid& Problem::makeProblem(){
-    //Construct your grid object. Don't worry about initial setup, you'll do that later
-    auto _grid = new MyGrid(64, 1.0);
-    return *_grid;
+    auto grid = new MyGrid(nx, 1.0);
+    grid->boundary = Boundary::Outflow();
+    return *grid;
 }
 
 void Problem::initializeProblem(Grid& problem){
     MyGrid& grid = *dynamic_cast<MyGrid*>(&problem);
-    //This is where you should initialize the initial data of the grid
     
+    for(int i = 0; i<nx; i++){
+        grid[i].rho = i < nx/2 ? rho_L : rho_R;
+        grid[i].p = i < nx/2 ? p_L : p_R;
+        grid[i].v = {0,0,0};
+    }
 }
 
 
