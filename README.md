@@ -181,7 +181,6 @@ h5ls --version
 DRAGON is an actively developed research code. The current version is suitable for demonstrating the numerical framework, solver implementations, boundary-condition infrastructure, and unit-test coverage. 
 
 The following features are planned for v1.0:
-- HDF5 file output and simulation restarts
 - A cleaner public interface for a production problem setup.
 - Example/validation problems
 - Plotting tools
