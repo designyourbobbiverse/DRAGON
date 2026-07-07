@@ -7,10 +7,6 @@
 
 #include "Problem.hpp"
 #include "DistGrid.hpp"
-#include "Jets.hpp"
-#include <cmath>
-#include <iostream>
-#include <fstream>
 
 typedef Grid1D MyGrid;//Choose the dimension of your grid here
 
