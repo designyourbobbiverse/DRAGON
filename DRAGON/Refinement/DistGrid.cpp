@@ -325,7 +325,9 @@ void DistGrid2D::advance(double dt, bool check_cfl){
         DRAGONWING::reportCheckpoint2();
         return;
     }
+    #ifdef MHD
     initialize_B_fields();
+    #endif
     
     while(dt > CONFIG::Timestep_Tolerance){
         //Apply Boundary Conditions
@@ -364,7 +366,9 @@ void DistGrid3D::advance(double dt, bool check_cfl){
         DRAGONWING::reportCheckpoint2();
         return;
     }
+    #ifdef MHD
     initialize_B_fields();
+    #endif
 
     while(dt > CONFIG::Timestep_Tolerance){
         //Apply Boundary Conditions
