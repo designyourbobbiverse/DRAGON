@@ -56,11 +56,7 @@ namespace CONFIG{
     #define RIEMANN_FALLBACK_TRY_HLLE //try HLLE before Exact (Hydro) or restart (MHD)
 #endif
 
-//MARK: Time Control
-
-constexpr double final_time = 10000.0;
-constexpr double dt = 1.0;
-
+//MARK: CFL Calculation
 //Courant, Friedrichs, and Lewy (1928). https://doi.org/10.1007/BF01448839
 //The following variants are available for computing the CFL heuristic for each cell in a multidimensional grid
     #define CFL_ADD 1 //Adds the speeds for each dimension together: (|v.x|+a)/dx + (|v.y|+a)/dy + ...

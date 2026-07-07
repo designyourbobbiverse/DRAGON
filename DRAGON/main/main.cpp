@@ -60,8 +60,10 @@ int main(int argc, const char * argv[]) {
     cycle_output(cycleStr, clock_time);
     
     
-    while(++cycle < 100000){
-        problem.advance(1);
+    while(time < CONFIG::final_time){
+        problem.advance(CONFIG::dt);
+        time += CONFIG::dt;
+        cycle++;
         //Let the problem code to do any special processing
         Problem::cycleComplete(problem, cycle);
         
