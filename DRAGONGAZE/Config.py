@@ -24,4 +24,4 @@ v_title = "Velocity"
 p_title = "Pressure"
 E_title = "Energy Density"
 
-plot_title = "SOD Shock Tube"
+plot_title = "Lax Shock Tube"
