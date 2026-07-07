@@ -1,8 +1,8 @@
 //
 //  Config.h
-//  DRAGON
+//  DRAGON/Examples
 //
-//  Created by Bobbie Markwick on 28/04/2026.
+//  Created by Bobbie Markwick on 7/06/2026.
 //
 
 #ifndef Config_h
@@ -26,7 +26,8 @@
 
 //MARK: Top level Options
 
-#define MHD //Determines whether the simulation is run using MHD or Pure Hydrodynamics
+//These are hydro simulations, so no MHD
+//#define MHD //Determines whether the simulation is run using MHD or Pure Hydrodynamics
 
 #define DIMENSION_UNSPLIT //Use an Unsplit advancement scheme for multidimensional flows
     #define CTU //Corner Transport Upwind.  Colella (1990). https://doi.org/10.1016/0021-9991(90)90233-Q
@@ -53,10 +54,17 @@ namespace CONFIG{
 #ifndef MHD //I found this option to be somewhat detrimental if HLLD_PHYSICAL_SAFETY is on
 #define RIEMANN_VERIFY_FALLBACK
     constexpr double Riemann_ExactFallback_Parameter = 1.0; //Scales F*dt/dx for the purpose of physicality verificaiton
-    #define RIEMANN_FALLBACK_TRY_HLLE //try HLLE before Exact (Hydro) or restart (MHD)
+//    #define RIEMANN_FALLBACK_TRY_HLLE //try HLLE before Exact (Hydro) or restart (MHD)
 #endif
 
-//MARK: CFL Calculation
+//MARK: Time Control
+
+constexpr double final_time = 0.2;
+constexpr double dt = 0.1;
+
+constexpr double CFL_coeff = 0.3; //The Coefficient used together with the above to determine the maximum timestep size
+constexpr double Timestep_Tolerance = 1e-14; //Timesteps smaller than this are treated as zero
+
 //Courant, Friedrichs, and Lewy (1928). https://doi.org/10.1007/BF01448839
 //The following variants are available for computing the CFL heuristic for each cell in a multidimensional grid
     #define CFL_ADD 1 //Adds the speeds for each dimension together: (|v.x|+a)/dx + (|v.y|+a)/dy + ...
@@ -64,8 +72,6 @@ namespace CONFIG{
     //Can set to any p>0 to use [ ((|v.x|+a)/dx)^p + ((|v.y|+a)/dy)^p + ... ]^(1/p)
 #define CFL_CALCULATION CFL_ADD
 
-constexpr double CFL_coeff = 0.3; //The Coefficient used together with the above to determine the maximum timestep size
-constexpr double Timestep_Tolerance = 1e-14; //Timesteps smaller than this are treated as zero
 
 //MARK: MUSCL Reconstruction
 //Comment the following line to only use a first order Godunov scheme

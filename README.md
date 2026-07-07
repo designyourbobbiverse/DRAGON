@@ -43,6 +43,7 @@ DRAGON/
   Problem.cpp       Example problem initialization and output handling
 
 DRAGONWING/         Multithreading
+DRAGONGAZE/         Plotting Tools
 Examples/           Example Problems
 Testing/            Unit test suite
 ```
@@ -71,7 +72,12 @@ Along with `Config.h`, `Problem.cpp` contains the information needed to set up t
 
 To run a problem, edit `Config.h` to choose the numerical options and edit `Problem.cpp` to define the initial conditions, boundary conditions, and desired output.
 
-In future versions, several example problem files will also be provided as templates for common validation problems.
+## Running an Example Problem
+
+
+The Examples folder includes several example problems. To run an exmaple problem, replace Config.h and Problem.cpp with the desired example files. 
+
+Some problems may include additional files. For example, CollidingFlows includes a Jet class which demonstrates how to use the Boundary API to implement mixed boundary conditions on the same face. Copy these alongside the Config.h and Problem.cpp files.
 
 
 ## Building DRAGON on macOS

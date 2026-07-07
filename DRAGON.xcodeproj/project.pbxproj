@@ -35,13 +35,6 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		F73197CD2FF75E990012ACCF /* Exceptions for "Examples" folder in "DRAGON" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				CollidingFlows/Problem.cpp,
-			);
-			target = F70D18F22FA12B5A00A2B235 /* DRAGON */;
-		};
 		F76C27C52FDB955000B706F5 /* Exceptions for "DRAGONWING" folder in "DRAGON_TESTS" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
@@ -78,7 +71,17 @@
 			);
 			target = F77A715B2FB415A5006C2776 /* DRAGON_TESTS */;
 		};
-		F77E4EF82FCB8C180070DBBF /* Exceptions for "Testing" folder in "DRAGON" target */ = {
+		F79054AC2FFD772C0083CDFB /* Exceptions for "Examples" folder in "DRAGON" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				"1D Examples/Problem_SOD.cpp",
+				CollidingFlows/Jets/Jet.cpp,
+				CollidingFlows/Jets/MHDJet.cpp,
+				CollidingFlows/Problem.cpp,
+			);
+			target = F70D18F22FA12B5A00A2B235 /* DRAGON */;
+		};
+		F79054AD2FFD775B0083CDFB /* Exceptions for "Testing" folder in "DRAGON" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Core/Boundary/Boundary_Tests.cpp,
@@ -165,7 +168,7 @@
 		F73197C92FF75E560012ACCF /* Examples */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
-				F73197CD2FF75E990012ACCF /* Exceptions for "Examples" folder in "DRAGON" target */,
+				F79054AC2FFD772C0083CDFB /* Exceptions for "Examples" folder in "DRAGON" target */,
 			);
 			path = Examples;
 			sourceTree = "<group>";
@@ -178,10 +181,15 @@
 			path = DRAGONWING;
 			sourceTree = "<group>";
 		};
+		F79053D12FFD6FB50083CDFB /* DRAGONGAZE */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = DRAGONGAZE;
+			sourceTree = "<group>";
+		};
 		F790CF7D2FC9F8D80094987D /* Testing */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
-				F77E4EF82FCB8C180070DBBF /* Exceptions for "Testing" folder in "DRAGON" target */,
+				F79054AD2FFD775B0083CDFB /* Exceptions for "Testing" folder in "DRAGON" target */,
 				F790CF822FC9F8D90094987D /* Exceptions for "Testing" folder in "DRAGON_TESTS" target */,
 			);
 			path = Testing;
@@ -214,6 +222,7 @@
 				F70D18F52FA12B5A00A2B235 /* DRAGON */,
 				F76C27BD2FDB8F6500B706F5 /* DRAGONWING */,
 				F73197C92FF75E560012ACCF /* Examples */,
+				F79053D12FFD6FB50083CDFB /* DRAGONGAZE */,
 				F790CF7D2FC9F8D80094987D /* Testing */,
 				F70D18F42FA12B5A00A2B235 /* Products */,
 				F77CE43C2FE4B0EE00DB6F31 /* LICENSE */,
@@ -248,6 +257,7 @@
 				F70D18F52FA12B5A00A2B235 /* DRAGON */,
 				F73197C92FF75E560012ACCF /* Examples */,
 				F76C27BD2FDB8F6500B706F5 /* DRAGONWING */,
+				F79053D12FFD6FB50083CDFB /* DRAGONGAZE */,
 				F790CF7D2FC9F8D80094987D /* Testing */,
 			);
 			name = DRAGON;

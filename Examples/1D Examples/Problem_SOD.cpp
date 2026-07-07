@@ -1,8 +1,8 @@
 //
-//  Problem.cpp
-//  DRAGON
+//  Problem_SOD.cpp
+//  DRAGON/Examples
 //
-//  Created by Bobbie Markwick on 24/06/2026.
+//  Created by Bobbie Markwick on 7/06/2026.
 //
 
 #include "Problem.hpp"
