@@ -339,7 +339,7 @@ void DRAGON_Test::verify_ct_alfven_wave_3D(){
     
     assert_divergenceless(grid._A(),dx,dx,dx);
     
-    grid.advance(sqrt(4*M_PI));
+    grid.advance(10*sqrt(4*M_PI));
     
     for (int i = 0; i < grid.getSizeX(); i++){
         for (int j = 0; j < grid.getSizeY(); j++){
