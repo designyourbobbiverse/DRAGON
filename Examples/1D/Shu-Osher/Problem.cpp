@@ -1,24 +1,26 @@
 //
-//  Problem_SOD.cpp
-//  DRAGON/Examples
+//  Problem_Shu_Osher.cpp
+//  DRAGON/Examples/1D/Shu-Osher
 //
 //  Created by Bobbie Markwick on 7/07/2026.
 //
 
 #include "Problem.hpp"
 #include "DistGrid.hpp"
+#include <cmath>
 
 typedef Grid1D MyGrid;//Choose the dimension of your grid here
 
-constexpr double rho_L = 0.445;
-constexpr double rho_R = 0.5;
-constexpr double vxL = 0.698;
-constexpr double p_L = 3.528;
-constexpr double p_R = 0.571;
-const int nx = 1024;
+constexpr double rho_L = 3.857143;
+constexpr double rho_R = 1.0;
+constexpr double p_L = 10.333333;
+constexpr double p_R = 1.0;
+constexpr double vxL = 2.629369;
+constexpr int nx = 1280;
+constexpr double dx = 10.0/nx;
 
 Grid& Problem::makeProblem(){
-    auto grid = new MyGrid(nx, 1.0/nx);
+    auto grid = new MyGrid(nx, dx);
     grid->boundary = Boundary::Outflow();
     return *grid;
 }
@@ -27,9 +29,11 @@ void Problem::initializeProblem(Grid& problem){
     MyGrid& grid = *dynamic_cast<MyGrid*>(&problem);
     
     for(int i = 0; i<nx; i++){
-        grid[i].rho = i < nx/2 ? rho_L : rho_R;
-        grid[i].p = i < nx/2 ? p_L : p_R;
-        grid[i].v = i < nx/2 ? vec3{vxL,0,0} : vec3{0,0,0};
+        grid[i].rho = i < nx/10 ? rho_L : rho_R;
+        grid[i].p = i < nx/10 ? p_L : p_R;
+        grid[i].v = i < nx/10 ? vec3{vxL,0,0} : vec3{0,0,0};
+        
+        if(i > nx/10) grid[i].rho += 0.2 * sin(5.0 * (i-nx/2)*dx);
     }
 }
 

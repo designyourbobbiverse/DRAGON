@@ -1,6 +1,6 @@
 //
-//  Problem_SOD.cpp
-//  DRAGON/Examples
+//  Problem.cpp
+//  DRAGON/Examples/1D/Lax
 //
 //  Created by Bobbie Markwick on 7/07/2026.
 //
@@ -10,10 +10,11 @@
 
 typedef Grid1D MyGrid;//Choose the dimension of your grid here
 
-constexpr double rho_L = 1.0;
-constexpr double rho_R = 0.125;
-constexpr double p_L = 1.0;
-constexpr double p_R = 0.1;
+constexpr double rho_L = 0.445;
+constexpr double rho_R = 0.5;
+constexpr double vxL = 0.698;
+constexpr double p_L = 3.528;
+constexpr double p_R = 0.571;
 const int nx = 1024;
 
 Grid& Problem::makeProblem(){
@@ -28,7 +29,7 @@ void Problem::initializeProblem(Grid& problem){
     for(int i = 0; i<nx; i++){
         grid[i].rho = i < nx/2 ? rho_L : rho_R;
         grid[i].p = i < nx/2 ? p_L : p_R;
-        grid[i].v = {0,0,0};
+        grid[i].v = i < nx/2 ? vec3{vxL,0,0} : vec3{0,0,0};
     }
 }
 
