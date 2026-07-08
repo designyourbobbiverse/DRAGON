@@ -46,3 +46,16 @@ key_cyc = "cycle";
 key_time = "time";
 
 file_ext = ".h5";
+
+
+keys = {
+    "rho": key_rho,
+    "vx": key_vx,
+    "vy": key_vy,
+    "vz": key_vz,
+    "Bx": key_Bx,
+    "By": key_By,
+    "Bz": key_Bz,
+    "p": key_p,
+    "E": key_E
+}

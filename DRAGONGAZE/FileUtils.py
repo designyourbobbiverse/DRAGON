@@ -15,5 +15,9 @@ def h5FileName(n):
 def imgFileName(n):
     return img_dir + "/" + img_base_filename + "_" + str(n).zfill(5) + ".png"
 
+def imgFileName(n, key):
+    return img_dir + "/" + fileprefix[key] + "_" + img_base_filename + "_" + str(n).zfill(5) + ".png"
+
+
 def fileExists(n):
     return os.path.exists(h5FileName(n))

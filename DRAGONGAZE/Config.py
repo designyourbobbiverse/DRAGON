@@ -4,10 +4,26 @@ DRAGONGAZE
 Created by Bobbie Markwick on 07/07/2026.
 '''
 
+
+
+'''
+Files
+'''
 hdf_dir = "/Users/bobbiemarkwick/DRAGON_OUT" #Where to find the HDF5 outputs from DRAGON
 img_dir = "/Users/bobbiemarkwick/DRAGON_IMG" #Where to put the plots
 h5_base_filename = "frame" #Specifieds HDF5 file names via <base_filename>_#####.h5
 img_base_filename = "frame" #Specifieds image file names via <base_filename>_#####.png
+fileprefix = { #In 2D and 3D, image file names will be <prefix>_<base_filename>_#####.png
+    "rho": "density",
+    "vx": "vx",
+    "vy": "vy",
+    "vz": "vz",
+    "Bx": "Bx",
+    "By": "By",
+    "Bz": "Bz",
+    "p": "pressure",
+    "E": "energy"
+}
 
 '''
 Titles
@@ -65,7 +81,7 @@ Plot content
 '''
 
 #Choose any of the options available in MatPlotLib (https://matplotlib.org/stable/gallery/color/colormap_reference.html)
-cmap = {
+cmaps = {
     "rho": "viridis",
     "vx": "PRGn",
     "vy": "PRGn",
@@ -77,6 +93,14 @@ cmap = {
     "Bz": "seismic"
 }
 
-log_plots = False #Set True to plot density, pressure, and energy density logarithmically
-
-
+log_plots = {
+    "rho": False,
+    "vx": False,
+    "vy": False,
+    "vz": False,
+    "Bx": False,
+    "By": False,
+    "Bz": False,
+    "p": True,
+    "E": True
+}
