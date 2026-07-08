@@ -34,6 +34,6 @@ vz_title = "Transverse-z Velocity"
 
 x_mode = 1 #0 origin in middle, +1 = origin at left +x to right, -1 = origin at right +x to left
 
-plot_title = "Dai & Woodward Shock Tube"
+plot_title = "Ryu & Jones Shock Tube"
 
 

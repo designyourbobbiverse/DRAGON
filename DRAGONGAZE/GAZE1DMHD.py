@@ -69,17 +69,19 @@ def plotFile(n, rho,vx,vy,By,p,E,t,dx, rho_rng, v_rng, p_rng, E_rng, vy_rng, By_
     axs[4].set_ylim(vy_rng[0], vy_rng[1])
     axs[4].set_ylabel(vy_label)
     axs[4].set_title(vy_title)
-
-    axs[5].plot(x, vz)
-    axs[5].set_ylim(vz_rng[0], vz_rng[1])
-    axs[5].set_ylabel(vz_label)
-    axs[5].set_title(vz_title)
     
-    axs[6].plot(x, By)
-    axs[6].set_ylim(By_rng[0], By_rng[1])
-    axs[6].set_ylabel(By_label)
+        
+    axs[5].plot(x, By)
+    axs[5].set_ylim(By_rng[0], By_rng[1])
+    axs[5].set_ylabel(By_label)
+    axs[5].set_title(By_title)
+
+    axs[6].plot(x, vz)
+    axs[6].set_ylim(vz_rng[0], vz_rng[1])
+    axs[6].set_ylabel(vz_label)
     axs[6].set_xlabel(x_label)
-    axs[6].set_title(By_title)
+    axs[6].set_title(vz_title)
+    
 
     axs[7].plot(x, Bz)
     axs[7].set_ylim(Bz_rng[0], Bz_rng[1])
