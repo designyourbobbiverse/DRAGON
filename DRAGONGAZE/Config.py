@@ -24,4 +24,8 @@ v_title = "Velocity"
 p_title = "Pressure"
 E_title = "Energy Density"
 
-plot_title = "Lax Shock Tube"
+x_mode = 1 #0 origin in middle, +1 = origin at left +x to right, -1 = origin at right +x to left
+
+plot_title = "Strong Pressure Jump Test"
+
+
