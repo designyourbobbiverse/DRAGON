@@ -13,27 +13,33 @@ log_plots = False #Set True to plot density, pressure, and energy density logari
 
 #Dragon is Inhernetly dimensionless, though CGS units are easy to add if desired
 x_label = r"$x$"#\ (\mathrm{cm})$"
-rho_label = r"$\rho$"#\ (\mathrm{g \cdot cm^{-3}})$"
-v_label = r"$v_x$"#\ (\mathrm{cm \cdot s^{-1}})$"
-vy_label = r"$v_y$"#\ (\mathrm{cm \cdot s^{-1}})$"
-vz_label = r"$v_z$"#\ (\mathrm{cm \cdot s^{-1}})$"
-By_label = r"$B_y$"
-Bz_label = r"$B_z$"
-p_label = r"$p$"#\ (\mathrm{g \cdot cm^{-1} s^{-2}})$"
-E_label = r"$E$"#\ (\mathrm{g \cdot cm^{2}\cdot s^{-2}})$"
+labels = {
+    "rho": r"$\rho$",#\ (\mathrm{g \cdot cm^{-3}})$",
+    "vx": r"$v_x$",#\ (\mathrm{cm \cdot s^{-1}})$",
+    "vy": r"$v_y$",#\ (\mathrm{cm \cdot s^{-1}})$",
+    "vz": r"$v_z$",#\ (\mathrm{cm \cdot s^{-1}})$",
+    "Bx": r"$B_x$",
+    "By": r"$B_y$",
+    "Bz": r"$B_z$",
+    "p": r"$p$",#\ (\mathrm{g \cdot cm^{-1} s^{-2}})$"
+    "E": r"$E$"#\ (\mathrm{g \cdot cm^{2}\cdot s^{-2}})$",
+}
 time_unit = ""
 
-rho_title = "Mass Density"
-v_title = "Normal Velocity"
-p_title = "Pressure"
-E_title = "Energy Density"
-By_title = "Transverse-y Mangetic Field"
-vy_title = "Transverse-y Velocity"
-Bz_title = "Transverse-z Mangetic Field"
-vz_title = "Transverse-z Velocity"
+titles = {
+    "rho": "Mass Density",
+    "v-1D": "Normal Velocity",
+    "vx": "Velocity (x)",
+    "p": "Pressure",
+    "E": "Energy Density",
+    "Bx": "Mangetic Field (x)",
+    "By": "Mangetic Field (y)",
+    "vy": "Velocity (y)",
+    "Bz": "Mangetic Field (z)",
+    "vz": "Velocity (z)",
+}
 
 x_mode = 1 #0 origin in middle, +1 = origin at left +x to right, -1 = origin at right +x to left
 
 plot_title = "Ryu & Jones Shock Tube"
-
 

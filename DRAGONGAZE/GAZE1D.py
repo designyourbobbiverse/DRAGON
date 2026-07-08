@@ -38,28 +38,28 @@ def plotFile(n, rho,vx,p,E,t,dx, rho_rng, v_rng, p_rng, E_rng):
     if log_plots: axs[0].semilogy(x, rho)
     else: axs[0].plot(x, rho)
     axs[0].set_ylim(rho_rng[0], rho_rng[1])
-    axs[0].set_ylabel(rho_label)
-    axs[0].set_title(rho_title)
+    axs[0].set_ylabel(labels["rho"])
+    axs[0].set_title(titles["rho"])
 
     axs[1].plot(x, vx)
     axs[1].set_ylim(v_rng[0], v_rng[1])
-    axs[1].set_ylabel(v_label)
-    axs[1].set_title(v_title)
+    axs[1].set_ylabel(labels["vx"])
+    axs[1].set_title(titles["v-1D"])
 
     if log_plots: axs[2].semilogy(x, p)
     else: axs[2].plot(x, p)
     axs[2].set_ylim(p_rng[0], p_rng[1])
-    axs[2].set_ylabel(p_label)
+    axs[2].set_ylabel(labels["p"])
     axs[2].set_xlabel(x_label)
-    axs[2].set_title(p_title)
+    axs[2].set_title(titles["p"])
 
 
     if log_plots: axs[3].semilogy(x, E)
     else: axs[3].plot(x, E)
     axs[3].set_ylim(E_rng[0], E_rng[1])
-    axs[3].set_ylabel(E_label)
+    axs[3].set_ylabel(labels["E"])
     axs[3].set_xlabel(x_label)
-    axs[3].set_title(E_title)
+    axs[3].set_title(titles["E"])
 
     title = f"{plot_title} [t = {t:.4f}{time_unit}]"
     fig.suptitle(title)
@@ -81,5 +81,4 @@ while fileExists(n):
     rho, vx, p, E, t, dx = readFile(n)
     plotFile(n,rho,vx,p,E,t,dx, rho_rng, v_rng, p_rng, E_rng)
     n+=1
-
 
