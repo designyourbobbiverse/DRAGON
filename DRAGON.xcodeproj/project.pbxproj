@@ -84,6 +84,7 @@
 				CollidingFlows/Jets/Jet.cpp,
 				CollidingFlows/Jets/MHDJet.cpp,
 				CollidingFlows/Problem.cpp,
+				SphericalBlast/Problem2D.cpp,
 			);
 			target = F70D18F22FA12B5A00A2B235 /* DRAGON */;
 		};
