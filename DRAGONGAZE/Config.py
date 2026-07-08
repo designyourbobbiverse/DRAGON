@@ -9,23 +9,13 @@ img_dir = "/Users/bobbiemarkwick/DRAGON_IMG" #Where to put the plots
 h5_base_filename = "frame" #Specifieds HDF5 file names via <base_filename>_#####.h5
 img_base_filename = "frame" #Specifieds image file names via <base_filename>_#####.png
 
-log_plots = False #Set True to plot density, pressure, and energy density logarithmically
+'''
+Titles
+'''
 
-#Dragon is Inhernetly dimensionless, though CGS units are easy to add if desired
-x_label = r"$x$"#\ (\mathrm{cm})$"
-labels = {
-    "rho": r"$\rho$",#\ (\mathrm{g \cdot cm^{-3}})$",
-    "vx": r"$v_x$",#\ (\mathrm{cm \cdot s^{-1}})$",
-    "vy": r"$v_y$",#\ (\mathrm{cm \cdot s^{-1}})$",
-    "vz": r"$v_z$",#\ (\mathrm{cm \cdot s^{-1}})$",
-    "Bx": r"$B_x$",
-    "By": r"$B_y$",
-    "Bz": r"$B_z$",
-    "p": r"$p$",#\ (\mathrm{g \cdot cm^{-1} s^{-2}})$"
-    "E": r"$E$"#\ (\mathrm{g \cdot cm^{2}\cdot s^{-2}})$",
-}
-time_unit = ""
+plot_title = "SOD Shock Tube"
 
+#Titles for individual plots
 titles = {
     "rho": "Mass Density",
     "v-1D": "Normal Velocity",
@@ -39,7 +29,54 @@ titles = {
     "vz": "Velocity (z)",
 }
 
-x_mode = 1 #0 origin in middle, +1 = origin at left +x to right, -1 = origin at right +x to left
 
-plot_title = "Ryu & Jones Shock Tube"
+
+'''
+Axis Labels
+'''
+
+#Dragon is Inhernetly dimensionless, though CGS units are easy to add if desired
+labels = {
+    "rho": r"$\rho$",#\ (\mathrm{g \cdot cm^{-3}})$",
+    "vx": r"$v_x$",#\ (\mathrm{cm \cdot s^{-1}})$",
+    "vy": r"$v_y$",#\ (\mathrm{cm \cdot s^{-1}})$",
+    "vz": r"$v_z$",#\ (\mathrm{cm \cdot s^{-1}})$",
+    "Bx": r"$B_x$",
+    "By": r"$B_y$",
+    "Bz": r"$B_z$",
+    "p": r"$p$",#\ (\mathrm{g \cdot cm^{-1} s^{-2}})$"
+    "E": r"$E$"#\ (\mathrm{g \cdot cm^{2}\cdot s^{-2}})$",
+}
+time_unit = ""
+
+x_label = r"$x$"#\ (\mathrm{cm})$"
+y_label = r"$y$"#\ (\mathrm{cm})$"
+z_label = r"$z$"#\ (\mathrm{cm})$"
+
+#determines where on the axis the origin should be defined
+#Doesn't alter the image, just changes how the axis is labelled
+x_mode = 1 #0 origin in middle, +1 = origin at left +x to right, -1 = origin at right +x to left
+y_mode = 1 #0 origin in middle, +1 = origin at left +y to right, -1 = origin at right +y to left
+z_mode = 1 #0 origin in middle, +1 = origin at left +z to right, -1 = origin at right +z to left
+
+
+'''
+Plot content
+'''
+
+#Choose any of the options available in MatPlotLib (https://matplotlib.org/stable/gallery/color/colormap_reference.html)
+cmap = {
+    "rho": "viridis",
+    "vx": "PRGn",
+    "vy": "PRGn",
+    "vz": "PRGn",
+    "p": "plasma",
+    "E": "magma",
+    "Bx": "seismic",
+    "By": "seismic",
+    "Bz": "seismic"
+}
+
+log_plots = False #Set True to plot density, pressure, and energy density logarithmically
+
 
