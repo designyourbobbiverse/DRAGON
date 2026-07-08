@@ -90,8 +90,8 @@ def plotFile(n, rho,vx,vy,By,p,E,t,dx, rho_rng, v_rng, p_rng, E_rng, vy_rng, By_
     axs[7].set_title(titles["Bz"])
     
     title = f"{plot_title} [t = {t:.4f}{time_unit}]"
-    fig.suptitle(title)
-    fig.tight_layout()
+    fig.suptitle(title, fontsize=30)
+    fig.tight_layout(rect=[0, 0, 1, 0.98])
     
     png_name = imgFileName(n)
     fig.savefig(png_name, dpi=64)

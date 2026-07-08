@@ -62,8 +62,8 @@ def plotFile(n, rho,vx,p,E,t,dx, rho_rng, v_rng, p_rng, E_rng):
     axs[3].set_title(titles["E"])
 
     title = f"{plot_title} [t = {t:.4f}{time_unit}]"
-    fig.suptitle(title)
-    fig.tight_layout()
+    fig.suptitle(title, fontsize=20)
+    fig.tight_layout(rect=[0, 0, 1, 0.98])
     
     png_name = imgFileName(n)
     fig.savefig(png_name, dpi=64)
