@@ -132,7 +132,7 @@ void DRAGON_Test::verify_ct_stationary_2D(){
 
     for (int i = 0; i <= grid.getSizeX(); i++){
         for (int j = 0; j <= grid.getSizeY(); j++){
-            grid[i,j].p = p0 - grid[i,j].B * grid[i,j].B * inv_8pi;
+            grid[i,j].p = p0 - grid[i,j].B * grid[i,j].B * _1_8pi;
             expected[i,j] = grid[i,j];
         }
     }
@@ -170,7 +170,7 @@ void DRAGON_Test::verify_ct_stationary_3D(){
     for (int i = 0; i <= grid.getSizeX(); i++){
         for (int j = 0; j <= grid.getSizeY(); j++){
             for (int k = 0; k <= grid.getSizeZ(); k++){
-                grid[i,j,k].p = p0 - grid[i,j,k].B * grid[i,j,k].B * inv_8pi;
+                grid[i,j,k].p = p0 - grid[i,j,k].B * grid[i,j,k].B * _1_8pi;
                 expected[i,j,k] = grid[i,j,k];
             }
         }
@@ -210,7 +210,7 @@ void DRAGON_Test::verify_ct_loop_advection_2D(){
 
     for (int i = 0; i <= grid.getSizeX(); i++){
         for (int j = 0; j <= grid.getSizeY(); j++){
-            grid[i,j].p = p0 - grid[i,j].B * grid[i,j].B  * inv_8pi;
+            grid[i,j].p = p0 - grid[i,j].B * grid[i,j].B  * _1_8pi;
             expected[i,j] = grid[i,j];
         }
     }
@@ -250,7 +250,7 @@ void DRAGON_Test::verify_ct_loop_advection_3D(){
     for (int i = 0; i <= grid.getSizeX(); i++){
         for (int j = 0; j <= grid.getSizeY(); j++){
             for (int k = 0; k <= grid.getSizeZ(); k++){
-                grid[i,j,k].p = p0 - grid[i,j,k].B * grid[i,j,k].B * inv_8pi;
+                grid[i,j,k].p = p0 - grid[i,j,k].B * grid[i,j,k].B * _1_8pi;
                 expected[i,j,k] = grid[i,j,k];
             }
         }

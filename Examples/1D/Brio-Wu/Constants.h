@@ -21,15 +21,11 @@ constexpr double _gamma = 2.0;
 //******************************************************************//
 
 //MARK: Pi-related constants
-constexpr double _2pi = 0.5/M_PI;
-constexpr double _4pi = 0.25/M_PI;
-constexpr double _8pi = 0.125/M_PI;
-const double sq2pi = sqrt(2.0*M_PI);
+constexpr double _1_4pi = 0.25/M_PI;
+constexpr double _1_8pi = 0.125/M_PI;
 const double sq4pi = sqrt(4.0*M_PI);
 const double sq8pi = sqrt(8.0*M_PI);
-const double inv_sq2pi = 1.0/sq2pi;
-const double inv_sq4pi = 1.0/sq4pi;
-const double inv_sq8pi = 1.0/sq8pi;
+
 
 //MARK: Gamma-dependent constants
 constexpr double  _Gm1_2G = (_gamma - 1.0)/(2.0 * _gamma);

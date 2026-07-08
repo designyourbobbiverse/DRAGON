@@ -16,14 +16,14 @@
 #ifdef MHD
 
 void compute_outer_star_transverse(PrimitiveState& wsK, const PrimitiveState& K, double _xK, double SK, double SM, double Bx){
-    double Bx2_4pi = (Bx*Bx) * inv_4pi; // B_x^2 / 4pi
+    double Bx2_4pi = (Bx*Bx) * _1_4pi; // B_x^2 / 4pi
     double denom = _xK*(SK - SM) - Bx2_4pi; //Denominator of B and v scaling factors
     //Set transverse components via vector arithmatic, then override x component
     //Magnetic Field
     wsK.B = (fabs(denom)<1e-12) ? K.B : K.B * (_xK*(SK-K.v.x)-Bx2_4pi)/denom;
     wsK.B.x = Bx;
     //Velocities
-    wsK.v = K.v - (fabs(denom)<1e-12 ? vec3{0,0,0} :  K.B * Bx*(SM-K.v.x)/denom * inv_4pi );
+    wsK.v = K.v - (fabs(denom)<1e-12 ? vec3{0,0,0} :  K.B * Bx*(SM-K.v.x)/denom * _1_4pi );
     wsK.v.x = SM;
 }
 ConservativeState Riemann::HLLD(){
@@ -42,7 +42,7 @@ ConservativeState Riemann::HLLD(){
     if(Bx*Bx < 1e-12 * cutoff) return HLLD_zero_B(SL, SR);
             
     //Calculate the Contact Wave Speed
-    double pTL = L.p + (L.B*L.B)*inv_8pi, pTR = R.p + (R.B*R.B)*inv_8pi;
+    double pTL = L.p + (L.B*L.B)*_1_8pi, pTR = R.p + (R.B*R.B)*_1_8pi;
     double _xL = L.rho * (SL-L.v.x), _xR = R.rho * (SR-R.v.x);
     double SM  = ((_xR*R.v.x - _xL*L.v.x) - (pTR-pTL))  / (_xR - _xL);
     
@@ -61,7 +61,7 @@ ConservativeState Riemann::HLLD(){
     
     if(SsR >= 0) {//If this isn't true, we are between right fast/alfven, so we won't need FsL
         compute_outer_star_transverse(wsL, L, _xL, SL, SM, Bx);
-        wsL.p = pT - wsL.B*wsL.B*inv_8pi;
+        wsL.p = pT - wsL.B*wsL.B*_1_8pi;
         
         #ifdef HLLD_PHYSICAL_SAFETY
         if(!wsL.isPhysical()) return HLLE();
@@ -71,7 +71,7 @@ ConservativeState Riemann::HLLD(){
     }
     if(SsL <= 0) { //If this isn't true, we are between left fast/alfven, so we won't need FsR
         compute_outer_star_transverse(wsR, R, _xR, SR, SM, Bx);
-        wsR.p = pT - wsR.B*wsR.B*inv_8pi;
+        wsR.p = pT - wsR.B*wsR.B*_1_8pi;
 
         #ifdef HLLD_PHYSICAL_SAFETY
         if(!wsR.isPhysical()) return HLLE();
@@ -92,11 +92,11 @@ ConservativeState Riemann::HLLD(){
     // ConservativeState uss;
     //Set transverse components via vector arithmatic, then override x component
     wss.rho = ws.rho;
-    wss.v = (sqL*wsL.v + sqR*wsR.v + sbx*(wsR.B - wsL.B)*inv_4pi)/(sqL+sqR);
+    wss.v = (sqL*wsL.v + sqR*wsR.v + sbx*(wsR.B - wsL.B)*_1_4pi)/(sqL+sqR);
     wss.v.x = SM;
     wss.B = (sqL*wsR.B + sqR*wsL.B + sqL*sqR*sbx*(wsR.v - wsL.v))/(sqL+sqR);
     wss.B.x = Bx;
-    wss.p = pT - wss.B*wss.B*inv_8pi;
+    wss.p = pT - wss.B*wss.B*_1_8pi;
     
     #ifdef HLLD_PHYSICAL_SAFETY
     if(!wss.isPhysical()) return HLLE();
@@ -125,7 +125,7 @@ void compute_outer_star_transverse_zero_B(PrimitiveState& wsK, const PrimitiveSt
 ConservativeState Riemann::HLLD_zero_B(double SL, double SR){
     
     //Calculate the Contact Wave Speed
-    double pTL = L.p + (L.B*L.B)*inv_8pi, pTR = R.p + (R.B*R.B)*inv_8pi;
+    double pTL = L.p + (L.B*L.B)*_1_8pi, pTR = R.p + (R.B*R.B)*_1_8pi;
     double _xL = L.rho * (SL-L.v.x), _xR = R.rho * (SR-R.v.x);
     double SM  = ((_xR*R.v.x - _xL*L.v.x) - (pTR-pTL))  / (_xR - _xL);
     
@@ -140,7 +140,7 @@ ConservativeState Riemann::HLLD_zero_B(double SL, double SR){
     
     if(SM >= 0) {//If this isn't true, we are between right fast/alfven, so we won't need FsL
         compute_outer_star_transverse_zero_B(wsL, L, _xL, SL, SM);
-        wsL.p = pT - wsL.B*wsL.B*inv_8pi;
+        wsL.p = pT - wsL.B*wsL.B*_1_8pi;
         
         #ifdef HLLD_PHYSICAL_SAFETY
         if(!wsL.isPhysical()) return HLLE();
@@ -150,7 +150,7 @@ ConservativeState Riemann::HLLD_zero_B(double SL, double SR){
     }
     if(SM <= 0) { //If this isn't true, we are between left fast/alfven, so we won't need FsR
         compute_outer_star_transverse_zero_B(wsR, R, _xR, SR, SM);
-        wsR.p = pT - wsR.B*wsR.B*inv_8pi;
+        wsR.p = pT - wsR.B*wsR.B*_1_8pi;
 
         #ifdef HLLD_PHYSICAL_SAFETY
         if(!wsR.isPhysical()) return HLLE();
@@ -167,7 +167,7 @@ ConservativeState Riemann::HLLD_zero_B(double SL, double SR){
     double sqL = sqrt(wsL.rho), sqR = sqrt(wsR.rho);
     PrimitiveState wss = (sqL*wsL + sqR*wsR)/(sqL+sqR);
     wss.rho = wsL.rho;
-    wss.p = pT - wss.B*wss.B*inv_8pi;
+    wss.p = pT - wss.B*wss.B*_1_8pi;
 
     #ifdef HLLD_PHYSICAL_SAFETY
     if(!wss.isPhysical()) return HLLE();
