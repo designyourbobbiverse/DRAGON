@@ -1,6 +1,6 @@
 //
 //  Problem.cpp
-//  DRAGON/Examples/1D/Lax
+//  DRAGON/Examples/1D/Brio-Wu
 //
 //  Created by Bobbie Markwick on 7/07/2026.
 //

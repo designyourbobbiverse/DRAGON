@@ -16,7 +16,9 @@ x_label = r"$x$"#\ (\mathrm{cm})$"
 rho_label = r"$\rho$"#\ (\mathrm{g \cdot cm^{-3}})$"
 v_label = r"$v_x$"#\ (\mathrm{cm \cdot s^{-1}})$"
 vy_label = r"$v_y$"#\ (\mathrm{cm \cdot s^{-1}})$"
-B_label = r"$B_y$"
+vz_label = r"$v_z$"#\ (\mathrm{cm \cdot s^{-1}})$"
+By_label = r"$B_y$"
+Bz_label = r"$B_z$"
 p_label = r"$p$"#\ (\mathrm{g \cdot cm^{-1} s^{-2}})$"
 E_label = r"$E$"#\ (\mathrm{g \cdot cm^{2}\cdot s^{-2}})$"
 time_unit = ""
@@ -25,11 +27,13 @@ rho_title = "Mass Density"
 v_title = "Normal Velocity"
 p_title = "Pressure"
 E_title = "Energy Density"
-B_title = "Transverse Mangetic Field"
-vy_title = "Transverse Velocity"
+By_title = "Transverse-y Mangetic Field"
+vy_title = "Transverse-y Velocity"
+Bz_title = "Transverse-z Mangetic Field"
+vz_title = "Transverse-z Velocity"
 
 x_mode = 1 #0 origin in middle, +1 = origin at left +x to right, -1 = origin at right +x to left
 
-plot_title = "Brio-Wu Shock Tube"
+plot_title = "Dai & Woodward Shock Tube"
 
 

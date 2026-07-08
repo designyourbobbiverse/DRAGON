@@ -75,6 +75,7 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				"1D/Brio-Wu/Problem.cpp",
+				"1D/Dai-Woodward/Problem.cpp",
 				1D/Lax/Problem.cpp,
 				"1D/Shu-Osher/Problem.cpp",
 				1D/SOD/Problem.cpp,
