@@ -8,14 +8,14 @@
 #include "Problem.hpp"
 #include "DistGrid.hpp"
 
-typedef Grid1D MyGrid;//Choose the dimension of your grid here
+typedef DistGrid1D MyGrid;//Choose the dimension of your grid here
 
 constexpr double rho_L = 0.445;
 constexpr double rho_R = 0.5;
 constexpr double vxL = 0.698;
 constexpr double p_L = 3.528;
 constexpr double p_R = 0.571;
-const int nx = 1024;
+const int nx = 1024*8;
 
 Grid& Problem::makeProblem(){
     auto grid = new MyGrid(nx, 1.0/nx);

@@ -9,14 +9,14 @@
 #include "DistGrid.hpp"
 #include <cmath>
 
-typedef Grid1D MyGrid;//Choose the dimension of your grid here
+typedef DistGrid1D MyGrid;//Choose the dimension of your grid here
 
 constexpr double rho_L = 3.857143;
 constexpr double rho_R = 1.0;
 constexpr double p_L = 10.333333;
 constexpr double p_R = 1.0;
 constexpr double vxL = 2.629369;
-constexpr int nx = 1280;
+constexpr int nx = 1280*8;
 constexpr double dx = 10.0/nx;
 
 Grid& Problem::makeProblem(){

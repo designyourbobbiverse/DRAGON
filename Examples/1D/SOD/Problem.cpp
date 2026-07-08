@@ -14,7 +14,7 @@ constexpr double rho_L = 1.0;
 constexpr double rho_R = 0.125;
 constexpr double p_L = 1.0;
 constexpr double p_R = 0.1;
-const int nx = 1024;
+const int nx = 1024*8;
 
 Grid& Problem::makeProblem(){
     auto grid = new MyGrid(nx, 1.0/nx);
