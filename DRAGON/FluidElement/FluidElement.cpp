@@ -51,14 +51,14 @@ PrimitiveState::PrimitiveState(ConservativeState state){
 double PrimitiveState::energy() const {
     double E =  p/(_gamma - 1.0) + (rho/2)*(v*v); //Thermal + Bulk Kinetic Energy Densities
 #ifdef MHD
-    E += (B*B)/(8*M_PI); //Magnetic Energy Density (if applicable)
+    E += (B*B) * inv_8pi; //Magnetic Energy Density (if applicable)
 #endif
     return E;
 }
 double ConservativeState::pressure() const {
     double E_thermal = this->E - (p*p)/(2*rho); //Remove Bulk Kinetic Energy Density
 #ifdef MHD
-     E_thermal -= (B*B)/(8*M_PI); //Remove Magnetic Energy Density (if applicable)
+     E_thermal -= (B*B) * inv_8pi; //Remove Magnetic Energy Density (if applicable)
 #endif
     return  (_gamma - 1.0) * E_thermal; //Convert thermal energy density to pressure
 }
@@ -67,7 +67,7 @@ double ConservativeState::pressure() const {
 double PrimitiveState::enthalpy() const {
     double h = energy() + p; //Energy + (Thermal) Pressure
 #ifdef MHD
-    h += (B*B)/(8*M_PI); //Don't forget magnetic pressure (p is thermal only)
+    h += (B*B)  * inv_8pi; //Don't forget magnetic pressure (p is thermal only)
 #endif
     return h / rho; //Divide by density to get per particle
 }
@@ -95,12 +95,12 @@ double PrimitiveState::cs() const {
 }
 #ifdef MHD
 double PrimitiveState::c_alfven() const {
-    return sqrt( (B*B) / (4*M_PI*rho) ); //Alfven speed, given in gaussian units
+    return sqrt( (B*B) / rho ) * inv_sq4pi; //Alfven speed, given in gaussian units
 }
 double PrimitiveState::c_fast() const { return c_fast(B.x); }
 double PrimitiveState::c_fast(double Bk) const {
     //Precompute the sound and alvfen speeds
-    double c = cs(), a = c_alfven(), c2 = pow(c,2), a2 = pow(a,2), ak2 = Bk * Bk /(4*M_PI*rho);
+    double c = cs(), a = c_alfven(), c2 = pow(c,2), a2 = pow(a,2), ak2 = (Bk * Bk / rho) * inv_4pi;
     // fmax(0,__) to protect against numerical issues
     double disc = fmax(0, pow(c2+a2,2)*0.25 - ak2*c2);
     //Compute fast speed
@@ -133,11 +133,11 @@ ConservativeState ConservativeState::flux(vec3 v) const {
     F.E =  (E + _p) * v.x; //Energy Flux = (Enthalpy density) * normal velocity [1st law of thermodynamics]
 #ifdef MHD
     //Magnetic Pressure
-    double p_mag = B*B / (8*M_PI);
+    double p_mag = B*B * inv_8pi;
     F.p.x += p_mag;
     F.E += p_mag * v.x;
     //Magnetic Tension
-    vec3 mag_ten = (B.x * B) / (4*M_PI);
+    vec3 mag_ten = (B.x * B) * inv_4pi;
     F.p -= mag_ten;
     F.E -= v * mag_ten; //Poynting Flux
     //Magnetic Induction

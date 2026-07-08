@@ -74,6 +74,7 @@
 		F79054AC2FFD772C0083CDFB /* Exceptions for "Examples" folder in "DRAGON" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				"1D/Brio-Wu/Problem.cpp",
 				1D/Lax/Problem.cpp,
 				"1D/Shu-Osher/Problem.cpp",
 				1D/SOD/Problem.cpp,

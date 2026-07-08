@@ -8,6 +8,7 @@
 #include "Jets.hpp"
 #include "Grid.hpp"
 #include <cmath>
+#include "Constants.h"
 
 using namespace Boundary;
 #ifdef MHD
@@ -24,7 +25,7 @@ void MHDJet::apply(Grid1D& grid) {
     std::swap(pj,p);
     
     int ng = grid.getGhosts();
-    double B = sqrt(pj * 8*M_PI/fabs(beta)) * (beta/fabs(beta));
+    double B = sqrt(pj / fabs(beta)) * (beta/fabs(beta)) * sq8pi;
 
     if (jetface & X_negative){
         for(int g = 1; g <= ng; g++){
@@ -55,8 +56,8 @@ void MHDJet::apply(Grid2D& grid) {
     int j0 = std::max(0.0,floor(ny*0.5 - rj/dy)), jn = fmin(ny,ceil(ny*0.5 + rj/dy));
 
 
-    double B = sqrt(pj * 8*M_PI/fabs(beta)) * (beta/fabs(beta));
-    
+    double B = sqrt(pj / fabs(beta)) * (beta/fabs(beta)) * sq8pi;
+
     if (jetface & X_negative){
         for(int j = j0; j < jn; j++){
             for(int g = 1; g <= ng; g++){
@@ -109,7 +110,7 @@ void MHDJet::apply(Grid3D& grid) {
     auto& A = grid._A();
     
     double pmag = (pj/fabs(beta));
-    double Bm = sqrt(8*M_PI*pmag) * (beta < 0 ? -1 : 1);
+    double Bm = sqrt(pmag) * (beta < 0 ? -1 : 1) * sq8pi;
     double _rm = 1/rm;
     double _rm2 = _rm*_rm;
     double Am = Bm*rm*log(rj/rm);
