@@ -17,7 +17,7 @@ void DRAGON_Test::verify_god_dist_grid_1D(){
     Grid1D grid(100, 1.0, 2);
     DistGrid1D dgrid(100, 1.0, 2);
     for (int i = 0; i < grid.getSize(); i++) {
-        grid[i] = make_state(1.0+0.1*i, 1.0+0.1*i, -0.1*i, 0.1*i, 10.0-0.1*i);
+        grid[i] = make_state(1.0+0.01*i, 1.0+0.01*i, -0.01*i, 0.01*i, 10.0-0.01*i);
         #ifdef MHD
         grid[i].B = vec3{0, -0.2*i, -0.3*i};
         #endif
