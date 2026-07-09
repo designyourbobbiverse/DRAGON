@@ -1,7 +1,7 @@
 //
 //
 //  Config.h
-//  DRAGON/Examples/Sedov-Taylor
+//  DRAGON/Examples/SphericalBlast
 //
 //  Created by Bobbie Markwick on 7/07/2026.
 //
