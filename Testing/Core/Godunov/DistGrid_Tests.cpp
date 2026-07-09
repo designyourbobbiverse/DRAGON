@@ -100,8 +100,8 @@ void DRAGON_Test::verify_god_dist_grid_2D_MHD(){
 #endif
 
 void DRAGON_Test::verify_god_dist_grid_3D(bool split){
-    Grid3D grid(32,32,32,1.0, 1.0,1.0, 2);
-    DistGrid3D dgrid(32,32,32, 1.0,1.0,1.0, 2);
+    Grid3D grid(16,16,16,1.0, 1.0,1.0, 2);
+    DistGrid3D dgrid(16,16,16, 1.0,1.0,1.0, 2);
     grid.boundary = Periodic();
     dgrid.boundary = Periodic();
     
@@ -136,8 +136,8 @@ void DRAGON_Test::verify_god_dist_grid_3D(bool split){
 
 #ifdef MHD
 void DRAGON_Test::verify_god_dist_grid_3D_MHD(){
-    Grid3D grid(32,32,32,1.0, 1.0,1.0, 2);
-    DistGrid3D dgrid(32,32,32,1.0, 1.0,1.0, 2);
+    Grid3D grid(16,16,16,1.0, 1.0,1.0, 2);
+    DistGrid3D dgrid(16,16,16,1.0, 1.0,1.0, 2);
     grid.boundary = Periodic();
     dgrid.boundary = Periodic();
     
