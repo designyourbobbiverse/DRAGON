@@ -212,7 +212,7 @@ void DRAGON_Test::verify_god_periodic_conservation_2D_MHD(){
         for (int j = 0; j <= grid.getSizeY(); j++){
             grid[i,j] = make_state(1.0+0.1*i+0.1*j, 1.0+0.1*i, 1.0-0.1*j, 0.1*i*j, 10.0-0.1*i+0.1*j);
             grid[i,j].B = vec3{0.1*i, -0.2*j, -0.3*i};
-            grid._A()[i,j] = vec3{0.1*i, -0.2*j, -0.3*i};
+            grid._A()[i,j] = vec3{0.1*i, -0.02*i, 0.01*j};
             
         }
     }
@@ -246,11 +246,12 @@ void DRAGON_Test::verify_god_periodic_conservation_3D_MHD(){
         for (int j = 0; j < grid.getSizeY(); j++){
             for(int k = 0; k < grid.getSizeZ(); k++){
                 grid[i,j,k] = make_state(1.0+0.1*i+0.1*j, 1.0+0.1*i, 1.0-0.1*j, 0.1*k, 10.0-0.1*i+0.1*j-0.1*k);
-                grid._A()[i,j,k] = vec3{0.1*i, -0.2*j, -0.3*k};
+                grid._A()[i,j,k].x = 0;
+                grid._A()[i,j,k].y = 0.1 * sin(2*M_PI*i/grid.getSizeX());
+                grid._A()[i,j,k].z = 0.1 * cos(2*M_PI*i/grid.getSizeX());
             }
         }
     }
-    grid.boundary.apply(grid);
     grid.initialize_B_fields();
 
     
@@ -265,7 +266,7 @@ void DRAGON_Test::verify_god_periodic_conservation_3D_MHD(){
     expected.B = {0,0,0};//B isn't a conserved quanitty
 
     
-    grid.advance(3.0);
+    grid.advance(10.0);
     
     ConservativeState got = ConservativeState();
     for (int i = 0; i < grid.getSizeX(); i++){
@@ -279,6 +280,6 @@ void DRAGON_Test::verify_god_periodic_conservation_3D_MHD(){
     got.B = {0,0,0};//B isn't a conserved quanitty
 
     
-    expect_close(expected, got);
+    expect_close(expected, got, 1e-8, 1e-8);
 }
 #endif

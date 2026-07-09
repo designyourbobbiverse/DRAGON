@@ -19,6 +19,9 @@ void DRAGON_Test::verify_godunov_1D(bool output){
     CONFIG::riemann_choice = RIEMANN_EXACT;
     
     if(output) std::cout<<"Godunov Scheme (1D): \n";
+    if(output) std::cout<<"- Zero Time: ";
+    verify_god_dt0_1D();
+    if(output) std::cout<<"Passed\n";
     if(output) std::cout<<"- Uniform Flows: ";
     verify_god_uniform_stationary_1D();
     verify_god_uniform_moving_1D();
@@ -26,15 +29,13 @@ void DRAGON_Test::verify_godunov_1D(bool output){
     if(output) std::cout<<"- Periodic Conservation: ";
     verify_god_periodic_conservation_1D();
     if(output) std::cout<<"Passed\n";
-    
     #ifdef MHD
     verify_godunov_1D_MHD();
     #endif
-    
-    if(output) std::cout<<"- Zero Time: ";
-    verify_god_dt0_1D();
+    if(output) std::cout<<"- Parallelization: ";
+    verify_god_dist_grid_1D();
     if(output) std::cout<<"Passed\n";
-    
+
     CONFIG::riemann_choice = prev;
 }
 void DRAGON_Test::verify_godunov_2D_Split(bool output){
@@ -42,6 +43,9 @@ void DRAGON_Test::verify_godunov_2D_Split(bool output){
     CONFIG::riemann_choice = RIEMANN_EXACT;
 
     if(output) std::cout<<"Split Scheme (2D): \n";
+    if(output) std::cout<<"- Zero Time: ";
+    verify_god_dt0_2D(true);
+    if(output) std::cout<<"Passed\n";
     if(output) std::cout<<"- Uniform Flows: ";
     verify_god_uniform_stationary_2D(true);
     verify_god_uniform_moving_2D(true);
@@ -49,8 +53,8 @@ void DRAGON_Test::verify_godunov_2D_Split(bool output){
     if(output) std::cout<<"- Periodic Conservation: ";
     verify_god_periodic_conservation_2D(true);
     if(output) std::cout<<"Passed\n";
-    if(output) std::cout<<"- Zero Time: ";
-    verify_god_dt0_2D(true);
+    if(output) std::cout<<"- Parallelization: ";
+    verify_god_dist_grid_2D(true);
     if(output) std::cout<<"Passed\n";
     if(output) std::cout<<"- 1D Match (X): ";
     verify_2D_X_match_1D(true);
@@ -64,23 +68,33 @@ void DRAGON_Test::verify_godunov_2D_Split(bool output){
 void DRAGON_Test::verify_godunov_2D_Unsplit(bool output){
     int prev = CONFIG::riemann_choice;
     CONFIG::riemann_choice = RIEMANN_EXACT;
-    
+
     if(output) std::cout<<"Unsplit Scheme (2D): \n";
+
+    if(output) std::cout<<"- Zero Time: ";
+    verify_god_dt0_2D(false);
+    if(output) std::cout<<"Passed\n";
     if(output) std::cout<<"- Uniform Flows: ";
     verify_god_uniform_stationary_2D(false);
+    
+    
     verify_god_uniform_moving_2D(false);
     if(output) std::cout<<"Passed\n";
     if(output) std::cout<<"- Periodic Conservation: ";
     verify_god_periodic_conservation_2D(false);
     if(output) std::cout<<"Passed\n";
-    
+
     #ifdef MHD
     verify_godunov_2D_MHD();
     #endif
-    
-    if(output) std::cout<<"- Zero Time: ";
-    verify_god_dt0_2D(false);
+
+    if(output) std::cout<<"- Parallelization: ";
+    verify_god_dist_grid_2D(false);
+    #ifdef MHD
+    verify_god_dist_grid_2D_MHD();
+    #endif
     if(output) std::cout<<"Passed\n";
+    
     if(output) std::cout<<"- 1D Match (X): ";
     verify_2D_X_match_1D(false);
     if(output) std::cout<<"Passed\n";
@@ -102,16 +116,22 @@ void DRAGON_Test::verify_godunov_3D_Split(bool output){
     CONFIG::riemann_choice = RIEMANN_EXACT;
 
     if(output) std::cout<<"Split Scheme (3D): \n";
+    if(output) std::cout<<"- Zero Time: ";
+    verify_god_dt0_3D(true);
+    if(output) std::cout<<"Passed\n";
     if(output) std::cout<<"- Uniform Flows: ";
     verify_god_uniform_stationary_3D(true);
+    
+    
     verify_god_uniform_moving_3D(true);
     if(output) std::cout<<"Passed\n";
     if(output) std::cout<<"- Periodic Conservation: ";
     verify_god_periodic_conservation_3D(true);
     if(output) std::cout<<"Passed\n";
-    if(output) std::cout<<"- Zero Time: ";
-    verify_god_dt0_3D(true);
+    if(output) std::cout<<"- Parallelization: ";
+    verify_god_dist_grid_3D(true);
     if(output) std::cout<<"Passed\n";
+
     if(output) std::cout<<"- 1D Match (X): ";
     verify_3D_X_match_1D(true);
     if(output) std::cout<<"Passed\n";
@@ -129,6 +149,9 @@ void DRAGON_Test::verify_godunov_3D_Unsplit(bool output){
     CONFIG::riemann_choice = RIEMANN_HLLC;
 
     if(output) std::cout<<"Unsplit Scheme (3D): \n";
+    if(output) std::cout<<"- Zero Time: ";
+    verify_god_dt0_3D(false);
+    if(output) std::cout<<"Passed\n";
     if(output) std::cout<<"- Uniform Flows: ";
     verify_god_uniform_stationary_3D(false);
     verify_god_uniform_moving_3D(false);
@@ -136,14 +159,18 @@ void DRAGON_Test::verify_godunov_3D_Unsplit(bool output){
     if(output) std::cout<<"- Periodic Conservation: ";
     verify_god_periodic_conservation_3D(false);
     if(output) std::cout<<"Passed\n";
-    
+
     #ifdef MHD
     verify_godunov_3D_MHD();
     #endif
-    
-    if(output) std::cout<<"- Zero Time: ";
-    verify_god_dt0_3D(false);
+
+    if(output) std::cout<<"- Parallelization: ";
+    verify_god_dist_grid_3D(false);
+    #ifdef MHD
+    verify_god_dist_grid_3D_MHD();
+    #endif
     if(output) std::cout<<"Passed\n";
+    
     if(output) std::cout<<"- 1D Match (X): ";
     verify_3D_X_match_1D(false);
     if(output) std::cout<<"Passed\n";
