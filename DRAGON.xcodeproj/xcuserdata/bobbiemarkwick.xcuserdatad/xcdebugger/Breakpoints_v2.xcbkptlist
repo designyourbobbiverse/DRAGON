@@ -8,29 +8,13 @@
          BreakpointExtensionID = "Xcode.Breakpoint.ExceptionBreakpoint">
          <BreakpointContent
             uuid = "5530A347-4104-4F4D-9965-5F28A028DB93"
-            shouldBeEnabled = "No"
+            shouldBeEnabled = "Yes"
             nameForDebugger = "Exceptions"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             breakpointStackSelectionBehavior = "1"
             scope = "2"
             stopOnStyle = "0">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            uuid = "11489177-699A-49DD-9233-3C7C36A5DC77"
-            shouldBeEnabled = "No"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "DRAGON/Refinement/DistGrid.cpp"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "390"
-            endingLineNumber = "390"
-            landmarkName = "DistGrid3D::advance(dt, check_cfl)"
-            landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
       <BreakpointProxy
@@ -46,6 +30,22 @@
             startingLineNumber = "130"
             endingLineNumber = "130"
             landmarkName = "IO::writeToFile(grid, t, cycle, filename)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "46C0CD58-B24D-41EE-9FD6-D9E9EF82424D"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "DRAGON/Refinement/DistGrid.cpp"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "397"
+            endingLineNumber = "397"
+            landmarkName = "DistGrid3D::advance(dt, check_cfl)"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>

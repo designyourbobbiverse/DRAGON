@@ -13,7 +13,9 @@ hdf_dir = "/Users/bobbiemarkwick/DRAGON_OUT" #Where to find the HDF5 outputs fro
 img_dir = "/Users/bobbiemarkwick/DRAGON_IMG" #Where to put the plots
 h5_base_filename = "frame" #Specifieds HDF5 file names via <base_filename>_#####.h5
 img_base_filename = "frame" #Specifieds image file names via <base_filename>_#####.png
-fileprefix = { #In 2D and 3D, image file names will be <prefix>_<base_filename>_#####.png
+#In 2D, image file names will be <prefix>_<base_filename>_#####.png
+#In 3D, image file names will be <prefix>_<axis_pair>_<base_filename>_#####.png where <axis_pair> is xy, xz, or yz
+fileprefix = {
     "rho": "density",
     "vx": "vx",
     "vy": "vy",

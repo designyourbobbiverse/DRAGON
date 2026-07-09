@@ -46,19 +46,12 @@ def plotField(data, n, dx, dy, rng, key):
     right_px  = 100
     bottom_px = 70
     top_px    = 90
-    
     fig_w_px = left_px + ax_w_px + right_px
     fig_h_px = bottom_px + ax_h_px + top_px
 
     fig = plt.figure(figsize=(fig_w_px / dpi, fig_h_px / dpi), dpi=dpi)
+    ax = fig.add_axes([left_px / fig_w_px, bottom_px / fig_h_px, ax_w_px / fig_w_px, ax_h_px / fig_h_px])
 
-    # Axes position in figure coordinates: [left, bottom, width, height]
-    ax = fig.add_axes([
-        left_px / fig_w_px,
-        bottom_px / fig_h_px,
-        ax_w_px / fig_w_px,
-        ax_h_px / fig_h_px,
-    ])
     #Calculate the axes
     if x_mode < 0: xR = 0; xL = nx*dx
     elif x_mode == 0: xR = nx*dx*0.5; xL = -xR
