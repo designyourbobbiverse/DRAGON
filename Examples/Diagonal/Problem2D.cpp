@@ -74,7 +74,7 @@ void Problem::problemComplete(Grid& problem, double t){
         for(int j=0; j<n; j++){
             double x = (i + 0.5)/n;
             double y = (j + 0.5)/n;
-            double rho_exact = 1.0 + 0.1 * sin(2.0 * M_PI * (x + y - 2 * t));
+            double rho_exact = rho0 + rho1 * sin(2.0 * M_PI * (x + y - 2 * t));
 
             double err = fabs(grid[i,j].rho - rho_exact);
             if(err > Linf) Linf = err;

@@ -60,8 +60,8 @@ namespace CONFIG{
 
 //MARK: Time Control
 
-constexpr double final_time = 0.2;
-constexpr double dt = 0.01;
+constexpr double final_time = 1.0;
+constexpr double dt = 0.05;
 
 constexpr double CFL_coeff = 0.3; //The Coefficient used together with the above to determine the maximum timestep size
 constexpr double Timestep_Tolerance = 1e-14; //Timesteps smaller than this are treated as zero
