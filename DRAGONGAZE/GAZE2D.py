@@ -92,7 +92,7 @@ def plotField(data, n, dx, dy, rng, key):
     ])
     fig.colorbar(img, cax=cax)
     #save
-    png_name = imgFileName(n,key)
+    png_name = imgFileName2D(n,key)
     fig.savefig(png_name, dpi=100)
     print(f"Wrote {png_name}")
     plt.close(fig)

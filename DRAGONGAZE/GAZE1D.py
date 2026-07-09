@@ -65,7 +65,7 @@ def plotFile(n, rho,vx,p,E,t,dx, rho_rng, v_rng, p_rng, E_rng):
     fig.suptitle(title, fontsize=20)
     fig.tight_layout(rect=[0, 0, 1, 0.98])
     
-    png_name = imgFileName(n)
+    png_name = imgFileName1D(n)
     fig.savefig(png_name, dpi=64)
     print(f"Wrote {png_name}")
     plt.close(fig)
