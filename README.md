@@ -44,7 +44,7 @@ DRAGON/
 
 DRAGONWING/         Multithreading
 DRAGONGAZE/         Plotting Tools
-Examples/           Example Problems
+Examples/           Example Problems & Validation
 Testing/            Unit test suite
 ```
 
