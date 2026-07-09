@@ -10,6 +10,17 @@
 #include "Config.h"
 #include <cmath>
 
+
+void GridBuffers1D::poison(){
+    for(int n=0;n<2;n++) {
+        int g = prim[n]->getGhosts();
+        for(int i=-g; i<g+prim[n]->getSize(); i++){
+            (*prim[n])[i].rho = NAN;
+            (*prim[n])[i].p = NAN;
+            (*prim[n])[i].v = {NAN,NAN,NAN};
+        }
+    }
+}
 void GridBuffers2D::poison(){
     for(int n=0;n<4;n++) {
         int g = prim[n]->getGhosts();

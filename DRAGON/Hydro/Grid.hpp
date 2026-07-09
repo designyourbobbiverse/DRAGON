@@ -33,7 +33,7 @@ public:
     Grid1D(int size, double dx, int ghosts=1);
     Grid1D(const Grid1D&) = delete; //No copying
     Grid1D& operator=(const Grid1D&) = delete;
-
+    ~Grid1D();
     //Grid access
     //Can take inputs <0 or >= size to access ghost cells
     PrimitiveState& operator[](int k);
@@ -46,6 +46,11 @@ public:
     void advance(double dt, bool check_cfl=true);
     //The meat of the above function, also used by splitting schemes on higher dimension grids
     void god_sweep(double dt, ExtendedArray1D<PrimitiveState>& _L, ExtendedArray1D<PrimitiveState>& _R);
+    
+private:
+    #ifdef PRESERVE_BUFFERS
+    GridBuffers1D* buffers = nullptr;
+    #endif
 };
 
 class Grid2D: public Grid{
@@ -93,6 +98,8 @@ protected:
     
     #ifdef PRESERVE_BUFFERS
     GridBuffers2D* buffers = nullptr;
+    Grid1D* buffer_x = nullptr;
+    Grid1D* buffer_y = nullptr;
     #endif
 
 };
@@ -142,6 +149,9 @@ protected:
     #endif
     #ifdef PRESERVE_BUFFERS
     GridBuffers3D* buffers = nullptr;
+    Grid1D* buffer_x = nullptr;
+    Grid1D* buffer_y = nullptr;
+    Grid1D* buffer_z = nullptr;
     #endif
 };
 

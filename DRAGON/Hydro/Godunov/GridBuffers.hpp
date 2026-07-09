@@ -16,6 +16,20 @@ struct PrimitiveState;
 struct ConservativeState;
 struct vec3;
 
+struct GridBuffers1D{
+    ExtendedArray1D<PrimitiveState>* prim[2];
+    
+    GridBuffers1D(int nx, int g){
+        for(int i=0;i<2;i++)  prim[i] = new ExtendedArray1D<PrimitiveState>(nx,g);
+    }
+    ~GridBuffers1D(){
+        for(int i=0;i<2;i++)  delete prim[i];
+    }
+    #ifdef TESTMODE
+    void poison();
+    #endif
+};
+    
 struct GridBuffers2D{
     ExtendedArray2D<PrimitiveState>* prim[4];
     ExtendedArray2D<ConservativeState>* flux[2];

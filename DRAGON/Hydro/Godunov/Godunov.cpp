@@ -29,11 +29,26 @@ const PrimitiveState& Grid1D::operator[](int k) const { return w[k]; }
 int Grid1D::getSize() const { return w.getSize(); }
 int Grid1D::getGhosts() const { return w.getGhosts(); }
 
+Grid1D::~Grid1D(){
+#ifdef PRESERVE_BUFFERS
+    if(buffers != nullptr) delete buffers;
+#endif
+}
 
 //MARK: 1D Godunov Advance
 void Grid1D::advance(double dt, bool check_cfl){
     int size = getSize(), ghosts = getGhosts();
-    ExtendedArray1D<PrimitiveState> _L(size,ghosts), _R(size,ghosts);//Buffer Grids
+    
+    #ifdef PRESERVE_BUFFERS//Buffer Grids
+    if(buffers == nullptr) buffers = new GridBuffers1D(size,ghosts);
+    #ifdef TESTMODE
+    buffers->poison();
+    #endif
+    ExtendedArray1D<PrimitiveState>& _L = *buffers->prim[0];
+    ExtendedArray1D<PrimitiveState>& _R = *buffers->prim[1];
+    #else
+    ExtendedArray1D<PrimitiveState> _L(size,ghosts), _R(size,ghosts);
+    #endif
     
     while(dt > CONFIG::Timestep_Tolerance){
         //Apply Boundary Conditions
@@ -55,6 +70,10 @@ void Grid1D::god_sweep(double dt, ExtendedArray1D<PrimitiveState>& _L, ExtendedA
     for(int i=-ghosts+1; i<size+ghosts-1; i++) {
         TVD::MUSCL((*this)[i-1], _L[i], (*this)[i], _R[i], (*this)[i+1], dt/dx);
     }
+    //Fill in the outermost ghosts
+    _R[-ghosts] = (*this)[-ghosts];
+    _L[size+ghosts-1] = (*this)[size+ghosts-1];
+    
     //Compute Fluxes
     ConservativeState fL, fR;
     fL = Riemann(_R[-ghosts], _L[-ghosts+1]).flux_X(dt/dx);

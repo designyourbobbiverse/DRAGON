@@ -122,16 +122,27 @@ void Grid3D::advance_split(double dt, bool check_cfl){
 
 //MARK: 2D Component Sweeps
 void Grid2D::advanceX(double dt){
-   boundary.apply(*this); //Apply Boundary Conditions before every sweep
+    boundary.apply(*this); //Apply Boundary Conditions before every sweep
     
     int nx = w.getSizeX(), ny = w.getSizeY(), ghosts = w.getGhosts();
+    #ifdef PRESERVE_BUFFERS
+    if(buffer_x == nullptr) buffer_x = new Grid1D(nx,dx,ghosts);
+    buffer_x->dx = dx; //In case user changes dx for any reason
+    buffer_x->boundary = Boundary::Ignore();
+    Grid1D& _w = *buffer_x;
+    #else
     Grid1D _w(nx, dx, ghosts);
     ExtendedArray1D<PrimitiveState> _B1(nx, ghosts), _B2(nx, ghosts);//Buffers
+    #endif
     
     for(int j=-ghosts; j<ny+ghosts; j++){
         for(int i=-ghosts; i<nx+ghosts; i++) _w[i] = w[i,j]; //Copy to a 1D array
 
+        #ifdef PRESERVE_BUFFERS
+        _w.advance(dt, false); //Use _w's buffers
+        #else
         _w.god_sweep(dt, _B1, _B2); //Sweep through the 1D array
+        #endif
         
         for(int i=-ghosts; i<nx+ghosts; i++) w[i,j] = _w[i]; //Copy 1D array back to grid
     }
@@ -140,13 +151,25 @@ void Grid2D::advanceY(double dt){
     boundary.apply(*this); //Apply Boundary Conditions before every sweep
 
     int nx = w.getSizeX(), ny = w.getSizeY(), ghosts = w.getGhosts();
+    #ifdef PRESERVE_BUFFERS
+    if(buffer_y == nullptr) buffer_y = new Grid1D(ny,dy,ghosts);
+    buffer_y->dx = dy; //In case user changes dy for any reason
+    buffer_y->boundary = Boundary::Ignore();
+    Grid1D& _w = *buffer_y;
+    #else
     Grid1D _w(ny, dy, ghosts);
     ExtendedArray1D<PrimitiveState> _B1(ny, ghosts), _B2(ny, ghosts);
+    #endif
+    
     
     for(int i=-ghosts; i<nx+ghosts; i++){
         for(int j=-ghosts; j<ny+ghosts; j++)  _w[j] = w[i,j].swappedXY(); //Dimension swap + copy to a 1D array
 
+        #ifdef PRESERVE_BUFFERS
+        _w.advance(dt, false); //Use _w's buffers
+        #else
         _w.god_sweep(dt, _B1, _B2); //Sweep through the 1D array
+        #endif
         
         for(int j=-ghosts; j<ny+ghosts; j++)  w[i,j] = _w[j].swappedXY(); //Dimension swap back + copy back to grid
     }
@@ -159,14 +182,25 @@ void Grid3D::advanceX(double dt){
     boundary.apply(*this); //Apply Boundary Conditions before every sweep
 
     int nx = w.getSizeX(), ny = w.getSizeY(), nz = w.getSizeZ(), ghosts = w.getGhosts();
-    Grid1D _w(nx,dx,ghosts);
-    ExtendedArray1D<PrimitiveState> _B1(nx, ghosts), _B2(nx, ghosts);
+    #ifdef PRESERVE_BUFFERS
+    if(buffer_x == nullptr) buffer_x = new Grid1D(nx,dx,ghosts);
+    buffer_x->dx = dx; //In case user changes dx for any reason
+    buffer_x->boundary = Boundary::Ignore();
+    Grid1D& _w = *buffer_x;
+    #else
+    Grid1D _w(nx, dx, ghosts);
+    ExtendedArray1D<PrimitiveState> _B1(nx, ghosts), _B2(nx, ghosts);//Buffers
+    #endif
     
     for(int k=-ghosts; k<nz+ghosts; k++){
         for(int j=-ghosts; j<ny+ghosts; j++){
             for(int i=-ghosts; i<nx+ghosts; i++) _w[i] = w[i,j,k]; //Copy to a 1D array
             
+            #ifdef PRESERVE_BUFFERS
+            _w.advance(dt, false); //Use _w's buffers
+            #else
             _w.god_sweep(dt, _B1, _B2); //Sweep through the 1D array
+            #endif
             
             for(int i=-ghosts; i<nx+ghosts; i++) w[i,j,k] = _w[i]; //Copy back to grid
         }
@@ -176,14 +210,25 @@ void Grid3D::advanceY(double dt){
     boundary.apply(*this); //Apply Boundary Conditions before every sweep
 
     int nx = w.getSizeX(), ny = w.getSizeY(), nz = w.getSizeZ(), ghosts = w.getGhosts();
-    Grid1D _w(ny,dy,ghosts);
+    #ifdef PRESERVE_BUFFERS
+    if(buffer_y == nullptr) buffer_y = new Grid1D(ny,dy,ghosts);
+    buffer_y->dx = dy; //In case user changes dy for any reason
+    buffer_y->boundary = Boundary::Ignore();
+    Grid1D& _w = *buffer_y;
+    #else
+    Grid1D _w(ny, dy, ghosts);
     ExtendedArray1D<PrimitiveState> _B1(ny, ghosts), _B2(ny, ghosts);
+    #endif
     
     for(int k=-ghosts; k<nz+ghosts; k++){
         for(int i=-ghosts; i<nx+ghosts; i++) {
             for(int j=-ghosts; j<ny+ghosts; j++) _w[j] = w[i,j,k].swappedXY(); //Dimension swap + copy to a 1D array
 
+            #ifdef PRESERVE_BUFFERS
+            _w.advance(dt, false); //Use _w's buffers
+            #else
             _w.god_sweep(dt, _B1, _B2); //Sweep through the 1D array
+            #endif
             
             for(int j=-ghosts; j<ny+ghosts; j++) w[i,j,k] = _w[j].swappedXY();  //Dimension swap back + copy back to grid
        }
@@ -193,14 +238,26 @@ void Grid3D::advanceZ(double dt){
     boundary.apply(*this); //Apply Boundary Conditions before every sweep
 
     int nx = w.getSizeX(), ny = w.getSizeY(), nz = w.getSizeZ(), ghosts = w.getGhosts();
+    #ifdef PRESERVE_BUFFERS
+    if(buffer_z == nullptr) buffer_z = new Grid1D(nz,dz,ghosts);
+    buffer_z->dx = dz; //In case user changes dz for any reason
+    buffer_z->boundary = Boundary::Ignore();
+    Grid1D& _w = *buffer_z;
+    #else
     Grid1D _w(nz,dz,ghosts);
     ExtendedArray1D<PrimitiveState> _B1(nz, ghosts), _B2(nz, ghosts);
+    #endif
+    
     
     for(int i=-ghosts; i<nx+ghosts; i++) {
         for(int j=-ghosts; j<ny+ghosts; j++) {
             for(int k=-ghosts; k<nz+ghosts; k++) _w[k] = w[i,j,k].swappedXZ(); //Dimension swap + copy to a 1D array
             
+            #ifdef PRESERVE_BUFFERS
+            _w.advance(dt, false); //Use _w's buffers
+            #else
             _w.god_sweep(dt, _B1, _B2); //Sweep through the 1D array
+            #endif
             
             for(int k=-ghosts; k<nz+ghosts; k++) w[i,j,k] = _w[k].swappedXZ(); //Dimension swap back + copy back to grid
        }
