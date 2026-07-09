@@ -18,6 +18,7 @@
 #include <stdexcept>
 #include "DragonWing.hpp"
 
+
 //MARK: Split vs Unsplit
 //Use split or unsplit depending on whether DIMENSION_UNSPLIT is defined in Config.h
 void Grid2D::advance(double dt,bool check_cfl){
@@ -32,6 +33,18 @@ void Grid3D::advance(double dt, bool check_cfl){
     advance_unsplit(dt,check_cfl);
 #else
     advance_split(dt,check_cfl);
+#endif
+}
+
+//MARK: Cleanup
+Grid2D::~Grid2D(){
+#ifdef PRESERVE_BUFFERS
+    if(buffers != nullptr) delete buffers;
+#endif
+}
+Grid3D::~Grid3D(){
+#ifdef PRESERVE_BUFFERS
+    if(buffers != nullptr) delete buffers;
 #endif
 }
 
@@ -96,7 +109,7 @@ void correctState(FluidArray2D& _L, FluidArray2D& _R, const FluxArray2D& F, doub
 void Grid2D::advanceXY(double dt){
     int nx = w.getSizeX(), ny = w.getSizeY(), ghosts = w.getGhosts();
     #ifdef PRESERVE_BUFFERS
-    if(buffers == nullptr) buffers = new Buffers2D(nx,ny,ghosts);
+    if(buffers == nullptr) buffers = new GridBuffers2D(nx,ny,ghosts);
     #ifdef TESTMODE //Test that the buffers aren't calling stale values
     buffers->poison();
     #endif
@@ -216,7 +229,7 @@ void correctState(const FluidArray3D& _L0, const FluidArray3D& _R0, FluidArray3D
 void Grid3D::advanceXYZ(double dt){
     int nx = w.getSizeX(), ny = w.getSizeY(), nz = w.getSizeZ(), ghosts = w.getGhosts();
     #ifdef PRESERVE_BUFFERS
-    if(buffers == nullptr) buffers = new Buffers3D(nx,ny,nz,ghosts);
+    if(buffers == nullptr) buffers = new GridBuffers3D(nx,ny,nz,ghosts);
     #ifdef TESTMODE //Test that the buffers aren't calling stale values
     buffers->poison();
     #endif

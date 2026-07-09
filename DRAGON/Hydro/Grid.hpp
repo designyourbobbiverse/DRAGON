@@ -13,11 +13,12 @@
 #include "ExtendedArray.hpp"
 #include "Boundary.hpp"
 #include "Config.h"
-#include "Buffers.hpp"
+#include "GridBuffers.hpp"
 
 class Grid{
 public:
     virtual void advance(double dt, bool check_cfl=true) = 0;
+    virtual ~Grid() = default;
     //Boundary
     Boundary::BoundaryList boundary = Boundary::BoundaryList();
 };
@@ -59,6 +60,7 @@ public:
     Grid2D(int nx, int ny, double dx, double dy, int ghosts=1);
     Grid2D(const Grid2D&) = delete; //No copying
     Grid2D& operator=(const Grid2D&) = delete;
+    ~Grid2D();
     
     //Grid access
     //Can take inputs <0 or >= n to access ghost cells
@@ -90,7 +92,7 @@ protected:
     #endif
     
     #ifdef PRESERVE_BUFFERS
-    Buffers2D* buffers = nullptr;
+    GridBuffers2D* buffers = nullptr;
     #endif
 
 };
@@ -107,7 +109,8 @@ public:
     Grid3D(int nx, int ny, int nz, double dx, double dy, double dz, int ghosts=2);
     Grid3D(const Grid3D&) = delete; //No copying
     Grid3D& operator=(const Grid3D&) = delete;
-    
+    ~Grid3D();
+
     //Grid Access
     //Can take inputs <0 or >= n to access ghost cells
     PrimitiveState& operator[](int i,int j,int k);
@@ -138,7 +141,7 @@ protected:
     void computeBodyAveragedFields(const ExtendedArray3D<vec3>& B);
     #endif
     #ifdef PRESERVE_BUFFERS
-    Buffers3D* buffers = nullptr;
+    GridBuffers3D* buffers = nullptr;
     #endif
 };
 
