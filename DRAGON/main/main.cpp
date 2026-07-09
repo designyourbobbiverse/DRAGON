@@ -61,11 +61,14 @@ int main(int argc, const char * argv[]) {
     
     
     while(time < CONFIG::final_time){
+        //Let the problem code to do any special processing
+        Problem::beforeCycle(problem, cycle, time);
+        //Advance the (Magneto)Hydrodynamics
         problem.advance(CONFIG::dt);
         time += CONFIG::dt;
         cycle++;
         //Let the problem code to do any special processing
-        Problem::cycleComplete(problem, cycle);
+        Problem::afterCycle(problem, cycle, time);
         
         //Monitor Output
         std::string cycleStr = IO::cycle_string(cycle);
@@ -75,6 +78,8 @@ int main(int argc, const char * argv[]) {
         //Write to File
         IO::writeToFile(problem, time, cycle, CONFIG::output_base_name + "_" + cycleStr);
     }
+    
+    Problem::problemComplete(problem, time);
     
     return 0;
 }

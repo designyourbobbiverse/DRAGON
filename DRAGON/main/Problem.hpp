@@ -10,5 +10,7 @@
 namespace Problem{
     Grid& makeProblem();
     void initializeProblem(Grid& grid);
-    void cycleComplete(Grid& problem, int cycle);
+    void afterCycle(Grid& problem, int cycle, double t);
+    void beforeCycle(Grid& problem, int cycle, double t);
+    void problemComplete(Grid& problem, double t);
 }

@@ -41,31 +41,25 @@ Grid& Problem::makeProblem(){
 }
 
 
-void Problem::cycleComplete(Grid& problem, int cycle, double time){
+void Problem::beforeCycle(Grid &problem, int cycle, double t){
     MyGrid& grid = *dynamic_cast<MyGrid*>(&problem);
     
-    //Frame Number
-    auto numStr = std::string(cycle<1000 ? "0" : "") + std::string(cycle<100 ? "0" : "") + std::string(cycle<10 ? "0" : "") +  std::to_string(cycle);
-    std::cout<<"Frame "<<numStr<<" computed, ";
-    //Time
-    int h = floor(time/3600.0), m = floor((time-h*3600.0)/60.0);
-    double s = round((time - h*3600 - m*60)*100)/100.0;
-    std::cout << "Time: "<< h << "h "<< m <<"m " << s <<"s \n";
+    //Do any processing you need to do between cycles
+    //This is called before the Godunov scheme. It isn't called for the initial frame
     
-    //Output
-    std::string filename = "/Users/bobbiemarkwick/DRAGON_OUT/frame-" + numStr  +".csv";
-    std::string filename_B = "/Users/bobbiemarkwick/DRAGON_OUT/frame-B-" + numStr  +".csv";
+}
 
-    std::ofstream out, out_B;
-    out.open (filename);
-    out_B.open (filename_B);
+
+void Problem::afterCycle(Grid &problem, int cycle, double t){
+    MyGrid& grid = *dynamic_cast<MyGrid*>(&problem);
     
-    for(int k=0; k<grid.getSizeZ(); k++){
-        for(int i=0; i<grid.getSizeX(); i++){
-            out<< grid[i,grid.getSizeY()/2,k].rho  * (3/rho_jet) << (i+1 == grid.getSizeX() ? "\n" : ",");
-            out_B<< grid[i,grid.getSizeY()/2,k].B.y / sqrt(5*p_amb) << (i+1 == grid.getSizeX() ? "\n" : ",");
-        }
-    }
-    out.close();
-    out_B.close();
+    //Do any processing you need to do between cycles
+    //This is called after the Godunov scheme but before the file write. It isn't called for the initial frame
+    
+}
+
+void Problem::problemComplete(Grid& problem, double t){
+    MyGrid& grid = *dynamic_cast<MyGrid*>(&problem);
+
+    //This is called only after the final time is reached.
 }

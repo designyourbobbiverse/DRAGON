@@ -2,7 +2,7 @@
 //  Problem2D.cpp
 //  DRAGON/Examples/SphericalBlast
 //
-//  Created by Bobbie Markwick on 24/06/2026.
+//  Created by Bobbie Markwick on 7/07/2026.
 //
 
 #include "Problem.hpp"
@@ -62,10 +62,25 @@ void Problem::initializeProblem(Grid& problem){
 }
 
 
-void Problem::cycleComplete(Grid& problem, int cycle){
+void Problem::beforeCycle(Grid &problem, int cycle, double t){
     MyGrid& grid = *dynamic_cast<MyGrid*>(&problem);
     
     //Do any processing you need to do between cycles
-    //This is called before the file write, and is called for the initial frame as well as subsequent updates
+    //This is called before the Godunov scheme. It isn't called for the initial frame
     
+}
+
+
+void Problem::afterCycle(Grid &problem, int cycle, double t){
+    MyGrid& grid = *dynamic_cast<MyGrid*>(&problem);
+    
+    //Do any processing you need to do between cycles
+    //This is called after the Godunov scheme but before the file write. It isn't called for the initial frame
+    
+}
+
+void Problem::problemComplete(Grid& problem, double t){
+    MyGrid& grid = *dynamic_cast<MyGrid*>(&problem);
+
+    //This is called only after the final time is reached.
 }
