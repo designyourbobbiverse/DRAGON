@@ -29,9 +29,9 @@ fileprefix = { #In 2D and 3D, image file names will be <prefix>_<base_filename>_
 Titles
 '''
 
-plot_title = "Sedov Blast Test"
+plot_title = ""#The top level title of your plot
 
-#Titles for individual plots
+#Subitles for individual plots
 titles = {
     "rho": "Density",
     "v-1D": "Normal Velocity",
@@ -63,7 +63,7 @@ labels = {
     "p": r"$p$",#\ (\mathrm{g \cdot cm^{-1} s^{-2}})$"
     "E": r"$E$"#\ (\mathrm{g \cdot cm^{2}\cdot s^{-2}})$",
 }
-time_unit = ""
+time_unit = ""#optional unit to display after the timestamp
 
 x_label = r"$x$"#\ (\mathrm{cm})$"
 y_label = r"$y$"#\ (\mathrm{cm})$"
@@ -93,7 +93,7 @@ cmaps = {
     "Bz": "seismic"
 }
 
-log_plots = {
+log_plots = { #If true, plots this quantity logarithmically. If false, plots it linearly
     "rho": False,
     "vx": False,
     "vy": False,
