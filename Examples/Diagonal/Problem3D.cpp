@@ -8,7 +8,7 @@
 #include "Problem.hpp"
 #include "DistGrid.hpp"
 #include <cmath>
-#include "Constants.h"
+#include <iostream>
 
 typedef DistGrid3D MyGrid;//Choose the dimension of your grid here
 
@@ -69,4 +69,29 @@ void Problem::problemComplete(Grid& problem, double t){
     MyGrid& grid = *dynamic_cast<MyGrid*>(&problem);
 
     //This is called only after the final time is reached.
+    //This is called only after the final time is reached.
+    double L1 = 0;
+    double L2 = 0;
+    double Linf = 0;
+    
+    for(int i=0; i<n;i++){
+        for(int j=0; j<n; j++){
+            for(int k=0; k<n; k++){
+                double x = (i + 0.5)/n;
+                double y = (j + 0.5)/n;
+                double z = (k + 0.5)/n;
+                double rho_exact = 1.0 + 0.1 * sin(2.0 * M_PI * (x + y + z - 3 * t));
+                
+                double err = fabs(grid[i,j,k].rho - rho_exact);
+                if(err > Linf) Linf = err;
+                L1 += err ;
+                L2 += err*err;
+            }
+        }
+    }
+    L2 = sqrt(L2 / (n*n*n));
+    
+    std::cout<<"L1 error: "<<L1 / (n*n*n)<<"\n";
+    std::cout<<"L2 error: "<<L2<<"\n";
+    std::cout<<"Max error: "<<Linf<<"\n";
 }

@@ -8,7 +8,6 @@
 #include "Problem.hpp"
 #include "DistGrid.hpp"
 #include <cmath>
-#include "Constants.h"
 #include <iostream>
 
 typedef DistGrid2D MyGrid;//Choose the dimension of your grid here
