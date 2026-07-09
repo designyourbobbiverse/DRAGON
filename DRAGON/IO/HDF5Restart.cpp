@@ -15,10 +15,6 @@
 
 //MARK: Helpers
 namespace{
-template <typename T> H5::PredType hdf5Type();
-    template <> H5::PredType hdf5Type<int>() { return H5::PredType::NATIVE_INT; }
-    template <> H5::PredType hdf5Type<float>() { return H5::PredType::NATIVE_FLOAT; }
-    template <> H5::PredType hdf5Type<double>() { return H5::PredType::NATIVE_DOUBLE; }
 
 std::vector<double> readArray(H5::H5File& file, const std::string& key) {
     H5::DataSet dataset = file.openDataSet(key);

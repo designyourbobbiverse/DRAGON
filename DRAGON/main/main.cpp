@@ -46,7 +46,7 @@ static void cycle_output(std::string cycleStr, double clock_time){
 
 
 int main(int argc, const char * argv[]) {
-    
+    verify_dir();
     
     auto start = std::chrono::system_clock::now();
     Grid& problem = Problem::makeProblem();
