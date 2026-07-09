@@ -218,14 +218,15 @@ python GAZE3D rho E-xz E-xy By-xz
 ```
 Valid 3D keys are rho, vx, vy, vz, Bx, By, Bz, p, and E (same as 2D).  Valid axis options are xy, xz, and yz. A key may be specified more than once to specify multiple axis options, or the axis option can be omitted to plot all 3.
 
+Currently, 3D only supports plotting midplane slices.
+
 
 ## Status and Roadmap
 
-DRAGON is an actively developed research code. The current version is suitable for demonstrating the numerical framework, solver implementations, boundary-condition infrastructure, and unit-test coverage. 
+DRAGON is an actively developed research code. The current version is suitable for demonstrating the numerical framework, solver implementations, boundary-condition infrastructure, and unit-test coverage. Basic plotting tools are also included. 
 
 The following features are in development for v1.0:
 - Example/validation problems
-- Plotting tools
 - Documentation
 
 Additional features planned for future versions include:
