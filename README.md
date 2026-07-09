@@ -90,7 +90,7 @@ brew --prefix hdf5
 The second command prints the path to the HDF5 installation on your computer.  This is usually `/opt/homebrew/opt/hdf5` on Apple Silicon Macs or `/usr/local/opt/hdf5` on Intel Macs.
 
 If you are using Xcode, open the project's build settings and add (using the path you got from the last step in place of `<Path_To_HDF5>`)
-- `<Path_To_HDF5>/include` to *Header Search Paths*
+- `<Path_To_HDF5>/include` to *System Header Search Paths*
 - `<Path_To_HDF5>/lib` to *Library Search Paths*
 - `<Path_To_HDF5>/lib` to *Runpath Search Paths*. 
 - `-lhdf5_cpp` to *Other Linker Flags*
