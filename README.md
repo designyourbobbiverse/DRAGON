@@ -79,7 +79,6 @@ The Examples folder includes several example problems. To run an exmaple problem
 
 Some problems may include additional files. For example, CollidingFlows includes a Jet class which demonstrates how to use the Boundary API to implement mixed boundary conditions on the same face. Copy these alongside the Config.h and Problem.cpp files.
 
-
 ## Building DRAGON on macOS
 
 DRAGON uses HDF5 for file output, so HDF5 must be installed before building and running the code.
@@ -180,21 +179,52 @@ or:
 ```bash
 h5ls --version
 ```
+## Making Plots
+
+DRAGON writes simulation output as HDF5 files. The `DRAGONGAZE/` directory contains Python plotting scripts for turning those files into PNG images. Alternatively, you can import your hdf5 files into visualization software of your choice.
+
+To set up the Python dependencies:
+```bash
+pip install numpy matplotlib h5py
+```
+For macOS users, you may need to use `pip3` instead of `pip`.
+
+
+Before making your plots, edit `DRAGONGAZE/Config.py` with the following:
+- `hdf_dir` should match `output_dir` from `Config.h`
+- `h5_base_filename` should match `output_base_name` from `Config.h`
+- `img_dir` controls where the plots are written
+- Any other options you wish to edit. These typically the contents of the plots
+
+After running DRAGON, navigate to the DRAGONGAZE directory and run the relevant python command (for macOS users, if you replaced `pip` with `pip3` earlier, replace `python` with `python3` below)
+
+For 1D hydrodynamics:
+```bash
+python GAZE1D.py
+```
+For 1D MHD:
+```bash
+python GAZE1DMHD.py
+```
+For 2D problems, pass one or more field keys:
+```bash
+python GAZE2D rho p E By
+```
+Valid 2D keys are rho, vx, vy, vz, Bx, By, Bz, p, and E.
 
 
 ## Status and Roadmap
 
 DRAGON is an actively developed research code. The current version is suitable for demonstrating the numerical framework, solver implementations, boundary-condition infrastructure, and unit-test coverage. 
 
-The following features are planned for v1.0:
-- A cleaner public interface for a production problem setup.
+The following features are in development for v1.0:
 - Example/validation problems
 - Plotting tools
 - Documentation
 
 Additional features planned for future versions include:
 - Adaptive Mesh Refinement
-- Methods for suppressing the carbuncle instability
+- Methods for suppressing the carbuncle instability and other grid artifacts
 - Source Terms
 - Passive Scalars
 - Resistivity and Extended MHD
