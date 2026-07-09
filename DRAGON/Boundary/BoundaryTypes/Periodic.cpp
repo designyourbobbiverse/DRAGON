@@ -124,8 +124,6 @@ void Boundary::Periodic::apply(Grid3D& grid) {
     if (faces & X){
         for(int j = j0 ; j <= jn; j++){
             for(int k = k0 ; k <= kn; k++){
-                if(_A[nx,j,k]== vec3{0,0,0}) _A[nx,j,k] = _A[0,j,k]; //User might not have intialized
-                else _A[nx,j,k].z = _A[0,j,k].z + (_A[nx,j,k].y - _A[0,j,k].y)*grid.dy/grid.dz; //Enforce Bx[nx]=Bx[0]
                 auto dA = _A[nx,j,k] - _A[0,j,k]; //B must be periodic, but A has some gauge freedom
 
                 for(int g = 1; g <= ng; g++){
@@ -138,8 +136,6 @@ void Boundary::Periodic::apply(Grid3D& grid) {
     if (faces & Y){
         for(int i = i0 ; i <= in; i++){
             for(int k = k0 ; k <= kn; k++){
-                if(_A[i,ny,k] == vec3{0,0,0}) _A[i,ny,k] = _A[i,0,k]; //User might not have intialized
-                else _A[i,ny,k].z = _A[i,0,k].z + (_A[i,ny,k].x - _A[i,0,k].x)*grid.dx/grid.dz; //Enforce By[ny]=By[0]
                 auto dA = _A[i,ny,k] - _A[i,0,k]; //B must be periodic, but A has some gauge freedom
 
                 for(int g = 1; g <= ng; g++){
@@ -152,8 +148,6 @@ void Boundary::Periodic::apply(Grid3D& grid) {
     if (faces & Z){
         for(int i = i0 ; i <= in; i++){
             for(int j = j0 ; j <= jn; j++){
-                if(_A[i,j,nz] == vec3{0,0,0}) _A[i,j,nz] = _A[i,j,0]; //User might not have intialized
-                else _A[i,j,nz].x = _A[i,j,0].x + (_A[i,j,nz].y - _A[i,j,0].y)*grid.dx/grid.dy; //Enforce Bz[nz]=Bz[0]
                 auto dA = _A[i,j,nz] - _A[i,j,0]; //B must be periodic, but A has some gauge freedom
 
                 for(int g = 1; g <= ng; g++){
