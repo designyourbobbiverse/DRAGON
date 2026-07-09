@@ -95,10 +95,22 @@ void correctState(FluidArray2D& _L, FluidArray2D& _R, const FluxArray2D& F, doub
 
 void Grid2D::advanceXY(double dt){
     int nx = w.getSizeX(), ny = w.getSizeY(), ghosts = w.getGhosts();
+    #ifdef PRESERVE_BUFFERS
+    if(buffers == nullptr) buffers = new Buffers2D(nx,ny,ghosts);
+    #ifdef TESTMODE //Test that the buffers aren't calling stale values
+    buffers->poison();
+    #endif
+    FluidArray2D& _xL = *buffers->prim[0];//x Half States
+    FluidArray2D& _xR = *buffers->prim[1];
+    FluidArray2D& _yL = *buffers->prim[2];//y Half States
+    FluidArray2D& _yR = *buffers->prim[3];
+    FluxArray2D& F_X = *buffers->flux[0];//Fluxes
+    FluxArray2D& F_Y = *buffers->flux[1];
+    #else
     FluidArray2D _xL(nx,ny,ghosts), _xR(nx,ny,ghosts);//x Half States
     FluidArray2D _yL(nx,ny,ghosts), _yR(nx,ny,ghosts);//y Half States
     FluxArray2D F_X(nx,ny,ghosts), F_Y(nx,ny,ghosts); //Fluxes
-    
+    #endif
 
     boundary.apply(*this);
     
@@ -107,7 +119,11 @@ void Grid2D::advanceXY(double dt){
     computeHalfStates_Y(_yL, (*this), _yR, dt);//_yLR needs (-1...nx, -1...ny), (-1...nx, -2...ny+1) for MHD
     
     #ifdef MHD//Compute face-normal fields
+    #ifdef PRESERVE_BUFFERS
+    MagneticArray2D& B = *buffers->mag[0];
+    #else
     MagneticArray2D B(nx+1,ny+1,ghosts);
+    #endif
     CT::computeFaceFields(A, B, dx, dy);
     CT::copyFaceFields_X(_xL, B, _xR);
     CT::copyFaceFields_Y(_yL, B, _yR);
@@ -151,7 +167,11 @@ void Grid2D::advanceXY(double dt){
     
     //Preliminary CT Update
     #ifdef MHD
+    #ifdef PRESERVE_BUFFERS
+    MagneticArray2D& _A = *buffers->mag[1];
+    #else
     MagneticArray2D _A(nx+1,ny+1,ghosts);
+    #endif
     _A.clone(A);
     CT::updatePotential(_A, F_X, F_Y, dt);
     CT::computeFaceFields(_A, B, dx, dy);
@@ -195,11 +215,26 @@ void correctState(const FluidArray3D& _L0, const FluidArray3D& _R0, FluidArray3D
 
 void Grid3D::advanceXYZ(double dt){
     int nx = w.getSizeX(), ny = w.getSizeY(), nz = w.getSizeZ(), ghosts = w.getGhosts();
+    #ifdef PRESERVE_BUFFERS
+    if(buffers == nullptr) buffers = new Buffers3D(nx,ny,nz,ghosts);
+    #ifdef TESTMODE //Test that the buffers aren't calling stale values
+    buffers->poison();
+    #endif
+    FluidArray3D& _xL = *buffers->prim[0];//x Half States
+    FluidArray3D& _xR = *buffers->prim[1];
+    FluidArray3D& _yL = *buffers->prim[2];//y Half States
+    FluidArray3D& _yR = *buffers->prim[3];
+    FluidArray3D& _zL = *buffers->prim[4];//z Half States
+    FluidArray3D& _zR = *buffers->prim[5];
+    FluxArray3D& F_X = *buffers->flux[0];//Fluxes
+    FluxArray3D& F_Y = *buffers->flux[1];
+    FluxArray3D& F_Z = *buffers->flux[2];
+    #else
     FluidArray3D _xL(nx,ny,nz,ghosts), _xR(nx,ny,nz,ghosts); //X half States
     FluidArray3D _yL(nx,ny,nz,ghosts), _yR(nx,ny,nz,ghosts); //Y half states
     FluidArray3D _zL(nx,ny,nz,ghosts), _zR(nx,ny,nz,ghosts); //Z half states
     FluxArray3D F_X(nx, ny,nz,ghosts), F_Y(nx,ny,nz,ghosts), F_Z(nx,ny,nz,ghosts); //Fluxes
-    
+    #endif
     boundary.apply(*this);
         
     //Compute Half States
@@ -208,7 +243,11 @@ void Grid3D::advanceXYZ(double dt){
     computeHalfStates_Z(_zL, (*this), _zR, dt);
     
     #ifdef MHD//Compute face-normal fields
+    #ifdef PRESERVE_BUFFERS
+    MagneticArray3D& B = *buffers->mag[0];
+    #else
     MagneticArray3D B(nx+1,ny+1,nz+1,ghosts);
+    #endif
     CT::computeFaceFields(A, B, dx, dy, dz);
     CT::copyFaceFields_X(_xL, B, _xR);
     CT::copyFaceFields_Y(_yL, B, _yR);
@@ -221,11 +260,24 @@ void Grid3D::advanceXYZ(double dt){
     computeFlux_Y(_yL, _yR, F_Y, -2, nx+2, -1, ny+1, -2, nz+2, dt/dy); //F_Y needs (-1...nx, 0...ny, -1...nz)
     computeFlux_Z(_zL, _zR, F_Z, -2, nx+2, -2, ny+2, -1, nz+1, dt/dz); //F_Z needs (-1...nx, -1...ny, 0...nz)
     
-    //Compute Edge-correct the fluxes
+    //Allocate Buffers
+    #ifdef PRESERVE_BUFFERS
+    FluidArray3D& __L = *buffers->ctuprim[0];//Half States
+    FluidArray3D& __R = *buffers->ctuprim[1];
+    FluxArray3D& F_Xy = *buffers->ctuflux[0];//Fluxes
+    FluxArray3D& F_Xz = *buffers->ctuflux[1];
+    FluxArray3D& F_Yx = *buffers->ctuflux[2];
+    FluxArray3D& F_Yz = *buffers->ctuflux[3];
+    FluxArray3D& F_Zx = *buffers->ctuflux[4];
+    FluxArray3D& F_Zy = *buffers->ctuflux[5];
+    #else
     FluidArray3D __L(nx,ny,nz,ghosts), __R(nx,ny,nz,ghosts);
     FluxArray3D F_Xy(nx, ny,nz,2), F_Xz(nx, ny,nz,2);
     FluxArray3D F_Yx(nx, ny,nz,2), F_Yz(nx, ny,nz,2);
     FluxArray3D F_Zx(nx,ny,nz,2), F_Zy(nx, ny,nz,2);
+    #endif
+    
+    //Compute Edge-correct the fluxes
     //F_Xy (needs 0...nx, 0...ny-1, -1...nz) from _xyLR (needs -1...nx, 0...ny-1, -1...nz)
     correctState(_xL, _xR, __L, __R, F_Y, (0.5*dt/dy) , -2, nx+2, -1, ny+1, -1, nz+1, 1);
     computeFlux_X(__L, __R, F_Xy, -1, nx+1, -1, ny+1, -1, nz+1, dt/dx);
@@ -285,7 +337,11 @@ void Grid3D::advanceXYZ(double dt){
     }
     //Preliminary CT Update
     #ifdef MHD
+    #ifdef PRESERVE_BUFFERS
+    MagneticArray3D& _A = *buffers->mag[1];
+    #else
     MagneticArray3D _A(nx+1,ny+1,nz+1,ghosts);
+    #endif
     _A.clone(A);
     CT::updatePotential(_A, F_X, F_Y, F_Z, dt);
     CT::computeFaceFields(_A, B, dx, dy, dz);

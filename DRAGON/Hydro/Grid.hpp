@@ -13,7 +13,7 @@
 #include "ExtendedArray.hpp"
 #include "Boundary.hpp"
 #include "Config.h"
-
+#include "Buffers.hpp"
 
 class Grid{
 public:
@@ -88,6 +88,10 @@ protected:
     #ifdef MHD
     void computeBodyAveragedFields(const ExtendedArray2D<vec3>& B);
     #endif
+    
+    #ifdef PRESERVE_BUFFERS
+    Buffers2D* buffers = nullptr;
+    #endif
 
 };
 
@@ -132,6 +136,9 @@ protected:
     void advanceXYZ(double dt); //Advance a single unsplit step
     #ifdef MHD
     void computeBodyAveragedFields(const ExtendedArray3D<vec3>& B);
+    #endif
+    #ifdef PRESERVE_BUFFERS
+    Buffers3D* buffers = nullptr;
     #endif
 };
 
