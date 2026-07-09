@@ -29,11 +29,11 @@ fileprefix = { #In 2D and 3D, image file names will be <prefix>_<base_filename>_
 Titles
 '''
 
-plot_title = "SOD Shock Tube"
+plot_title = "Sedov Blast Test"
 
 #Titles for individual plots
 titles = {
-    "rho": "Mass Density",
+    "rho": "Density",
     "v-1D": "Normal Velocity",
     "vx": "Velocity (x)",
     "p": "Pressure",
@@ -71,9 +71,9 @@ z_label = r"$z$"#\ (\mathrm{cm})$"
 
 #determines where on the axis the origin should be defined
 #Doesn't alter the image, just changes how the axis is labelled
-x_mode = 1 #0 origin in middle, +1 = origin at left +x to right, -1 = origin at right +x to left
-y_mode = 1 #0 origin in middle, +1 = origin at left +y to right, -1 = origin at right +y to left
-z_mode = 1 #0 origin in middle, +1 = origin at left +z to right, -1 = origin at right +z to left
+x_mode = 0 #0 origin in middle, +1 = origin at left +x to right, -1 = origin at right +x to left
+y_mode = 0 #0 origin in middle, +1 = origin at left +y to right, -1 = origin at right +y to left
+z_mode = 0 #0 origin in middle, +1 = origin at left +z to right, -1 = origin at right +z to left
 
 
 '''
@@ -104,3 +104,4 @@ log_plots = {
     "p": True,
     "E": True
 }
+dpi = 100
