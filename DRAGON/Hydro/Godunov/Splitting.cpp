@@ -10,6 +10,8 @@
 #include "Boundary.hpp"
 #include "CFL.hpp"
 #include "DragonWing.hpp"
+#include "Riemann.hpp"
+#include "TVD.hpp"
 #include <math.h>
 #include <cassert>
 
@@ -22,6 +24,12 @@ static int validGhosts(int g){
 #endif
 }
 //MARK: Array Wrappers
+Grid1D::Grid1D(int s_, double dx_, int g_): w(s_, validGhosts(g_)), dx(dx_) { }
+PrimitiveState& Grid1D::operator[](int k) { return w[k]; }
+const PrimitiveState& Grid1D::operator[](int k) const { return w[k]; }
+int Grid1D::getSize() const { return w.getSize(); }
+int Grid1D::getGhosts() const { return w.getGhosts(); }
+
 Grid2D::Grid2D(int nx_, int ny_, double dx_, double dy_, int g_):  w(nx_, ny_,validGhosts(g_)),
 #ifdef MHD
     A(nx_+1, ny_+1,w.getGhosts()),
@@ -46,6 +54,52 @@ int Grid3D::getSizeY() const { return w.getSizeY(); }
 int Grid3D::getSizeZ() const { return w.getSizeZ(); }
 int Grid3D::getGhosts() const { return w.getGhosts(); }
 
+
+
+//MARK: Godunov Sweep
+namespace Godunov{
+void sweep(ExtendedArray1D<PrimitiveState>& w, double dt_dx, ExtendedArray1D<PrimitiveState>& _L, ExtendedArray1D<PrimitiveState>& _R){
+    const int size = w.getSize(), ghosts = w.getGhosts();
+    //Reconstruct Half-States (if applicable)
+    for(int i=-ghosts+1; i<size+ghosts-1; i++) {
+        TVD::MUSCL(w[i-1], _L[i], w[i], _R[i], w[i+1], dt_dx);
+    }
+    //Fill in the outermost ghosts
+    _R[-ghosts] = w[-ghosts];
+    _L[size+ghosts-1] = w[size+ghosts-1];
+    
+    //Compute Fluxes
+    ConservativeState fL, fR;
+    fL = Riemann(_R[-ghosts], _L[-ghosts+1]).flux_X(dt_dx);
+    for(int i=-ghosts+1; i<size+ghosts-1; i++) {
+        fR = Riemann(_R[i], _L[i+1]).flux_X(dt_dx);
+        w[i] += (fL - fR) * (dt_dx); //Apply flux to cell
+        fL = fR; //Right flux on this cell must equal Left flux on next cell
+    }
+}
+}
+
+//MARK: 1D Advance
+void Grid1D::advance(double dt, bool check_cfl){
+    int size = getSize(), ghosts = getGhosts();
+    
+    ExtendedArray1D<PrimitiveState>& _L = *DRAGONWING::requestPrimitiveArray(size, ghosts);
+    ExtendedArray1D<PrimitiveState>& _R = *DRAGONWING::requestPrimitiveArray(size, ghosts);
+    
+    while(dt > CONFIG::Timestep_Tolerance){
+        //Apply Boundary Conditions
+        boundary.apply(*this);
+        //CFL Time Constraint
+        double t1 = check_cfl ? std::min(dt,CFL::cfl_time(*this)) : dt;
+        if (t1 >= dt) t1 = dt;
+        //Execute the Advancement
+        Godunov::sweep(w, t1/dx, _L, _R);
+        dt -= t1;
+    }
+
+    DRAGONWING::releaseArray(&_L);
+    DRAGONWING::releaseArray(&_R);
+}
 
 //MARK: 2D Split
 void Grid2D::advance_split(double dt, bool check_cfl){
