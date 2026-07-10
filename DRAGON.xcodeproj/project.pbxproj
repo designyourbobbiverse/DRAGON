@@ -38,7 +38,7 @@
 		F76C27C52FDB955000B706F5 /* Exceptions for "DRAGONWING" folder in "DRAGON_TESTS" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				BufferGrids.cpp,
+				AuxGrids.cpp,
 				pthread_parallel.cpp,
 			);
 			target = F77A715B2FB415A5006C2776 /* DRAGON_TESTS */;
@@ -55,7 +55,6 @@
 				FluidElement/Arithmetic.cpp,
 				FluidElement/FluidElement.cpp,
 				Hydro/CFL/CFL.cpp,
-				Hydro/Godunov/Godunov.cpp,
 				Hydro/Godunov/Splitting.cpp,
 				Hydro/Godunov/Unsplit.cpp,
 				Hydro/Riemann/Exact.cpp,

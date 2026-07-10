@@ -6,8 +6,11 @@
 //
 
 #include "DragonWing.hpp"
+#include "DRAGONWING_Config.hpp"
 #include "ExtendedArray.hpp"
 #include "FluidElement.hpp"
+
+#ifdef REUSE_AUX_GRIDS
 #include <vector>
 #include <mutex>
 
@@ -149,3 +152,42 @@ void DRAGONWING::purgeAllBuffers(){
     vec2D.clear();
     vec3D.clear();
 }
+#else
+//MARK: No-Reuse (wrap new/delete)
+
+ExtendedArray1D<PrimitiveState>* DRAGONWING::requestPrimitiveArray(int nx, int g){
+    return new ExtendedArray1D<PrimitiveState>(nx,g);
+}
+
+
+ExtendedArray2D<PrimitiveState>* DRAGONWING::requestPrimitiveArray(int nx, int ny, int g){
+    return new ExtendedArray2D<PrimitiveState>(nx,ny,g);
+}
+ExtendedArray2D<ConservativeState>* DRAGONWING::requestFluxArray(int nx, int ny, int g){
+    return new ExtendedArray2D<ConservativeState>(nx,ny,g);
+}
+ExtendedArray2D<vec3>* DRAGONWING::requestVec3Array(int nx, int ny, int g){
+    return new ExtendedArray2D<vec3>(nx,ny,g);
+}
+ExtendedArray3D<PrimitiveState>* DRAGONWING::requestPrimitiveArray(int nx, int ny, int nz, int g){
+    return new ExtendedArray3D<PrimitiveState>(nx,ny,nz,g);
+}
+ExtendedArray3D<ConservativeState>* DRAGONWING::requestFluxArray(int nx, int ny, int nz, int g){
+    return new ExtendedArray3D<ConservativeState>(nx,ny,nz,g);
+}
+ExtendedArray3D<vec3>* DRAGONWING::requestVec3Array(int nx, int ny, int nz, int g){
+    return new ExtendedArray3D<vec3>(nx,ny,nz,g);
+}
+
+void DRAGONWING::releaseArray(ExtendedArray1D<PrimitiveState>* arr){ delete arr; }
+void DRAGONWING::releaseArray(ExtendedArray2D<PrimitiveState>* arr){ delete arr; }
+void DRAGONWING::releaseArray(ExtendedArray3D<PrimitiveState>* arr){ delete arr; }
+
+void DRAGONWING::releaseArray(ExtendedArray2D<ConservativeState>* arr){ delete arr; }
+void DRAGONWING::releaseArray(ExtendedArray3D<ConservativeState>* arr){ delete arr; }
+
+void DRAGONWING::releaseArray(ExtendedArray2D<vec3>* arr){ delete arr; }
+void DRAGONWING::releaseArray(ExtendedArray3D<vec3>* arr){ delete arr; }
+
+void DRAGONWING::purgeAllBuffers(){ }
+#endif

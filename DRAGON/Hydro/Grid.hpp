@@ -38,14 +38,9 @@ public:
     PrimitiveState& operator[](int k);
     const PrimitiveState& operator[](int k) const;
     int getSize() const, getGhosts() const;
-    
-    
-    
+        
     //Advance forward in time
     void advance(double dt, bool check_cfl=true);
-    //The meat of the above function, also used by splitting schemes on higher dimension grids
-    void god_sweep(double dt, ExtendedArray1D<PrimitiveState>& _L, ExtendedArray1D<PrimitiveState>& _R);
-
 };
 
 class Grid2D: public Grid{

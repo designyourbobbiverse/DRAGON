@@ -115,10 +115,6 @@ inline std::string output_dir = "/Users/bobbiemarkwick/DRAGON_OUT"; //Set this t
 
 constexpr int core_count = 16; //Helps the Root level grid decide how many children to split into
 
-#define PRESERVE_BUFFERS //Retain buffer grids cycle to cycle, instead of reallocating them each time
-
-constexpr int max_threads = 16;
-
 //******************************************************************//
 //*DO NOT TOUCH anything below this line (but feel free to read it)*//
 //******************************************************************//
