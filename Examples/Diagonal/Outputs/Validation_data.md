@@ -1,5 +1,7 @@
 # DRAGON diagonal advection validation data
 
+The following is a summary of convergence data calculated from running the Diagonal Advection example at different resolutions
+
 ## Problem definition
 - Periodic domain.
 - Smooth sinusoidal density perturbation advected diagonally.
