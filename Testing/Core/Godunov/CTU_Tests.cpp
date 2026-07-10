@@ -159,7 +159,7 @@ void DRAGON_Test::verify_ctu_blast_2D() {
     const double dx = 1.0 / nx, dy = 1.0 / ny;
 
     DistGrid2D grid(nx, ny, dx, dy);
-    DistGrid2D initial(nx, ny, dx, dy);
+    Grid2D initial(nx, ny, dx, dy);
 
     grid.boundary = Outflow();
     
@@ -218,7 +218,7 @@ void DRAGON_Test::verify_ctu_blast_3D() {
     const double dx = 1.0 / nx, dy = 1.0 / ny, dz = 1.0 / nz;
 
     DistGrid3D grid(nx, ny, nz, dx, dy, dz);
-    DistGrid3D initial(nx, ny,nz, dx, dy, dz);
+    Grid3D initial(nx, ny,nz, dx, dy, dz);
 
     grid.boundary = Outflow();
 
