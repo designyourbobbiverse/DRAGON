@@ -192,7 +192,11 @@ void Grid2D::advanceXY(double dt){
         
     //Wait for any parallel grids to finish
     DRAGONWING::reportCheckpoint1();
-    if(!DRAGONWING::waitForCheckpoint1()) return;
+    if(!DRAGONWING::waitForCheckpoint1()){
+            DRAGONWING::releaseArray(&_w);
+            DRAGONWING::releaseArray(&_A);
+        return;
+    }
     
     //Commit flux updates
     w.clone(_w);
@@ -312,6 +316,7 @@ void Grid3D::advanceXYZ(double dt){
     computeFlux_X(_xL, _xR, F_X, 0, nx, -1, ny+1, -1, nz+1, dt/dx); //F_X needs (0...nx, -1...ny, -1...nz)
     computeFlux_Y(_yL, _yR, F_Y, -1, nx+1, 0, ny, -1, nz+1, dt/dy); //F_Y needs (-1...nx, 0...ny, -1...nz)
     computeFlux_Z(_zL, _zR, F_Z, -1, nx+1, -1, ny+1, 0, nz, dt/dz); //F_Z needs (-1...nx, -1...ny, 0...nz)
+
     
     FluidArray3D& _w = _xL; //Repurpose grid that isn't being used anymore
         DRAGONWING::releaseArray(&_xR);//Release the others
@@ -374,7 +379,11 @@ void Grid3D::advanceXYZ(double dt){
     
     //Wait for any parallel grids to finish
     DRAGONWING::reportCheckpoint1();
-    if(!DRAGONWING::waitForCheckpoint1()) return;
+    if(!DRAGONWING::waitForCheckpoint1()) {
+            DRAGONWING::releaseArray(&_w);
+            DRAGONWING::releaseArray(&_A);
+        return;
+    }
     
     //Commit Flux updates
     w.clone(_w);
