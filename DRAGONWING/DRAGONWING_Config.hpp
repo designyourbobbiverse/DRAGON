@@ -1,6 +1,6 @@
 //
 //  DRAGONWING_Config.hpp
-//  DRAGON
+//  DRAGONWING
 //
 //  Created by Bobbie Markwick on 10/07/2026.
 //
@@ -18,4 +18,13 @@ namespace DRAGONWING::CONFIG{
 //A good starting point for this parameter is typically to match the number of cores on your machine
 constexpr int phase_1_max_threads = 16;
 
+
+
+
+
+//Enable this if for some reason you need to compile DRAGON for a system without multithreading support
+//#define MULTITHREAD_UNAVAILABLE
+
 }
+
+

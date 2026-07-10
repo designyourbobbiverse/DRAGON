@@ -7,20 +7,20 @@
 
 #include "DragonWing.hpp"
 #include "DRAGONWING_Config.hpp"
+#include "Grid.hpp"
+
+#ifndef MULTITHREAD_UNAVAILABLE
 #include <thread>
 #include <mutex>
 #include <condition_variable>
 #include <iostream>
 #include <deque>
-#include "Grid.hpp"
-
 
 namespace {
     struct ThreadArgs{
         Grid* grid;
         double dt;
     };
-
 
     void* advance(void* arg) {
         ThreadArgs* args = static_cast<ThreadArgs*>(arg);
@@ -32,15 +32,15 @@ namespace {
     std::deque<ThreadArgs> args;
     int nthreads = 0;
 
-    std::string restart_msg;
-
     std::mutex mutex;
     std::condition_variable cv;
+
     int active_phase_1 = 0;
     int reached_checkpoint_1 = 0;
     int reached_checkpoint_2 = 0;
-    bool abort_requested = false;
 
+    bool abort_requested = false;
+    std::string restart_msg;
 }
 
 //MARK: Launching
@@ -147,4 +147,33 @@ bool DRAGONWING::waitForCheckpoint2(){
     return success;
 }
 
+#else
+//MARK: Single Thread Alternatives
 
+void* DRAGONWING::launchParallel(Grid* grid, double dt){
+    grid->advance(dt,false);
+    return nullptr;
+}
+
+void DRAGONWING::initialize(int _nthreads){ }
+void DRAGONWING::reportCheckpoint1(){}
+void DRAGONWING::reportCheckpoint2(){}
+bool DRAGONWING::waitForRelease(){ return true; }
+bool DRAGONWING::waitForCheckpoint1(){ return true; }
+bool DRAGONWING::waitForCheckpoint2(){ return true; }
+
+
+static std::string restart_msg;
+
+bool DRAGONWING::requestRestart(std::string msg){
+    if(restart_msg.size() < 1) restart_msg = msg;
+    return false;
+}
+std::string DRAGONWING::restartMsg(){
+    auto msg = restart_msg;
+    restart_msg = "";
+    return msg;
+}
+
+
+#endif

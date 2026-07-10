@@ -12,7 +12,14 @@
 
 #ifdef REUSE_AUX_GRIDS
 #include <vector>
+
+#ifndef MULTITHREAD_UNAVAILABLE
 #include <mutex>
+static std::mutex mutex;
+#define MUTEX_LOCK_SCOPE std::lock_guard mutex_lock_guard(mutex);
+#else
+#define MUTEX_LOCK_SCOPE 
+#endif
 
 namespace {
 template <class T> struct ArrayItem{ T* array; bool active; };
@@ -26,13 +33,11 @@ std::vector<ArrayItem<ExtendedArray3D<ConservativeState>>> flux3D;
 
 std::vector<ArrayItem<ExtendedArray2D<vec3>>> vec2D;
 std::vector<ArrayItem<ExtendedArray3D<vec3>>> vec3D;
-
-std::mutex mutex;
 }
 
 //MARK: Request 1D
 ExtendedArray1D<PrimitiveState>* DRAGONWING::requestPrimitiveArray(int nx, int g){
-    std::lock_guard lock(mutex);
+    MUTEX_LOCK_SCOPE
     //Search for an existing available item
     for(auto& item : prim1D){
         if(item.active) continue; //Someone else is using this one
@@ -51,7 +56,7 @@ ExtendedArray1D<PrimitiveState>* DRAGONWING::requestPrimitiveArray(int nx, int g
 //MARK: Request 2D
 template <class T>
 ExtendedArray2D<T>* request2DArray(std::vector<ArrayItem<ExtendedArray2D<T>>> arrs, int nx, int ny, int g){
-    std::lock_guard lock(mutex);
+    MUTEX_LOCK_SCOPE
     //Search for an existing available item
     for(auto& item : arrs){
         if(item.active) continue; //Someone else is using this one
@@ -79,7 +84,7 @@ ExtendedArray2D<vec3>* DRAGONWING::requestVec3Array(int nx, int ny, int g){
 //MARK: Request 3D
 template <class T>
 ExtendedArray3D<T>* request3DArray(std::vector<ArrayItem<ExtendedArray3D<T>>> arrs, int nx, int ny, int nz, int g){
-    std::lock_guard lock(mutex);
+    MUTEX_LOCK_SCOPE
     //Search for an existing available item
     for(auto& item : arrs){
         if(item.active) continue; //Someone else is using this one
@@ -108,7 +113,7 @@ ExtendedArray3D<vec3>* DRAGONWING::requestVec3Array(int nx, int ny, int nz, int 
 //MARK: Item Release
 template <class T>
 void releaseArray(std::vector<ArrayItem<T>> arrs, T* arr){
-    std::lock_guard lock(mutex);
+    MUTEX_LOCK_SCOPE
     //Search for an existing available item
     for(auto& item : arrs){
         if(item.array != arr) continue;
@@ -137,7 +142,7 @@ void purgeBuffers(std::vector<ArrayItem<T>> array){
     }
 }
 void DRAGONWING::purgeAllBuffers(){
-    std::lock_guard lock(mutex);
+    MUTEX_LOCK_SCOPE
     purgeBuffers(prim1D);
     purgeBuffers(prim2D);
     purgeBuffers(prim3D);
@@ -158,7 +163,6 @@ void DRAGONWING::purgeAllBuffers(){
 ExtendedArray1D<PrimitiveState>* DRAGONWING::requestPrimitiveArray(int nx, int g){
     return new ExtendedArray1D<PrimitiveState>(nx,g);
 }
-
 
 ExtendedArray2D<PrimitiveState>* DRAGONWING::requestPrimitiveArray(int nx, int ny, int g){
     return new ExtendedArray2D<PrimitiveState>(nx,ny,g);
