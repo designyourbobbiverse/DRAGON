@@ -42,7 +42,7 @@ DRAGON/
   Constants.h       Physical constants
   Problem.cpp       Example problem initialization and output handling
 
-DRAGONWING/         Multithreading
+DRAGONWING/         Multithreading & Memory Management
 DRAGONGAZE/         Plotting Tools
 Examples/           Example Problems & Validation
 Testing/            Unit test suite
