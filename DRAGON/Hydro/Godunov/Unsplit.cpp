@@ -199,7 +199,7 @@ void Grid2D::advanceXY(double dt){
     }
     
     //Commit flux updates
-    w.clone(_w);
+    w.clone(_w, false);
         DRAGONWING::releaseArray(&_w);
     #ifdef MHD
     A.clone(_A);
@@ -386,7 +386,7 @@ void Grid3D::advanceXYZ(double dt){
     }
     
     //Commit Flux updates
-    w.clone(_w);
+    w.clone(_w, false);
         DRAGONWING::releaseArray(&_w);
     #ifdef MHD
     A.clone(_A);

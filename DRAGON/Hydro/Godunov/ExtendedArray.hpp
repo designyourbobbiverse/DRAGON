@@ -40,8 +40,9 @@ struct ExtendedArray1D{
     int getGhosts() const{ return ghosts; }
     
     //Cloning
-    void clone(const ExtendedArray1D& ref){
-        for(int i = -ghosts; i<size+ghosts;i++){
+    void clone(const ExtendedArray1D& ref, bool copyghosts = true){
+        const int ng = copyghosts ? ghosts : 0;
+        for(int i = -ng; i<size+ng;i++){
             (*this)[i] = ref[i];
         }
     }
@@ -85,9 +86,10 @@ struct ExtendedArray2D{
     int getGhosts() const{ return ghosts; }
     
     //Cloning
-    void clone(const ExtendedArray2D& ref){
-        for(int i = -ghosts; i<nx+ghosts;i++){
-            for(int j = -ghosts; j<ny+ghosts;j++){
+    void clone(const ExtendedArray2D& ref, bool copyghosts = true){
+        const int ng = copyghosts ? ghosts : 0;
+        for(int i = -ng; i<nx+ng;i++){
+            for(int j = -ng; j<ny+ng;j++){
                 (*this)[i,j] = ref[i,j];
             }
         }
@@ -136,10 +138,11 @@ struct ExtendedArray3D{
     int getGhosts() const{ return ghosts; }
     
     //Cloning
-    void clone(const ExtendedArray3D& ref){
-        for(int i = -ghosts; i<nx+ghosts;i++){
-            for(int j = -ghosts; j<ny+ghosts;j++){
-                for(int k = -ghosts; k<nz+ghosts;k++){
+    void clone(const ExtendedArray3D& ref, bool copyghosts = true){
+        const int ng = copyghosts ? ghosts : 0;
+        for(int i = -ng; i<nx+ng;i++){
+            for(int j = -ng; j<ny+ng;j++){
+                for(int k = -ng; k<nz+ng;k++){
                     (*this)[i,j,k] = ref[i,j,k];
                 }
             }
