@@ -195,11 +195,7 @@ void Grid2D::advanceXY(double dt){
     if(!DRAGONWING::waitForCheckpoint1()) return;
     
     //Commit flux updates
-    for(int i=0; i<nx; i++){
-        for(int j=0; j<ny; j++){
-            w[i,j] = _w[i,j];
-        }
-    }
+    w.clone(_w);
         DRAGONWING::releaseArray(&_w);
     #ifdef MHD
     A.clone(_A);
@@ -381,13 +377,7 @@ void Grid3D::advanceXYZ(double dt){
     if(!DRAGONWING::waitForCheckpoint1()) return;
     
     //Commit Flux updates
-    for(int i=0; i<nx; i++){
-        for(int j=0; j<ny; j++){
-            for(int k=0; k<nz; k++){
-                w[i,j,k] = _w[i,j,k];
-            }
-        }
-    }
+    w.clone(_w);
         DRAGONWING::releaseArray(&_w);
     #ifdef MHD
     A.clone(_A);
