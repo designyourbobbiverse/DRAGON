@@ -55,7 +55,7 @@ ExtendedArray1D<PrimitiveState>* DRAGONWING::requestPrimitiveArray(int nx, int g
 
 //MARK: Request 2D
 template <class T>
-ExtendedArray2D<T>* request2DArray(std::vector<ArrayItem<ExtendedArray2D<T>>> arrs, int nx, int ny, int g){
+ExtendedArray2D<T>* request2DArray(std::vector<ArrayItem<ExtendedArray2D<T>>>& arrs, int nx, int ny, int g){
     MUTEX_LOCK_SCOPE
     //Search for an existing available item
     for(auto& item : arrs){
@@ -83,7 +83,7 @@ ExtendedArray2D<vec3>* DRAGONWING::requestVec3Array(int nx, int ny, int g){
 }
 //MARK: Request 3D
 template <class T>
-ExtendedArray3D<T>* request3DArray(std::vector<ArrayItem<ExtendedArray3D<T>>> arrs, int nx, int ny, int nz, int g){
+ExtendedArray3D<T>* request3DArray(std::vector<ArrayItem<ExtendedArray3D<T>>>& arrs, int nx, int ny, int nz, int g){
     MUTEX_LOCK_SCOPE
     //Search for an existing available item
     for(auto& item : arrs){
@@ -112,7 +112,7 @@ ExtendedArray3D<vec3>* DRAGONWING::requestVec3Array(int nx, int ny, int nz, int 
 
 //MARK: Item Release
 template <class T>
-void releaseArray(std::vector<ArrayItem<T>> arrs, T* arr){
+void releaseArray(std::vector<ArrayItem<T>>& arrs, T* arr){
     MUTEX_LOCK_SCOPE
     //Search for an existing available item
     for(auto& item : arrs){
@@ -136,7 +136,7 @@ void DRAGONWING::releaseArray(ExtendedArray3D<vec3>* arr){ releaseArray(vec3D, a
 
 //MARK: Cleanup
 template <class T>
-void purgeBuffers(std::vector<ArrayItem<T>> array){
+void purgeBuffers(std::vector<ArrayItem<T>>& array){
     for(auto& item : array){
         if(!item.active)  delete item.array;
     }
