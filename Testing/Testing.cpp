@@ -15,6 +15,9 @@ using namespace DRAGON_Test;
 //DRAGONWING
 
 int main() {
+    
+    auto start = std::chrono::system_clock::now();
+
     verify_fluid_element();
     
     verify_grid();
@@ -24,6 +27,7 @@ int main() {
     verify_riemann();
     verify_tvd();
     verify_cfl();
+    
 
     verify_godunov_1D();
     verify_godunov_2D_Split();
@@ -39,6 +43,12 @@ int main() {
     #endif
     
     std::cout << "All tests passed.\n";
+    
+    double clock_time = std::chrono::duration<double>(std::chrono::system_clock::now() - start).count();
+    int m = floor((clock_time)/60.0);
+    double s = round((clock_time - m*60)*100)/100.0;
+    std::cout << "Time: "<< m <<"m " << s <<"s \n";
+
 
     
     

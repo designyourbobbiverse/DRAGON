@@ -6,6 +6,7 @@
 //
 
 #include "DragonWing.hpp"
+#include "Config.h"
 #include <thread>
 #include <mutex>
 #include <condition_variable>
@@ -35,6 +36,7 @@ namespace {
 
     std::mutex mutex;
     std::condition_variable cv;
+    int active_phase_1 = 0;
     int reached_checkpoint_1 = 0;
     int reached_checkpoint_2 = 0;
     bool abort_requested = false;
@@ -46,6 +48,7 @@ void DRAGONWING::initialize(int _nthreads){
     nthreads = _nthreads;
     threads.clear();
     args.clear();
+    active_phase_1 = 0;
     reached_checkpoint_1 = 0;
     reached_checkpoint_2 = 0;
     abort_requested = false;
@@ -78,6 +81,7 @@ void DRAGONWING::reportCheckpoint1(){
     if(nthreads == 0) return; //Single thread mode
 
     std::unique_lock lock(mutex);
+    active_phase_1--;
     bool done = (++reached_checkpoint_1 == nthreads);
     lock.unlock();
     if (done) cv.notify_all();
@@ -112,6 +116,19 @@ std::string DRAGONWING::restartMsg(){
 
 
 //MARK: Synchronization
+bool waitForRelease(){
+    if(nthreads == 0) return true; //Single thread mode
+    
+    std::unique_lock lock(mutex);
+    if(abort_requested) return false;
+    if(active_phase_1 < CONFIG::max_threads){
+        active_phase_1++;
+        return true;
+    }
+
+    
+    return true;
+}
 bool DRAGONWING::waitForCheckpoint1(){
     if(nthreads == 0) return true; //Single thread mode
 

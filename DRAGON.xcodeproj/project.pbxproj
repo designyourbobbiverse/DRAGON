@@ -38,6 +38,7 @@
 		F76C27C52FDB955000B706F5 /* Exceptions for "DRAGONWING" folder in "DRAGON_TESTS" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				BufferGrids.cpp,
 				pthread_parallel.cpp,
 			);
 			target = F77A715B2FB415A5006C2776 /* DRAGON_TESTS */;
@@ -102,7 +103,6 @@
 				Core/Boundary/Reflecting_Tests.cpp,
 				Core/CFL_Tests.cpp,
 				Core/FluidElement_Tests.cpp,
-				Core/Godunov/Buffer_Poison.cpp,
 				Core/Godunov/CTU_Tests.cpp,
 				Core/Godunov/DimMatch_Tests.cpp,
 				Core/Godunov/DistGrid_Tests.cpp,
@@ -131,7 +131,6 @@
 				Core/Boundary/Reflecting_Tests.cpp,
 				Core/CFL_Tests.cpp,
 				Core/FluidElement_Tests.cpp,
-				Core/Godunov/Buffer_Poison.cpp,
 				Core/Godunov/CTU_Tests.cpp,
 				Core/Godunov/DimMatch_Tests.cpp,
 				Core/Godunov/DistGrid_Tests.cpp,

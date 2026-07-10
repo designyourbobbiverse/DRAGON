@@ -36,17 +36,6 @@ void Grid3D::advance(double dt, bool check_cfl){
 #endif
 }
 
-//MARK: Cleanup
-Grid2D::~Grid2D(){
-#ifdef PRESERVE_BUFFERS
-    if(buffers != nullptr) delete buffers;
-#endif
-}
-Grid3D::~Grid3D(){
-#ifdef PRESERVE_BUFFERS
-    if(buffers != nullptr) delete buffers;
-#endif
-}
 
 //MARK: CFL
 #ifdef MHD
@@ -109,16 +98,12 @@ void correctState(FluidArray2D& _L, FluidArray2D& _R, const FluxArray2D& F, doub
 void Grid2D::advanceXY(double dt){
     int nx = w.getSizeX(), ny = w.getSizeY(), ghosts = w.getGhosts();
     #ifdef PRESERVE_BUFFERS
-    if(buffers == nullptr) buffers = new GridBuffers2D(nx,ny,ghosts);
-    #ifdef TESTMODE //Test that the buffers aren't calling stale values
-    buffers->poison();
-    #endif
-    FluidArray2D& _xL = *buffers->prim[0];//x Half States
-    FluidArray2D& _xR = *buffers->prim[1];
-    FluidArray2D& _yL = *buffers->prim[2];//y Half States
-    FluidArray2D& _yR = *buffers->prim[3];
-    FluxArray2D& F_X = *buffers->flux[0];//Fluxes
-    FluxArray2D& F_Y = *buffers->flux[1];
+    FluidArray2D& _xL = *DRAGONWING::requestPrimitiveArray(nx, ny, ghosts);
+    FluidArray2D& _xR = *DRAGONWING::requestPrimitiveArray(nx, ny, ghosts);
+    FluidArray2D& _yL = *DRAGONWING::requestPrimitiveArray(nx, ny, ghosts);
+    FluidArray2D& _yR = *DRAGONWING::requestPrimitiveArray(nx, ny, ghosts);
+    FluxArray2D& F_X = *DRAGONWING::requestFluxArray(nx, ny, ghosts);
+    FluxArray2D& F_Y = *DRAGONWING::requestFluxArray(nx, ny, ghosts);
     #else
     FluidArray2D _xL(nx,ny,ghosts), _xR(nx,ny,ghosts);//x Half States
     FluidArray2D _yL(nx,ny,ghosts), _yR(nx,ny,ghosts);//y Half States
@@ -133,7 +118,7 @@ void Grid2D::advanceXY(double dt){
     
     #ifdef MHD//Compute face-normal fields
     #ifdef PRESERVE_BUFFERS
-    MagneticArray2D& B = *buffers->mag[0];
+    MagneticArray2D& B = *DRAGONWING::requestVec3Array(nx+1, ny+1, ghosts);
     #else
     MagneticArray2D B(nx+1,ny+1,ghosts);
     #endif
@@ -162,8 +147,15 @@ void Grid2D::advanceXY(double dt){
     computeFlux_X(_xL, _xR, F_X, 0, nx, -1, ny+1, dt/dx); //F_X needs (0...nx, 0...ny-1), (0...nx, -1...ny) for MHD
     computeFlux_Y(_yL, _yR, F_Y, -1, nx+1, 0, ny, dt/dy); //F_Y needs (0...nx-1, 0...ny), (-1...nx, 0...ny) for MHD
     
-    //Preliminarily apply all fluxes
+    //Memory Management
     FluidArray2D& _w = _xL; //Repurpose grid that isn't being used anymore
+    #ifdef PRESERVE_BUFFERS
+    DRAGONWING::releaseArray(&_xR); //Release the others
+    DRAGONWING::releaseArray(&_yL);
+    DRAGONWING::releaseArray(&_yR);
+    #endif
+    
+    //Preliminarily apply all fluxes
     for(int i=0; i<nx; i++){
         for(int j=0; j<ny; j++){
             ConservativeState  U(w[i,j]);
@@ -177,11 +169,11 @@ void Grid2D::advanceXY(double dt){
             #endif
         }
     }
-    
+
     //Preliminary CT Update
     #ifdef MHD
     #ifdef PRESERVE_BUFFERS
-    MagneticArray2D& _A = *buffers->mag[1];
+    MagneticArray2D& _A = *DRAGONWING::requestVec3Array(nx+1, ny+1, ghosts);
     #else
     MagneticArray2D _A(nx+1,ny+1,ghosts);
     #endif
@@ -189,6 +181,10 @@ void Grid2D::advanceXY(double dt){
     CT::updatePotential(_A, F_X, F_Y, dt);
     CT::computeFaceFields(_A, B, dx, dy);
     CT::computeBodyFields(B, _w);
+    
+    #ifdef PRESERVE_BUFFERS
+    DRAGONWING::releaseArray(&B);
+    #endif
 
     for(int i=0; i<nx; i++){
         for(int j=0; j<ny; j++){
@@ -196,6 +192,11 @@ void Grid2D::advanceXY(double dt){
                 throw std::runtime_error(std::format("Unphysical state would be produced by CT at ({},{})",i,j));
         }
     }
+    #endif
+    
+    #ifdef PRESERVE_BUFFERS
+    DRAGONWING::releaseArray(&F_X);
+    DRAGONWING::releaseArray(&F_Y);
     #endif
         
     //Wait for any parallel grids to finish
@@ -208,8 +209,15 @@ void Grid2D::advanceXY(double dt){
             w[i,j] = _w[i,j];
         }
     }
+    #ifdef PRESERVE_BUFFERS
+    DRAGONWING::releaseArray(&_w);
+    #endif
+    
     #ifdef MHD
     A.clone(_A);
+    #ifdef PRESERVE_BUFFERS
+    DRAGONWING::releaseArray(&_A);
+    #endif
     #endif
     
 }
@@ -229,19 +237,17 @@ void correctState(const FluidArray3D& _L0, const FluidArray3D& _R0, FluidArray3D
 void Grid3D::advanceXYZ(double dt){
     int nx = w.getSizeX(), ny = w.getSizeY(), nz = w.getSizeZ(), ghosts = w.getGhosts();
     #ifdef PRESERVE_BUFFERS
-    if(buffers == nullptr) buffers = new GridBuffers3D(nx,ny,nz,ghosts);
-    #ifdef TESTMODE //Test that the buffers aren't calling stale values
-    buffers->poison();
-    #endif
-    FluidArray3D& _xL = *buffers->prim[0];//x Half States
-    FluidArray3D& _xR = *buffers->prim[1];
-    FluidArray3D& _yL = *buffers->prim[2];//y Half States
-    FluidArray3D& _yR = *buffers->prim[3];
-    FluidArray3D& _zL = *buffers->prim[4];//z Half States
-    FluidArray3D& _zR = *buffers->prim[5];
-    FluxArray3D& F_X = *buffers->flux[0];//Fluxes
-    FluxArray3D& F_Y = *buffers->flux[1];
-    FluxArray3D& F_Z = *buffers->flux[2];
+    //Half States
+    FluidArray3D& _xL = *DRAGONWING::requestPrimitiveArray(nx, ny, nz, ghosts);
+    FluidArray3D& _xR = *DRAGONWING::requestPrimitiveArray(nx, ny, nz, ghosts);
+    FluidArray3D& _yL = *DRAGONWING::requestPrimitiveArray(nx, ny, nz, ghosts);
+    FluidArray3D& _yR = *DRAGONWING::requestPrimitiveArray(nx, ny, nz, ghosts);
+    FluidArray3D& _zL = *DRAGONWING::requestPrimitiveArray(nx, ny, nz, ghosts);
+    FluidArray3D& _zR = *DRAGONWING::requestPrimitiveArray(nx, ny, nz, ghosts);
+    //Fluxes
+    FluxArray3D& F_X = *DRAGONWING::requestFluxArray(nx, ny, nz, ghosts);
+    FluxArray3D& F_Y = *DRAGONWING::requestFluxArray(nx, ny, nz, ghosts);
+    FluxArray3D& F_Z = *DRAGONWING::requestFluxArray(nx, ny, nz, ghosts);
     #else
     FluidArray3D _xL(nx,ny,nz,ghosts), _xR(nx,ny,nz,ghosts); //X half States
     FluidArray3D _yL(nx,ny,nz,ghosts), _yR(nx,ny,nz,ghosts); //Y half states
@@ -257,7 +263,7 @@ void Grid3D::advanceXYZ(double dt){
     
     #ifdef MHD//Compute face-normal fields
     #ifdef PRESERVE_BUFFERS
-    MagneticArray3D& B = *buffers->mag[0];
+    MagneticArray3D& B = *DRAGONWING::requestVec3Array(nx+1, ny+1, nz+1, ghosts);
     #else
     MagneticArray3D B(nx+1,ny+1,nz+1,ghosts);
     #endif
@@ -275,14 +281,14 @@ void Grid3D::advanceXYZ(double dt){
     
     //Allocate Buffers
     #ifdef PRESERVE_BUFFERS
-    FluidArray3D& __L = *buffers->ctuprim[0];//Half States
-    FluidArray3D& __R = *buffers->ctuprim[1];
-    FluxArray3D& F_Xy = *buffers->ctuflux[0];//Fluxes
-    FluxArray3D& F_Xz = *buffers->ctuflux[1];
-    FluxArray3D& F_Yx = *buffers->ctuflux[2];
-    FluxArray3D& F_Yz = *buffers->ctuflux[3];
-    FluxArray3D& F_Zx = *buffers->ctuflux[4];
-    FluxArray3D& F_Zy = *buffers->ctuflux[5];
+    FluidArray3D& __L = *DRAGONWING::requestPrimitiveArray(nx, ny, nz, ghosts);
+    FluidArray3D& __R = *DRAGONWING::requestPrimitiveArray(nx, ny, nz, ghosts);
+    FluxArray3D& F_Xy = *DRAGONWING::requestFluxArray(nx, ny, nz, ghosts);
+    FluxArray3D& F_Xz = *DRAGONWING::requestFluxArray(nx, ny, nz, ghosts);
+    FluxArray3D& F_Yx = *DRAGONWING::requestFluxArray(nx, ny, nz, ghosts);
+    FluxArray3D& F_Yz = *DRAGONWING::requestFluxArray(nx, ny, nz, ghosts);
+    FluxArray3D& F_Zx = *DRAGONWING::requestFluxArray(nx, ny, nz, ghosts);
+    FluxArray3D& F_Zy = *DRAGONWING::requestFluxArray(nx, ny, nz, ghosts);
     #else
     FluidArray3D __L(nx,ny,nz,ghosts), __R(nx,ny,nz,ghosts);
     FluxArray3D F_Xy(nx, ny,nz,2), F_Xz(nx, ny,nz,2);
@@ -310,6 +316,11 @@ void Grid3D::advanceXYZ(double dt){
     correctState(_zL, _zR, __L, __R, F_Y, (0.5*dt/dy), -1, nx+1, -1, ny+1, -2, nz+2, 1);
     computeFlux_Z(__L, __R, F_Zy, -1, nx+1, -1, ny+1, -1, nz+1, dt/dz);
     
+    #ifdef PRESERVE_BUFFERS
+    DRAGONWING::releaseArray(&__L);
+    DRAGONWING::releaseArray(&__R);
+    #endif
+    
     //Apply second round of transverse corrections
     correctState(_xL, _xR, _xL,_xR, F_Yz, (0.5*dt/dy), -1, nx+1, -1, ny+1, -1, nz+1, 1); //_xLR needs (-1...nx, -1...ny, -1...nz)
     correctState(_xL, _xR, _xL,_xR, F_Zy, (0.5*dt/dz), -1, nx+1, -1, ny+1, -1, nz+1, 2);
@@ -317,6 +328,15 @@ void Grid3D::advanceXYZ(double dt){
     correctState(_yL, _yR, _yL,_yR, F_Zx, (0.5*dt/dz), -1, nx+1, -1, ny+1, -1, nz+1, 2);
     correctState(_zL, _zR, _zL,_zR, F_Xy, (0.5*dt/dx), -1, nx+1, -1, ny+1, -1, nz+1, 0);//_zLR needs (-1...nx, -1...ny, -1...nz)
     correctState(_zL, _zR, _zL,_zR, F_Yx, (0.5*dt/dy), -1, nx+1, -1, ny+1, -1, nz+1, 1);
+    
+    #ifdef PRESERVE_BUFFERS
+    DRAGONWING::releaseArray(&F_Xy);
+    DRAGONWING::releaseArray(&F_Xz);
+    DRAGONWING::releaseArray(&F_Yx);
+    DRAGONWING::releaseArray(&F_Yz);
+    DRAGONWING::releaseArray(&F_Zx);
+    DRAGONWING::releaseArray(&F_Zy);
+    #endif
     
     #ifdef MHD//Restore face-normal fields
     CT::copyFaceFields_X(_xL, B, _xR);
@@ -330,8 +350,18 @@ void Grid3D::advanceXYZ(double dt){
     computeFlux_Y(_yL, _yR, F_Y, -1, nx+1, 0, ny, -1, nz+1, dt/dy); //F_Y needs (-1...nx, 0...ny, -1...nz)
     computeFlux_Z(_zL, _zR, F_Z, -1, nx+1, -1, ny+1, 0, nz, dt/dz); //F_Z needs (-1...nx, -1...ny, 0...nz)
     
-    //Preliminarily apply all fluxes
+    //Memory management
     FluidArray3D& _w = _xL; //Repurpose grid that isn't being used anymore
+    #ifdef PRESERVE_BUFFERS
+    DRAGONWING::releaseArray(&_xR);
+    DRAGONWING::releaseArray(&_yL);
+    DRAGONWING::releaseArray(&_yR);
+    DRAGONWING::releaseArray(&_zL);
+    DRAGONWING::releaseArray(&_zR);
+    #endif
+    
+    
+    //Preliminarily apply all fluxes
     for(int i=0; i<nx; i++){
         for(int j=0; j<ny; j++){
             for(int k=0; k<nz; k++){
@@ -351,7 +381,7 @@ void Grid3D::advanceXYZ(double dt){
     //Preliminary CT Update
     #ifdef MHD
     #ifdef PRESERVE_BUFFERS
-    MagneticArray3D& _A = *buffers->mag[1];
+    MagneticArray3D& _A = *DRAGONWING::requestVec3Array(nx+1, ny+1, nz+1, ghosts);
     #else
     MagneticArray3D _A(nx+1,ny+1,nz+1,ghosts);
     #endif
@@ -359,7 +389,11 @@ void Grid3D::advanceXYZ(double dt){
     CT::updatePotential(_A, F_X, F_Y, F_Z, dt);
     CT::computeFaceFields(_A, B, dx, dy, dz);
     CT::computeBodyFields(B, _w);
-
+    
+    #ifdef PRESERVE_BUFFERS
+    DRAGONWING::releaseArray(&B);
+    #endif
+    
     for(int i=0; i<nx; i++){
         for(int j=0; j<ny; j++){
             for(int k=0; k<nz; k++){
@@ -371,7 +405,11 @@ void Grid3D::advanceXYZ(double dt){
     #endif
         
     
-    
+    #ifdef PRESERVE_BUFFERS
+    DRAGONWING::releaseArray(&F_X);
+    DRAGONWING::releaseArray(&F_Y);
+    DRAGONWING::releaseArray(&F_Z);
+    #endif
     
     //Wait for any parallel grids to finish
     DRAGONWING::reportCheckpoint1();
@@ -385,8 +423,15 @@ void Grid3D::advanceXYZ(double dt){
             }
         }
     }
+    #ifdef PRESERVE_BUFFERS
+    DRAGONWING::releaseArray(&_w);
+    #endif
+    
     #ifdef MHD
     A.clone(_A);
+    #ifdef PRESERVE_BUFFERS
+    DRAGONWING::releaseArray(&_A);
+    #endif
     #endif
 }
 

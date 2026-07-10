@@ -12,6 +12,7 @@
 #include "Riemann.hpp"
 #include "Boundary.hpp"
 #include "CFL.hpp"
+#include "DragonWing.hpp"
 #include "TVD.hpp"
 #include <cassert>
 
@@ -29,23 +30,14 @@ const PrimitiveState& Grid1D::operator[](int k) const { return w[k]; }
 int Grid1D::getSize() const { return w.getSize(); }
 int Grid1D::getGhosts() const { return w.getGhosts(); }
 
-Grid1D::~Grid1D(){
-#ifdef PRESERVE_BUFFERS
-    if(buffers != nullptr) delete buffers;
-#endif
-}
 
 //MARK: 1D Godunov Advance
 void Grid1D::advance(double dt, bool check_cfl){
     int size = getSize(), ghosts = getGhosts();
     
     #ifdef PRESERVE_BUFFERS//Buffer Grids
-    if(buffers == nullptr) buffers = new GridBuffers1D(size,ghosts);
-    #ifdef TESTMODE
-    buffers->poison();
-    #endif
-    ExtendedArray1D<PrimitiveState>& _L = *buffers->prim[0];
-    ExtendedArray1D<PrimitiveState>& _R = *buffers->prim[1];
+    ExtendedArray1D<PrimitiveState>& _L = *DRAGONWING::requestPrimitiveArray(size, ghosts);
+    ExtendedArray1D<PrimitiveState>& _R = *DRAGONWING::requestPrimitiveArray(size, ghosts);
     #else
     ExtendedArray1D<PrimitiveState> _L(size,ghosts), _R(size,ghosts);
     #endif
@@ -60,6 +52,11 @@ void Grid1D::advance(double dt, bool check_cfl){
         god_sweep(t1,_L,_R);
         dt -= t1;
     }
+    #ifdef PRESERVE_BUFFERS
+    DRAGONWING::releaseArray(&_L);
+    DRAGONWING::releaseArray(&_R);
+    #endif
+    
 }
 
 

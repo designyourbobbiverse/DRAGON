@@ -13,7 +13,6 @@
 #include "ExtendedArray.hpp"
 #include "Boundary.hpp"
 #include "Config.h"
-#include "GridBuffers.hpp"
 
 class Grid{
 public:
@@ -33,7 +32,7 @@ public:
     Grid1D(int size, double dx, int ghosts=1);
     Grid1D(const Grid1D&) = delete; //No copying
     Grid1D& operator=(const Grid1D&) = delete;
-    ~Grid1D();
+    ~Grid1D() = default;
     //Grid access
     //Can take inputs <0 or >= size to access ghost cells
     PrimitiveState& operator[](int k);
@@ -46,11 +45,7 @@ public:
     void advance(double dt, bool check_cfl=true);
     //The meat of the above function, also used by splitting schemes on higher dimension grids
     void god_sweep(double dt, ExtendedArray1D<PrimitiveState>& _L, ExtendedArray1D<PrimitiveState>& _R);
-    
-private:
-    #ifdef PRESERVE_BUFFERS
-    GridBuffers1D* buffers = nullptr;
-    #endif
+
 };
 
 class Grid2D: public Grid{
@@ -65,7 +60,7 @@ public:
     Grid2D(int nx, int ny, double dx, double dy, int ghosts=1);
     Grid2D(const Grid2D&) = delete; //No copying
     Grid2D& operator=(const Grid2D&) = delete;
-    ~Grid2D();
+    ~Grid2D() = default;
     
     //Grid access
     //Can take inputs <0 or >= n to access ghost cells
@@ -95,13 +90,6 @@ protected:
     #ifdef MHD
     void computeBodyAveragedFields(const ExtendedArray2D<vec3>& B);
     #endif
-    
-    #ifdef PRESERVE_BUFFERS
-    GridBuffers2D* buffers = nullptr;
-    Grid1D* buffer_x = nullptr;
-    Grid1D* buffer_y = nullptr;
-    #endif
-
 };
 
 class Grid3D: public Grid{
@@ -116,7 +104,7 @@ public:
     Grid3D(int nx, int ny, int nz, double dx, double dy, double dz, int ghosts=2);
     Grid3D(const Grid3D&) = delete; //No copying
     Grid3D& operator=(const Grid3D&) = delete;
-    ~Grid3D();
+    ~Grid3D() = default;
 
     //Grid Access
     //Can take inputs <0 or >= n to access ghost cells
@@ -146,12 +134,6 @@ protected:
     void advanceXYZ(double dt); //Advance a single unsplit step
     #ifdef MHD
     void computeBodyAveragedFields(const ExtendedArray3D<vec3>& B);
-    #endif
-    #ifdef PRESERVE_BUFFERS
-    GridBuffers3D* buffers = nullptr;
-    Grid1D* buffer_x = nullptr;
-    Grid1D* buffer_y = nullptr;
-    Grid1D* buffer_z = nullptr;
     #endif
 };
 
