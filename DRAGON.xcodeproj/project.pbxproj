@@ -79,7 +79,7 @@
 				1D/Lax/Problem.cpp,
 				"1D/Ryu-Jones/Problem.cpp",
 				"1D/Shu-Osher/Problem.cpp",
-				1D/SOD/Problem.cpp,
+				1D/Sod/Problem.cpp,
 				"1D/Strong Shock/Problem.cpp",
 				CollidingFlows/Jets/Jet.cpp,
 				CollidingFlows/Jets/MHDJet.cpp,
