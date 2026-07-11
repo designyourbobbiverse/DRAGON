@@ -245,14 +245,15 @@ void Grid3D::advanceXYZ(double dt){
     computeFlux_Z(_zL, _zR, F_Z, -2, nx+2, -2, ny+2, -1, nz+1, dt/dz);
         
     //Compute Edge-correct the fluxes
-        auto __CTU_fluxes = DRAGONWING::requestFluxArrays(4, nx, ny, nz, ghosts);
-    FluxArray3D& F_Xy = *__CTU_fluxes[0];
-    computeCTUFlux_X(_xL, _xR, F_Y, F_Xy, dt/dx, (0.5*dt/dy), 1);
-    FluxArray3D& F_Xz = *__CTU_fluxes[1];
+        auto __CTU_fluxes = DRAGONWING::requestFluxArrays(2, nx, ny, nz, ghosts);
+    FluxArray3D& F_Xz = *__CTU_fluxes[0];
     computeCTUFlux_X(_xL, _xR, F_Z, F_Xz, dt/dx, (0.5*dt/dz), 2);
-    FluxArray3D& F_Yz = *__CTU_fluxes[2];
+    FluxArray3D& F_Yz = *__CTU_fluxes[1];
     computeCTUFlux_Y(_yL, _yR, F_Z, F_Yz, dt/dy, (0.5*dt/dz), 2);
-    FluxArray3D& F_Zy = *__CTU_fluxes[3];
+
+    FluxArray3D& F_Xy = *__fluxes[2]; //F_Z isn't used again before it gets recomputed, so we can resue it here
+    computeCTUFlux_X(_xL, _xR, F_Y, F_Xy, dt/dx, (0.5*dt/dy), 1);
+    FluxArray3D& F_Zy = F_Y;  //In computeCTUFlux, the last read of [i,j,k] happens before [i,j,k] gets written, so we can likewise repurpose F_Y here
     computeCTUFlux_Z(_zL, _zR, F_Y, F_Zy, dt/dz, (0.5*dt/dy),1);
 
     //Update the X half states based on the YZ corner fluxes
@@ -260,9 +261,9 @@ void Grid3D::advanceXYZ(double dt){
     correctState(_xL, _xR, F_Zy, (0.5*dt/dz), 2);
     //Doing this early means we can reuse the F_Yz and F_Zy grids for F_Yx and F_Zx
     
-    FluxArray3D& F_Yx = *__CTU_fluxes[2]; //Reuse existing grid that has already served its purpose
+    FluxArray3D& F_Yx = F_Yz; //Reuse existing grid that has already served its purpose
     computeCTUFlux_Y(_yL, _yR, F_X, F_Yx, dt/dy, (0.5*dt/dx), 0);
-    FluxArray3D& F_Zx = *__CTU_fluxes[3]; //Reuse existing grid that has already served its purpose
+    FluxArray3D& F_Zx = F_Zy; //Reuse existing grid that has already served its purpose
     computeCTUFlux_Z(_zL, _zR, F_X, F_Zx, dt/dz, (0.5*dt/dx),0);
 
     //Update the Y half states based on the XZ corner fluxes
