@@ -260,10 +260,10 @@ void Grid3D::advanceXYZ(double dt){
     correctState(_xL, _xR, F_Zy, (0.5*dt/dz), 2);
     //Doing this early means we can reuse the F_Yz and F_Zy grids for F_Yx and F_Zx
     
-    FluxArray3D& F_Zx = *__CTU_fluxes[3]; //Reuse existing grid that has already served its purpose
-    computeCTUFlux_Z(_zL, _zR, F_X, F_Zx, dt/dz, (0.5*dt/dx),0);
     FluxArray3D& F_Yx = *__CTU_fluxes[2]; //Reuse existing grid that has already served its purpose
     computeCTUFlux_Y(_yL, _yR, F_X, F_Yx, dt/dy, (0.5*dt/dx), 0);
+    FluxArray3D& F_Zx = *__CTU_fluxes[3]; //Reuse existing grid that has already served its purpose
+    computeCTUFlux_Z(_zL, _zR, F_X, F_Zx, dt/dz, (0.5*dt/dx),0);
 
     //Update the Y half states based on the XZ corner fluxes
     correctState(_yL, _yR, F_Xz, (0.5*dt/dx), 0);
