@@ -83,8 +83,7 @@ void sweep(ExtendedArray1D<PrimitiveState>& w, double dt_dx, ExtendedArray1D<Pri
 void Grid1D::advance(double dt, bool check_cfl){
     int size = getSize(), ghosts = getGhosts();
     
-    ExtendedArray1D<PrimitiveState>& _L = *DRAGONWING::requestPrimitiveArray(size, ghosts);
-    ExtendedArray1D<PrimitiveState>& _R = *DRAGONWING::requestPrimitiveArray(size, ghosts);
+    auto __B = DRAGONWING::requestPrimitiveArrays(2, size, ghosts);
     
     while(dt > CONFIG::Timestep_Tolerance){
         //Apply Boundary Conditions
@@ -93,12 +92,9 @@ void Grid1D::advance(double dt, bool check_cfl){
         double t1 = check_cfl ? std::min(dt,CFL::cfl_time(*this)) : dt;
         if (t1 >= dt) t1 = dt;
         //Execute the Advancement
-        Godunov::sweep(w, t1/dx, _L, _R);
+        Godunov::sweep(w, t1/dx, *__B[0], *__B[1]);
         dt -= t1;
     }
-
-    DRAGONWING::releaseArray(&_L);
-    DRAGONWING::releaseArray(&_R);
 }
 
 //MARK: 2D Split
@@ -180,41 +176,31 @@ void Grid2D::advanceX(double dt){
     boundary.apply(*this); //Apply Boundary Conditions before every sweep
     
     int nx = w.getSizeX(), ny = w.getSizeY(), ghosts = w.getGhosts();
-    ExtendedArray1D<PrimitiveState>& _w = *DRAGONWING::requestPrimitiveArray(nx, ghosts);
-    ExtendedArray1D<PrimitiveState>& _B1 = *DRAGONWING::requestPrimitiveArray(nx, ghosts);
-    ExtendedArray1D<PrimitiveState>& _B2 = *DRAGONWING::requestPrimitiveArray(nx, ghosts);
-    
+        auto __B = DRAGONWING::requestPrimitiveArrays(3, nx, ghosts);
+    ExtendedArray1D<PrimitiveState>& _w = *__B[0];
+
     for(int j=-ghosts; j<ny+ghosts; j++){
         for(int i=-ghosts; i<nx+ghosts; i++) _w[i] = w[i,j]; //Copy to a 1D array
 
-        Godunov::sweep(_w, dt/dx, _B1, _B2);
+        Godunov::sweep(_w, dt/dx, *__B[1], *__B[2]);
         
         for(int i=-ghosts; i<nx+ghosts; i++) w[i,j] = _w[i]; //Copy 1D array back to grid
     }
-    
-    DRAGONWING::releaseArray(&_w);
-    DRAGONWING::releaseArray(&_B1);
-    DRAGONWING::releaseArray(&_B2);
 }
 void Grid2D::advanceY(double dt){
     boundary.apply(*this); //Apply Boundary Conditions before every sweep
     
     int nx = w.getSizeX(), ny = w.getSizeY(), ghosts = w.getGhosts();
-    ExtendedArray1D<PrimitiveState>& _w = *DRAGONWING::requestPrimitiveArray(ny, ghosts);
-    ExtendedArray1D<PrimitiveState>& _B1 = *DRAGONWING::requestPrimitiveArray(ny, ghosts);
-    ExtendedArray1D<PrimitiveState>& _B2 = *DRAGONWING::requestPrimitiveArray(ny, ghosts);
-    
+        auto __B = DRAGONWING::requestPrimitiveArrays(3, ny, ghosts);
+    ExtendedArray1D<PrimitiveState>& _w = *__B[0];
+
     for(int i=-ghosts; i<nx+ghosts; i++){
         for(int j=-ghosts; j<ny+ghosts; j++)  _w[j] = w[i,j].swappedXY(); //Dimension swap + copy to a 1D array
         
-        Godunov::sweep(_w, dt/dy, _B1, _B2);
+        Godunov::sweep(_w, dt/dy, *__B[1], *__B[2]);
         
         for(int j=-ghosts; j<ny+ghosts; j++)  w[i,j] = _w[j].swappedXY(); //Dimension swap back + copy back to grid
     }
-    
-    DRAGONWING::releaseArray(&_w);
-    DRAGONWING::releaseArray(&_B1);
-    DRAGONWING::releaseArray(&_B2);
 }
 
 
@@ -223,65 +209,52 @@ void Grid3D::advanceX(double dt){
     boundary.apply(*this); //Apply Boundary Conditions before every sweep
 
     int nx = w.getSizeX(), ny = w.getSizeY(), nz = w.getSizeZ(), ghosts = w.getGhosts();
-    ExtendedArray1D<PrimitiveState>& _w = *DRAGONWING::requestPrimitiveArray(nx, ghosts);
-    ExtendedArray1D<PrimitiveState>& _B1 = *DRAGONWING::requestPrimitiveArray(nx, ghosts);
-    ExtendedArray1D<PrimitiveState>& _B2 = *DRAGONWING::requestPrimitiveArray(nx, ghosts);
+        auto __B = DRAGONWING::requestPrimitiveArrays(3, nx, ghosts);
+    ExtendedArray1D<PrimitiveState>& _w = *__B[0];
     
     for(int k=-ghosts; k<nz+ghosts; k++){
         for(int j=-ghosts; j<ny+ghosts; j++){
             for(int i=-ghosts; i<nx+ghosts; i++) _w[i] = w[i,j,k]; //Copy to a 1D array
             
-            Godunov::sweep(_w, dt/dx, _B1, _B2); //Sweep through the 1D array
+            Godunov::sweep(_w, dt/dx, *__B[1], *__B[2]); //Sweep through the 1D array
             
             for(int i=-ghosts; i<nx+ghosts; i++) w[i,j,k] = _w[i]; //Copy back to grid
         }
     }
-    
-    DRAGONWING::releaseArray(&_w);
-    DRAGONWING::releaseArray(&_B1);
-    DRAGONWING::releaseArray(&_B2);
 }
+
 void Grid3D::advanceY(double dt){
     boundary.apply(*this); //Apply Boundary Conditions before every sweep
 
     int nx = w.getSizeX(), ny = w.getSizeY(), nz = w.getSizeZ(), ghosts = w.getGhosts();
-    ExtendedArray1D<PrimitiveState>& _w = *DRAGONWING::requestPrimitiveArray(ny, ghosts);
-    ExtendedArray1D<PrimitiveState>& _B1 = *DRAGONWING::requestPrimitiveArray(ny, ghosts);
-    ExtendedArray1D<PrimitiveState>& _B2 = *DRAGONWING::requestPrimitiveArray(ny, ghosts);
-    
+        auto __B = DRAGONWING::requestPrimitiveArrays(3, ny, ghosts);
+    ExtendedArray1D<PrimitiveState>& _w = *__B[0];
+
     for(int k=-ghosts; k<nz+ghosts; k++){
         for(int i=-ghosts; i<nx+ghosts; i++) {
             for(int j=-ghosts; j<ny+ghosts; j++) _w[j] = w[i,j,k].swappedXY(); //Dimension swap + copy to a 1D array
 
-            Godunov::sweep(_w, dt/dy, _B1, _B2); //Sweep through the 1D array
+            Godunov::sweep(_w, dt/dy, *__B[1], *__B[2]); //Sweep through the 1D array
 
             for(int j=-ghosts; j<ny+ghosts; j++) w[i,j,k] = _w[j].swappedXY();  //Dimension swap back + copy back to grid
        }
     }
-    
-    DRAGONWING::releaseArray(&_w);
-    DRAGONWING::releaseArray(&_B1);
-    DRAGONWING::releaseArray(&_B2);
 }
 void Grid3D::advanceZ(double dt){
     boundary.apply(*this); //Apply Boundary Conditions before every sweep
 
     int nx = w.getSizeX(), ny = w.getSizeY(), nz = w.getSizeZ(), ghosts = w.getGhosts();
-    ExtendedArray1D<PrimitiveState>& _w = *DRAGONWING::requestPrimitiveArray(nz, ghosts);
-    ExtendedArray1D<PrimitiveState>& _B1 = *DRAGONWING::requestPrimitiveArray(nz, ghosts);
-    ExtendedArray1D<PrimitiveState>& _B2 = *DRAGONWING::requestPrimitiveArray(nz, ghosts);
+        auto __B = DRAGONWING::requestPrimitiveArrays(3, nz, ghosts);
+    ExtendedArray1D<PrimitiveState>& _w = *__B[0];
+
     
     for(int i=-ghosts; i<nx+ghosts; i++) {
         for(int j=-ghosts; j<ny+ghosts; j++) {
             for(int k=-ghosts; k<nz+ghosts; k++) _w[k] = w[i,j,k].swappedXZ(); //Dimension swap + copy to a 1D array
             
-            Godunov::sweep(_w, dt/dz, _B1, _B2); //Sweep through the 1D array
+            Godunov::sweep(_w, dt/dz, *__B[1], *__B[2]); //Sweep through the 1D array
 
             for(int k=-ghosts; k<nz+ghosts; k++) w[i,j,k] = _w[k].swappedXZ(); //Dimension swap back + copy back to grid
        }
     }
-    
-    DRAGONWING::releaseArray(&_w);
-    DRAGONWING::releaseArray(&_B1);
-    DRAGONWING::releaseArray(&_B2);
 }

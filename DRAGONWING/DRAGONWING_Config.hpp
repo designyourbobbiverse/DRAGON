@@ -16,7 +16,7 @@ namespace DRAGONWING::CONFIG{
 //Phase 1 is computation heavy and uses as many as 19 auxiliary grids per grid
 //A smaller number uses less memory, a larger number is faster (to a point)
 //A good starting point for this parameter is typically to match the number of cores on your machine
-constexpr int phase_1_max_threads = 16;
+constexpr int phase_1_max_threads = 10000;
 
 
 

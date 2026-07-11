@@ -8,14 +8,10 @@
 #ifndef DRAGON_WING_hpp
 #define DRAGON_WING_hpp
 #include <string>
-
+#include <vector>
+#include "ArrayGuard.hpp"
 class Grid;
-struct PrimitiveState;
-struct ConservativeState;
-struct vec3;
-template <class T> struct ExtendedArray1D;
-template <class T> struct ExtendedArray2D;
-template <class T> struct ExtendedArray3D;
+
 
 namespace DRAGONWING{
 
@@ -32,26 +28,22 @@ bool waitForCheckpoint1(); //Returns false iff someone requested a restart
 bool waitForCheckpoint2(); //Returns false iff someone requested a restart
 
 //MARK: Memory Management
-ExtendedArray1D<PrimitiveState>* requestPrimitiveArray(int nx, int g);
-ExtendedArray2D<PrimitiveState>* requestPrimitiveArray(int nx, int ny, int g);
-ExtendedArray3D<PrimitiveState>* requestPrimitiveArray(int nx, int ny, int nz, int g);
+//Return Type: ArrayGuard
+//Automatically releases the arrays when it goes out of scope. Can release early by calling guard.release()
+//guard[i] or guard.get(i) returns a pointer to the ith array
+ArrayGuard<ExtendedArray1D<PrimitiveState>> requestPrimitiveArrays(int N, int nx, int g);
+ArrayGuard<ExtendedArray1D<ConservativeState>> requestFluxArrays(int N, int nx, int g);
+ArrayGuard<ExtendedArray1D<vec3>> requestVec3Arrays(int N, int nx, int g);
+ArrayGuard<ExtendedArray2D<PrimitiveState>> requestPrimitiveArrays(int N, int nx, int ny, int g);
+ArrayGuard<ExtendedArray2D<ConservativeState>> requestFluxArrays(int N, int nx, int ny, int g);
+ArrayGuard<ExtendedArray2D<vec3>> requestVec3Arrays(int N, int nx, int ny, int g);
+ArrayGuard<ExtendedArray3D<PrimitiveState>> requestPrimitiveArrays(int N, int nx, int ny, int nz, int g);
+ArrayGuard<ExtendedArray3D<ConservativeState>> requestFluxArrays(int N, int nx, int ny, int nz, int g);
+ArrayGuard<ExtendedArray3D<vec3>> requestVec3Arrays(int N, int nx, int ny, int nz, int g);
 
-ExtendedArray2D<ConservativeState>* requestFluxArray(int nx, int ny, int g);
-ExtendedArray3D<ConservativeState>* requestFluxArray(int nx, int ny, int nz, int g);
 
-ExtendedArray2D<vec3>* requestVec3Array(int nx, int ny, int g);
-ExtendedArray3D<vec3>* requestVec3Array(int nx, int ny, int nz, int g);
 
-void releaseArray(ExtendedArray1D<PrimitiveState>* arr);
-void releaseArray(ExtendedArray2D<PrimitiveState>* arr);
-void releaseArray(ExtendedArray3D<PrimitiveState>* arr);
 
-void releaseArray(ExtendedArray1D<ConservativeState>* arr);
-void releaseArray(ExtendedArray2D<ConservativeState>* arr);
-void releaseArray(ExtendedArray3D<ConservativeState>* arr);
-
-void releaseArray(ExtendedArray2D<vec3>* arr);
-void releaseArray(ExtendedArray3D<vec3>* arr);
 
 void purgeAllBuffers();
 
