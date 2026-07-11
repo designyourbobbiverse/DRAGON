@@ -60,25 +60,32 @@ int Grid3D::getGhosts() const { return w.getGhosts(); }
 namespace Godunov{
 void sweep(ExtendedArray1D<PrimitiveState>& w, double dt_dx){
     const int size = w.getSize(), ghosts = w.getGhosts();
-        auto __B = DRAGONWING::requestPrimitiveArrays(2, size, ghosts);
-    ExtendedArray1D<PrimitiveState>& _L = *__B[0], &_R = *__B[1];
-    
-    //Reconstruct Half-States (if applicable)
-    for(int i=-ghosts+1; i<size+ghosts-1; i++) {
-        TVD::MUSCL(w[i-1], _L[i], w[i], _R[i], w[i+1], dt_dx);
-    }
-    //Fill in the outermost ghosts
-    _R[-ghosts] = w[-ghosts];
-    _L[size+ghosts-1] = w[size+ghosts-1];
-    
     //Compute Fluxes
     ConservativeState fL, fR;
-    fL = Riemann(_R[-ghosts], _L[-ghosts+1]).flux_X(dt_dx);
+    PrimitiveState _LR = w[-ghosts], _RL, _RR;
+    
+    //Compute the leftmost flux
+    TVD::MUSCL(w[-ghosts], _RL, w[-ghosts+1], _RR, w[-ghosts+2], dt_dx);
+    fL = Riemann(_LR, _RL).flux_X(dt_dx);
+    
     for(int i=-ghosts+1; i<size+ghosts-1; i++) {
-        fR = Riemann(_R[i], _L[i+1]).flux_X(dt_dx);
+        _LR = _RR;//Move Right state from previous cycle
+        //Reconstruct Half-States (if applicable)
+        if(i+2 < size+ghosts){
+            TVD::MUSCL(w[i], _RL, w[i+1], _RR, w[i+2], dt_dx);
+        } else {
+            _RL = w[i+1];
+        }
+        //Compute & Apply Flux
+        fR = Riemann(_LR, _RL).flux_X(dt_dx);
         w[i] += (fL - fR) * (dt_dx); //Apply flux to cell
         fL = fR; //Right flux on this cell must equal Left flux on next cell
     }
+    //Compute & Apply the rightmost flux
+    _LR = _RR;
+    _RL = w[size+ghosts-1];
+    fR = Riemann(_LR, _RL).flux_X(dt_dx);
+    w[size+ghosts-2] += (fL - fR) * (dt_dx); //Apply flux to cell
 }
 }
 
