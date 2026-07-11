@@ -106,15 +106,10 @@ void Grid2D::advanceXY(double dt){
     FluidArray2D& _xR = *__half_states[1];
     FluidArray2D& _yL = *__half_states[2];
     FluidArray2D& _yR = *__half_states[3];
-    //Fluxes
-        auto __fluxes = DRAGONWING::requestFluxArrays(2, nx, ny, ghosts);
-    FluxArray2D& F_X = *__fluxes[0];
-    FluxArray2D& F_Y = *__fluxes[1];
     
     //Compute Half States
     computeHalfStates_X(_xL, (*this), _xR, dt);//_xLR needs (-1...nx, -1...ny), (-2...nx+1, -1...ny)for MHD
     computeHalfStates_Y(_yL, (*this), _yR, dt);//_yLR needs (-1...nx, -1...ny), (-1...nx, -2...ny+1) for MHD
-    
     #ifdef MHD//Compute face-normal fields
         auto __B = DRAGONWING::requestVec3Arrays(1, nx+1, ny+1, ghosts);
     MagneticArray2D& B = *__B[0];
@@ -123,6 +118,10 @@ void Grid2D::advanceXY(double dt){
     CT::copyFaceFields_Y(_yL, B, _yR);
     #endif
     
+    //Fluxes
+        auto __fluxes = DRAGONWING::requestFluxArrays(2, nx, ny, ghosts);
+    FluxArray2D& F_X = *__fluxes[0];
+    FluxArray2D& F_Y = *__fluxes[1];
 #ifdef CTU //Colella (1990). https://doi.org/10.1016/0021-9991(90)90233-Q
     //Compute preliminary Fluxes
     computeFlux_X(_xL, _xR, F_X, -1, nx+1, -1, ny+1, dt/dx);  //F_X needs (0...nx, -1...ny), (-1...nx+1, -1...ny)for MHD
@@ -136,9 +135,6 @@ void Grid2D::advanceXY(double dt){
     CT::copyFaceFields_Y(_yL, B, _yR);
     #endif
 #endif
-
-    
-    
     //Compute Fluxes
     computeFlux_X(_xL, _xR, F_X, 0, nx, -1, ny+1, dt/dx); //F_X needs (0...nx, 0...ny-1), (0...nx, -1...ny) for MHD
     computeFlux_Y(_yL, _yR, F_Y, -1, nx+1, 0, ny, dt/dy); //F_Y needs (0...nx-1, 0...ny), (-1...nx, 0...ny) for MHD
@@ -218,17 +214,11 @@ void Grid3D::advanceXYZ(double dt){
     FluidArray3D& _yR = *__half_states[3];
     FluidArray3D& _zL = *__half_states[4];
     FluidArray3D& _zR = *__half_states[5];
-    //Fluxes
-        auto __fluxes = DRAGONWING::requestFluxArrays(3, nx, ny, nz, ghosts);
-    FluxArray3D& F_X = *__fluxes[0];
-    FluxArray3D& F_Y = *__fluxes[1];
-    FluxArray3D& F_Z = *__fluxes[2];
            
     //Compute Half States
     computeHalfStates_X(_xL, (*this), _xR, dt);
     computeHalfStates_Y(_yL, (*this), _yR, dt);
     computeHalfStates_Z(_zL, (*this), _zR, dt);
-    
     #ifdef MHD//Compute face-normal fields
         auto __B = DRAGONWING::requestVec3Arrays(1, nx+1, ny+1, nz+1, ghosts);
     MagneticArray3D& B = *__B[0];
@@ -238,6 +228,11 @@ void Grid3D::advanceXYZ(double dt){
     CT::copyFaceFields_Z(_zL, B, _zR);
     #endif
 
+    //Fluxes
+        auto __fluxes = DRAGONWING::requestFluxArrays(3, nx, ny, nz, ghosts);
+    FluxArray3D& F_X = *__fluxes[0];
+    FluxArray3D& F_Y = *__fluxes[1];
+    FluxArray3D& F_Z = *__fluxes[2];
 #ifdef CTU //Colella (1990). https://doi.org/10.1016/0021-9991(90)90233-Q
     //Compute preliminary face fluxes
     computeFlux_X(_xL, _xR, F_X, -1, nx+1, -2, ny+2, -2, nz+2, dt/dx);
@@ -251,7 +246,7 @@ void Grid3D::advanceXYZ(double dt){
     FluxArray3D& F_Yz = *__CTU_fluxes[1];
     computeCTUFlux_Y(_yL, _yR, F_Z, F_Yz, dt/dy, (0.5*dt/dz), 2);
 
-    FluxArray3D& F_Xy = *__fluxes[2]; //F_Z isn't used again before it gets recomputed, so we can resue it here
+    FluxArray3D& F_Xy = F_Z; //F_Z isn't used again before it gets recomputed, so we can resue it here
     computeCTUFlux_X(_xL, _xR, F_Y, F_Xy, dt/dx, (0.5*dt/dy), 1);
     FluxArray3D& F_Zy = F_Y;  //In computeCTUFlux, the last read of [i,j,k] happens before [i,j,k] gets written, so we can likewise repurpose F_Y here
     computeCTUFlux_Z(_zL, _zR, F_Y, F_Zy, dt/dz, (0.5*dt/dy),1);
@@ -280,7 +275,6 @@ void Grid3D::advanceXYZ(double dt){
     CT::copyFaceFields_Z(_zL, B, _zR);
     #endif
 #endif
-
     //Compute Fluxes
     computeFlux_X(_xL, _xR, F_X, 0, nx, -1, ny+1, -1, nz+1, dt/dx); //F_X needs (0...nx, -1...ny, -1...nz)
     computeFlux_Y(_yL, _yR, F_Y, -1, nx+1, 0, ny, -1, nz+1, dt/dy); //F_Y needs (-1...nx, 0...ny, -1...nz)
