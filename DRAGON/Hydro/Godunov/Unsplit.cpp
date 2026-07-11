@@ -93,7 +93,7 @@ void computeFlux_X(const FluidArray2D& _L, const FluidArray2D& _R, FluxArray2D& 
 void computeFlux_Y(const FluidArray2D& _L, const FluidArray2D& _R, FluxArray2D& F, int xL, int xR, int yL, int yR, double dt_dy);
 void computeHalfStates_X(FluidArray2D& _L, const Grid2D& _W,  FluidArray2D& _R, double dt);
 void computeHalfStates_Y( FluidArray2D& _L,const Grid2D& _W, FluidArray2D& _R, double dt);
-void correctState(FluidArray2D& _L, FluidArray2D& _R, const FluxArray2D& F, double dt_dL, int xL, int xR, int yL, int yR, int dim);
+void correctState(FluidArray2D& _L, FluidArray2D& _R, const FluxArray2D& F, double dt_dL, int dim);
 
 void Grid2D::advanceXY(double dt){
     int nx = w.getSizeX(), ny = w.getSizeY(), ghosts = w.getGhosts();
@@ -128,8 +128,8 @@ void Grid2D::advanceXY(double dt){
     computeFlux_X(_xL, _xR, F_X, -1, nx+1, -1, ny+1, dt/dx);  //F_X needs (0...nx, -1...ny), (-1...nx+1, -1...ny)for MHD
     computeFlux_Y(_yL, _yR, F_Y, -1, nx+1, -1, ny+1, dt/dy);  //F_Y needs (-1...nx, 0...ny), (-1...nx, -1...ny+1) for MHD
     //Correct states
-    correctState(_xL, _xR, F_Y, (0.5*dt/dy), -1, nx+1, -1, ny+1, 1); //_xLR needs (-1...nx, 0...ny-1), (-1...nx, -1...ny) for MHD
-    correctState(_yL, _yR, F_X, (0.5*dt/dx), -1, nx+1, -1, ny+1, 0); //_yLR needs (0...nx-1, -1...ny), (-1...nx, -1...ny) for MHD
+    correctState(_xL, _xR, F_Y, (0.5*dt/dy), 1); //_xLR needs (-1...nx, 0...ny-1), (-1...nx, -1...ny) for MHD
+    correctState(_yL, _yR, F_X, (0.5*dt/dx), 0); //_yLR needs (0...nx-1, -1...ny), (-1...nx, -1...ny) for MHD
  
     #ifdef MHD//Restore face-normal fields
     CT::copyFaceFields_X(_xL, B, _xR);
@@ -199,7 +199,10 @@ void computeFlux_Z(const FluidArray3D& _L, const FluidArray3D& _R, FluxArray3D& 
 void computeHalfStates_X(FluidArray3D& _L, const Grid3D& _W, FluidArray3D& _R, double dt);
 void computeHalfStates_Y(FluidArray3D& _L, const Grid3D& _W, FluidArray3D& _R, double dt);
 void computeHalfStates_Z(FluidArray3D& _L, const Grid3D& _W, FluidArray3D& _R, double dt);
-void correctState(const FluidArray3D& _L0, const FluidArray3D& _R0, FluidArray3D& _L, FluidArray3D& _R, const FluxArray3D& F, double dt_dL, int xL, int xR, int yL, int yR, int zL, int zR, int dim);
+void correctState(FluidArray3D& _L, FluidArray3D& _R, const FluxArray3D& F, double dt_dL, int dim);
+void computeCTUFlux_X(const FluidArray3D& _L, const FluidArray3D& _R, const FluxArray3D& Ftrans, FluxArray3D& F, double dt_dx, double dt_dy, int dim);
+void computeCTUFlux_Y(const FluidArray3D& _L, const FluidArray3D& _R, const FluxArray3D& Ftrans, FluxArray3D& F,  double dt_dy, double dt_dz, int dim);
+void computeCTUFlux_Z(const FluidArray3D& _L, const FluidArray3D& _R, const FluxArray3D& Ftrans, FluxArray3D& F, double dt_dz, double dt_dy, int dim);
 
 
 void Grid3D::advanceXYZ(double dt){
@@ -237,52 +240,37 @@ void Grid3D::advanceXYZ(double dt){
 
 #ifdef CTU //Colella (1990). https://doi.org/10.1016/0021-9991(90)90233-Q
     //Compute preliminary face fluxes
-    computeFlux_X(_xL, _xR, F_X, -1, nx+1, -2, ny+2, -2, nz+2, dt/dx); //F_X needs (0...nx, -1...ny, -1...nz)
-    computeFlux_Y(_yL, _yR, F_Y, -2, nx+2, -1, ny+1, -2, nz+2, dt/dy); //F_Y needs (-1...nx, 0...ny, -1...nz)
-    computeFlux_Z(_zL, _zR, F_Z, -2, nx+2, -2, ny+2, -1, nz+1, dt/dz); //F_Z needs (-1...nx, -1...ny, 0...nz)
-    
-        auto __CTU_halfstates = DRAGONWING::requestPrimitiveArrays(2,nx,ny,nz,ghosts);
-    FluidArray3D& __L = *__CTU_halfstates[0];
-    FluidArray3D& __R = *__CTU_halfstates[1];
-    
+    computeFlux_X(_xL, _xR, F_X, -1, nx+1, -2, ny+2, -2, nz+2, dt/dx);
+    computeFlux_Y(_yL, _yR, F_Y, -2, nx+2, -1, ny+1, -2, nz+2, dt/dy);
+    computeFlux_Z(_zL, _zR, F_Z, -2, nx+2, -2, ny+2, -1, nz+1, dt/dz);
+        
     //Compute Edge-correct the fluxes
-        auto __CTU_fluxes = DRAGONWING::requestFluxArrays(6, nx, ny, nz, ghosts);
-    //F_Xy (needs 0...nx, 0...ny-1, -1...nz) from _xyLR (needs -1...nx, 0...ny-1, -1...nz)
+        auto __CTU_fluxes = DRAGONWING::requestFluxArrays(4, nx, ny, nz, ghosts);
     FluxArray3D& F_Xy = *__CTU_fluxes[0];
-    correctState(_xL, _xR, __L, __R, F_Y, (0.5*dt/dy) , -2, nx+2, -1, ny+1, -1, nz+1, 1);
-    computeFlux_X(__L, __R, F_Xy, -1, nx+1, -1, ny+1, -1, nz+1, dt/dx);
-    //F_Xz (needs 0...nx, -1...ny, 0...nz-1) from _xzLR (needs -1...nx, -1...ny, 0...nz-1)
+    computeCTUFlux_X(_xL, _xR, F_Y, F_Xy, dt/dx, (0.5*dt/dy), 1);
     FluxArray3D& F_Xz = *__CTU_fluxes[1];
-    correctState(_xL, _xR, __L, __R, F_Z, (0.5*dt/dz) , -2, nx+2, -1, ny+1, -1, nz+1, 2);
-    computeFlux_X(__L, __R, F_Xz, -1, nx+1, -1, ny+1, -1, nz+1, dt/dx);
-    //F_Yx (needs 0...nx-1, 0...ny, -1...nz) from _yxLR (needs 0...nx-1, -1...ny, -1...nz)
-    FluxArray3D& F_Yx = *__CTU_fluxes[2];
-    correctState(_yL, _yR, __L, __R, F_X, (0.5*dt/dx), -1, nx+1, -2, ny+2, -1, nz+1, 0);
-    computeFlux_Y(__L, __R, F_Yx, -1, nx+1, -1, ny+1, -1, nz+1, dt/dy);
-    //F_Yz (needs -1...nx, 0...ny, 0...nz-1) from _yzLR (needs -1...nx, -1...ny, 0...nz-1)
-    FluxArray3D& F_Yz = *__CTU_fluxes[3];
-    correctState(_yL, _yR, __L, __R, F_Z, (0.5*dt/dz), -1, nx+1, -2, ny+2, -1, nz+1, 2);
-    computeFlux_Y(__L, __R, F_Yz, -1, nx+1, -1, ny+1, -1, nz+1, dt/dy);
-    //F_Zx (needs 0...nx-1, -1...ny, 0...nz) from _zxLR (needs 0...nx-1, -1...ny, -1...nz)
-    FluxArray3D& F_Zx = *__CTU_fluxes[4];
-    correctState(_zL, _zR, __L, __R, F_X, (0.5*dt/dx), -1, nx+1, -1, ny+1, -2, nz+2, 0);
-    computeFlux_Z(__L, __R, F_Zx, -1, nx+1, -1, ny+1, -1, nz+1, dt/dz);
-    //F_Zy (needs -1...nx, 0...ny-1, 0...nz) from _zyLR (needs -1...nx, 0...ny-1, -1...nz)
-    FluxArray3D& F_Zy = *__CTU_fluxes[5];
-    correctState(_zL, _zR, __L, __R, F_Y, (0.5*dt/dy), -1, nx+1, -1, ny+1, -2, nz+2, 1);
-    computeFlux_Z(__L, __R, F_Zy, -1, nx+1, -1, ny+1, -1, nz+1, dt/dz);
-        __CTU_halfstates.release();
+    computeCTUFlux_X(_xL, _xR, F_Z, F_Xz, dt/dx, (0.5*dt/dz), 2);
+    FluxArray3D& F_Yz = *__CTU_fluxes[2];
+    computeCTUFlux_Y(_yL, _yR, F_Z, F_Yz, dt/dy, (0.5*dt/dz), 2);
+    FluxArray3D& F_Zy = *__CTU_fluxes[3];
+    computeCTUFlux_Z(_zL, _zR, F_Y, F_Zy, dt/dz, (0.5*dt/dy),1);
+
+    //Update the X half states based on the YZ corner fluxes
+    correctState(_xL, _xR, F_Yz, (0.5*dt/dy), 1);
+    correctState(_xL, _xR, F_Zy, (0.5*dt/dz), 2);
+    //Doing this early means we can reuse the F_Yz and F_Zy grids for F_Yx and F_Zx
     
-    //Apply second round of transverse corrections
-    //_xLR needs (-1...nx, -1...ny, -1...nz)
-    correctState(_xL, _xR, _xL,_xR, F_Yz, (0.5*dt/dy), -1, nx+1, -1, ny+1, -1, nz+1, 1);
-    correctState(_xL, _xR, _xL,_xR, F_Zy, (0.5*dt/dz), -1, nx+1, -1, ny+1, -1, nz+1, 2);
-    //_yLR needs (-1...nx, -1...ny, -1...nz)
-    correctState(_yL, _yR, _yL,_yR, F_Xz, (0.5*dt/dx), -1, nx+1, -1, ny+1, -1, nz+1, 0);
-    correctState(_yL, _yR, _yL,_yR, F_Zx, (0.5*dt/dz), -1, nx+1, -1, ny+1, -1, nz+1, 2);
-    //_zLR needs (-1...nx, -1...ny, -1...nz)
-    correctState(_zL, _zR, _zL,_zR, F_Xy, (0.5*dt/dx), -1, nx+1, -1, ny+1, -1, nz+1, 0);
-    correctState(_zL, _zR, _zL,_zR, F_Yx, (0.5*dt/dy), -1, nx+1, -1, ny+1, -1, nz+1, 1);
+    FluxArray3D& F_Zx = *__CTU_fluxes[3]; //Reuse existing grid that has already served its purpose
+    computeCTUFlux_Z(_zL, _zR, F_X, F_Zx, dt/dz, (0.5*dt/dx),0);
+    FluxArray3D& F_Yx = *__CTU_fluxes[2]; //Reuse existing grid that has already served its purpose
+    computeCTUFlux_Y(_yL, _yR, F_X, F_Yx, dt/dy, (0.5*dt/dx), 0);
+
+    //Update the Y half states based on the XZ corner fluxes
+    correctState(_yL, _yR, F_Xz, (0.5*dt/dx), 0);
+    correctState(_yL, _yR, F_Zx, (0.5*dt/dz), 2);
+    //Update the Z half states based on the XY corner fluxes
+    correctState(_zL, _zR, F_Xy, (0.5*dt/dx), 0);
+    correctState(_zL, _zR, F_Yx, (0.5*dt/dy), 1);
         __CTU_fluxes.release();
     
     #ifdef MHD//Restore face-normal fields
@@ -505,7 +493,8 @@ void computeHalfStates_Z(FluidArray3D& _L, const Grid3D& _W, FluidArray3D& _R, d
 #endif
 #endif
 
-void correctState(FluidArray2D& _L, FluidArray2D& _R, const FluxArray2D& F, double dt_dL, int xL, int xR, int yL, int yR, int dim){
+void correctState(FluidArray2D& _L, FluidArray2D& _R, const FluxArray2D& F, double dt_dL, int dim){
+    const int xL = -1, xR = F.getSizeX()+1, yL = -1, yR = F.getSizeY()+1;
     //Extract direction encoding
     int isX = dim%2 == 0 ? 1 : 0;
     int isY = dim%2 == 1 ? 1 : 0;
@@ -518,7 +507,8 @@ void correctState(FluidArray2D& _L, FluidArray2D& _R, const FluxArray2D& F, doub
         }
     }
 }
-void correctState(const FluidArray3D& _L0, const FluidArray3D& _R0, FluidArray3D& _L, FluidArray3D& _R, const FluxArray3D& F, double dt_dL, int xL, int xR, int yL, int yR, int zL, int zR, int dim){
+void correctState(FluidArray3D& _L, FluidArray3D& _R, const FluxArray3D& F, double dt_dL, int dim){
+    const int xL = -1, xR = F.getSizeX()+1, yL = -1, yR = F.getSizeY()+1, zL = -1, zR = F.getSizeZ()+1;
     //Extract direction encoding
     int isX = dim%3 == 0 ? 1 : 0;
     int isY = dim%3 == 1 ? 1 : 0;
@@ -528,9 +518,77 @@ void correctState(const FluidArray3D& _L0, const FluidArray3D& _R0, FluidArray3D
         for(int j=yL; j<yR; j++){
             for(int k=zL; k<zR; k++){
                 auto trans = (F[i+isX, j+isY, k+isZ] - F[i,j,k]) * dt_dL;
-                _L[i,j,k] = _L0[i,j,k] -  trans;
-                _R[i,j,k] = _R0[i,j,k] -  trans;
+                _L[i,j,k] = _L[i,j,k] -  trans;
+                _R[i,j,k] = _R[i,j,k] -  trans;
             }
         }
     }
+}
+
+//Compute X fluxes between Right(_R) and Left (_L) half-states, as corrected by transverse fluxes FYZ
+//Equivalent to correctState -> computeFlux_X but without needing intermediate arrays
+void computeCTUFlux_X(const FluidArray3D& _L, const FluidArray3D& _R, const FluxArray3D& FYZ, FluxArray3D& F,  double dt_dx, double dt_dy, int dim){
+    const int xL = -1, xR = F.getSizeX()+1, yL = -1, yR = F.getSizeY()+1, zL = -1, zR = F.getSizeZ()+1;
+    //Extract direction encoding
+    int isY = dim%3 == 1 ? 1 : 0;
+    int isZ = dim%3 == 2 ? 1 : 0;
+    //cycle
+    for(int j=yL; j<yR; j++){
+        for(int k=zL; k<zR; k++){
+            //Compute Left half-state on the first cell
+            PrimitiveState  __R, __L =  _R[xL-1, j,k] - (FYZ[xL-1, j+isY, k+isZ] - FYZ[xL-1,j,k]) * dt_dy;
+            for(int i=xL; i<=xR; i++){
+                auto trans = (FYZ[i, j+isY, k+isZ] - FYZ[i,j,k]) * dt_dy;
+                __R = _L[i,j,k] -  trans;//Compute Right half-state for this flux
+                F[i,j,k] = Riemann(__L, __R).flux_X(dt_dx);
+                __L = _R[i,j,k] -  trans;//Compute Left half-state for the next flux
+            }
+        }
+    }
+    
+}
+//Compute Y fluxes between Right(_R) and Left (_L) half-states, as corrected by transverse fluxes FXZ
+//Equivalent to correctState -> computeFlux_Y but without needing intermediate arrays
+void computeCTUFlux_Y(const FluidArray3D& _L, const FluidArray3D& _R, const FluxArray3D& FXZ, FluxArray3D& F, double dt_dy, double dt_dz, int dim){
+    const int xL = -1, xR = F.getSizeX()+1, yL = -1, yR = F.getSizeY()+1, zL = -1, zR = F.getSizeZ()+1;
+
+    //Extract direction encoding
+    int isX = dim%3 == 0 ? 1 : 0;
+    int isZ = dim%3 == 2 ? 1 : 0;
+    //cycle
+    for(int i=xL; i<xR; i++){
+        for(int k=zL; k<zR; k++){
+            //Compute Left half-state on the first cell
+            PrimitiveState  __R, __L =  _R[i,yL-1,k] - (FXZ[i+isX,yL-1, k+isZ] - FXZ[i,yL-1,k]) * dt_dz;
+            for(int j=yL; j<=yR; j++){
+                auto trans = (FXZ[i+isX, j, k+isZ] - FXZ[i,j,k]) * dt_dz;
+                __R = _L[i,j,k] -  trans;//Compute Right half-state for this flux
+                F[i,j,k] = Riemann(__L, __R).flux_Y(dt_dy);
+                __L = _R[i,j,k] -  trans;//Compute Left half-state for the next flux
+            }
+        }
+    }
+    
+}
+//Compute Z fluxes between Right(_R) and Left (_L) half-states, as corrected by transverse fluxes FXY
+//Equivalent to correctState -> computeFlux_Z but without needing intermediate arrays
+void computeCTUFlux_Z(const FluidArray3D& _L, const FluidArray3D& _R, const FluxArray3D& FXY, FluxArray3D& F, double dt_dz, double dt_dy, int dim){
+    const int xL = -1, xR = F.getSizeX()+1, yL = -1, yR = F.getSizeY()+1, zL = -1, zR = F.getSizeZ()+1;
+    //Extract direction encoding
+    int isX = dim%3 == 0 ? 1 : 0;
+    int isY = dim%3 == 1 ? 1 : 0;
+    //cycle
+    for(int i=xL; i<xR; i++){
+        for(int j=yL; j<yR; j++){
+            //Compute Left half-state on the first cell
+            PrimitiveState  __R, __L =  _R[i,j,zL-1] - (FXY[i+isX,j+isY,zL-1] - FXY[i,j,zL-1]) * dt_dy;
+            for(int k=zL; k<=zR; k++){
+                auto trans = (FXY[i+isX, j+isY, k] - FXY[i,j,k]) * dt_dy;
+                __R = _L[i,j,k] -  trans;//Compute Right half-state for this flux
+                F[i,j,k] = Riemann(__L, __R).flux_Z(dt_dz);
+                __L = _R[i,j,k] -  trans;//Compute Left half-state for the next flux
+            }
+        }
+    }
+    
 }
