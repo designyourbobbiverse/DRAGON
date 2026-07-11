@@ -10,7 +10,7 @@ import numpy as np
 from HDF5_keys import *
 from Config import *
 from FileUtils import *
-from Ranges import range
+from Ranges import *
 
 
     
@@ -41,7 +41,7 @@ def plotFile(n, rho,vx,vy,By,p,E,t,dx, rho_rng, v_rng, p_rng, E_rng, vy_rng, By_
     fig, axs = plt.subplots(4,2, figsize=(10, 20), sharex=True)
     axs = axs.ravel()
     
-    if log_plots: axs[0].semilogy(x, rho)
+    if log_plots["rho"]: axs[0].semilogy(x, rho)
     else: axs[0].plot(x, rho)
     axs[0].set_ylim(rho_rng[0], rho_rng[1])
     axs[0].set_ylabel(labels["rho"])
@@ -52,14 +52,14 @@ def plotFile(n, rho,vx,vy,By,p,E,t,dx, rho_rng, v_rng, p_rng, E_rng, vy_rng, By_
     axs[1].set_ylabel(labels["vx"])
     axs[1].set_title(titles["v-1D"])
 
-    if log_plots: axs[2].semilogy(x, p)
+    if log_plots["p"]: axs[2].semilogy(x, p)
     else: axs[2].plot(x, p)
     axs[2].set_ylim(p_rng[0], p_rng[1])
     axs[2].set_ylabel(labels["p"])
     axs[2].set_title(titles["p"])
 
 
-    if log_plots: axs[3].semilogy(x, E)
+    if log_plots["E"]: axs[3].semilogy(x, E)
     else: axs[3].plot(x, E)
     axs[3].set_ylim(E_rng[0], E_rng[1])
     axs[3].set_ylabel(labels["E"])
@@ -107,6 +107,15 @@ By_rng = range(key_By)
 Bz_rng = range(key_Bz)
 p_rng = range(key_p)
 E_rng = range(key_E)
+
+pad_range(rho_rng)
+pad_range(v_rng)
+pad_range(p_rng)
+pad_range(E_rng)
+pad_range(vy_rng)
+pad_range(vz_rng)
+pad_range(By_rng)
+pad_range(Bz_rng)
 
 n = 0
 while fileExists(n):

@@ -31,7 +31,5 @@ def range(key):
 
         rng[0] = min(rng[0], np.min(val))
         rng[1] = max(rng[1], np.max(val))
-    
-    #pad_range(rng)
 
     return rng
