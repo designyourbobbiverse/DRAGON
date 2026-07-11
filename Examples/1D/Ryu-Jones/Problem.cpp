@@ -1,6 +1,6 @@
 //
 //  Problem.cpp
-//  DRAGON/Examples/1D/Dai-Woodward
+//  DRAGON/Examples/1D/Ryu-Jones
 //
 //  Created by Bobbie Markwick on 7/07/2026.
 //
