@@ -82,7 +82,7 @@ constexpr double Timestep_Tolerance = 1e-14; //Timesteps smaller than this are t
         #define LIMITER_VANLEER 2 //Smooth, less diffusive than minmod with gentle behavior across smooth gradients
         #define LIMITER_SUPERBEE 3 //Very compressive, sharply preserves discontinuities but can be aggressive
         #define LIMITER_VANALBADA 4 //Smooth, reduces clipping near smooth extrema while remaining shock-safe
-    #define MUSCL_DEFAULT_LIMITER LIMITER_MINMOD
+    #define MUSCL_DEFAULT_LIMITER LIMITER_MC
 
 
 //MARK: File I/O
@@ -111,7 +111,7 @@ inline std::string output_dir = "/Users/bobbiemarkwick/DRAGON_OUT"; //Set this t
 #define HDF5_REDUNDANT_VALS_OPTION HDF5_WRITE_FLOAT //Output precision of certain calculable values
     //Specifically, applies to Bx (2D+3D), By (2D+3D), Bz (3D only), and E (HDF5_WRITE_PRIMITIVE_AND_ENERGY only)
 
-//MARK: Grid Operation
+//MARK: Performance
 
 constexpr int core_count = 16; //Helps the Root level grid decide how many children to split into
 
