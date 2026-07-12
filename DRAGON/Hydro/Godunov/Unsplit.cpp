@@ -46,6 +46,7 @@ void Grid2D::advance_unsplit(double dt, bool check_cfl){
     initialize_B_fields();
     #endif
     while(dt > CONFIG::Timestep_Tolerance){
+        boundary.apply(*this);
         //CFL Time Constraint
         double t1 = check_cfl ? std::min(dt,CFL::cfl_time(*this)) : dt;
         //Advance
@@ -69,6 +70,7 @@ void Grid3D::advance_unsplit(double dt, bool check_cfl){
     initialize_B_fields();
     #endif
     while(dt > CONFIG::Timestep_Tolerance){
+        boundary.apply(*this);
         //CFL Time Constraint
         double t1 = check_cfl ? std::min(dt,CFL::cfl_time(*this)) : dt;
         //Advance
@@ -97,7 +99,6 @@ void correctState(FluidArray2D& _L, FluidArray2D& _R, const FluxArray2D& F, doub
 
 void Grid2D::advanceXY(double dt){
     int nx = w.getSizeX(), ny = w.getSizeY(), ghosts = w.getGhosts();
-    boundary.apply(*this);
     
     if(!DRAGONWING::waitForRelease()) return;
     //Half States
@@ -203,8 +204,7 @@ void computeCTUFlux_Z(const FluidArray3D& _L, const FluidArray3D& _R, const Flux
 
 void Grid3D::advanceXYZ(double dt){
     int nx = w.getSizeX(), ny = w.getSizeY(), nz = w.getSizeZ(), ghosts = w.getGhosts();
-    boundary.apply(*this);
-
+    
     if(!DRAGONWING::waitForRelease()) return;
     //Half States
         auto __half_states = DRAGONWING::requestPrimitiveArrays(6, nx, ny, nz, ghosts);
