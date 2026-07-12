@@ -285,117 +285,73 @@ void DistGrid3D::loadFromChildren(){
 }
 
 //MARK: Advance
+template <typename T> void DistGrid<T>::step(double dt){
+    if(children.size() == 1 ) return;
+    pushToChildren();
+    DRAGONWING::initialize(static_cast<int>(children.size()));
+    for(auto& child : children){
+        DRAGONWING::launchParallel(child.get(), dt);
+    }
+    bool success = DRAGONWING::waitForCheckpoint2(); //Wait for children to finish
+    if(!success) { //If we failed, try again with half time step
+        throw std::runtime_error(DRAGONWING::restartMsg());
+    }
+    //Copy Back
+    loadFromChildren();
+}
+
+
+//MARK: Subclass Dispatch
+void DistGrid1D::split_step(double dt){
+    if(children.size() <= 1 ){
+        Grid1D::split_step(dt);
+        DRAGONWING::reportCheckpoint2();
+    } else { DistGrid::step(dt); }
+}
 void DistGrid1D::unsplit_step(double dt){
-    if(ncx == 1 ){
+    if(children.size() <= 1 ){
         Grid1D::unsplit_step(dt);
         DRAGONWING::reportCheckpoint2();
         return;
-    }
-    pushToChildren();
-    DRAGONWING::initialize(ncx);
-    for(auto& child : children){
-        DRAGONWING::launchParallel(child.get(), dt);
-    }
-    bool success = DRAGONWING::waitForCheckpoint2(); //Wait for children to finish
-    if(!success) { //If we failed, try again with half time step
-        throw std::runtime_error(DRAGONWING::restartMsg());
-    }
-    //Copy Back
-    loadFromChildren();
+    } else { DistGrid::step(dt); }
 }
-void DistGrid1D::split_step(double dt){
-    if(ncx == 1 ){
-        Grid1D::split_step(dt);
+void DistGrid2D::split_step(double dt){
+    if(children.size() <= 1 ){
+        Grid2D::split_step(dt);
         DRAGONWING::reportCheckpoint2();
-        return;
-    }
-    pushToChildren();
-    DRAGONWING::initialize(ncx);
-    for(auto& child : children){
-        DRAGONWING::launchParallel(child.get(), dt);
-    }
-    bool success = DRAGONWING::waitForCheckpoint2(); //Wait for children to finish
-    if(!success) { //If we failed, try again with half time step
-        throw std::runtime_error(DRAGONWING::restartMsg());
-    }
-    //Copy Back
-    loadFromChildren();
+    } else { DistGrid::step(dt); }
 }
-
-
 void DistGrid2D::unsplit_step(double dt){
-    if(ncx*ncy == 1 ){
+    if(children.size() <= 1 ){
         Grid2D::unsplit_step(dt);
         DRAGONWING::reportCheckpoint2();
         return;
-    }
-    pushToChildren();
-    DRAGONWING::initialize(ncx*ncy);
-    for(auto& child : children){
-        DRAGONWING::launchParallel(child.get(), dt);
-    }
-    bool success = DRAGONWING::waitForCheckpoint2(); //Wait for children to finish
-    if(!success) { //If we failed, try again with half time step
-        throw std::runtime_error(DRAGONWING::restartMsg());
-    }
-    //Copy Back
-    loadFromChildren();
-}
-void DistGrid2D::split_step(double dt){
-    if(ncx*ncy == 1 ){
-        Grid2D::split_step(dt);
-        DRAGONWING::reportCheckpoint2();
-        return;
-    }
-    pushToChildren();
-    DRAGONWING::initialize(ncx*ncy);
-    for(auto& child : children){
-        DRAGONWING::launchParallel(child.get(), dt);
-    }
-    bool success = DRAGONWING::waitForCheckpoint2(); //Wait for children to finish
-    if(!success) { //If we failed, try again with half time step
-        throw std::runtime_error(DRAGONWING::restartMsg());
-    }
-    //Copy Back
-    loadFromChildren();
-}
-void DistGrid3D::unsplit_step(double dt){
-    if(ncx*ncy*ncz == 1 ){
-        Grid3D::unsplit_step(dt);
-        DRAGONWING::reportCheckpoint2();
-        return;
-    }
-    pushToChildren();
-    DRAGONWING::initialize(ncx*ncy*ncz);
-    for(auto& child : children){
-        DRAGONWING::launchParallel(child.get(), dt);
-    }
-    bool success = DRAGONWING::waitForCheckpoint2(); //Wait for children to finish
-    if(!success) { //If we failed, try again with half time step
-        throw std::runtime_error(DRAGONWING::restartMsg());
-    }
-    //Copy Back
-    loadFromChildren();
-}
-void DistGrid3D::split_step(double dt){
-    if(ncx*ncy*ncz == 1 ){
-        Grid3D::split_step(dt);
-        DRAGONWING::reportCheckpoint2();
-        return;
-    }
-    pushToChildren();
-    DRAGONWING::initialize(ncx*ncy*ncz);
-    for(auto& child : children){
-        DRAGONWING::launchParallel(child.get(), dt);
-    }
-    bool success = DRAGONWING::waitForCheckpoint2(); //Wait for children to finish
-    if(!success) { //If we failed, try again with half time step
-        throw std::runtime_error(DRAGONWING::restartMsg());
-    }
-    //Copy Back
-    loadFromChildren();
+    } else { DistGrid::step(dt); }
 }
 
-bool DistGrid1D::on_step_fail(const std::exception &e){ return true; }
-bool DistGrid2D::on_step_fail(const std::exception &e){ return true; }
-bool DistGrid3D::on_step_fail(const std::exception &e){ return true; }
+void DistGrid3D::split_step(double dt){
+    if(children.size() <= 1 ){
+        Grid3D::split_step(dt);
+        DRAGONWING::reportCheckpoint2();
+    } else {  DistGrid::step(dt); }
+}
+void DistGrid3D::unsplit_step(double dt){
+    if(children.size() <= 1 ){
+        Grid3D::unsplit_step(dt);
+        DRAGONWING::reportCheckpoint2();
+    } else { DistGrid::step(dt); }
+}
+
+
+bool DistGrid1D::on_step_fail(const std::exception& e){
+    if(children.size() <= 1 ) return Grid1D::on_step_fail(e);
+    return true;
+}
+bool DistGrid2D::on_step_fail(const std::exception& e){
+    if(children.size() <= 1 ) return Grid2D::on_step_fail(e);
+    return true;
+}
+bool DistGrid3D::on_step_fail(const std::exception& e){
+    if(children.size() <= 1 ) return Grid3D::on_step_fail(e);
+    return true;
+}
