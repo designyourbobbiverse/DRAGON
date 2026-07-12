@@ -22,8 +22,9 @@ struct DistGrid1D: public Grid1D{
     DistGrid1D& operator=(const DistGrid1D&) = delete;
 
     //Advance Forward in time
-    void advance(double dt, bool check_cfl = true) override;
-    
+    void split_step(double dt) override;
+    void unsplit_step(double dt) override;
+    bool on_step_fail(const std::exception& e) override;
 private:
     std::vector<std::unique_ptr<DistGrid1D>> children;//The subgrids that actually do the processing
     int ncx; //The number of children we have
@@ -41,8 +42,9 @@ struct DistGrid2D: public Grid2D{
     DistGrid2D& operator=(const DistGrid2D&) = delete;
 
     //Advance Forward in time
-    void advance(double dt, bool check_cfl = true) override;
-    
+    void split_step(double dt) override;
+    void unsplit_step(double dt) override;
+    bool on_step_fail(const std::exception& e) override;
 private:
     std::vector<std::unique_ptr<DistGrid2D>> children;//The subgrids that actually do the processing
     int ncx, ncy;//The number of children we have in each dimension
@@ -61,8 +63,9 @@ struct DistGrid3D: public Grid3D{
 
     
     //Advance Forward in time
-    void advance(double dt, bool check_cfl = true) override;
-    
+    void split_step(double dt) override;
+    void unsplit_step(double dt) override;
+    bool on_step_fail(const std::exception& e) override;
 private:
     std::vector<std::unique_ptr<DistGrid3D>> children;//The subgrids that actually do the processing
     int ncx, ncy, ncz;//The number of children we have in each dimension

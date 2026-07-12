@@ -18,77 +18,13 @@
 #include <stdexcept>
 #include "DragonWing.hpp"
 
-
-//MARK: Split vs Unsplit
-//Use split or unsplit depending on whether DIMENSION_UNSPLIT is defined in Config.h
-void Grid2D::advance(double dt,bool check_cfl){
-#ifdef DIMENSION_UNSPLIT
-    advance_unsplit(dt,check_cfl);
-#else
-    advance_split(dt,check_cfl);
-#endif
+bool Grid2D::on_step_fail(const std::exception &e){
+    return !DRAGONWING::requestRestart(e.what());
 }
-void Grid3D::advance(double dt, bool check_cfl){
-#ifdef DIMENSION_UNSPLIT
-    advance_unsplit(dt,check_cfl);
-#else
-    advance_split(dt,check_cfl);
-#endif
+bool Grid3D::on_step_fail(const std::exception &e){
+    return !DRAGONWING::requestRestart(e.what());
 }
 
-
-//MARK: CFL
-#ifdef MHD
-typedef ExtendedArray2D<vec3> MagneticArray2D;
-#endif
-void Grid2D::advance_unsplit(double dt, bool check_cfl){
-    #ifdef MHD
-    initialize_B_fields();
-    #endif
-    while(dt > CONFIG::Timestep_Tolerance){
-        boundary.apply(*this);
-        //CFL Time Constraint
-        double t1 = check_cfl ? std::min(dt,CFL::cfl_time(*this)) : dt;
-        //Advance
-        bool success = false;
-        do{
-            try{
-                advanceXY(t1);
-                success = true;
-            } catch(const std::exception &exc){
-                if(DRAGONWING::requestRestart(exc.what())){ return; }
-                else std::cout<<"\t"<<exc.what()<<"\n";
-            }
-            if(!success) t1 *= 0.5;
-        } while(!success);
-        
-        dt -= t1;
-    }
-}
-void Grid3D::advance_unsplit(double dt, bool check_cfl){
-    #ifdef MHD //Ensure B is initialised
-    initialize_B_fields();
-    #endif
-    while(dt > CONFIG::Timestep_Tolerance){
-        boundary.apply(*this);
-        //CFL Time Constraint
-        double t1 = check_cfl ? std::min(dt,CFL::cfl_time(*this)) : dt;
-        //Advance
-        bool success = false;
-        do{
-            try{
-                advanceXYZ(t1);
-                success = true;
-            } catch(const std::exception &exc){
-                if(DRAGONWING::requestRestart(exc.what())){ return; }
-                else std::cout<<"\t"<<exc.what()<<"\n";
-            }
-            if(!success) t1 *= 0.5;
-        } while(!success);
-        
-        dt -= t1;
-    }
-}
 
 //MARK: 2D Unsplit Step
 void computeFlux_X(const FluidArray2D& _L, const FluidArray2D& _R, FluxArray2D& F, int xL, int xR, int yL, int yR, double dt_dx);
@@ -97,7 +33,7 @@ void computeHalfStates_X(FluidArray2D& _L, const Grid2D& _W,  FluidArray2D& _R, 
 void computeHalfStates_Y( FluidArray2D& _L,const Grid2D& _W, FluidArray2D& _R, double dt);
 void correctState(FluidArray2D& _L, FluidArray2D& _R, const FluxArray2D& F, double dt_dL, int dim);
 
-void Grid2D::advanceXY(double dt){
+void Grid2D::unsplit_step(double dt){
     int nx = w.getSizeX(), ny = w.getSizeY(), ghosts = w.getGhosts();
     
     if(!DRAGONWING::waitForRelease()) return;
@@ -188,8 +124,6 @@ void Grid2D::advanceXY(double dt){
 }
 
 //MARK: 3D Unsplit Step
-typedef ExtendedArray3D<PrimitiveState> FluidArray3D;
-typedef ExtendedArray3D<ConservativeState> FluxArray3D;
 void computeFlux_X(const FluidArray3D& _L, const FluidArray3D& _R, FluxArray3D& F, int xL, int xR, int yL, int yR, int zL, int zR, double dt_dx);
 void computeFlux_Y(const FluidArray3D& _L, const FluidArray3D& _R, FluxArray3D& F, int xL, int xR, int yL, int yR, int zL, int zR, double dt_dy);
 void computeFlux_Z(const FluidArray3D& _L, const FluidArray3D& _R, FluxArray3D& F, int xL, int xR, int yL, int yR, int zL, int zR, double dt_dz);
@@ -202,7 +136,7 @@ void computeCTUFlux_Y(const FluidArray3D& _L, const FluidArray3D& _R, const Flux
 void computeCTUFlux_Z(const FluidArray3D& _L, const FluidArray3D& _R, const FluxArray3D& Ftrans, FluxArray3D& F, double dt_dz, double dt_dy, int dim);
 
 
-void Grid3D::advanceXYZ(double dt){
+void Grid3D::unsplit_step(double dt){
     int nx = w.getSizeX(), ny = w.getSizeY(), nz = w.getSizeZ(), ghosts = w.getGhosts();
     
     if(!DRAGONWING::waitForRelease()) return;

@@ -92,89 +92,71 @@ void sweep(ExtendedArray1D<PrimitiveState>& w, double dt_dx){
 }
 
 //MARK: 1D Advance
-void Grid1D::advance(double dt, bool check_cfl){
-    while(dt > CONFIG::Timestep_Tolerance){
-        //Apply Boundary Conditions
-        boundary.apply(*this);
-        //CFL Time Constraint
-        double t1 = check_cfl ? std::min(dt,CFL::cfl_time(*this)) : dt;
-        if (t1 >= dt) t1 = dt;
-        //Execute the Advancement
-        Godunov::sweep(w, t1/dx);
-        dt -= t1;
-    }
+void Grid1D::split_step(double dt){ unsplit_step(dt); }
+void Grid1D::unsplit_step(double dt){
+    boundary.apply(*this);
+    Godunov::sweep(w, dt/dx);
 }
 
 //MARK: 2D Split
-void Grid2D::advance_split(double dt, bool check_cfl){
-    while(dt > CONFIG::Timestep_Tolerance){
-        //CFL Time Constraint
-        double t1 = check_cfl ? std::min(dt,CFL::cfl_time(*this)) : dt;
-        dt -= t1;
-        
-        //Advance (Strang Split), alternating which step comes first
-        if (sweep_step++ % 2 == 0) {
-            advanceX(t1/2);
-            advanceY(t1);
-            advanceX(t1/2);
-        } else {
-            advanceY(t1/2);
-            advanceX(t1);
-            advanceY(t1/2);
-        }
+void Grid2D::split_step(double t1){
+    //Advance (Strang Split), alternating which step comes first
+    if (sweep_step++ % 2 == 0) {
+        advanceX(t1/2);
+        advanceY(t1);
+        advanceX(t1/2);
+    } else {
+        advanceY(t1/2);
+        advanceX(t1);
+        advanceY(t1/2);
     }
 }
 //MARK: 3D Split
-void Grid3D::advance_split(double dt, bool check_cfl){
-    while(dt > CONFIG::Timestep_Tolerance){
-        //CFL Time Constraint
-        double t1 = check_cfl ? std::min(dt,CFL::cfl_time(*this)) : dt;
-        dt -= t1;
-        //Advance  (Strang Split), rotating step orders
-        switch (sweep_step++ % 6) {
-        case 0: //Cyclic XYZ
-            advanceX(t1/2);
-            advanceY(t1/2);
-            advanceZ(t1);
-            advanceY(t1/2);
-            advanceX(t1/2);
-            break;
-        case 1: //Cyclic ZXY
-            advanceZ(t1/2);
-            advanceX(t1/2);
-            advanceY(t1);
-            advanceX(t1/2);
-            advanceZ(t1/2);
-            break;
-        case 2: //Cyclic YZX
-            advanceY(t1/2);
-            advanceZ(t1/2);
-            advanceX(t1);
-            advanceZ(t1/2);
-            advanceY(t1/2);
-            break;
-        case 3: //Anticyclic ZYX
-            advanceZ(t1/2);
-            advanceY(t1/2);
-            advanceX(t1);
-            advanceY(t1/2);
-            advanceZ(t1/2);
-            break;
-        case 4: //Anticyclic XZY
-            advanceX(t1/2);
-            advanceZ(t1/2);
-            advanceY(t1);
-            advanceZ(t1/2);
-            advanceX(t1/2);
-            break;
-        case 5: //Anticyclic YXZ
-            advanceY(t1/2);
-            advanceX(t1/2);
-            advanceZ(t1);
-            advanceX(t1/2);
-            advanceY(t1/2);
-            break;
-        }
+void Grid3D::split_step(double t1){
+    //Advance  (Strang Split), rotating step orders
+    switch (sweep_step++ % 6) {
+    case 0: //Cyclic XYZ
+        advanceX(t1/2);
+        advanceY(t1/2);
+        advanceZ(t1);
+        advanceY(t1/2);
+        advanceX(t1/2);
+        break;
+    case 1: //Cyclic ZXY
+        advanceZ(t1/2);
+        advanceX(t1/2);
+        advanceY(t1);
+        advanceX(t1/2);
+        advanceZ(t1/2);
+        break;
+    case 2: //Cyclic YZX
+        advanceY(t1/2);
+        advanceZ(t1/2);
+        advanceX(t1);
+        advanceZ(t1/2);
+        advanceY(t1/2);
+        break;
+    case 3: //Anticyclic ZYX
+        advanceZ(t1/2);
+        advanceY(t1/2);
+        advanceX(t1);
+        advanceY(t1/2);
+        advanceZ(t1/2);
+        break;
+    case 4: //Anticyclic XZY
+        advanceX(t1/2);
+        advanceZ(t1/2);
+        advanceY(t1);
+        advanceZ(t1/2);
+        advanceX(t1/2);
+        break;
+    case 5: //Anticyclic YXZ
+        advanceY(t1/2);
+        advanceX(t1/2);
+        advanceZ(t1);
+        advanceX(t1/2);
+        advanceY(t1/2);
+        break;
     }
 }
 

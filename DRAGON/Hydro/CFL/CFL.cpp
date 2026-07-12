@@ -10,6 +10,7 @@
 #include "CFL.hpp"
 #include "Config.h"
 #include "Constants.h"
+#include "GhostFill.hpp"
 #include <math.h>
 #include <iostream>
 using namespace CONFIG;
@@ -134,4 +135,60 @@ double CFL::cfl_time(const Grid& grid){
     const Grid1D* grid1D = dynamic_cast<const Grid1D*>(&grid);
     if(grid1D) return cfl_time(*grid1D);
     throw std::runtime_error("Invalid Grid Type");
+}
+
+//MARK: Grid Advance
+
+void Grid::advance(double dt, bool check_cfl){
+#ifdef DIMENSION_UNSPLIT
+    advance_unsplit(dt,check_cfl);
+#else
+    advance_split(dt,check_cfl);
+#endif
+}
+
+
+void Grid::advance_split(double dt, bool check_cfl){
+    #ifdef MHD //Ensure B is initialised
+    initialize_B_fields();
+    #endif
+    while(dt > CONFIG::Timestep_Tolerance){
+        boundary.apply(*this);
+        //CFL Time Constraint
+        double t1 = check_cfl ? std::min(dt,CFL::cfl_time(*this)) : dt;
+        //Advance
+        split_step(t1);
+        dt -= t1;
+    }
+}
+
+
+void Grid::advance_unsplit(double dt, bool check_cfl){
+    #ifdef MHD //Ensure B is initialised
+    initialize_B_fields();
+    #endif
+    while(dt > CONFIG::Timestep_Tolerance){
+        boundary.apply(*this);
+        //CFL Time Constraint
+        double t1 = check_cfl ? std::min(dt,CFL::cfl_time(*this)) : dt;
+        //Advance
+        do{
+            try{
+                unsplit_step(t1);
+                break; //Successful, end the loop
+            } catch(const std::exception &exc){
+                if(on_step_fail(exc)){
+                    std::cout<<"\t"<<exc.what()<<"\n";
+                } else { return; }
+            }
+            //We weren't successful, halve the timestep and try again
+            t1 *= 0.5;
+            if(t1 < CONFIG::Timestep_Tolerance){
+                std::cout<<"Timestep has fallen below minimum. Exiting\n";
+                abort();
+            }
+        } while(true);
+        
+        dt -= t1;
+    }
 }

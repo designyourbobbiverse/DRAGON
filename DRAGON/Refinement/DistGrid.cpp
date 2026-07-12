@@ -281,120 +281,117 @@ void DistGrid3D::loadFromChildren(){
 }
 
 //MARK: Advance
-void DistGrid1D::advance(double dt, bool check_cfl){
+void DistGrid1D::unsplit_step(double dt){
     if(ncx == 1 ){
-        Grid1D::advance(dt, check_cfl);
+        Grid1D::unsplit_step(dt);
         DRAGONWING::reportCheckpoint2();
         return;
     }
-    while(dt > CONFIG::Timestep_Tolerance){
-        //Apply Boundary Conditions
-        boundary.apply(*this);
-        pushToChildren();
-        
-        //CFL Time Constraint
-        double t1 = check_cfl ? std::min(dt,CFL::cfl_time(*this)) : dt;
-        //Execute the Advancement
-        bool success = false;
-        do{
-            DRAGONWING::initialize(ncx);
-            for(auto& child : children){
-                DRAGONWING::launchParallel(child.get(), t1);
-            }
-            success = DRAGONWING::waitForCheckpoint2(); //Wait for children to finish
-            if(!success) { //If we failed, try again with half time step
-                t1 /= 2;
-                std::cout<<"\t"<<DRAGONWING::restartMsg()<<"\n";
-                if(t1 < CONFIG::Timestep_Tolerance){
-                    std::cout<<"Timestep has fallen below minimum. Exiting\n";
-                    abort();
-                }
-            }
-        } while (!success);
-        dt -= t1;
-        //Copy Back
-        loadFromChildren();
+    pushToChildren();
+    DRAGONWING::initialize(ncx);
+    for(auto& child : children){
+        DRAGONWING::launchParallel(child.get(), dt);
     }
+    bool success = DRAGONWING::waitForCheckpoint2(); //Wait for children to finish
+    if(!success) { //If we failed, try again with half time step
+        throw std::runtime_error(DRAGONWING::restartMsg());
+    }
+    //Copy Back
+    loadFromChildren();
+}
+void DistGrid1D::split_step(double dt){
+    if(ncx == 1 ){
+        Grid1D::split_step(dt);
+        DRAGONWING::reportCheckpoint2();
+        return;
+    }
+    pushToChildren();
+    DRAGONWING::initialize(ncx);
+    for(auto& child : children){
+        DRAGONWING::launchParallel(child.get(), dt);
+    }
+    bool success = DRAGONWING::waitForCheckpoint2(); //Wait for children to finish
+    if(!success) { //If we failed, try again with half time step
+        throw std::runtime_error(DRAGONWING::restartMsg());
+    }
+    //Copy Back
+    loadFromChildren();
 }
 
 
-void DistGrid2D::advance(double dt, bool check_cfl){
+void DistGrid2D::unsplit_step(double dt){
     if(ncx*ncy == 1 ){
-        Grid2D::advance(dt, check_cfl);
+        Grid2D::unsplit_step(dt);
         DRAGONWING::reportCheckpoint2();
         return;
     }
-    #ifdef MHD
-    initialize_B_fields();
-    #endif
-    
-    while(dt > CONFIG::Timestep_Tolerance){
-        //Apply Boundary Conditions
-        boundary.apply(*this);
-        pushToChildren();
-        
-        //CFL Time Constraint
-        double t1 = check_cfl ? std::min(dt,CFL::cfl_time(*this)) : dt;
-        //Execute the Advancement
-        bool success = false;
-        do{
-            DRAGONWING::initialize(ncx*ncy);
-            for(auto& child : children){
-                DRAGONWING::launchParallel(child.get(), t1);
-            }
-            success = DRAGONWING::waitForCheckpoint2(); //Wait for children to finish
-            if(!success) { //If we failed, try again with half time step
-                t1 /= 2;
-                std::cout<<"\t"<<DRAGONWING::restartMsg()<<"\n";
-                if(t1 < CONFIG::Timestep_Tolerance){
-                    std::cout<<"Timestep has fallen below minimum. Exiting\n";
-                    abort();
-                }
-            }
-        } while (!success);
-        dt -= t1;
-        //Copy Back
-        loadFromChildren();
+    pushToChildren();
+    DRAGONWING::initialize(ncx*ncy);
+    for(auto& child : children){
+        DRAGONWING::launchParallel(child.get(), dt);
     }
+    bool success = DRAGONWING::waitForCheckpoint2(); //Wait for children to finish
+    if(!success) { //If we failed, try again with half time step
+        throw std::runtime_error(DRAGONWING::restartMsg());
+    }
+    //Copy Back
+    loadFromChildren();
 }
-
-
-void DistGrid3D::advance(double dt, bool check_cfl){
+void DistGrid2D::split_step(double dt){
+    if(ncx*ncy == 1 ){
+        Grid2D::split_step(dt);
+        DRAGONWING::reportCheckpoint2();
+        return;
+    }
+    pushToChildren();
+    DRAGONWING::initialize(ncx*ncy);
+    for(auto& child : children){
+        DRAGONWING::launchParallel(child.get(), dt);
+    }
+    bool success = DRAGONWING::waitForCheckpoint2(); //Wait for children to finish
+    if(!success) { //If we failed, try again with half time step
+        throw std::runtime_error(DRAGONWING::restartMsg());
+    }
+    //Copy Back
+    loadFromChildren();
+}
+void DistGrid3D::unsplit_step(double dt){
     if(ncx*ncy*ncz == 1 ){
-        Grid3D::advance(dt, check_cfl);
+        Grid3D::unsplit_step(dt);
         DRAGONWING::reportCheckpoint2();
         return;
     }
-    #ifdef MHD
-    initialize_B_fields();
-    #endif
-
-    while(dt > CONFIG::Timestep_Tolerance){
-        //Apply Boundary Conditions
-        boundary.apply(*this);
-        pushToChildren();
-        
-        //CFL Time Constraint
-        double t1 = check_cfl ? std::min(dt,CFL::cfl_time(*this)) : dt;
-        //Execute the Advancement
-        bool success = false;
-        do{
-            DRAGONWING::initialize(ncx*ncy*ncz);
-            for(auto& child : children){
-                DRAGONWING::launchParallel(child.get(), t1);
-            }
-            success = DRAGONWING::waitForCheckpoint2(); //Wait for children to finish
-            if(!success) { //If we failed, try again with half time step
-                t1 /= 2;
-                std::cout<<"\t"<<DRAGONWING::restartMsg()<<"\n";
-                if(t1 < CONFIG::Timestep_Tolerance){
-                    std::cout<<"Timestep has fallen below minimum. Exiting\n";
-                    abort();
-                }
-            }
-        } while (!success);
-        dt -= t1;
-        //Copy Back
-        loadFromChildren();
+    pushToChildren();
+    DRAGONWING::initialize(ncx*ncy*ncz);
+    for(auto& child : children){
+        DRAGONWING::launchParallel(child.get(), dt);
     }
+    bool success = DRAGONWING::waitForCheckpoint2(); //Wait for children to finish
+    if(!success) { //If we failed, try again with half time step
+        throw std::runtime_error(DRAGONWING::restartMsg());
+    }
+    //Copy Back
+    loadFromChildren();
 }
+void DistGrid3D::split_step(double dt){
+    if(ncx*ncy*ncz == 1 ){
+        Grid3D::split_step(dt);
+        DRAGONWING::reportCheckpoint2();
+        return;
+    }
+    pushToChildren();
+    DRAGONWING::initialize(ncx*ncy*ncz);
+    for(auto& child : children){
+        DRAGONWING::launchParallel(child.get(), dt);
+    }
+    bool success = DRAGONWING::waitForCheckpoint2(); //Wait for children to finish
+    if(!success) { //If we failed, try again with half time step
+        throw std::runtime_error(DRAGONWING::restartMsg());
+    }
+    //Copy Back
+    loadFromChildren();
+}
+
+bool DistGrid1D::on_step_fail(const std::exception &e){ return true; }
+bool DistGrid2D::on_step_fail(const std::exception &e){ return true; }
+bool DistGrid3D::on_step_fail(const std::exception &e){ return true; }

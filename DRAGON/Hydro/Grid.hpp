@@ -13,13 +13,26 @@
 #include "ExtendedArray.hpp"
 #include "Boundary.hpp"
 #include "Config.h"
+#include <stdexcept>
 
 class Grid{
 public:
-    virtual void advance(double dt, bool check_cfl=true) = 0;
-    virtual ~Grid() = default;
+    void advance(double dt, bool check_cfl=true);
+    void advance_split(double dt, bool check_cfl=true);
+    void advance_unsplit(double dt, bool check_cfl=true);
+    
+    
+    virtual void split_step(double dt) = 0;
+    virtual void unsplit_step(double dt) = 0;
+    virtual bool on_step_fail(const std::exception& e) { return true; };
+    #ifdef MHD
+    virtual void initialize_B_fields(){}
+    #endif
+
+    
     //Boundary
     Boundary::BoundaryList boundary = Boundary::BoundaryList();
+    virtual ~Grid() = default;
 };
 
 
@@ -40,7 +53,8 @@ public:
     int getSize() const, getGhosts() const;
         
     //Advance forward in time
-    void advance(double dt, bool check_cfl=true);
+    void split_step(double dt) override;
+    void unsplit_step(double dt) override;
 };
 
 class Grid2D: public Grid{
@@ -69,12 +83,11 @@ public:
     #endif
     
     //Advance Forward in time
-    void advance(double dt, bool check_cfl = true); //Automatically split or unsplit based whether DIMENSION_UNSPLIT is set in Config.h
-    void advance_split(double dt, bool check_cfl = true);
-    void advance_unsplit(double dt, bool check_cfl = true);
-
+    void split_step(double dt) override;
+    void unsplit_step(double dt) override;
+    bool on_step_fail(const std::exception& e) override;
     #ifdef MHD
-    void initialize_B_fields();
+    void initialize_B_fields() override;
     #endif
 protected:
     int sweep_step = 0;
@@ -113,12 +126,11 @@ public:
     #endif
     
     //Advance Forward in time
-    void advance(double dt, bool check_cfl = true);//Automatically split or unsplit based whether DIMENSION_UNSPLIT is set in Config.h
-    void advance_split(double dt, bool check_cfl = true);
-    void advance_unsplit(double dt, bool check_cfl = true);
-    
+    void split_step(double dt) override;
+    void unsplit_step(double dt) override;
+    bool on_step_fail(const std::exception& e) override;
     #ifdef MHD
-    void initialize_B_fields();
+    void initialize_B_fields() override;
     #endif
 protected:
     int sweep_step = 0;
