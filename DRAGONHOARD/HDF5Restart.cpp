@@ -1,6 +1,6 @@
 //
 //  HDF5Output.cpp
-//  DRAGON/IO
+//  DRAGONHOARD
 //
 //  Created by Bobbie Markwick on 03/07/2026.
 //

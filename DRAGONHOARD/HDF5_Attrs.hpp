@@ -1,6 +1,6 @@
 //
 //  HDF5_Attrs.hpp
-//  DRAGON/IO
+//  DRAGONHOARD
 //
 //  Created by Bobbie Markwick on 03/07/2026.
 //
