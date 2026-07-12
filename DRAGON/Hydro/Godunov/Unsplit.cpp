@@ -540,7 +540,6 @@ void computeCTUFlux_X(const FluidArray3D& _L, const FluidArray3D& _R, const Flux
             }
         }
     }
-    
 }
 //Compute Y fluxes between Right(_R) and Left (_L) half-states, as corrected by transverse fluxes FXZ
 //Equivalent to correctState -> computeFlux_Y but without needing intermediate arrays
@@ -563,7 +562,6 @@ void computeCTUFlux_Y(const FluidArray3D& _L, const FluidArray3D& _R, const Flux
             }
         }
     }
-    
 }
 //Compute Z fluxes between Right(_R) and Left (_L) half-states, as corrected by transverse fluxes FXY
 //Equivalent to correctState -> computeFlux_Z but without needing intermediate arrays
@@ -585,5 +583,4 @@ void computeCTUFlux_Z(const FluidArray3D& _L, const FluidArray3D& _R, const Flux
             }
         }
     }
-    
 }
