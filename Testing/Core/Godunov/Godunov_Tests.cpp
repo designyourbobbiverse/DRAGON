@@ -53,9 +53,11 @@ void DRAGON_Test::verify_godunov_2D_Split(bool output){
     if(output) std::cout<<"- Periodic Conservation: ";
     verify_god_periodic_conservation_2D(true);
     if(output) std::cout<<"Passed\n";
+    #ifndef DIMENSION_UNSPLIT
     if(output) std::cout<<"- Parallelization: ";
     verify_god_dist_grid_2D(true);
     if(output) std::cout<<"Passed\n";
+    #endif
     if(output) std::cout<<"- 1D Match (X): ";
     verify_2D_X_match_1D(true);
     if(output) std::cout<<"Passed\n";
@@ -88,12 +90,14 @@ void DRAGON_Test::verify_godunov_2D_Unsplit(bool output){
     verify_godunov_2D_MHD();
     #endif
 
+    #ifdef DIMENSION_UNSPLIT
     if(output) std::cout<<"- Parallelization: ";
-    verify_god_dist_grid_2D(false);
+    verify_god_dist_grid_2D();
     #ifdef MHD
     verify_god_dist_grid_2D_MHD();
     #endif
     if(output) std::cout<<"Passed\n";
+    #endif
     
     if(output) std::cout<<"- 1D Match (X): ";
     verify_2D_X_match_1D(false);
@@ -128,10 +132,11 @@ void DRAGON_Test::verify_godunov_3D_Split(bool output){
     if(output) std::cout<<"- Periodic Conservation: ";
     verify_god_periodic_conservation_3D(true);
     if(output) std::cout<<"Passed\n";
+    #ifndef DIMENSION_UNSPLIT
     if(output) std::cout<<"- Parallelization: ";
     verify_god_dist_grid_3D(true);
     if(output) std::cout<<"Passed\n";
-
+    #endif
     if(output) std::cout<<"- 1D Match (X): ";
     verify_3D_X_match_1D(true);
     if(output) std::cout<<"Passed\n";
@@ -164,12 +169,14 @@ void DRAGON_Test::verify_godunov_3D_Unsplit(bool output){
     verify_godunov_3D_MHD();
     #endif
 
+    #ifdef DIMENSION_UNSPLIT
     if(output) std::cout<<"- Parallelization: ";
-    verify_god_dist_grid_3D(false);
+    verify_god_dist_grid_3D();
     #ifdef MHD
     verify_god_dist_grid_3D_MHD();
     #endif
     if(output) std::cout<<"Passed\n";
+    #endif
     
     if(output) std::cout<<"- 1D Match (X): ";
     verify_3D_X_match_1D(false);
