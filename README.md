@@ -49,7 +49,7 @@ Testing/            Unit test suite
 ```
 ## Acronyms
 Besides DRAGON itself, the full names of some of the other components are as follows:
-- DRAGONWING: DRAGON Wide Infrastructure Numerical Grids
+- DRAGONWING: DRAGON Wide Infrastructure for Numerical Grids
 - DRAGONGAZE: DRAGON Graphical Analysis and Zonal Exploration
 - DRAGONHOARD: DRAGON Hierarchichal Ouptut for Analysis, Restarts, and Diagnostics
 
