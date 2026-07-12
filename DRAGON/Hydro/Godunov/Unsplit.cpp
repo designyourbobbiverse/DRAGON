@@ -107,7 +107,7 @@ void Grid2D::unsplit_step(double dt){
 
     for(int i=0; i<nx; i++){
         for(int j=0; j<ny; j++){
-            if(!_w[i,j].isPhysical()) throw std::runtime_error(std::format("Unphysical state would be produced by CT at ({},{})",i,j));
+            if(!_w[i,j].isPhysical()) throw std::runtime_error(std::format("Unphysical state would be produced at ({},{})",i,j));
         }
     }
         
@@ -246,7 +246,7 @@ void Grid3D::unsplit_step(double dt){
     for(int i=0; i<nx; i++){
         for(int j=0; j<ny; j++){
             for(int k=0; k<nz; k++){
-                if(!_w[i,j,k].isPhysical()) throw std::runtime_error(std::format("Unphysical state would be produced by CT at ({},{},{})",i,j,k));
+                if(!_w[i,j,k].isPhysical()) throw std::runtime_error(std::format("Unphysical state would be produced at ({},{},{})",i,j,k));
             }
         }
     }
