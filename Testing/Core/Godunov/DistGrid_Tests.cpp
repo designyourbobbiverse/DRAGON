@@ -30,7 +30,6 @@ void DRAGON_Test::verify_god_dist_grid_1D(){
     grid.advance(1.0);
     dgrid.advance(1.0);
     
-    ConservativeState got = ConservativeState();
     for (int i = 0; i < grid.getSize(); i++){
         expect_close(grid[i], dgrid[i]);
     }
