@@ -17,7 +17,9 @@
 
 
 static int validGhosts(int g){
-#ifdef MUSCL_Hancock
+#if defined(MHD) && defined(CTU)
+    return std::max(g, 3);
+#elif defined(MUSCL_Hancock)
     return std::max(g, 2);
 #else
     return std::max(g, 1);

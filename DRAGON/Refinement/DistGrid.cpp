@@ -21,10 +21,12 @@ static int computeChildSize(int nx, int ncx, int i){
 }
 
 static int validGhosts(int g){ //How many ghost cells are needed to do this correctly
-#if defined(MUSCL_Hancock) && !defined(DIMENSION_UNSPLIT)
+#if  defined(MHD) && defined (CTU)
+    return std::max(g, 3);
+#elif defined(MUSCL_Hancock) && !defined(DIMENSION_UNSPLIT)
     return std::max(g, 3); //MUSCL Split needs an extra ghost to avoid needing to sync after each substep
 #else
-    return std::max(g, 2); //Unsplit syncs afeter every advance, so it's safe to use the usual 2
+    return std::max(g, 2); //Unsplit syncs afeter every advance, so unless using MHD+CTU it's safe to use 2 ghosts
 #endif
 }
 
@@ -257,9 +259,6 @@ void DistGrid3D::loadFromChildren(){
                     for(int j=0; j < _ny; j++){
                         for(int k=0; k < _nz; k++){
                             w[i+x_offset, j+y_offset, k+z_offset] = (*child)[i,j,k];
-                            #ifdef MHD
-                            A[i+x_offset, j+y_offset, k+z_offset] = child->_A()[i,j,k];
-                            #endif
                         }
                     }
                 }

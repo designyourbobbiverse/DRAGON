@@ -37,10 +37,10 @@ PrimitiveState DRAGON_Test::make_tagged_state(double tag){
 }
 
 void DRAGON_Test::verify_grid1D(){
-    Grid1D g(5, 0.1, 2);
+    Grid1D g(5, 0.1, 3);
     assert(g.getSize() == 5);
-    assert(g.getGhosts() == 2);
-    for(int i = -2; i < 5 + 2; i++) {
+    assert(g.getGhosts() == 3);
+    for(int i = -3; i < 5 + 3; i++) {
         g[i] = make_tagged_state(i*0.1);
     }
 
@@ -50,39 +50,39 @@ void DRAGON_Test::verify_grid1D(){
 }
 
 void DRAGON_Test::verify_grid2D(){
-    Grid2D g(3,4, 0.1,0.1, 2);
+    Grid2D g(3,4, 0.1,0.1, 3);
     assert(g.getSizeX() == 3);
     assert(g.getSizeY() == 4);
-    assert(g.getGhosts() == 2);
-    for(int i = -2; i < 3 + 2; i++) {
-        for(int j = -2; j < 4 + 2; j++) {
+    assert(g.getGhosts() == 3);
+    for(int i = -3; i < 3 + 3; i++) {
+        for(int j = -3; j < 4 + 3; j++) {
             g[i,j] = make_tagged_state(i*0.1 + j*0.01);
         }
     }
 
-    for(int i = -2; i < 3 + 2; i++) {
-        for(int j = -2; j < 4 + 2; j++) {
+    for(int i = -3; i < 3 + 3; i++) {
+        for(int j = -3; j < 4 + 3; j++) {
             expect_close(g[i,j],  make_tagged_state(i*0.1 + j*0.01));
         }
     }
 }
 void DRAGON_Test::verify_grid3D(){
-    Grid3D g(3,4,5, 0.1,0.1,0.1, 2);
+    Grid3D g(3,4,5, 0.1,0.1,0.1, 3);
     assert(g.getSizeX() == 3);
     assert(g.getSizeY() == 4);
     assert(g.getSizeZ() == 5);
-    assert(g.getGhosts() == 2);
-    for(int i = -2; i < 3 + 2; i++) {
-        for(int j = -2; j < 4 + 2; j++) {
-            for(int k = -2; k < 5 + 2; k++) {
+    assert(g.getGhosts() == 3);
+    for(int i = -3; i < 3 + 3; i++) {
+        for(int j = -3; j < 4 + 3; j++) {
+            for(int k = -3; k < 5 + 3; k++) {
                 g[i,j,k] = make_tagged_state(i*0.1 + j*0.01 + k*0.001);
             }
         }
     }
 
-    for(int i = -2; i < 3 + 2; i++) {
-        for(int j = -2; j < 4 + 2; j++) {
-            for(int k = -2; k < 5 + 2; k++) {
+    for(int i = -3; i < 3 + 3; i++) {
+        for(int j = -3; j < 4 + 3; j++) {
+            for(int k = -3; k < 5 + 3; k++) {
                 expect_close(g[i,j,k],  make_tagged_state(i*0.1 + j*0.01 + k*0.001));
             }
         }
