@@ -14,6 +14,8 @@
 #include "TVD.hpp"
 #include <math.h>
 #include <cassert>
+#include <stdexcept>
+#include <format>
 
 
 static int validGhosts(int g){
@@ -94,7 +96,20 @@ void sweep(ExtendedArray1D<PrimitiveState>& w, double dt_dx){
 //MARK: 1D Advance
 void Grid1D::split_step(double dt){ Grid1D::unsplit_step(dt); }
 void Grid1D::unsplit_step(double dt){
-    Godunov::sweep(w, dt/dx);
+    //Copy steps to a clone
+        auto __w = DRAGONWING::requestPrimitiveArrays(1, w.getSize(), w.getGhosts());
+    ExtendedArray1D<PrimitiveState>& _w = *__w[0];
+    _w.clone(w);
+    //Compute the updated states
+    Godunov::sweep(_w, dt/dx);
+    //Check physicality before comitting
+    for(int i=0; i<w.getSize(); i++){
+        if(!_w[i].isPhysical()) throw std::runtime_error(std::format("Unphysical state would be produced at ({})",i));
+    }
+    DRAGONWING::reportCheckpoint1();
+    if(!DRAGONWING::waitForCheckpoint1()) return;
+    //Commit updates
+    w.clone(_w);
 }
 
 //MARK: 2D Split
