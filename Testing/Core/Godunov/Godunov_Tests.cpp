@@ -55,7 +55,7 @@ void DRAGON_Test::verify_godunov_2D_Split(bool output){
     if(output) std::cout<<"Passed\n";
     #ifndef DIMENSION_UNSPLIT
     if(output) std::cout<<"- Parallelization: ";
-    verify_god_dist_grid_2D(true);
+    verify_god_dist_grid_2D();
     if(output) std::cout<<"Passed\n";
     #endif
     if(output) std::cout<<"- 1D Match (X): ";
@@ -134,7 +134,7 @@ void DRAGON_Test::verify_godunov_3D_Split(bool output){
     if(output) std::cout<<"Passed\n";
     #ifndef DIMENSION_UNSPLIT
     if(output) std::cout<<"- Parallelization: ";
-    verify_god_dist_grid_3D(true);
+    verify_god_dist_grid_3D();
     if(output) std::cout<<"Passed\n";
     #endif
     if(output) std::cout<<"- 1D Match (X): ";

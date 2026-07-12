@@ -21,10 +21,14 @@ static int computeChildSize(int nx, int ncx, int i){
 }
 
 static int validGhosts(int g){ //How many ghost cells are needed to do this correctly
-#if  defined(MHD) && defined (CTU)
+#if !defined(DIMENSION_UNSPLIT) //Split schemes need extra ghosts to avoid needing to sync between substeps
+    #if defined(MUSCL_Hancock)
+    return std::max(g, 4);
+    #else
     return std::max(g, 3);
-#elif defined(MUSCL_Hancock) && !defined(DIMENSION_UNSPLIT)
-    return std::max(g, 3); //MUSCL Split needs an extra ghost to avoid needing to sync after each substep
+    #endif
+#elif  defined(MHD) && defined (CTU)
+    return std::max(g, 3);
 #else
     return std::max(g, 2); //Unsplit syncs afeter every advance, so unless using MHD+CTU it's safe to use 2 ghosts
 #endif
