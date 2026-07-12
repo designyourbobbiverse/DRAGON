@@ -5,7 +5,7 @@
 //  Created by Bobbie Markwick on 03/07/2026.
 //
 
-#include "HDF5Output.hpp"
+#include "DragonHoard.hpp"
 #include "HDF5_Attrs.hpp"
 #include "Config.h"
 #include <H5Cpp.h>
@@ -53,7 +53,7 @@ std::string checkExtension(const std::string& filename) {
 }
 
 //MARK: Dispatch
-void IO::loadFromFile(Grid& grid, double& t, int& cycle, const std::string& filename){
+void DRAGONHOARD::loadFromFile(Grid& grid, double& t, int& cycle, const std::string& filename){
     Grid3D* grid3D = dynamic_cast<Grid3D*>(&grid);
     if(grid3D){
         loadFromFile(*grid3D, t, cycle, filename);
@@ -74,7 +74,7 @@ void IO::loadFromFile(Grid& grid, double& t, int& cycle, const std::string& file
 }
 
 //MARK: 1D
-void IO::loadFromFile(Grid1D& grid, double& t, int& cycle, const std::string& filename){
+void DRAGONHOARD::loadFromFile(Grid1D& grid, double& t, int& cycle, const std::string& filename){
     std::string path = CONFIG::output_dir + "/" + checkExtension(filename);
     H5::H5File file(path, H5F_ACC_RDONLY);
     
@@ -153,7 +153,7 @@ void IO::loadFromFile(Grid1D& grid, double& t, int& cycle, const std::string& fi
 }
 
 //MARK: 2D
-void IO::loadFromFile(Grid2D& grid, double& t, int& cycle, const std::string& filename){
+void DRAGONHOARD::loadFromFile(Grid2D& grid, double& t, int& cycle, const std::string& filename){
     std::string path = CONFIG::output_dir + "/" + checkExtension(filename);
     H5::H5File file(path, H5F_ACC_RDONLY);
     
@@ -251,7 +251,7 @@ void IO::loadFromFile(Grid2D& grid, double& t, int& cycle, const std::string& fi
     }
 }
 //MARK: 3D
-void IO::loadFromFile(Grid3D& grid, double& t, int& cycle, const std::string& filename){
+void DRAGONHOARD::loadFromFile(Grid3D& grid, double& t, int& cycle, const std::string& filename){
     std::string path = CONFIG::output_dir + "/" + checkExtension(filename);
     H5::H5File file(path, H5F_ACC_RDONLY);
     

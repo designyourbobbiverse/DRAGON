@@ -1,6 +1,6 @@
 //
-//  HDF5Output.hpp
-//  DRAGON/IO
+//  DRAGONHOARD.hpp
+//  DRAGONHOARD
 //
 //  Created by Bobbie Markwick on 03/07/2026.
 //
@@ -11,7 +11,7 @@
 #include "Grid.hpp"
 #include <string>
 
-namespace IO{
+namespace DRAGONHOARD{
     
 
 void writeToFile(Grid& grid, double t, int cycle, const std::string& filename);

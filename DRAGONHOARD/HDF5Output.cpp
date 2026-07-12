@@ -5,7 +5,7 @@
 //  Created by Bobbie Markwick on 03/07/2026.
 //
 
-#include "HDF5Output.hpp"
+#include "DragonHoard.hpp"
 #include "Config.h"
 #include "HDF5_Attrs.hpp"
 #include <H5Cpp.h>
@@ -23,7 +23,7 @@
 #endif
 
 
-std::string IO::cycle_string(int n){
+std::string DRAGONHOARD::cycle_string(int n){
     std::string zeroes = n<10 ? "0000" : (n<100 ? "000" : (n<1000 ? "00" : (n<10000 ? "0" : "")));
     return zeroes +  std::to_string(n);
 }
@@ -93,7 +93,7 @@ void writeAttribute(H5::H5File& file, const std::string& name, T value) {
 
 
 //MARK: Dispatch
-void IO::writeToFile(Grid& grid, double t, int cycle, const std::string& filename){
+void DRAGONHOARD::writeToFile(Grid& grid, double t, int cycle, const std::string& filename){
     Grid3D* grid3D = dynamic_cast<Grid3D*>(&grid);
     if(grid3D){
         writeToFile(*grid3D, t, cycle, filename);
@@ -115,7 +115,7 @@ void IO::writeToFile(Grid& grid, double t, int cycle, const std::string& filenam
 
 //MARK: Writing - 1D
 
-void IO::writeToFile(Grid1D& grid, double t, int cycle, const std::string& filename){
+void DRAGONHOARD::writeToFile(Grid1D& grid, double t, int cycle, const std::string& filename){
     const int nx = grid.getSize();
     #ifdef WRITE_GHOSTS_TO_FILE
     const int ng = grid.getGhosts();
@@ -227,7 +227,7 @@ void IO::writeToFile(Grid1D& grid, double t, int cycle, const std::string& filen
 }
 
 //MARK: Writing - 2D
-void IO::writeToFile(Grid2D& grid, double t, int cycle, const std::string& filename){
+void DRAGONHOARD::writeToFile(Grid2D& grid, double t, int cycle, const std::string& filename){
     const int nx = grid.getSizeX(), ny = grid.getSizeY();
     #ifdef WRITE_GHOSTS_TO_FILE
     const int ng = grid.getGhosts();
@@ -362,7 +362,7 @@ void IO::writeToFile(Grid2D& grid, double t, int cycle, const std::string& filen
 }
 
 //MARK: Writing - 3D
-void IO::writeToFile(Grid3D& grid, double t, int cycle, const std::string& filename){
+void DRAGONHOARD::writeToFile(Grid3D& grid, double t, int cycle, const std::string& filename){
     const int nx = grid.getSizeX(), ny = grid.getSizeY(), nz = grid.getSizeZ();
     #ifdef WRITE_GHOSTS_TO_FILE
     const int ng = grid.getGhosts();

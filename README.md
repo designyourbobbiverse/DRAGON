@@ -29,7 +29,7 @@ DRAGON/
   FluidElement/     Primitive/conservative states, vectors, fluxes, arithmetic
   Hydro/            Godunov Scheme Components
     Grid.hpp        Grid structure which holds fluid elements
-    CFL/            CFL Timestep Constraint
+    CFL/            Timestep Control
     Godunov/        Sweep logic, split/unsplit updates
     Riemann/        Riemann solvers
     TVD/            MUSCL Reconstruction + limiter options
@@ -47,6 +47,11 @@ DRAGONGAZE/         Plotting Tools
 Examples/           Example Problems & Validation
 Testing/            Unit test suite
 ```
+## Acronyms
+Besides DRAGON itself, the full names of some of the other components are as follows:
+- DRAGONWING: DRAGON Wide Infrastructure Numerical Grids
+- DRAGONGAZE: DRAGON Graphical Analysis and Zonal Exploration
+- DRAGONHOARD: DRAGON Hierarchichal Ouptut for Analysis, Restarts, and Diagnostics
 
 ## Configuration
 

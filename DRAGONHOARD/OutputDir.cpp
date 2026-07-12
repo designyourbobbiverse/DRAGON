@@ -5,7 +5,7 @@
 //  Created by Bobbie Markwick on 03/07/2026.
 //
 
-#include "HDF5Output.hpp"
+#include "DragonHoard.hpp"
 #include "HDF5_Attrs.hpp"
 #include <filesystem>
 #include <vector>
@@ -14,7 +14,7 @@
 
 
 //MARK: Verify the output directory exists
-void IO::verifyOutputDirectory(){
+void DRAGONHOARD::verifyOutputDirectory(){
     const std::filesystem::path& dir = CONFIG::output_dir;
     if (std::filesystem::exists(dir)) {
         if (!std::filesystem::is_directory(dir)) {
@@ -45,7 +45,7 @@ static int extractNumber(const std::string& s) {
 }
 
 
-std::string IO::restartFileName(){
+std::string DRAGONHOARD::restartFileName(){
     std::string filename = "";
     int max_frame_num = -1;
     
