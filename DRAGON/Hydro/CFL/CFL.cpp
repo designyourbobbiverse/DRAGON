@@ -126,3 +126,12 @@ double CFL::cfl_time(const Grid3D& g){
     //Then convert to time and apply the coefficient
     return CFL_coeff / max_speed;
 }
+double CFL::cfl_time(const Grid& grid){
+    const Grid3D* grid3D = dynamic_cast<const Grid3D*>(&grid);
+    if(grid3D)  return cfl_time(*grid3D);
+    const Grid2D* grid2D = dynamic_cast<const Grid2D*>(&grid);
+    if(grid2D) return cfl_time(*grid2D);
+    const Grid1D* grid1D = dynamic_cast<const Grid1D*>(&grid);
+    if(grid1D) return cfl_time(*grid1D);
+    throw std::runtime_error("Invalid Grid Type");
+}

@@ -8,6 +8,7 @@
 
 namespace CFL{
 //Computes the minimum cfl time for the whole grid, with Coefficient applied
+double cfl_time(const Grid& grid);
 double cfl_time(const Grid1D& grid);
 double cfl_time(const Grid2D& grid);
 double cfl_time(const Grid3D& grid);
