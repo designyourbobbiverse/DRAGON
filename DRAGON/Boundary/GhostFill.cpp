@@ -6,6 +6,7 @@
 //
 
 #include "Boundary.hpp"
+#include "Grid.hpp"
 
 int ::GhostFill::get_faces() const { return faces; }
 
@@ -44,4 +45,23 @@ int Boundary::face_mask(std::string s){
         }
     }
     return mask;
+}
+
+
+void GhostFill::apply(Grid& grid){
+    Grid3D* grid3D = dynamic_cast<Grid3D*>(&grid);
+    if(grid3D){
+        apply(*grid3D);
+        return;
+    }
+    Grid2D* grid2D = dynamic_cast<Grid2D*>(&grid);
+    if(grid2D){
+        apply(*grid2D);
+        return;
+    }
+    Grid1D* grid1D = dynamic_cast<Grid1D*>(&grid);
+    if(grid1D){
+        apply(*grid1D);
+        return;
+    }
 }

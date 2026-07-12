@@ -18,6 +18,8 @@ namespace Boundary {
 
 class BoundaryList : public GhostFill {
 public:
+    using GhostFill::apply;
+
     //Can construct something like BoundaryList(Reflective(X), Periodic(Y))
     template<BoundaryElement... Bs> BoundaryList(Bs&&... bs) : GhostFill(X | Y | Z, true) {
         (append(std::forward<Bs>(bs)), ...);
