@@ -94,7 +94,6 @@ void sweep(ExtendedArray1D<PrimitiveState>& w, double dt_dx){
 //MARK: 1D Advance
 void Grid1D::split_step(double dt){ Grid1D::unsplit_step(dt); }
 void Grid1D::unsplit_step(double dt){
-    boundary.apply(*this);
     Godunov::sweep(w, dt/dx);
 }
 
