@@ -18,10 +18,7 @@
 #include <stdexcept>
 #include "DragonWing.hpp"
 
-bool Grid2D::on_step_fail(const std::exception &e){
-    return !DRAGONWING::requestRestart(e.what());
-}
-bool Grid3D::on_step_fail(const std::exception &e){
+bool Grid::on_step_fail(const std::exception &e){
     return !DRAGONWING::requestRestart(e.what());
 }
 

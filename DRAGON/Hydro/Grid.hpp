@@ -24,7 +24,7 @@ public:
     
     virtual void split_step(double dt) = 0;
     virtual void unsplit_step(double dt) = 0;
-    virtual bool on_step_fail(const std::exception& e) { return true; };
+    virtual bool on_step_fail(const std::exception& e);
     #ifdef MHD
     virtual void initialize_B_fields(){}
     #endif
@@ -85,7 +85,6 @@ public:
     //Advance Forward in time
     void split_step(double dt) override;
     void unsplit_step(double dt) override;
-    bool on_step_fail(const std::exception& e) override;
     #ifdef MHD
     void initialize_B_fields() override;
     #endif
@@ -128,7 +127,6 @@ public:
     //Advance Forward in time
     void split_step(double dt) override;
     void unsplit_step(double dt) override;
-    bool on_step_fail(const std::exception& e) override;
     #ifdef MHD
     void initialize_B_fields() override;
     #endif
