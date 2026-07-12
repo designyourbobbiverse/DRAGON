@@ -33,7 +33,6 @@ DRAGON/
     Godunov/        Sweep logic, split/unsplit updates
     Riemann/        Riemann solvers
     TVD/            MUSCL Reconstruction + limiter options
-  IO/               HDF5 output + simulation restart
   main/             Program Main
   MHD/              Constrained Transport
   Refinement/       Partitioning Grids into parallelisable subgrids (will eventually evolve into AMR)
@@ -43,6 +42,7 @@ DRAGON/
   Problem.cpp       Example problem initialization and output handling
 
 DRAGONWING/         Multithreading & Memory Management
+DRAGONHOARD/        HDF5 output + simulation restart
 DRAGONGAZE/         Plotting Tools
 Examples/           Example Problems & Validation
 Testing/            Unit test suite
