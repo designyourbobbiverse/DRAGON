@@ -30,7 +30,7 @@ static void load(Grid& problem, double& time, int& cycle){
     }
     #else
     Problem::initializeProblem(problem);
-    IO::writeToFile(problem, 0, 0, CONFIG::output_base_name + "_" + IO::cycle_string(0));
+    DRAGONHOARD::writeToFile(problem, 0, 0, CONFIG::output_base_name + "_" + IO::cycle_string(0));
     #endif
 }
  
