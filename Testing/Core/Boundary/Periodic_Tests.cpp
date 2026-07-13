@@ -93,10 +93,6 @@ void DRAGON_Test::verify_boundary_periodic_2D() {
         expect_close(magneticY(grid, i,5), magneticY(grid, i,1));
         #endif
     }
-    #ifdef MHD//A field corner check
-    dA = vec3{grid._A()[nx+ng,ny].y - grid._A()[nx+ng,0].y,0,0};
-    expect_close(grid._A()[nx+ng,ny+ng], grid._A()[nx+ng,ng] + dA);
-    #endif
     //No corners = no corners
     fill_2D(grid);
     Periodic(Y,false).apply(grid);

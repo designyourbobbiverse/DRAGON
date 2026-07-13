@@ -55,8 +55,6 @@ void Boundary::Periodic::apply(Grid2D& grid) {
     // A has one more physical point per dimension than w.
     if (faces & X){
         for(int j = j0 ; j <= jn; j++){
-            if(_A[nx,j] == vec3{0,0,0}) _A[nx,j] = _A[0,j]; //User might not have intialized
-            else _A[nx,j].y = _A[0,j].y; _A[nx,j].z = _A[0,j].z;
             auto dA = _A[nx,j] - _A[0,j]; //B must be periodic, but A has some gauge freedom
 
             for(int g = 1; g <= ng; g++){
@@ -67,9 +65,7 @@ void Boundary::Periodic::apply(Grid2D& grid) {
     }
     if (faces & Y){
         for(int i = i0 ; i <= in; i++){
-            if(_A[i,ny] == vec3{0,0,0}) _A[i,ny] = _A[i,0]; //User might not have intialized
-            else _A[i,ny].x = _A[i,0].x; _A[i,ny].z = _A[i,0].z;
-            auto dA = _A[i,ny].y - _A[i,0].y; //B must be periodic, but A has some gauge freedom
+            auto dA = _A[i,ny] - _A[i,0]; //B must be periodic, but A has some gauge freedom
 
             for(int g = 1; g <= ng; g++){
                 _A[i,-g] = _A[i,ny-g] - dA;
