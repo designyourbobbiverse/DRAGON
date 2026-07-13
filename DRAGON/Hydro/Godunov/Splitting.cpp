@@ -113,65 +113,103 @@ void Grid1D::unsplit_step(double dt){
 }
 
 //MARK: 2D Split
-void Grid2D::split_step(double t1){
-    //Advance (Strang Split), alternating which step comes first
-    if (sweep_step++ % 2 == 0) {
-        advanceX(t1/2);
-        advanceY(t1);
-        advanceX(t1/2);
-    } else {
-        advanceY(t1/2);
-        advanceX(t1);
-        advanceY(t1/2);
+void Grid2D::split_step(double dt){
+    //Clone in case of failure
+    Grid2D _w(w.getSizeX(),getSizeY(), dx, dy, getGhosts());
+    _w.w.clone(w);
+    _w.boundary = std::move(boundary);
+    _w.sweep_step = sweep_step;
+    
+    try{//Advance (Strang Split), alternating which step comes first
+        if (_w.sweep_step++ % 2 == 0) {
+            _w.advanceX(dt/2);
+            _w.advanceY(dt);
+            _w.advanceX(dt/2);
+        } else {
+            _w.advanceY(dt/2);
+            _w.advanceX(dt);
+            _w.advanceY(dt/2);
+        }
+    } catch (std::exception& e){
+        boundary = std::move(_w.boundary);
+        throw e;
     }
+    DRAGONWING::reportCheckpoint1();
+    if(!DRAGONWING::waitForCheckpoint1()){
+        boundary = std::move(_w.boundary);
+        return;
+    }
+    //
+    w.clone(_w.w);
+    sweep_step = _w.sweep_step;
+    boundary = std::move(_w.boundary);
 }
 //MARK: 3D Split
-void Grid3D::split_step(double t1){
-    //Advance  (Strang Split), rotating step orders
-    switch (sweep_step++ % 6) {
-    case 0: //Cyclic XYZ
-        advanceX(t1/2);
-        advanceY(t1/2);
-        advanceZ(t1);
-        advanceY(t1/2);
-        advanceX(t1/2);
-        break;
-    case 1: //Cyclic ZXY
-        advanceZ(t1/2);
-        advanceX(t1/2);
-        advanceY(t1);
-        advanceX(t1/2);
-        advanceZ(t1/2);
-        break;
-    case 2: //Cyclic YZX
-        advanceY(t1/2);
-        advanceZ(t1/2);
-        advanceX(t1);
-        advanceZ(t1/2);
-        advanceY(t1/2);
-        break;
-    case 3: //Anticyclic ZYX
-        advanceZ(t1/2);
-        advanceY(t1/2);
-        advanceX(t1);
-        advanceY(t1/2);
-        advanceZ(t1/2);
-        break;
-    case 4: //Anticyclic XZY
-        advanceX(t1/2);
-        advanceZ(t1/2);
-        advanceY(t1);
-        advanceZ(t1/2);
-        advanceX(t1/2);
-        break;
-    case 5: //Anticyclic YXZ
-        advanceY(t1/2);
-        advanceX(t1/2);
-        advanceZ(t1);
-        advanceX(t1/2);
-        advanceY(t1/2);
-        break;
+void Grid3D::split_step(double dt){
+    //Clone in case of failure
+    Grid3D _w(w.getSizeX(),getSizeY(), getSizeZ(), dx, dy, dz, getGhosts());
+    _w.w.clone(w);
+    _w.boundary = std::move(boundary);
+    _w.sweep_step = sweep_step;
+
+    try{//Advance (Strang Split), rotating step orders
+        switch (_w.sweep_step++ % 6) {
+        case 0: //Cyclic XYZ
+            _w.advanceX(dt/2);
+            _w.advanceY(dt/2);
+            _w.advanceZ(dt);
+            _w.advanceY(dt/2);
+            _w.advanceX(dt/2);
+            break;
+        case 1: //Cyclic ZXY
+            _w.advanceZ(dt/2);
+            _w.advanceX(dt/2);
+            _w.advanceY(dt);
+            _w.advanceX(dt/2);
+            _w.advanceZ(dt/2);
+            break;
+        case 2: //Cyclic YZX
+            _w.advanceY(dt/2);
+            _w.advanceZ(dt/2);
+            _w.advanceX(dt);
+            _w.advanceZ(dt/2);
+            _w.advanceY(dt/2);
+            break;
+        case 3: //Anticyclic ZYX
+            _w.advanceZ(dt/2);
+            _w.advanceY(dt/2);
+            _w.advanceX(dt);
+            _w.advanceY(dt/2);
+            _w.advanceZ(dt/2);
+            break;
+        case 4: //Anticyclic XZY
+            _w.advanceX(dt/2);
+            _w.advanceZ(dt/2);
+            _w.advanceY(dt);
+            _w.advanceZ(dt/2);
+            _w.advanceX(dt/2);
+            break;
+        case 5: //Anticyclic YXZ
+            _w.advanceY(dt/2);
+            _w.advanceX(dt/2);
+            _w.advanceZ(dt);
+            _w.advanceX(dt/2);
+            _w.advanceY(dt/2);
+            break;
+        }
+    } catch (std::exception& e){
+        boundary = std::move(_w.boundary);
+        throw e;
     }
+    DRAGONWING::reportCheckpoint1();
+    if(!DRAGONWING::waitForCheckpoint1()){
+        boundary = std::move(_w.boundary);
+        return;
+    }
+    //Commit updates
+    w.clone(_w.w);
+    sweep_step = _w.sweep_step;
+    boundary = std::move(_w.boundary);
 }
 
 

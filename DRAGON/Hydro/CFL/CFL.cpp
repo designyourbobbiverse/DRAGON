@@ -157,7 +157,23 @@ void Grid::advance_split(double dt, bool check_cfl){
         //CFL Time Constraint
         double t1 = check_cfl ? std::min(dt,CFL::cfl_time(*this)) : dt;
         //Advance
-        split_step(t1);
+        do{
+            try{
+                split_step(t1);
+                break; //Successful, end the loop
+            } catch(const std::exception &exc){
+                if(on_step_fail(exc)){
+                    std::cout<<"\t"<<exc.what()<<"\n";
+                } else { return; }
+            }
+            //We weren't successful, halve the timestep and try again
+            t1 *= 0.5;
+            if(t1 < CONFIG::Timestep_Tolerance){
+                std::cout<<"Timestep has fallen below minimum. Exiting\n";
+                abort();
+            }
+        } while(true);
+        
         dt -= t1;
     }
 }
