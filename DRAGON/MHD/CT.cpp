@@ -200,4 +200,10 @@ void CT::copyFaceFields_Z( FluidArray3D& _L,const MagneticArray3D& _B, FluidArra
         }
     }
 }
+
+#ifndef DIMENSION_UNSPLIT
+#error MHD requires Unsplit dimensions. Please enable DIMENSION_UNSPLIT in Config.h
 #endif
+#endif
+
+
