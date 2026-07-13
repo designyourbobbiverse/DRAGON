@@ -18,17 +18,19 @@
 namespace HLL{
 PrimitiveState roeAvg(PrimitiveState L, PrimitiveState R){
     double sql = sqrt(L.rho), sqr = sqrt(R.rho);
-    double sum = sql + sqr;
-    sql /= sum;
-    sqr /= sum;
+    double _sql = sql / (sql + sqr), _sqr = sqr / (sql + sqr);
     
     PrimitiveState w;
-    w.rho = sql*L.rho + sqr*R.rho;
-    w.v = sql*L.v + sqr*R.v;
-    w.p = sql*L.p + sqr*R.p;
+    w.rho = sql*sqr;
+    w.v = _sql*L.v + _sqr*R.v;
 #ifdef MHD
-    w.B = sql*L.B + sqr*R.B;
+    w.B = _sql*L.B + _sqr*R.B;
 #endif
+    
+    double _H = _sql*L.enthalpy() + _sqr*R.enthalpy();
+    double _a2 = (_gamma-1) * (_H - (w.v * w.v)/2);
+    w.p = _a2 * w.rho / _gamma;
+
     return w;
 }
 }
