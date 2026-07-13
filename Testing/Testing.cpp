@@ -9,11 +9,6 @@
 
 using namespace DRAGON_Test;
 
-
-//Testing TODOs:
-//AMRGrid
-//DRAGONWING
-
 int main() {
     
     auto start = std::chrono::system_clock::now();
