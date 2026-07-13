@@ -130,9 +130,9 @@ void Grid2D::split_step(double dt){
             _w.advanceX(dt);
             _w.advanceY(dt/2);
         }
-    } catch (std::exception& e){
+    } catch (...){
         boundary = std::move(_w.boundary);
-        throw e;
+        throw;
     }
     DRAGONWING::reportCheckpoint1();
     if(!DRAGONWING::waitForCheckpoint1()){
@@ -197,9 +197,9 @@ void Grid3D::split_step(double dt){
             _w.advanceY(dt/2);
             break;
         }
-    } catch (std::exception& e){
+    } catch (...){
         boundary = std::move(_w.boundary);
-        throw e;
+        throw;
     }
     DRAGONWING::reportCheckpoint1();
     if(!DRAGONWING::waitForCheckpoint1()){
