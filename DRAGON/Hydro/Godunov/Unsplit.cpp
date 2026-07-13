@@ -61,10 +61,14 @@ void Grid2D::unsplit_step(double dt){
     computeFlux_X(_xL, _xR, F_X, -1, nx+1, -2, ny+2, dt/dx);  //F_X needs (0...nx, -1...ny), (-1...nx+1, -1...ny)for MHD
     computeFlux_Y(_yL, _yR, F_Y, -2, nx+2, -1, ny+1, dt/dy);  //F_Y needs (-1...nx, 0...ny), (-1...nx, -1...ny+1) for MHD
     #ifdef MHD//Half-update A and compute the face-normal fields
-        auto __CTU_A = DRAGONWING::requestVec3Arrays(1, nx+1, ny+1, ghosts);
+        auto __CTU_A = DRAGONWING::requestVec3Arrays(2, nx+1, ny+1, ghosts);
     MagneticArray2D& _A_half = *__CTU_A[0];
     _A_half.clone(A);
-    CT::updatePotential(_A_half, F_X, F_Y, dt/2,1);
+    //Compute the new A
+    MagneticArray2D& _E = *__CTU_A[1];
+    CT::computeElectric(_E, F_X, F_Y, 1);
+    CT::updatePotential(_A_half, _E, dt/2,1);
+    //Update the B fields
     CT::computeFaceFields(_A_half, B, dx, dy);
         __CTU_A.release();
     #endif
@@ -100,10 +104,14 @@ void Grid2D::unsplit_step(double dt){
 
     //Preliminary CT Update
     #ifdef MHD
-        auto __A = DRAGONWING::requestVec3Arrays(1, nx+1, ny+1, ghosts);
+        auto __A = DRAGONWING::requestVec3Arrays(2, nx+1, ny+1, ghosts);
     MagneticArray2D& _A = *__A[0];
     _A.clone(A);
-    CT::updatePotential(_A, F_X, F_Y, dt);
+    //Compute the new A
+    MagneticArray2D& E = *__A[1];
+    CT::computeElectric(E, F_X, F_Y);
+    CT::updatePotential(_A, E, dt);
+    //Update the B fields
     CT::computeFaceFields(_A, B, dx, dy);
     CT::computeBodyFields(B, _w);
         __B.release();
@@ -181,10 +189,14 @@ void Grid3D::unsplit_step(double dt){
     
     #ifdef MHD//Half-update A and compute the face-normal fields
     //Do this now so CTU can borrow the flux aux grids
-        auto __CTU_A = DRAGONWING::requestVec3Arrays(1, nx+1, ny+1, nz+1, ghosts);
+        auto __CTU_A = DRAGONWING::requestVec3Arrays(2, nx+1, ny+1, nz+1, ghosts);
     MagneticArray3D& _A_half = *__CTU_A[0];
     _A_half.clone(A);
-    CT::updatePotential(_A_half, F_X, F_Y, F_Z, dt/2,1);
+    //Compute the new A
+    MagneticArray3D& _E = *__CTU_A[1];
+    CT::computeElectric(_E, F_X, F_Y, F_Z, 1);
+    CT::updatePotential(_A_half, _E, dt/2,1);
+    //Update the B fields
     CT::computeFaceFields(_A_half, B, dx, dy, dz);
         __CTU_A.release();
     #endif
@@ -249,10 +261,14 @@ void Grid3D::unsplit_step(double dt){
     }
     //Preliminary CT Update
     #ifdef MHD
-        auto __A = DRAGONWING::requestVec3Arrays(1, nx+1, ny+1, nz+1, ghosts);
-    MagneticArray3D& _A = *__A[0];
+        auto __mags = DRAGONWING::requestVec3Arrays(2, nx+1, ny+1, nz+1, ghosts);
+    MagneticArray3D& _A = *__mags[0];
     _A.clone(A);
-    CT::updatePotential(_A, F_X, F_Y, F_Z, dt);
+    //Compute the new A
+    MagneticArray3D& E = *__mags[1];
+    CT::computeElectric(E, F_X, F_Y, F_Z);
+    CT::updatePotential(_A, E, dt);
+    //Update the B fields
     CT::computeFaceFields(_A, B, dx, dy, dz);
     CT::computeBodyFields(B, _w);
         __B.release();
