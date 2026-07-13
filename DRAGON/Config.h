@@ -27,7 +27,6 @@
 
 //MARK: Top level Options
 
-//These are hydro simulations, so no MHD
 #define MHD //Determines whether the simulation is run using MHD or Pure Hydrodynamics
 
 #define DIMENSION_UNSPLIT //Use an Unsplit advancement scheme for multidimensional flows
