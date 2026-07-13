@@ -25,6 +25,13 @@ Grid& Problem::makeProblem(){
     
     grid.boundary = MHDJet(rho_jet, 7e-2, p_amb, 5.0, 1.0, 2.4, "Z");
     
+    return grid;
+}
+
+void Problem::initializeProblem(Grid& problem){
+    MyGrid& grid = *dynamic_cast<MyGrid*>(&problem);
+    //This is where you should initialize the initial data of the grid
+
     for(int i=0; i<=grid.getSizeX(); i++){
         for(int j=0; j<=grid.getSizeY(); j++){
             for(int k=0; k<=grid.getSizeZ(); k++){
@@ -34,9 +41,7 @@ Grid& Problem::makeProblem(){
                 grid._A()[i,j,k] = {0,0,0};
             }
         }
-    }
-    grid.initialize_B_fields();
-        
+    }        
     return grid;
 }
 
