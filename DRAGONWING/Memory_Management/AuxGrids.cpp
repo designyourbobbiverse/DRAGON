@@ -202,15 +202,19 @@ void DRAGONWING::purgeAllBuffers(){
     }
     {
         std::lock_guard lock(cm);
+        purgeBuffers(flux1D);
         purgeBuffers(flux2D);
         purgeBuffers(flux3D);
+        flux1D.clear();
         flux2D.clear();
         flux3D.clear();
     }
     {
         std::lock_guard lock(vm);
+        purgeBuffers(vec1D);
         purgeBuffers(vec2D);
         purgeBuffers(vec3D);
+        vec1D.clear();
         vec2D.clear();
         vec3D.clear();
     }
