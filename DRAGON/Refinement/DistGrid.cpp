@@ -286,7 +286,6 @@ void DistGrid3D::loadFromChildren(){
 
 //MARK: Advance
 template <typename T> void DistGrid<T>::step(double dt){
-    if(children.size() == 1 ) return;
     pushToChildren();
     DRAGONWING::initialize(static_cast<int>(children.size()));
     for(auto& child : children){
