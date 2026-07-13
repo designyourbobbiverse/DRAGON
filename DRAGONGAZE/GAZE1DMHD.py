@@ -35,7 +35,7 @@ def readFile(n):
 def plotFile(n, rho,vx,vy,By,p,E,t,dx, rho_rng, v_rng, p_rng, E_rng, vy_rng, By_rng, vz_rng, Bz_rng):
     x = np.arange(len(rho)) * dx
     
-    if x_mode < 0: x.flip()
+    if x_mode < 0: np.flip(x)
     elif x_mode == 0: x -= max(x)/2
     
     fig, axs = plt.subplots(4,2, figsize=(10, 20), sharex=True)
