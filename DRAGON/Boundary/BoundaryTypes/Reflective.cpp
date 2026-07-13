@@ -87,7 +87,7 @@ void Boundary::Reflective::apply(Grid2D& grid) {
                     grid[nx-1+g,j].B *= -1;
                     grid[nx-1+g,j].B.x *= -1;
                 } else {
-                    grid[nx-1+g,j].B =  grid[0,j].B;
+                    grid[nx-1+g,j].B =  grid[nx-1,j].B;
                 }
                 #endif
             }
@@ -119,7 +119,7 @@ void Boundary::Reflective::apply(Grid2D& grid) {
                     grid[i,ny-1+g].B *= -1;
                     grid[i,ny-1+g].B.y *= -1;
                 } else {
-                    grid[i,ny-1+g].B =  grid[i,0].B;
+                    grid[i,ny-1+g].B =  grid[i,ny-1].B;
                 }
                 #endif
             }
