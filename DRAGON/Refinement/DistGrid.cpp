@@ -7,7 +7,6 @@
 
 #include "DistGrid.hpp"
 #include "DragonWing.hpp"
-#include "CFL.hpp"
 #include <math.h>
 #include <cassert>
 #include <iostream>
