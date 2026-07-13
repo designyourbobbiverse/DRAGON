@@ -24,7 +24,7 @@ def readMetadata(n):
     with h5py.File(h5FileName(n), "r") as f:
         dx = f.attrs[key_dx]
         dy = f.attrs[key_dy]
-        dz = f.attrs[key_dy]
+        dz = f.attrs[key_dz]
         t = f.attrs[key_time]
     return  t,dx,dy,dz
     
