@@ -232,7 +232,7 @@ void Boundary::Reflective::apply(Grid3D& grid) {
                 for(int g = 1; g <= ng; g++){
                     if (conductive) { //Mirror Transverse Magnetic Fields
                         _A[-g,j,k] = _A[g,j,k]; //A reflects over zero, w reflects over -1/2
-                        _A[-g,j,k].x = _A[g-1,j,k].x; //Except normal A does refelct over  -1/2
+                        _A[-g,j,k].x = -_A[g-1,j,k].x; //Except normal A does refelct over  -1/2
                     } else {
                         _A[-g,j,k] = 2*_A[1-g,j,k] - _A[2-g,j,k];
                         _A[-g,j,k].x = _A[1-g,j,k].x;
