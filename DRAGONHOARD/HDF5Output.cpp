@@ -15,7 +15,8 @@
 #define HDF5_WRITE_ENERGY (HDF5_WRITE_PRIMITIVE_AND_ENERGY - HDF5_WRITE_PRIMITIVE)
 #define HDF5_WRITE_PRIMS (HDF5_WRITE_OPTION & HDF5_WRITE_PRIMITIVE)
 #define HDF5_WRITE_CONSV (HDF5_WRITE_OPTION & (HDF5_WRITE_CONSERVATIVE - HDF5_WRITE_ENERGY))
-#define HDF5_WRITE_E (HDF5_WRITE_OPTION & HDF5_WRITE_ENERGY)
+#define HDF5_WRITE_REDUNDANTS (HDF5_REDUNDANT_VALS_OPTION != HDF5_WRITE_OMIT)
+#define HDF5_WRITE_E (HDF5_WRITE_OPTION & HDF5_WRITE_ENERGY) && (HDF5_WRITE_CONSV || HDF5_WRITE_REDUNDANTS)
 
 
 #if !(HDF5_WRITE_PRIMS || HDF5_WRITE_CONSV)
@@ -350,10 +351,12 @@ void DRAGONHOARD::writeToFile(Grid2D& grid, double t, int cycle, const std::stri
     writeArray(file, key_pz, pz, in-i0, jn-j0);
     #endif
     #endif
-    #ifdef MHD
+    #if defined(MHD)
     file.createGroup(key_B);
+    #if HDF5_WRITE_REDUNDANTS
     writeArray(file, key_Bx, Bx, in-i0, jn-j0);
     writeArray(file, key_By, By, in-i0, jn-j0);
+    #endif
     writeArray(file, key_Bz, Bz, in-i0, jn-j0);
     file.createGroup(key_A);
     writeArray(file, key_Az, Az, in+1-i0, jn+1-j0);
@@ -496,10 +499,12 @@ void DRAGONHOARD::writeToFile(Grid3D& grid, double t, int cycle, const std::stri
     #endif
     #endif
     #ifdef MHD
+    #if HDF5_WRITE_REDUNDANTS
     file.createGroup(key_B);
     writeArray(file, key_Bx, Bx, in-i0, jn-j0, kn-k0);
     writeArray(file, key_By, By, in-i0, jn-j0, kn-k0);
     writeArray(file, key_Bz, Bz, in-i0, jn-j0, kn-k0);
+    #endif
     file.createGroup(key_A);
     writeArray(file, key_Ax, Ax, in+1-i0, jn+1-j0, kn+1-k0);
     writeArray(file, key_Ay, Ay, in+1-i0, jn+1-j0, kn+1-k0);
