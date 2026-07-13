@@ -230,11 +230,9 @@
 			);
 			fileSystemSynchronizedGroups = (
 				F70D18F52FA12B5A00A2B235 /* DRAGON */,
-				F73197C92FF75E560012ACCF /* Examples */,
 				F76451673003578100C1547C /* DRAGONHOARD */,
 				F76C27BD2FDB8F6500B706F5 /* DRAGONWING */,
 				F79053D12FFD6FB50083CDFB /* DRAGONGAZE */,
-				F790CF7D2FC9F8D80094987D /* Testing */,
 			);
 			name = DRAGON;
 			packageProductDependencies = (
