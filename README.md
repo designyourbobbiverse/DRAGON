@@ -230,9 +230,12 @@ Currently, 3D only supports plotting midplane slices.
 
 DRAGON is an actively developed research code. The current version is suitable for demonstrating the numerical framework, solver implementations, boundary-condition infrastructure, and unit-test coverage. Basic plotting tools are also included. 
 
-The following features are in development for v1.0:
-- Example/validation problems
-- Documentation
+Todo before v1.0:
+- Finish properly implementing CTU+CT
+- Add more Example/validation problems, particularly 2D/3D MHD examples
+- Review & Validate boundary conditions, particularly with MHD
+- Write Documentation
+- Code Cleanup + Pre-Release Audit
 
 Additional features planned for future versions include:
 - Adaptive Mesh Refinement
