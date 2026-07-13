@@ -72,6 +72,8 @@ PrimitiveState TVD::limit(const PrimitiveState& a, const PrimitiveState& b) {
     return TVD::vanLeer(a, b);
 #elif MUSCL_DEFAULT_LIMITER == LIMITER_SUPERBEE
     return TVD::superbee(a, b);
+#elif MUSCL_DEFAULT_LIMITER == LIMITER_VANALBADA
+    return TVD::vanAlbada(a, b);
 #endif
 }
 
