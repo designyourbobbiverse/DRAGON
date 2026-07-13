@@ -75,12 +75,12 @@ void DRAGON_Test::verify_boundary_reflective_1D() {
     //Left
     PrimitiveState w = grid[0]; reflectX1DNonconductive(w);
     expect_close(grid[-1], w);
-    w = grid[1]; reflectX1DNonconductive(w);
+    w = grid[1]; reflectX1DNonconductive(w); w.B = grid[0].B;
     expect_close(grid[-2], w);
     //Right
     w = grid[3]; reflectX1DNonconductive(w);
     expect_close(grid[4], w);
-    w = grid[2]; reflectX1DNonconductive(w);
+    w = grid[2]; reflectX1DNonconductive(w); w.B = grid[3].B;
     expect_close(grid[5], w);
     //Single face filling: Left
     fill_1D(grid);
@@ -91,7 +91,7 @@ void DRAGON_Test::verify_boundary_reflective_1D() {
     #endif
     w = grid[0]; reflectX1DNonconductive(w);
     expect_close(grid[-1], w);
-    w = grid[1]; reflectX1DNonconductive(w);
+    w = grid[1]; reflectX1DNonconductive(w);  w.B = grid[0].B;
     expect_close(grid[-2], w);
     //Single face filling: Right
     fill_1D(grid);
@@ -102,7 +102,7 @@ void DRAGON_Test::verify_boundary_reflective_1D() {
     #endif
     w = grid[3]; reflectX1DNonconductive(w);
     expect_close(grid[4], w);
-    w = grid[2]; reflectX1DNonconductive(w);
+    w = grid[2]; reflectX1DNonconductive(w); w.B = grid[3].B;
     expect_close(grid[5], w);
 }
 //MARK: Reflecting - 2D
@@ -136,7 +136,7 @@ void DRAGON_Test::verify_boundary_reflective_2D(){
         assert(magneticY(grid, -1, j) == magneticY(grid, 0, j));
         #endif
        
-        w = grid[2,j]; reflectX2D(w,false);
+        w = grid[2,j]; reflectX2D(w,false);  w.B = grid[3,j].B;
         expect_close(grid[3, j], w);
         #ifdef MHD //Transverse Magnetic Fields
         assert(magneticY(grid, 3, j) == magneticY(grid, 2, j));
@@ -158,7 +158,7 @@ void DRAGON_Test::verify_boundary_reflective_2D(){
         assert(magneticX(grid, i,-1) == magneticX(grid, i,0));
         #endif
        
-        w = grid[i,3]; reflectY2D(w,false);
+        w = grid[i,3]; reflectY2D(w,false);  w.B = grid[i,4].B;
         expect_close(grid[i,4], w);
         #ifdef MHD //Transverse Magnetic Fields
         assert(magneticX(grid, i,4) == magneticX(grid, i,3));
@@ -330,11 +330,11 @@ void DRAGON_Test::verify_boundary_reflective_conductive_2D(){
     fill_2D(grid);
     Reflective(X).apply(grid);
     for (int j = 0; j < grid.getSizeY(); j++) {
-        PrimitiveState w = grid[0,j]; reflectX2D(w);
+        PrimitiveState w = grid[0,j]; reflectX2D(w);  w.B = grid[-1,j].B;
         expect_close(grid[-1, j], w);
         expect_close(grid._A()[-1, j], grid._A()[1, j]);
 
-        w = grid[2,j]; reflectX2D(w);
+        w = grid[2,j]; reflectX2D(w); w.B = grid[3,j].B;
         expect_close(grid[3, j], w);
         expect_close(grid._A()[4, j], grid._A()[2, j]);
     }
@@ -342,11 +342,11 @@ void DRAGON_Test::verify_boundary_reflective_conductive_2D(){
     fill_2D(grid);
     Reflective(Y).apply(grid);
     for (int i = 0; i < grid.getSizeX(); i++) {
-        PrimitiveState w = grid[i,0]; reflectY2D(w);
+        PrimitiveState w = grid[i,0]; reflectY2D(w); w.B = grid[i,-1].B;
         expect_close(grid[i,-1], w);
         expect_close(grid._A()[i, -1], grid._A()[i, 1]);
 
-        w = grid[i,3]; reflectY2D(w);
+        w = grid[i,3]; reflectY2D(w); w.B = grid[i,4].B;
         expect_close(grid[i,4], w);
         expect_close(grid._A()[i, 5], grid._A()[i, 3]);
     }
@@ -361,13 +361,13 @@ void DRAGON_Test::verify_boundary_reflective_conductive_3D(){
     Reflective(X).apply(grid);
     for (int j = 0; j < grid.getSizeY(); j++) {
         for (int k = 0; k < grid.getSizeZ(); k++) {
-            PrimitiveState w = grid[0,j,k]; reflectX3D(w);
+            PrimitiveState w = grid[0,j,k]; reflectX3D(w); w.B = grid[-1,j,k].B;
             expect_close(grid[-1, j,k], w);
             vec3 A = grid._A()[1, j, k];
             A.x = -grid._A()[0, j, k].x;
             expect_close(grid._A()[-1, j, k], A);
 
-            w = grid[2,j,k]; reflectX3D(w);
+            w = grid[2,j,k]; reflectX3D(w); w.B = grid[3,j,k].B;
             expect_close(grid[3, j,k], w);
             A = grid._A()[2, j, k];
             A.x = -grid._A()[1, j, k].x;
@@ -380,13 +380,13 @@ void DRAGON_Test::verify_boundary_reflective_conductive_3D(){
     Reflective(Y).apply(grid);
     for (int i = 0; i < grid.getSizeX(); i++) {
         for (int k = 0; k < grid.getSizeZ(); k++) {
-            PrimitiveState w = grid[i,0,k]; reflectY3D(w);
+            PrimitiveState w = grid[i,0,k]; reflectY3D(w); w.B = grid[i,-1,k].B;
             expect_close(grid[i,-1,k], w);
             vec3 A = grid._A()[i, 1, k];
             A.y = -grid._A()[i, 0, k].y;
             expect_close(grid._A()[i, -1, k], A);
 
-            w = grid[i,3,k]; reflectY3D(w);
+            w = grid[i,3,k]; reflectY3D(w);  w.B = grid[i,4,k].B;
             expect_close(grid[i,4,k], w);
             A = grid._A()[i, 3, k];
             A.y = -grid._A()[i, 2, k].y;
@@ -399,13 +399,13 @@ void DRAGON_Test::verify_boundary_reflective_conductive_3D(){
     Reflective("Z", false).apply(grid);
     for (int i = 0; i < grid.getSizeX(); i++) {
         for (int j = 0; j < grid.getSizeY(); j++) {
-            PrimitiveState w = grid[i,j,0]; reflectZ3D(w);
+            PrimitiveState w = grid[i,j,0]; reflectZ3D(w);  w.B = grid[i,j,-1].B;
             expect_close(grid[i,j,-1], w);
             vec3 A = grid._A()[i, j, 1];
             A.z = -grid._A()[i, j, 0].z;
             expect_close(grid._A()[i, j, -1], A);
 
-            w = grid[i,j,4]; reflectZ3D(w);
+            w = grid[i,j,4]; reflectZ3D(w);  w.B = grid[i,j,5].B;
             expect_close(grid[i,j,5], w);
             A = grid._A()[i, j, 4];
             A.z = -grid._A()[i, j, 3].z;

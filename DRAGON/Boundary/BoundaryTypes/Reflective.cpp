@@ -30,6 +30,8 @@ void Boundary::Reflective::apply(Grid1D& grid) {
             if(conductive) { //Mirror Transverse Magnetic Fields
                 grid[-g].B *= -1;
                 grid[-g].B.x *= -1;
+            } else {
+                grid[-g].B = grid[0].B;
             }
             #endif
         }
@@ -43,6 +45,8 @@ void Boundary::Reflective::apply(Grid1D& grid) {
             if(conductive) { //Mirror Transverse Magnetic Fields
                 grid[nx-1+g].B *= -1;
                 grid[nx-1+g].B.x *= -1;
+            } else {
+                grid[nx-1+g].B = grid[nx-1].B;
             }
             #endif
         }
@@ -62,8 +66,13 @@ void Boundary::Reflective::apply(Grid2D& grid) {
             for(int g = 1; g <= ng; g++){
                 grid[-g,j] = grid[g-1,j];
                 grid[-g,j].v.x *= -1;//Mirror Normal Velocity
-                #ifdef MHD //2D is weird and computes Bz on the body, but Bx/By via the edge potential
-                if(conductive) grid[-g,j].B.z *= -1;
+                #ifdef MHD
+                if(conductive) {
+                    grid[-g,j].B *= -1;
+                    grid[-g,j].B.x *= -1;
+                } else {
+                    grid[-g,j].B =  grid[0,j].B;
+                }
                 #endif
             }
         }
@@ -73,8 +82,13 @@ void Boundary::Reflective::apply(Grid2D& grid) {
             for(int g = 1; g <= ng; g++){
                 grid[nx-1+g,j] = grid[nx-g,j];
                 grid[nx-1+g,j].v.x *= -1;//Mirror Normal Velocity
-                #ifdef MHD //2D is weird and computes Bz on the body, but Bx/By via the edge potential
-                if(conductive) grid[nx-1+g,j].B.z *= -1;
+                #ifdef MHD
+                if(conductive) {
+                    grid[nx-1+g,j].B *= -1;
+                    grid[nx-1+g,j].B.x *= -1;
+                } else {
+                    grid[nx-1+g,j].B =  grid[0,j].B;
+                }
                 #endif
             }
         }
@@ -84,8 +98,13 @@ void Boundary::Reflective::apply(Grid2D& grid) {
             for(int g = 1; g <= ng; g++){
                 grid[i,-g] = grid[i,g-1];
                 grid[i,-g].v.y *= -1;//Mirror Normal Velocity
-                #ifdef MHD //2D is weird and computes Bz on the body, but Bx/By via the edge potential
-                if(conductive) grid[i,-g].B.z *= -1;
+                #ifdef MHD
+                if(conductive) {
+                    grid[i,-g].B *= -1;
+                    grid[i,-g].B.y *= -1;
+                } else {
+                    grid[i,-g].B =  grid[i,0].B;
+                }
                 #endif
             }
         }
@@ -96,7 +115,12 @@ void Boundary::Reflective::apply(Grid2D& grid) {
                 grid[i,ny-1+g] = grid[i,ny-g];
                 grid[i,ny-1+g].v.y *= -1;//Mirror Normal Velocity
                 #ifdef MHD //2D is weird and computes Bz on the body, but Bx/By via the edge potential
-                if(conductive) grid[i,ny-1+g].B.z *= -1;
+                if(conductive) {
+                    grid[i,ny-1+g].B *= -1;
+                    grid[i,ny-1+g].B.y *= -1;
+                } else {
+                    grid[i,ny-1+g].B =  grid[i,0].B;
+                }
                 #endif
             }
         }
@@ -167,6 +191,14 @@ void Boundary::Reflective::apply(Grid3D& grid) {
                 for(int g = 1; g <= ng; g++){
                     grid[-g,j,k] = grid[g-1,j,k];
                     grid[-g,j,k].v.x *= -1;//Mirror Normal Velocity
+                    #ifdef MHD
+                    if(conductive) {
+                        grid[-g,j,k].B *= -1;
+                        grid[-g,j,k].B.x *= -1;
+                    } else {
+                        grid[-g,j,k].B =  grid[0,j,k].B;
+                    }
+                    #endif
                 }
             }
         }
@@ -177,6 +209,14 @@ void Boundary::Reflective::apply(Grid3D& grid) {
                 for(int g = 1; g <= ng; g++){
                     grid[nx-1+g,j,k] = grid[nx-g,j,k];
                     grid[nx-1+g,j,k].v.x *= -1;//Mirror Normal Velocity
+                    #ifdef MHD
+                    if(conductive) {
+                        grid[nx-1+g,j,k].B *= -1;
+                        grid[nx-1+g,j,k].B.x *= -1;
+                    } else {
+                        grid[nx-1+g,j,k].B =  grid[nx-1,j,k].B;
+                    }
+                    #endif
                 }
             }
         }
@@ -187,6 +227,14 @@ void Boundary::Reflective::apply(Grid3D& grid) {
                 for(int g = 1; g <= ng; g++){
                     grid[i,-g,k] = grid[i,g-1,k];
                     grid[i,-g,k].v.y *= -1;//Mirror Normal Velocity
+                    #ifdef MHD
+                    if(conductive) {
+                        grid[i,-g,k].B *= -1;
+                        grid[i,-g,k].B.y *= -1;
+                    } else {
+                        grid[i,-g,k].B =  grid[i,0,k].B;
+                    }
+                    #endif
                 }
             }
         }
@@ -197,6 +245,14 @@ void Boundary::Reflective::apply(Grid3D& grid) {
                 for(int g = 1; g <= ng; g++){
                     grid[i,ny-1+g,k] = grid[i,ny-g,k];
                     grid[i,ny-1+g,k].v.y *= -1;//Mirror Normal Velocity
+                    #ifdef MHD
+                    if(conductive) {
+                        grid[i,ny-1+g,k].B *= -1;
+                        grid[i,ny-1+g,k].B.y *= -1;
+                    } else {
+                        grid[i,ny-1+g,k].B =  grid[i,ny-1,k].B;
+                    }
+                    #endif
                 }
             }
         }
@@ -207,6 +263,14 @@ void Boundary::Reflective::apply(Grid3D& grid) {
                 for(int g = 1; g <= ng; g++){
                     grid[i,j,-g] = grid[i,j,g-1];
                     grid[i,j,-g].v.z *= -1;//Mirror Normal Velocity
+                    #ifdef MHD
+                    if(conductive) {
+                        grid[i,j,-g].B *= -1;
+                        grid[i,j,-g].B.z *= -1;
+                    } else {
+                        grid[i,j,-g].B =  grid[i,j,0].B;
+                    }
+                    #endif
                 }
             }
         }
@@ -217,6 +281,14 @@ void Boundary::Reflective::apply(Grid3D& grid) {
                 for(int g = 1; g <= ng; g++){
                     grid[i,j,nz-1+g] = grid[i,j,nz-g];
                     grid[i,j,nz-1+g].v.z *= -1;//Mirror Normal Velocity
+                    #ifdef MHD
+                    if(conductive) {
+                        grid[i,j,nz-1+g].B *= -1;
+                        grid[i,j,nz-1+g].B.z *= -1;
+                    } else {
+                        grid[i,j,nz-1+g].B =  grid[i,j,nz-1].B;
+                    }
+                    #endif
                 }
             }
         }
