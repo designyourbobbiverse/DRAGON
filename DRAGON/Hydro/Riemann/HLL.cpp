@@ -56,6 +56,7 @@ ConservativeState Riemann::HLL(){
 }
 ConservativeState Riemann::HLLE(){
     double sql = sqrt(L.rho), sqr = sqrt(R.rho);
+    double _sql = sql / (sql + sqr), _sqr = sqr / (sql + sqr);
 #ifdef MHD
     //Set Normal Magnetic Fields
     double Bx = (L.B.x+R.B.x)/2;
@@ -67,9 +68,9 @@ ConservativeState Riemann::HLLE(){
     double aL = L.cs(), aR = R.cs();
 #endif
     double _v = (R.v.x-L.v.x) / (sql + sqr);
-    double d = (sql*aL*aL + sqr*aR*aR) / (sql + sqr)  +  0.5 * (sql * sqr) * _v * _v;
+    double d = (_sql*aL*aL + _sqr*aR*aR)  +  0.5 * (sql * sqr) * _v * _v;
     d = sqrt(d);
-    double u = 0.5 * (L.v.x + R.v.x);
+    double u = _sql*L.v.x + _sqr*R.v.x;
     
     //Compare to v +- a
     double SL = fmin(L.v.x - aL, u-d);
