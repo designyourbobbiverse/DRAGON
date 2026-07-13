@@ -52,18 +52,18 @@ inline ConservativeState _K5(vec3 _v, double _H, double _a){
 
 //MARK: Solver
 ConservativeState Riemann::Roe(){
-    double sqL = sqrt(L.rho), sqR = sqrt(R.rho);
+    double sql = sqrt(L.rho), sqr = sqrt(R.rho);
+    double _sql = sql / (sql + sqr), _sqr = sqr / (sql + sqr);
     //weighted averages
-    double _rho = sqL * sqR;
-    vec3 _v = (sqL * L.v + sqR * R.v)/(sqL+sqR);
-    double _H = (sqL*L.enthalpy() + sqR*R.enthalpy()) / (sqL + sqR);
-    double _V2 = _v.x*_v.x + _v.y*_v.y + _v.z*_v.z;
-    double _a = sqrt((_gamma-1) * (_H - _V2/2));
+    double _rho = sql * sqr;
+    vec3 _v = _sql * L.v + _sqr * R.v;
+    double _H = _sql*L.enthalpy() + _sqr*R.enthalpy();
+    double _a = sqrt((_gamma-1) * (_H - (_v*_v)/2));
     //eigenvalues + eigenvectors
     double lambda[5] = { _v.x - _a, _v.x, _v.x, _v.x,  _v.x + _a };
     ConservativeState K[5] = {
         _K1(_v, _H, _a),
-        _K2(_v, _V2), _K3(_v.y), _K4(_v.z),
+        _K2(_v, _v*_v), _K3(_v.y), _K4(_v.z),
         _K5(_v, _H, _a)
     };
     //wave strengths
