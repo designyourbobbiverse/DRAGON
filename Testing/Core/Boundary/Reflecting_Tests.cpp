@@ -364,7 +364,7 @@ void DRAGON_Test::verify_boundary_reflective_conductive_3D(){
             PrimitiveState w = grid[0,j,k]; reflectX3D(w);
             expect_close(grid[-1, j,k], w);
             vec3 A = grid._A()[1, j, k];
-            A.x = grid._A()[0, j, k].x;
+            A.x = -grid._A()[0, j, k].x;
             expect_close(grid._A()[-1, j, k], A);
 
             w = grid[2,j,k]; reflectX3D(w);
