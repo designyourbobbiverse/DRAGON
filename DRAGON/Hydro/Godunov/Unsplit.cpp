@@ -58,13 +58,22 @@ void Grid2D::unsplit_step(double dt){
     FluxArray2D& F_Y = *__fluxes[1];
 #ifdef CTU //Colella (1990). https://doi.org/10.1016/0021-9991(90)90233-Q
     //Compute preliminary Fluxes
-    computeFlux_X(_xL, _xR, F_X, -1, nx+1, -1, ny+1, dt/dx);  //F_X needs (0...nx, -1...ny), (-1...nx+1, -1...ny)for MHD
-    computeFlux_Y(_yL, _yR, F_Y, -1, nx+1, -1, ny+1, dt/dy);  //F_Y needs (-1...nx, 0...ny), (-1...nx, -1...ny+1) for MHD
+    computeFlux_X(_xL, _xR, F_X, -2, nx+2, -2, ny+2, dt/dx);  //F_X needs (0...nx, -1...ny), (-1...nx+1, -1...ny)for MHD
+    computeFlux_Y(_yL, _yR, F_Y, -2, nx+2, -2, ny+2, dt/dy);  //F_Y needs (-1...nx, 0...ny), (-1...nx, -1...ny+1) for MHD
+    #ifdef MHD//Half-update A and compute the face-normal fields
+        auto __CTU_A = DRAGONWING::requestVec3Arrays(1, nx+1, ny+1, ghosts);
+    MagneticArray2D& _A_half = *__CTU_A[0];
+    _A_half.clone(A);
+    CT::updatePotential(_A_half, F_X, F_Y, dt/2,1);
+    CT::computeFaceFields(_A_half, B, dx, dy);
+        __CTU_A.release();
+    #endif
+    
     //Correct states
     correctState(_xL, _xR, F_Y, (0.5*dt/dy), 1); //_xLR needs (-1...nx, 0...ny-1), (-1...nx, -1...ny) for MHD
     correctState(_yL, _yR, F_X, (0.5*dt/dx), 0); //_yLR needs (0...nx-1, -1...ny), (-1...nx, -1...ny) for MHD
  
-    #ifdef MHD//Restore face-normal fields
+    #ifdef MHD //Apply half-step face-normal B
     CT::copyFaceFields_X(_xL, B, _xR);
     CT::copyFaceFields_Y(_yL, B, _yR);
     #endif
@@ -115,7 +124,7 @@ void Grid2D::unsplit_step(double dt){
     //Commit flux updates
     w.clone(_w, false);
     #ifdef MHD
-    A.clone(_A);
+    A.clone(_A, false);
     #endif
     
 }
@@ -169,6 +178,16 @@ void Grid3D::unsplit_step(double dt){
     computeFlux_X(_xL, _xR, F_X, -1, nx+1, -2, ny+2, -2, nz+2, dt/dx);
     computeFlux_Y(_yL, _yR, F_Y, -2, nx+2, -1, ny+1, -2, nz+2, dt/dy);
     computeFlux_Z(_zL, _zR, F_Z, -2, nx+2, -2, ny+2, -1, nz+1, dt/dz);
+    
+    #ifdef MHD//Half-update A and compute the face-normal fields
+    //Do this now so CTU can borrow the flux aux grids
+        auto __CTU_A = DRAGONWING::requestVec3Arrays(1, nx+1, ny+1, nz+1, ghosts);
+    MagneticArray3D& _A_half = *__CTU_A[0];
+    _A_half.clone(A);
+    CT::updatePotential(_A_half, F_X, F_Y, F_Z, dt/2,1);
+    CT::computeFaceFields(_A_half, B, dx, dy, dz);
+        __CTU_A.release();
+    #endif
         
     //Compute Edge-correct the fluxes
         auto __CTU_fluxes = DRAGONWING::requestFluxArrays(2, nx, ny, nz, ghosts);
@@ -200,7 +219,7 @@ void Grid3D::unsplit_step(double dt){
     correctState(_zL, _zR, F_Yx, (0.5*dt/dy), 1);
         __CTU_fluxes.release();
     
-    #ifdef MHD//Restore face-normal fields
+    #ifdef MHD//Apply the half-step face-normal fields
     CT::copyFaceFields_X(_xL, B, _xR);
     CT::copyFaceFields_Y(_yL, B, _yR);
     CT::copyFaceFields_Z(_zL, B, _zR);
@@ -255,7 +274,7 @@ void Grid3D::unsplit_step(double dt){
     //Commit Flux updates
     w.clone(_w, false);
     #ifdef MHD
-    A.clone(_A);
+    A.clone(_A, false);
     #endif
 }
 
