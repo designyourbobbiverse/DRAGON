@@ -6,7 +6,7 @@
 //
 
 #include "Problem.hpp"
-#include "Refinement/DistGrid.hpp"
+#include "DistGrid.hpp"
 #include "Jets.hpp"
 #include <cmath>
 #include <iostream>
