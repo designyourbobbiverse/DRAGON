@@ -16,21 +16,21 @@
 
 //MARK: CT Updates
 
-void CT::updatePotential(MagneticArray2D& _A, const FluxArray2D& F_X,const FluxArray2D& F_Y, double dt){
+void CT::updatePotential(MagneticArray2D& _A, const FluxArray2D& F_X,const FluxArray2D& F_Y, double dt, int g){
     const int nx = _A.getSizeX()-1, ny = _A.getSizeY()-1;
     
-    for(int i=0; i<=nx; i++){
-        for(int j=0; j<=ny; j++){
+    for(int i=-g; i<=nx+g; i++){
+        for(int j=-g; j<=ny+g; j++){
             _A[i,j].z -= (F_Y[i-1,j].B.x -  F_X[i,j-1].B.y + F_Y[i,j].B.x  - F_X[i,j].B.y) * 0.25 * dt;
         }
     }
 }
-void CT::updatePotential(MagneticArray3D& _A, const FluxArray3D& F_X,const FluxArray3D& F_Y, const FluxArray3D& F_Z,  double dt){
+void CT::updatePotential(MagneticArray3D& _A, const FluxArray3D& F_X,const FluxArray3D& F_Y, const FluxArray3D& F_Z,  double dt, int g){
     const int nx = _A.getSizeX()-1, ny = _A.getSizeY()-1, nz = _A.getSizeZ()-1;
     
-    for(int i=0; i<=nx; i++){
-        for(int j=0; j<=ny; j++){
-            for(int k=0; k<=nz; k++){
+    for(int i=-g; i<=nx+g; i++){
+        for(int j=-g; j<=ny+g; j++){
+            for(int k=-g; k<=nz+g; k++){
                 _A[i,j,k].x -= (F_Z[i,j-1,k].B.y -  F_Y[i,j,k-1].B.z + F_Z[i,j,k].B.y  - F_Y[i,j,k].B.z) * 0.25 * dt;
                 _A[i,j,k].y -= (F_X[i,j,k-1].B.z -  F_Z[i-1,j,k].B.x + F_X[i,j,k].B.z  - F_Z[i,j,k].B.x) * 0.25 * dt;
                 _A[i,j,k].z -= (F_Y[i-1,j,k].B.x -  F_X[i,j-1,k].B.y + F_Y[i,j,k].B.x  - F_X[i,j,k].B.y) * 0.25 * dt;
