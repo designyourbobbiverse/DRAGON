@@ -69,7 +69,7 @@ ConservativeState Riemann::HLLE(){
     double _v = (R.v.x-L.v.x) / (sql + sqr);
     double d = (sql*aL*aL + sqr*aR*aR) / (sql + sqr)  +  0.5 * (sql * sqr) * _v * _v;
     d = sqrt(d);
-    double u = 0.5*(sql*R.v.x + sqr*L.v.x) / (sql + sqr);
+    double u = 0.5 * (L.v.x + R.v.x);
     
     //Compare to v +- a
     double SL = fmin(L.v.x - aL, u-d);
