@@ -58,8 +58,8 @@ void Grid2D::unsplit_step(double dt){
     FluxArray2D& F_Y = *__fluxes[1];
 #ifdef CTU //Colella (1990). https://doi.org/10.1016/0021-9991(90)90233-Q
     //Compute preliminary Fluxes
-    computeFlux_X(_xL, _xR, F_X, -2, nx+2, -2, ny+2, dt/dx);  //F_X needs (0...nx, -1...ny), (-1...nx+1, -1...ny)for MHD
-    computeFlux_Y(_yL, _yR, F_Y, -2, nx+2, -2, ny+2, dt/dy);  //F_Y needs (-1...nx, 0...ny), (-1...nx, -1...ny+1) for MHD
+    computeFlux_X(_xL, _xR, F_X, -1, nx+1, -2, ny+2, dt/dx);  //F_X needs (0...nx, -1...ny), (-1...nx+1, -1...ny)for MHD
+    computeFlux_Y(_yL, _yR, F_Y, -2, nx+2, -1, ny+1, dt/dy);  //F_Y needs (-1...nx, 0...ny), (-1...nx, -1...ny+1) for MHD
     #ifdef MHD//Half-update A and compute the face-normal fields
         auto __CTU_A = DRAGONWING::requestVec3Arrays(1, nx+1, ny+1, ghosts);
     MagneticArray2D& _A_half = *__CTU_A[0];
