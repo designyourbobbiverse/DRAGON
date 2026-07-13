@@ -14,6 +14,7 @@
 #include <cassert>
 
 #ifdef MHD
+namespace HLL{ PrimitiveState roeAvg(PrimitiveState L, PrimitiveState R); }
 
 void compute_outer_star_transverse(PrimitiveState& wsK, const PrimitiveState& K, double _xK, double SK, double SM, double Bx){
     double Bx2_4pi = (Bx*Bx) * _1_4pi; // B_x^2 / 4pi
@@ -164,8 +165,7 @@ ConservativeState Riemann::HLLD_zero_B(double SL, double SR){
 
     
     //Special case: right on the contact wave
-    double sqL = sqrt(wsL.rho), sqR = sqrt(wsR.rho);
-    PrimitiveState wss = (sqL*wsL + sqR*wsR)/(sqL+sqR);
+    PrimitiveState wss = HLL::roeAvg(wsL,wsR);
     wss.rho = wsL.rho;
     wss.p = pT - wss.B*wss.B*_1_8pi;
 

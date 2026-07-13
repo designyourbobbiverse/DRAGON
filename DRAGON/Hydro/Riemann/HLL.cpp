@@ -15,12 +15,28 @@
 #include <math.h>
 #include "Constants.h"
 
+namespace HLL{
+PrimitiveState roeAvg(PrimitiveState L, PrimitiveState R){
+    double sql = sqrt(L.rho), sqr = sqrt(R.rho);
+    double sum = sql + sqr;
+    sql /= sum;
+    sqr /= sum;
+    
+    PrimitiveState w;
+    w.rho = sql*L.rho + sqr*R.rho;
+    w.v = sql*L.v + sqr*R.v;
+    w.p = sql*L.p + sqr*R.p;
+#ifdef MHD
+    w.B = sql*L.B + sqr*R.B;
+#endif
+    return w;
+}
+}
+
 
 //MARK: HLL/E
 ConservativeState Riemann::HLL(){
-    //Roe averages
-    double sql = sqrt(L.rho), sqr = sqrt(R.rho);
-    PrimitiveState M = (sql*L + sqr*R) / (sql + sqr);
+    PrimitiveState M = HLL::roeAvg(L,R);
     //Compute Sound/Fast Speed
 #ifdef MHD
     //Set Normal Magnetic Fields
@@ -81,8 +97,7 @@ ConservativeState Riemann::HLL(double sl, double sr){
 //MARK: HLLC
 ConservativeState Riemann::HLLC(){
     //Roe averages
-    double sql = sqrt(L.rho), sqr = sqrt(R.rho);
-    PrimitiveState M = (sql*L + sqr*R) / (sql + sqr);
+    PrimitiveState M = HLL::roeAvg(L,R);
     //Compute Sound Speed
     double aL = L.cs(), aR = R.cs(), aM = M.cs();
     //Compare to v +- a
