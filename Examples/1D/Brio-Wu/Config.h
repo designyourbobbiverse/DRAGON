@@ -81,7 +81,7 @@ constexpr double Timestep_Tolerance = 1e-14; //Timesteps smaller than this are t
         #define LIMITER_VANLEER 2 //Smooth, less diffusive than minmod with gentle behavior across smooth gradients
         #define LIMITER_SUPERBEE 3 //Very compressive, sharply preserves discontinuities but can be aggressive
         #define LIMITER_VANALBADA 4 //Smooth, reduces clipping near smooth extrema while remaining shock-safe
-    #define MUSCL_DEFAULT_LIMITER LIMITER_MC
+    #define MUSCL_DEFAULT_LIMITER LIMITER_MINMOD
 
 
 //MARK: File I/O
