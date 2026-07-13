@@ -16,16 +16,22 @@
 #ifdef MHD
 namespace HLL{ PrimitiveState roeAvg(PrimitiveState L, PrimitiveState R); }
 
-void compute_outer_star_transverse(PrimitiveState& wsK, const PrimitiveState& K, double _xK, double SK, double SM, double Bx){
+void compute_outer_star(ConservativeState& usK, const PrimitiveState& K, double _xK, double SK, double SM, double pT, double Bx){
     double Bx2_4pi = (Bx*Bx) * _1_4pi; // B_x^2 / 4pi
     double denom = _xK*(SK - SM) - Bx2_4pi; //Denominator of B and v scaling factors
     //Set transverse components via vector arithmatic, then override x component
     //Magnetic Field
-    wsK.B = (fabs(denom)<1e-12) ? K.B : K.B * (_xK*(SK-K.v.x)-Bx2_4pi)/denom;
-    wsK.B.x = Bx;
+    usK.B = (fabs(denom)<1e-12) ? K.B : K.B * (_xK*(SK-K.v.x)-Bx2_4pi)/denom;
+    usK.B.x = Bx;
     //Velocities
-    wsK.v = K.v - (fabs(denom)<1e-12 ? vec3{0,0,0} :  K.B * Bx*(SM-K.v.x)/denom * _1_4pi );
-    wsK.v.x = SM;
+    auto vsK = K.v - (fabs(denom)<1e-12 ? vec3{0,0,0} :  K.B * Bx*(SM-K.v.x)/denom * _1_4pi );
+    vsK.x = SM;
+    usK.p = usK.rho * vsK;
+    //Energy
+    usK.E = K.energy() * (SK - K.v.x);
+    usK.E += pT*SM - (K.p + K.B*K.B*_1_8pi)*K.v.x;
+    usK.E += Bx * (K.v*K.B - vsK*usK.B) * _1_4pi;
+    usK.E /= (SK - SM);
 }
 ConservativeState Riemann::HLLD(){
     //Set normal magnetic fields
@@ -48,37 +54,43 @@ ConservativeState Riemann::HLLD(){
     double SM  = ((_xR*R.v.x - _xL*L.v.x) - (pTR-pTL))  / (_xR - _xL);
     
     //Calculate the Alvfen Wave Speeds
-    PrimitiveState wsL, wsR;
-    //ConservativeState usL, usR;
-    wsL.rho = _xL / (SL - SM);
-    double SsL = SM - fabs(Bx) / (sq4pi * sqrt(wsL.rho));
-    wsR.rho = _xR / (SR - SM);
-    double SsR = SM + fabs(Bx) / (sq4pi * sqrt(wsR.rho));
-
+    ConservativeState usL, usR;
+    usL.rho = _xL / (SL - SM);
+    double SsL = SM - fabs(Bx) / (sq4pi * sqrt(usL.rho));
+    usR.rho = _xR / (SR - SM);
+    double SsR = SM + fabs(Bx) / (sq4pi * sqrt(usR.rho));
+   
     
     //Calculate the regions between fast/alfven
     ConservativeState FsL, FsR;
+    PrimitiveState wsL, wsR;
     double pT = (_xR*pTL - _xL*pTR + _xL*_xR*(R.v.x - L.v.x)) / (_xR - _xL);
     
     if(SsR >= 0) {//If this isn't true, we are between right fast/alfven, so we won't need FsL
-        compute_outer_star_transverse(wsL, L, _xL, SL, SM, Bx);
-        wsL.p = pT - wsL.B*wsL.B*_1_8pi;
-        
-        #ifdef HLLD_PHYSICAL_SAFETY
-        if(!wsL.isPhysical()) return HLLE();
-        #endif
-        
-        FsL =  L.flux() + (wsL - L)*SL; FsL.B.x = 0;
-    }
-    if(SsL <= 0) { //If this isn't true, we are between left fast/alfven, so we won't need FsR
-        compute_outer_star_transverse(wsR, R, _xR, SR, SM, Bx);
-        wsR.p = pT - wsR.B*wsR.B*_1_8pi;
+        compute_outer_star(usL, L, _xL, SL, SM, pT, Bx);
+        wsL.rho = usL.rho;
+        wsL.v = usL.p / usL.rho;
+        wsL.B = usL.B;
 
         #ifdef HLLD_PHYSICAL_SAFETY
-        if(!wsR.isPhysical()) return HLLE();
+        wsL.p = pT - wsL.B*wsL.B*_1_8pi;
+        if(!wsL.isPhysical() || !usL.isPhysical()) return HLLE();
         #endif
         
-        FsR = R.flux() + (wsR - R)*SR; FsR.B.x = 0;
+        FsL =  L.flux() + (usL - L)*SL; FsL.B.x = 0;
+    }
+    if(SsL <= 0) { //If this isn't true, we are between left fast/alfven, so we won't need FsR
+        compute_outer_star(usR, R, _xR, SR, SM, pT, Bx);
+        wsR.rho = usR.rho;
+        wsR.v = usR.p / usR.rho;
+        wsR.B = usR.B;
+
+        #ifdef HLLD_PHYSICAL_SAFETY
+        wsR.p = pT - wsR.B*wsR.B*_1_8pi;
+        if(!wsR.isPhysical() || !usR.isPhysical()) return HLLE();
+        #endif
+        
+        FsR = R.flux() + (usR - R)*SR; FsR.B.x = 0;
     }
             
     if(SsL >= 0) return FsL;//Check for Left fast-alfven region, if so can return the flux now
@@ -88,39 +100,51 @@ ConservativeState Riemann::HLLD(){
 
     //Calculate the regions between Alfven/Contact
     double sqL = sqrt(wsL.rho), sqR = sqrt(wsR.rho);
+    double _sqL = sqL / (sqL + sqR), _sqR = sqR / (sqL + sqR);
     double sbx = Bx > 0 ? sq4pi : (Bx < 0 ? -sq4pi : 0);
+    ConservativeState uss;
     PrimitiveState wss;
-    // ConservativeState uss;
-    //Set transverse components via vector arithmatic, then override x component
     wss.rho = ws.rho;
-    wss.v = (sqL*wsL.v + sqR*wsR.v + sbx*(wsR.B - wsL.B)*_1_4pi)/(sqL+sqR);
+    uss.rho = wss.rho;
+    //Set transverse components via vector arithmatic, then override x component
+    wss.v = _sqL*wsL.v + _sqR*wsR.v + (sbx*(usR.B - usL.B)*_1_4pi)/(sqL+sqR);
     wss.v.x = SM;
-    wss.B = (sqL*wsR.B + sqR*wsL.B + sqL*sqR*sbx*(wsR.v - wsL.v))/(sqL+sqR);
+    uss.p = uss.rho * wss.v;
+    wss.B = _sqL*usR.B + _sqR*usL.B + sbx*(wsR.v - wsL.v)*sqL*sqR/(sqL+sqR);
     wss.B.x = Bx;
-    wss.p = pT - wss.B*wss.B*_1_8pi;
+    uss.B = wss.B;
+    //Energy
+    auto dE = sbx * (ws.v*ws.B - wss.v*wss.B) * _1_4pi * sqrt(wss.rho);
+    uss.E = SM >= 0 ? usL.E - dE : usR.E + dE;
     
     #ifdef HLLD_PHYSICAL_SAFETY
-    if(!wss.isPhysical()) return HLLE();
+    wss.p = pT - wss.B*wss.B*_1_8pi;
+    if(!wss.isPhysical() || !uss.isFinite()) return HLLE();
     #endif
     
     //Copy density and calculate final flux
     if(SM >= 0){//Left
-        return FsL + (wss-wsL)*SsL;
+        return FsL + (uss-usL)*SsL;
     } else {//Right
-        return FsR + (wss-wsR)*SsR;
+        return FsR + (uss-usR)*SsR;
     }
 }
 
 
 //MARK: Zero normal
-void compute_outer_star_transverse_zero_B(PrimitiveState& wsK, const PrimitiveState& K, double _xK, double SK, double SM){
+void compute_outer_star_zero_B(ConservativeState& usK, const PrimitiveState& K, double _xK, double SK, double SM, double pT){
     //Set transverse components via vector arithmatic, then override x component
     //Magnetic Field
-    wsK.B = (fabs(SK - SM)<1e-12) ? K.B : K.B * (SK-K.v.x)/(SK - SM);
-    wsK.B.x = 0;
+    usK.B = (fabs(SK - SM)<1e-12) ? K.B : K.B * (SK-K.v.x)/(SK - SM);
+    usK.B.x = 0;
     //Velocities
-    wsK.v = K.v;
-    wsK.v.x = SM;
+    auto vsK = K.v;
+    vsK.x = SM;
+    usK.p = usK.rho * vsK;
+    //Energy
+    usK.E = K.energy() * (SK - K.v.x);
+    usK.E += pT*SM - (K.p + K.B*K.B*_1_8pi)*K.v.x;
+    usK.E /= (SK - SM);
 }
 
 ConservativeState Riemann::HLLD_zero_B(double SL, double SR){
@@ -131,49 +155,51 @@ ConservativeState Riemann::HLLD_zero_B(double SL, double SR){
     double SM  = ((_xR*R.v.x - _xL*L.v.x) - (pTR-pTL))  / (_xR - _xL);
     
     //Calculate the Alvfen Wave Speeds
-    PrimitiveState wsL, wsR;
-    wsL.rho = _xL / (SL - SM);
-    wsR.rho = _xR / (SR - SM);
+    ConservativeState usL, usR;
+    usL.rho = _xL / (SL - SM);
+    usR.rho = _xR / (SR - SM);
     
     //Calculate the regions between fast/alfven
     ConservativeState FsL, FsR;
+    PrimitiveState wsL, wsR;
     double pT = (_xR*pTL - _xL*pTR + _xL*_xR*(R.v.x - L.v.x)) / (_xR - _xL);
     
     if(SM >= 0) {//If this isn't true, we are between right fast/alfven, so we won't need FsL
-        compute_outer_star_transverse_zero_B(wsL, L, _xL, SL, SM);
-        wsL.p = pT - wsL.B*wsL.B*_1_8pi;
-        
-        #ifdef HLLD_PHYSICAL_SAFETY
-        if(!wsL.isPhysical()) return HLLE();
-        #endif
-        
-        FsL =  L.flux() + (wsL - L)*SL; FsL.B.x = 0;
-    }
-    if(SM <= 0) { //If this isn't true, we are between left fast/alfven, so we won't need FsR
-        compute_outer_star_transverse_zero_B(wsR, R, _xR, SR, SM);
-        wsR.p = pT - wsR.B*wsR.B*_1_8pi;
+        compute_outer_star_zero_B(usL, L, _xL, SL, SM, pT);
+        wsL.rho = usL.rho;
+        wsL.v = usL.p / usL.rho;
+        wsL.B = usL.B;
 
         #ifdef HLLD_PHYSICAL_SAFETY
-        if(!wsR.isPhysical()) return HLLE();
+        wsL.p = pT - wsL.B*wsL.B*_1_8pi;
+        if(!wsL.isPhysical() || !usL.isFinite()) return HLLE();
         #endif
         
-        FsR = R.flux() + (wsR - R)*SR; FsR.B.x = 0;
+        FsL =  L.flux() + (usL - L)*SL; FsL.B.x = 0;
+    }
+    if(SM <= 0) { //If this isn't true, we are between left fast/alfven, so we won't need FsR
+        compute_outer_star_zero_B(usR, R, _xR, SR, SM, pT);
+        wsR.rho = usR.rho;
+        wsR.v = usR.p / usR.rho;
+        wsR.B = usR.B;
+
+        #ifdef HLLD_PHYSICAL_SAFETY
+        wsR.p = pT - wsR.B*wsR.B*_1_8pi;
+        if(!wsR.isPhysical() || !usR.isFinite()) return HLLE();
+        #endif
+        
+        FsR = R.flux() + (usR - R)*SR; FsR.B.x = 0;
     }
             
     if(SM > 0) return FsL;//Check for Left fast-alfven region, if so can return the flux now
     if(SM < 0) return FsR;//Check for Right fast-alfven region, if so can return the flux now
 
     
-    //Special case: right on the contact wave
-    PrimitiveState wss = HLL::roeAvg(wsL,wsR);
-    wss.rho = wsL.rho;
-    wss.p = pT - wss.B*wss.B*_1_8pi;
-
-    #ifdef HLLD_PHYSICAL_SAFETY
-    if(!wss.isPhysical()) return HLLE();
-    #endif
-    
-    return FsL + (wss-wsL)*SM;
+    //Special case: right on the contact wave (down to the bit)
+    //Average the two outputs to help preserve symmetry
+    double sql = sqrt(wsL.rho), sqr = sqrt(wsR.rho);
+    double _sql = sql / (sql + sqr), _sqr = sqr / (sql + sqr);
+    return _sql * FsL + _sqr * FsR;
 }
 
 #elif RIEMANN_DEFAULT == RIEMANN_HLLD
