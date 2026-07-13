@@ -170,7 +170,7 @@ void DRAGON_Test::verify_god_uniform_moving_3D_MHD(){
     grid.initialize_B_fields();
     W = grid[2,2,2];
 
-    grid.boundary = Fixed(W);
+    grid.boundary = Periodic();
     
     grid.advance(1.0);
     
