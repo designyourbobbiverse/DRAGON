@@ -23,15 +23,17 @@ static void load(Grid& problem, double& time, int& cycle){
     #ifdef RESTART_FROM_FILE
     std::string file = DRAGONHOARD::restartFileName();
     if(file.size() > 0) {
-        DRAGONHOARD::loadFromFile(problem, time, cycle, file);
-    } else {
-        Problem::initializeProblem(problem);
-        DRAGONHOARD::writeToFile(problem, 0, 0, CONFIG::output_base_name + "_" + DRAGONHOARD::cycle_string(0));
+        try{
+            DRAGONHOARD::loadFromFile(problem, time, cycle, file);
+            return;
+        } catch(std::exception& e){
+            std::cerr << e.what()<<"\nInitializing from scratch\n";
+        }
     }
-    #else
+    #endif
     Problem::initializeProblem(problem);
     DRAGONHOARD::writeToFile(problem, 0, 0, CONFIG::output_base_name + "_" + DRAGONHOARD::cycle_string(0));
-    #endif
+
 }
  
 
