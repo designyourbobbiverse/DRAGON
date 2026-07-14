@@ -11,6 +11,11 @@
 
 #include "CT.hpp"
 #include "Config.h"
+#include "DragonWing.hpp"
+#include <cmath>
+
+constexpr double CTU_TOL = 1e-18;
+inline double upwindCorr(double massFlux, double faceEminus, double faceEplus, double refMinus, double refPlus);
 
 #ifdef MHD
 
@@ -24,9 +29,12 @@ void CT::computeElectric(MagneticArray2D& E, const FluxArray2D& F_X,const FluxAr
         }
     }
 }
-void CT::computeElectric(MagneticArray3D& E, const FluxArray3D& F_X,const FluxArray3D& F_Y, const FluxArray3D& F_Z, int g){
+
+
+void CT::computeElectric(MagneticArray3D& E, const FluxArray3D& F_X,const FluxArray3D& F_Y, const FluxArray3D& F_Z, const FluidArray3D& wref, int g){
     const int nx = E.getSizeX()-1, ny = E.getSizeY()-1, nz = E.getSizeZ()-1;
     
+    //Base Terms
     for(int i=-g; i<=nx+g; i++){
         for(int j=-g; j<=ny+g; j++){
             for(int k=-g; k<=nz+g; k++){
@@ -36,7 +44,59 @@ void CT::computeElectric(MagneticArray3D& E, const FluxArray3D& F_X,const FluxAr
             }
         }
     }
+    
+    #ifdef CTU //Upwind terms
+    //Calculate Body-centred E
+        auto __E = DRAGONWING::requestVec3Arrays(1, nx, ny, nz, E.getGhosts());
+    MagneticArray3D& Eref = *__E[0];
+    for(int i=-g-1; i <= nx+g; i++){
+        for(int j=-g-1; j <= ny+g; j++){
+            for(int k=-g-1; k <= nz+g; k++){
+                Eref[i,j,k] = cross(wref[i,j,k].B, wref[i,j,k].v);
+            }
+        }
+    }
+    
+    for(int i=-g; i<=nx+g; i++){
+        for(int j=-g; j<=ny+g; j++){
+            for(int k=-g; k<=nz+g; k++){
+                // X upwinds
+                E[i,j,k].y += upwindCorr(F_X[i,j,k].rho, -F_Z[i-1,j,k].B.x, -F_Z[i,j,k].B.x, Eref[i-1,j,k].y, Eref[i,j,k].y);
+                E[i,j,k].y -= upwindCorr(F_X[i,j,k-1].rho, -F_Z[i-1,j,k].B.x, -F_Z[i,j,k].B.x, Eref[i-1,j,k-1].y, Eref[i,j,k-1].y);
+                E[i,j,k].z += upwindCorr(F_X[i,j,k].rho, F_Y[i-1,j,k].B.x, F_Y[i,j,k].B.x, Eref[i-1,j,k].z, Eref[i,j,k].z);
+                E[i,j,k].z -= upwindCorr(F_X[i,j-1,k].rho, F_Y[i-1,j,k].B.x, F_Y[i,j,k].B.x, Eref[i-1,j-1,k].z, Eref[i,j-1,k].z);
+                // Y upwinds
+                E[i,j,k].x += upwindCorr(F_Y[i,j,k].rho, F_Z[i,j-1,k].B.y, F_Z[i,j,k].B.y, Eref[i,j-1,k].x, Eref[i,j,k].x);
+                E[i,j,k].x -= upwindCorr(F_Y[i,j,k-1].rho, F_Z[i,j-1,k].B.y, F_Z[i,j,k].B.y, Eref[i,j-1,k-1].x, Eref[i,j,k-1].x);
+                E[i,j,k].z += upwindCorr(F_Y[i,j,k].rho, -F_X[i,j-1,k].B.y, -F_X[i,j,k].B.y, Eref[i,j-1,k].z, Eref[i,j,k].z);
+                E[i,j,k].z -= upwindCorr(F_Y[i-1,j,k].rho, -F_X[i,j-1,k].B.y, -F_X[i,j,k].B.y, Eref[i-1,j-1,k].z, Eref[i-1,j,k].z);
+                // Z upwinds
+                E[i,j,k].x += upwindCorr(F_Z[i,j,k].rho, -F_Y[i,j,k-1].B.z, -F_Y[i,j,k].B.z, Eref[i,j,k-1].x, Eref[i,j,k].x);
+                E[i,j,k].x -= upwindCorr(F_Z[i,j-1,k].rho, -F_Y[i,j,k-1].B.z, -F_Y[i,j,k].B.z, Eref[i,j-1,k-1].x, Eref[i,j-1,k].x);
+                E[i,j,k].y += upwindCorr(F_Z[i,j,k].rho, F_X[i,j,k-1].B.z, F_X[i,j,k].B.z, Eref[i,j,k-1].y, Eref[i,j,k].y);
+                E[i,j,k].y -= upwindCorr(F_Z[i-1,j,k].rho, F_X[i,j,k-1].B.z, F_X[i,j,k].B.z, Eref[i-1,j,k-1].y, Eref[i-1,j,k].y);
+            }
+        }
+    }
+    #endif
 }
+
+
+
+
+//MARK: CTU Corrections
+
+inline double upwindCorr(double massFlux, double faceEminus, double faceEplus, double refMinus, double refPlus) {
+    if (massFlux > CTU_TOL) return 0.25 * (faceEminus - refMinus);
+    if (massFlux < -CTU_TOL) return 0.25 * (faceEplus - refPlus);
+    return 0.125 * (faceEminus + faceEplus - refMinus - refPlus);
+}
+
+
+
+
+
+
 //MARK: Vector Potential Update
 void CT::updatePotential(MagneticArray2D& _A, const MagneticArray2D& E, double dt, int g){
     const int nx = _A.getSizeX()-1, ny = _A.getSizeY()-1;
