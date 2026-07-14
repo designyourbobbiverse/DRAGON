@@ -4,10 +4,10 @@
 //
 //  Created by Bobbie Markwick on 10/06/2026.
 //  Implementation based in part on  Toro (2009). https://doi.org/10.1007/b79761
-//      Colella (1990). https://doi.org/10.1016/0021-9991(90)90233-Q
 
 
 #include "Grid.hpp"
+#include "Unsplit.hpp"
 #include "Riemann.hpp"
 #include "Config.h"
 #include "CFL.hpp"
@@ -24,12 +24,6 @@ bool Grid::on_step_fail(const std::exception &e){
 
 
 //MARK: 2D Unsplit Step
-void computeFlux_X(const FluidArray2D& _L, const FluidArray2D& _R, FluxArray2D& F, int xL, int xR, int yL, int yR, double dt_dx);
-void computeFlux_Y(const FluidArray2D& _L, const FluidArray2D& _R, FluxArray2D& F, int xL, int xR, int yL, int yR, double dt_dy);
-void applyFluxes(const FluidArray2D& w, FluidArray2D& _w, const FluxArray2D& F_X, const FluxArray2D& F_Y,  double dt_dx, double dt_dy,  int g = 0);
-void computeHalfStates_X(FluidArray2D& _L, const Grid2D& _W,  FluidArray2D& _R, double dt);
-void computeHalfStates_Y( FluidArray2D& _L,const Grid2D& _W, FluidArray2D& _R, double dt);
-void correctState(FluidArray2D& _L, FluidArray2D& _R, const FluxArray2D& F, double dt_dL, int dim);
 
 void Grid2D::unsplit_step(double dt){
     int nx = w.getSizeX(), ny = w.getSizeY(), ghosts = w.getGhosts();
@@ -129,18 +123,6 @@ void Grid2D::unsplit_step(double dt){
 }
 
 //MARK: 3D Unsplit Step
-void computeFlux_X(const FluidArray3D& _L, const FluidArray3D& _R, FluxArray3D& F, int xL, int xR, int yL, int yR, int zL, int zR, double dt_dx);
-void computeFlux_Y(const FluidArray3D& _L, const FluidArray3D& _R, FluxArray3D& F, int xL, int xR, int yL, int yR, int zL, int zR, double dt_dy);
-void computeFlux_Z(const FluidArray3D& _L, const FluidArray3D& _R, FluxArray3D& F, int xL, int xR, int yL, int yR, int zL, int zR, double dt_dz);
-void applyFluxes(const FluidArray3D& w, FluidArray3D& _w, const FluxArray3D& F_X, const FluxArray3D& F_Y, const FluxArray3D& F_Z, double dt_dx, double dt_dy, double dt_dz, int g=0);
-void computeHalfStates_X(FluidArray3D& _L, const Grid3D& _W, FluidArray3D& _R, double dt);
-void computeHalfStates_Y(FluidArray3D& _L, const Grid3D& _W, FluidArray3D& _R, double dt);
-void computeHalfStates_Z(FluidArray3D& _L, const Grid3D& _W, FluidArray3D& _R, double dt);
-void correctState(FluidArray3D& _L, FluidArray3D& _R, const FluxArray3D& F, double dt_dL, int dim);
-void computeCTUFlux_X(const FluidArray3D& _L, const FluidArray3D& _R, const FluxArray3D& Ftrans, FluxArray3D& F, double dt_dx, double dt_dy, int dim);
-void computeCTUFlux_Y(const FluidArray3D& _L, const FluidArray3D& _R, const FluxArray3D& Ftrans, FluxArray3D& F,  double dt_dy, double dt_dz, int dim);
-void computeCTUFlux_Z(const FluidArray3D& _L, const FluidArray3D& _R, const FluxArray3D& Ftrans, FluxArray3D& F, double dt_dz, double dt_dy, int dim);
-
 
 void Grid3D::unsplit_step(double dt){
     int nx = w.getSizeX(), ny = w.getSizeY(), nz = w.getSizeZ(), ghosts = w.getGhosts();
@@ -163,74 +145,30 @@ void Grid3D::unsplit_step(double dt){
         auto __B = DRAGONWING::requestVec3Arrays(1, nx+1, ny+1, nz+1, ghosts);
     MagneticArray3D& B = *__B[0];
     CT::computeFaceFields(A, B, dx, dy, dz);
+    #endif
+
+    #ifdef CTU //Colella (1990). https://doi.org/10.1016/0021-9991(90)90233-Q
+        #if defined(MHD)
+            auto __w_half = DRAGONWING::requestPrimitiveArrays(1, nx, ny, nz, ghosts);
+        FluidArray3D& _w_half = *__w_half[0];
+        ctu_sweep_MHD(_xL, _xR, _yL, _yR, _zL, _zR, A, B, w, _w_half, dt, dx, dy, dz);
+        #else
+        ctu_sweep_hydro(_xL, _xR, _yL, _yR, _zL, _zR, dt/dx, dt/dy, dt/dz);
+        #endif
+    #elif defined(MHD) //ctu_sweep_MHD already takes care of this
+        auto __w_half = DRAGONWING::requestPrimitiveArrays(1, nx, ny, nz, ghosts);
+    FluidArray3D& _w_half = *__w_half[0];
+    _w_half.clone(w);
     CT::copyFaceFields_X(_xL, B, _xR);
     CT::copyFaceFields_Y(_yL, B, _yR);
     CT::copyFaceFields_Z(_zL, B, _zR);
     #endif
-
-    //Fluxes
+    
+    //Compute Fluxes
         auto __fluxes = DRAGONWING::requestFluxArrays(3, nx, ny, nz, ghosts);
     FluxArray3D& F_X = *__fluxes[0];
     FluxArray3D& F_Y = *__fluxes[1];
     FluxArray3D& F_Z = *__fluxes[2];
-#ifdef CTU //Colella (1990). https://doi.org/10.1016/0021-9991(90)90233-Q
-    //Compute preliminary face fluxes
-    computeFlux_X(_xL, _xR, F_X, -1, nx+1, -2, ny+2, -2, nz+2, dt/dx);
-    computeFlux_Y(_yL, _yR, F_Y, -2, nx+2, -1, ny+1, -2, nz+2, dt/dy);
-    computeFlux_Z(_zL, _zR, F_Z, -2, nx+2, -2, ny+2, -1, nz+1, dt/dz);
-    
-    
-    #ifdef MHD//Half-update A and compute the face-normal fields
-    //Do this now so CTU can borrow the flux aux grids
-        auto __CTU_A = DRAGONWING::requestVec3Arrays(2, nx+1, ny+1, nz+1, ghosts);
-    MagneticArray3D& _A_half = *__CTU_A[0];
-    _A_half.clone(A);
-    //Compute the new A
-    MagneticArray3D& _E = *__CTU_A[1];
-    CT::computeElectric(_E, F_X, F_Y, F_Z, 1);
-    CT::updatePotential(_A_half, _E, dt/2,1);
-    //Update the B fields
-    CT::computeFaceFields(_A_half, B, dx, dy, dz);
-        __CTU_A.release();
-    #endif
-        
-    //Compute Edge-correct the fluxes
-        auto __CTU_fluxes = DRAGONWING::requestFluxArrays(2, nx, ny, nz, ghosts);
-    FluxArray3D& F_Xz = *__CTU_fluxes[0];
-    computeCTUFlux_X(_xL, _xR, F_Z, F_Xz, dt/dx, (0.5*dt/dz), 2);
-    FluxArray3D& F_Yz = *__CTU_fluxes[1];
-    computeCTUFlux_Y(_yL, _yR, F_Z, F_Yz, dt/dy, (0.5*dt/dz), 2);
-
-    FluxArray3D& F_Xy = F_Z; //F_Z isn't used again before it gets recomputed, so we can resue it here
-    computeCTUFlux_X(_xL, _xR, F_Y, F_Xy, dt/dx, (0.5*dt/dy), 1);
-    FluxArray3D& F_Zy = F_Y;  //In computeCTUFlux, the last read of [i,j,k] happens before [i,j,k] gets written, so we can likewise repurpose F_Y here
-    computeCTUFlux_Z(_zL, _zR, F_Y, F_Zy, dt/dz, (0.5*dt/dy),1);
-
-    //Update the X half states based on the YZ corner fluxes
-    correctState(_xL, _xR, F_Yz, (0.5*dt/dy), 1);
-    correctState(_xL, _xR, F_Zy, (0.5*dt/dz), 2);
-    //Doing this early means we can reuse the F_Yz and F_Zy grids for F_Yx and F_Zx
-    
-    FluxArray3D& F_Yx = F_Yz; //Reuse existing grid that has already served its purpose
-    computeCTUFlux_Y(_yL, _yR, F_X, F_Yx, dt/dy, (0.5*dt/dx), 0);
-    FluxArray3D& F_Zx = F_Zy; //Reuse existing grid that has already served its purpose
-    computeCTUFlux_Z(_zL, _zR, F_X, F_Zx, dt/dz, (0.5*dt/dx),0);
-
-    //Update the Y half states based on the XZ corner fluxes
-    correctState(_yL, _yR, F_Xz, (0.5*dt/dx), 0);
-    correctState(_yL, _yR, F_Zx, (0.5*dt/dz), 2);
-    //Update the Z half states based on the XY corner fluxes
-    correctState(_zL, _zR, F_Xy, (0.5*dt/dx), 0);
-    correctState(_zL, _zR, F_Yx, (0.5*dt/dy), 1);
-        __CTU_fluxes.release();
-    
-    #ifdef MHD//Apply the half-step face-normal fields
-    CT::copyFaceFields_X(_xL, B, _xR);
-    CT::copyFaceFields_Y(_yL, B, _yR);
-    CT::copyFaceFields_Z(_zL, B, _zR);
-    #endif
-#endif
-    //Compute Fluxes
     computeFlux_X(_xL, _xR, F_X, 0, nx, -1, ny+1, -1, nz+1, dt/dx); //F_X needs (0...nx, -1...ny, -1...nz)
     computeFlux_Y(_yL, _yR, F_Y, -1, nx+1, 0, ny, -1, nz+1, dt/dy); //F_Y needs (-1...nx, 0...ny, -1...nz)
     computeFlux_Z(_zL, _zR, F_Z, -1, nx+1, -1, ny+1, 0, nz, dt/dz); //F_Z needs (-1...nx, -1...ny, 0...nz)
@@ -248,7 +186,8 @@ void Grid3D::unsplit_step(double dt){
     _A.clone(A);
     //Compute the new A
     MagneticArray3D& E = *__mags[1];
-    CT::computeElectric(E, F_X, F_Y, F_Z);
+    CT::computeElectric(E, F_X, F_Y, F_Z, _w_half);
+        __w_half.release();
     CT::updatePotential(_A, E, dt);
     //Update the B fields
     CT::computeFaceFields(_A, B, dx, dy, dz);
@@ -256,7 +195,9 @@ void Grid3D::unsplit_step(double dt){
         __B.release();
     #endif
         __fluxes.release();
+
     
+    //Check Physicality
     for(int i=0; i<nx; i++){
         for(int j=0; j<ny; j++){
             for(int k=0; k<nz; k++){
@@ -264,11 +205,9 @@ void Grid3D::unsplit_step(double dt){
             }
         }
     }
-    
     //Wait for any parallel grids to finish
     DRAGONWING::reportCheckpoint1();
     if(!DRAGONWING::waitForCheckpoint1()) return;
-    
     //Commit Flux updates
     w.clone(_w, false);
     #ifdef MHD
@@ -326,6 +265,7 @@ void computeFlux_Z(const FluidArray3D& _L, const FluidArray3D& _R, FluxArray3D& 
 //MARK: Flux Application
 void applyFluxes(const FluidArray2D& w, FluidArray2D& _w, const FluxArray2D& F_X, const FluxArray2D& F_Y,  double dt_dx, double dt_dy,  int g){
     const int nx = w.getSizeX(), ny = w.getSizeY();
+    _w.clone(w);
     
     for(int i=-g; i<nx+g; i++){
         for(int j=-g; j<ny+g; j++){
@@ -340,6 +280,7 @@ void applyFluxes(const FluidArray2D& w, FluidArray2D& _w, const FluxArray2D& F_X
 }
 void applyFluxes(const FluidArray3D& w, FluidArray3D& _w, const FluxArray3D& F_X, const FluxArray3D& F_Y, const FluxArray3D& F_Z, double dt_dx, double dt_dy, double dt_dz, int g){
     const int nx = w.getSizeX(), ny = w.getSizeY(), nz = w.getSizeZ();
+    _w.clone(w);
     
     for(int i=-g; i<nx+g; i++){
         for(int j=-g; j<ny+g; j++){
@@ -457,110 +398,6 @@ void computeHalfStates_Z(FluidArray3D& _L, const Grid3D& _W, FluidArray3D& _R, d
         for(int j=-g; j<ny+g; j++){
             _L[i,j,-g] = _W[i,j,-g]; _R[i,j,-g] = _W[i,j,-g];
             _L[i,j,nz-1+g] = _W[i,j,nz-1+g]; _R[i,j,nz-1+g] = _W[i,j,nz-1+g];
-        }
-    }
-}
-
-//MARK: CTU Corrections
-#ifdef CTU
-#ifndef MUSCL_Hancock
-#error CTU requires MUSCL reconstruction. Please enable MUSCL_Hancock in Config.h
-#endif
-#endif
-
-void correctState(FluidArray2D& _L, FluidArray2D& _R, const FluxArray2D& F, double dt_dL, int dim){
-    const int xL = -1, xR = F.getSizeX()+1, yL = -1, yR = F.getSizeY()+1;
-    //Extract direction encoding
-    int isX = dim%2 == 0 ? 1 : 0;
-    int isY = dim%2 == 1 ? 1 : 0;
-    //Cycle
-    for(int i=xL; i<xR; i++){
-        for(int j=yL; j<yR; j++){
-            auto trans = (F[i+isX,j+isY] - F[i,j]) * dt_dL;
-            _L[i,j] = _L[i,j] -  trans;
-            _R[i,j] = _R[i,j] -  trans;
-        }
-    }
-}
-void correctState(FluidArray3D& _L, FluidArray3D& _R, const FluxArray3D& F, double dt_dL, int dim){
-    const int xL = -1, xR = F.getSizeX()+1, yL = -1, yR = F.getSizeY()+1, zL = -1, zR = F.getSizeZ()+1;
-    //Extract direction encoding
-    int isX = dim%3 == 0 ? 1 : 0;
-    int isY = dim%3 == 1 ? 1 : 0;
-    int isZ = dim%3 == 2 ? 1 : 0;
-    //cycle
-    for(int i=xL; i<xR; i++){
-        for(int j=yL; j<yR; j++){
-            for(int k=zL; k<zR; k++){
-                auto trans = (F[i+isX, j+isY, k+isZ] - F[i,j,k]) * dt_dL;
-                _L[i,j,k] = _L[i,j,k] -  trans;
-                _R[i,j,k] = _R[i,j,k] -  trans;
-            }
-        }
-    }
-}
-
-//Compute X fluxes between Right(_R) and Left (_L) half-states, as corrected by transverse fluxes FYZ
-//Equivalent to correctState -> computeFlux_X but without needing intermediate arrays
-void computeCTUFlux_X(const FluidArray3D& _L, const FluidArray3D& _R, const FluxArray3D& FYZ, FluxArray3D& F,  double dt_dx, double dt_dy, int dim){
-    const int xL = -1, xR = F.getSizeX()+1, yL = -1, yR = F.getSizeY()+1, zL = -1, zR = F.getSizeZ()+1;
-    //Extract direction encoding
-    int isY = dim%3 == 1 ? 1 : 0;
-    int isZ = dim%3 == 2 ? 1 : 0;
-    //cycle
-    for(int j=yL; j<yR; j++){
-        for(int k=zL; k<zR; k++){
-            //Compute Left half-state on the first cell
-            PrimitiveState  __R, __L =  _R[xL-1, j,k] - (FYZ[xL-1, j+isY, k+isZ] - FYZ[xL-1,j,k]) * dt_dy;
-            for(int i=xL; i<=xR; i++){
-                auto trans = (FYZ[i, j+isY, k+isZ] - FYZ[i,j,k]) * dt_dy;
-                __R = _L[i,j,k] -  trans;//Compute Right half-state for this flux
-                F[i,j,k] = Riemann(__L, __R).flux_X(dt_dx);
-                __L = _R[i,j,k] -  trans;//Compute Left half-state for the next flux
-            }
-        }
-    }
-}
-//Compute Y fluxes between Right(_R) and Left (_L) half-states, as corrected by transverse fluxes FXZ
-//Equivalent to correctState -> computeFlux_Y but without needing intermediate arrays
-void computeCTUFlux_Y(const FluidArray3D& _L, const FluidArray3D& _R, const FluxArray3D& FXZ, FluxArray3D& F, double dt_dy, double dt_dz, int dim){
-    const int xL = -1, xR = F.getSizeX()+1, yL = -1, yR = F.getSizeY()+1, zL = -1, zR = F.getSizeZ()+1;
-
-    //Extract direction encoding
-    int isX = dim%3 == 0 ? 1 : 0;
-    int isZ = dim%3 == 2 ? 1 : 0;
-    //cycle
-    for(int i=xL; i<xR; i++){
-        for(int k=zL; k<zR; k++){
-            //Compute Left half-state on the first cell
-            PrimitiveState  __R, __L =  _R[i,yL-1,k] - (FXZ[i+isX,yL-1, k+isZ] - FXZ[i,yL-1,k]) * dt_dz;
-            for(int j=yL; j<=yR; j++){
-                auto trans = (FXZ[i+isX, j, k+isZ] - FXZ[i,j,k]) * dt_dz;
-                __R = _L[i,j,k] -  trans;//Compute Right half-state for this flux
-                F[i,j,k] = Riemann(__L, __R).flux_Y(dt_dy);
-                __L = _R[i,j,k] -  trans;//Compute Left half-state for the next flux
-            }
-        }
-    }
-}
-//Compute Z fluxes between Right(_R) and Left (_L) half-states, as corrected by transverse fluxes FXY
-//Equivalent to correctState -> computeFlux_Z but without needing intermediate arrays
-void computeCTUFlux_Z(const FluidArray3D& _L, const FluidArray3D& _R, const FluxArray3D& FXY, FluxArray3D& F, double dt_dz, double dt_dy, int dim){
-    const int xL = -1, xR = F.getSizeX()+1, yL = -1, yR = F.getSizeY()+1, zL = -1, zR = F.getSizeZ()+1;
-    //Extract direction encoding
-    int isX = dim%3 == 0 ? 1 : 0;
-    int isY = dim%3 == 1 ? 1 : 0;
-    //cycle
-    for(int i=xL; i<xR; i++){
-        for(int j=yL; j<yR; j++){
-            //Compute Left half-state on the first cell
-            PrimitiveState  __R, __L =  _R[i,j,zL-1] - (FXY[i+isX,j+isY,zL-1] - FXY[i,j,zL-1]) * dt_dy;
-            for(int k=zL; k<=zR; k++){
-                auto trans = (FXY[i+isX, j+isY, k] - FXY[i,j,k]) * dt_dy;
-                __R = _L[i,j,k] -  trans;//Compute Right half-state for this flux
-                F[i,j,k] = Riemann(__L, __R).flux_Z(dt_dz);
-                __L = _R[i,j,k] -  trans;//Compute Left half-state for the next flux
-            }
         }
     }
 }

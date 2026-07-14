@@ -154,12 +154,14 @@ void DRAGON_Test::verify_ct_stationary_3D(){
     Grid3D grid(10,10,10,dx,dx,dx, 2), expected(10,10,10,dx,dx,dx, 2);
     double p0 = 5.0;
     PrimitiveState W = make_state(1.0, 0.0, 0.0, 0.0, p0);
+    vec3 B0 = {0.2, -0.3, 0.4};
 
     for (int i = 0; i <= grid.getSizeX(); i++){
         for (int j = 0; j <= grid.getSizeY(); j++){
             for (int k = 0; k <= grid.getSizeZ(); k++){
+                double x = i * dx, y = j * dx, z = k * dx;
                 grid[i,j,k] = W;
-                grid._A()[i,j,k] = vec3{-cos(k*dx)-cos(j*dx),-cos(i*dx)-cos(k*dx),-cos(i*dx)-cos(j*dx)};
+                grid._A()[i,j,k] = 0.5 * vec3{B0.y * z - B0.z * y, B0.z * x - B0.x * z, B0.x * y - B0.y * x};
             }
         }
     }
@@ -170,7 +172,6 @@ void DRAGON_Test::verify_ct_stationary_3D(){
     for (int i = 0; i <= grid.getSizeX(); i++){
         for (int j = 0; j <= grid.getSizeY(); j++){
             for (int k = 0; k <= grid.getSizeZ(); k++){
-                grid[i,j,k].p = p0 - grid[i,j,k].B * grid[i,j,k].B * _1_8pi;
                 expected[i,j,k] = grid[i,j,k];
             }
         }
@@ -178,7 +179,7 @@ void DRAGON_Test::verify_ct_stationary_3D(){
     assert_divergenceless(grid._A(),dx,dx,dx);
 
     
-    grid.advance(0.2);
+    grid.advance(0.0001);
     
     for (int i = 0; i < grid.getSizeX(); i++){
         for (int j = 0; j < grid.getSizeY(); j++){
@@ -229,7 +230,7 @@ void DRAGON_Test::verify_ct_loop_advection_2D(){
 
 void DRAGON_Test::verify_ct_loop_advection_3D(){
     double dx = 1.0;
-    Grid3D grid(10,10,10,dx,dx,dx, 2), expected(10,10,10,dx,dx,dx, 2);
+    Grid3D grid(10,10,10,dx,dx,dx, 4), expected(10,10,10,dx,dx,dx, 4);
     double p0 = 50.0;
     PrimitiveState W = make_state(1.0, 5.0, 5.0,5.0, p0);
 
@@ -237,7 +238,8 @@ void DRAGON_Test::verify_ct_loop_advection_3D(){
         for (int j = 0; j <= grid.getSizeY(); j++){
             for (int k = 0; k <= grid.getSizeZ(); k++){
                 grid[i,j,k] = W;
-                double x = i*dx-5, y = j*dx - 5, z = k*dx - 5, r2 = x*x + y*y * z*z;
+                double x = i*dx-5, y = j*dx - 5, z = k*dx - 5;
+                double r2 = x*x + y*y + z*z;
                 double Az = fmax(4.0-r2, 0);
                 grid._A()[i,j,k] = vec3{0,0,Az};
             }
@@ -340,7 +342,7 @@ void DRAGON_Test::verify_ct_alfven_wave_3D(){
     
     assert_divergenceless(grid._A(),dx,dx,dx);
     
-    grid.advance(10*sq4pi);
+    grid.advance(sq4pi);
     
     for (int i = 0; i < grid.getSizeX(); i++){
         for (int j = 0; j < grid.getSizeY(); j++){

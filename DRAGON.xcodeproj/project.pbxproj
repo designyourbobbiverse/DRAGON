@@ -64,6 +64,7 @@
 				FluidElement/Arithmetic.cpp,
 				FluidElement/FluidElement.cpp,
 				Hydro/CFL/CFL.cpp,
+				Hydro/Godunov/CTU.cpp,
 				Hydro/Godunov/Splitting.cpp,
 				Hydro/Godunov/Unsplit.cpp,
 				Hydro/Riemann/Exact.cpp,

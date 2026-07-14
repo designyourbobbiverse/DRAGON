@@ -4,6 +4,9 @@
 //
 //  Created by Bobbie Markwick on 24/06/2026.
 //
+#ifndef __CT_hpp__
+#define __CT_hpp__
+
 #include "Grid.hpp"
 #include "Config.h"
 
@@ -33,4 +36,5 @@ namespace CT {
     void updatePotential(MagneticArray3D& _A, const MagneticArray3D& E, double dt, int ghosts=0);
 
 }
+#endif
 #endif
