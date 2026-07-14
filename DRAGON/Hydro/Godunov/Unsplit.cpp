@@ -26,6 +26,7 @@ bool Grid::on_step_fail(const std::exception &e){
 //MARK: 2D Unsplit Step
 void computeFlux_X(const FluidArray2D& _L, const FluidArray2D& _R, FluxArray2D& F, int xL, int xR, int yL, int yR, double dt_dx);
 void computeFlux_Y(const FluidArray2D& _L, const FluidArray2D& _R, FluxArray2D& F, int xL, int xR, int yL, int yR, double dt_dy);
+void applyFluxes(const FluidArray2D& w, FluidArray2D& _w, const FluxArray2D& F_X, const FluxArray2D& F_Y,  double dt_dx, double dt_dy,  int g = 0);
 void computeHalfStates_X(FluidArray2D& _L, const Grid2D& _W,  FluidArray2D& _R, double dt);
 void computeHalfStates_Y( FluidArray2D& _L,const Grid2D& _W, FluidArray2D& _R, double dt);
 void correctState(FluidArray2D& _L, FluidArray2D& _R, const FluxArray2D& F, double dt_dL, int dim);
@@ -90,17 +91,7 @@ void Grid2D::unsplit_step(double dt){
     //Preliminarily apply all fluxes
         auto __w = DRAGONWING::requestPrimitiveArrays(1,nx, ny, ghosts);
     FluidArray2D& _w = *__w[0];
-
-    for(int i=0; i<nx; i++){
-        for(int j=0; j<ny; j++){
-            ConservativeState  U(w[i,j]);
-            U += (dt/dx) * (F_X[i,j] - F_X[i+1,j]);
-            U += (dt/dy) * (F_Y[i,j] - F_Y[i,j+1]);
-            _w[i,j] = U;
-            
-            if(!U.isFinite()) throw std::runtime_error(std::format("NaN state would be produced at ({},{})",i,j));
-        }
-    }
+    applyFluxes(w, _w, F_X, F_Y, dt/dx, dt/dy);
 
     //Preliminary CT Update
     #ifdef MHD
@@ -141,6 +132,7 @@ void Grid2D::unsplit_step(double dt){
 void computeFlux_X(const FluidArray3D& _L, const FluidArray3D& _R, FluxArray3D& F, int xL, int xR, int yL, int yR, int zL, int zR, double dt_dx);
 void computeFlux_Y(const FluidArray3D& _L, const FluidArray3D& _R, FluxArray3D& F, int xL, int xR, int yL, int yR, int zL, int zR, double dt_dy);
 void computeFlux_Z(const FluidArray3D& _L, const FluidArray3D& _R, FluxArray3D& F, int xL, int xR, int yL, int yR, int zL, int zR, double dt_dz);
+void applyFluxes(const FluidArray3D& w, FluidArray3D& _w, const FluxArray3D& F_X, const FluxArray3D& F_Y, const FluxArray3D& F_Z, double dt_dx, double dt_dy, double dt_dz, int g=0);
 void computeHalfStates_X(FluidArray3D& _L, const Grid3D& _W, FluidArray3D& _R, double dt);
 void computeHalfStates_Y(FluidArray3D& _L, const Grid3D& _W, FluidArray3D& _R, double dt);
 void computeHalfStates_Z(FluidArray3D& _L, const Grid3D& _W, FluidArray3D& _R, double dt);
@@ -186,6 +178,7 @@ void Grid3D::unsplit_step(double dt){
     computeFlux_X(_xL, _xR, F_X, -1, nx+1, -2, ny+2, -2, nz+2, dt/dx);
     computeFlux_Y(_yL, _yR, F_Y, -2, nx+2, -1, ny+1, -2, nz+2, dt/dy);
     computeFlux_Z(_zL, _zR, F_Z, -2, nx+2, -2, ny+2, -1, nz+1, dt/dz);
+    
     
     #ifdef MHD//Half-update A and compute the face-normal fields
     //Do this now so CTU can borrow the flux aux grids
@@ -246,19 +239,8 @@ void Grid3D::unsplit_step(double dt){
     //Preliminarily apply all fluxes
         auto __w = DRAGONWING::requestPrimitiveArrays(1, nx, ny, nz, ghosts);
     FluidArray3D& _w = *__w[0];
-    for(int i=0; i<nx; i++){
-        for(int j=0; j<ny; j++){
-            for(int k=0; k<nz; k++){
-                ConservativeState U(w[i,j,k]);
-                U += (dt/dx) * (F_X[i,j,k] - F_X[i+1,j,k]);
-                U += (dt/dy) * (F_Y[i,j,k] - F_Y[i,j+1,k]);
-                U += (dt/dz) * (F_Z[i,j,k] - F_Z[i,j,k+1]);
-                _w[i,j,k] = U;
-
-                if(!U.isFinite()) throw std::runtime_error(std::format("\tNaN state would be produced at ({},{},{})\n",i,j,k));
-            }
-        }
-    }
+    applyFluxes(w, _w, F_X, F_Y, F_Z, dt/dx, dt/dy, dt/dz);
+    
     //Preliminary CT Update
     #ifdef MHD
         auto __mags = DRAGONWING::requestVec3Arrays(2, nx+1, ny+1, nz+1, ghosts);
@@ -337,6 +319,38 @@ void computeFlux_Z(const FluidArray3D& _L, const FluidArray3D& _R, FluxArray3D& 
         for(int j=yL; j<yR; j++){
             for(int k=zL; k<=zR; k++){
                 F[i,j,k] = Riemann(_R[i,j,k-1], _L[i,j,k]).flux_Z(dt_dz);
+            }
+        }
+    }
+}
+//MARK: Flux Application
+void applyFluxes(const FluidArray2D& w, FluidArray2D& _w, const FluxArray2D& F_X, const FluxArray2D& F_Y,  double dt_dx, double dt_dy,  int g){
+    const int nx = w.getSizeX(), ny = w.getSizeY();
+    
+    for(int i=-g; i<nx+g; i++){
+        for(int j=-g; j<ny+g; j++){
+            ConservativeState U(w[i,j]);
+            U += dt_dx * (F_X[i,j] - F_X[i+1,j]);
+            U += dt_dy * (F_Y[i,j] - F_Y[i,j+1]);
+            _w[i,j] = U;
+
+            if(!U.isFinite()) throw std::runtime_error(std::format("\tNaN state would be produced at ({},{})\n",i,j));
+        }
+    }
+}
+void applyFluxes(const FluidArray3D& w, FluidArray3D& _w, const FluxArray3D& F_X, const FluxArray3D& F_Y, const FluxArray3D& F_Z, double dt_dx, double dt_dy, double dt_dz, int g){
+    const int nx = w.getSizeX(), ny = w.getSizeY(), nz = w.getSizeZ();
+    
+    for(int i=-g; i<nx+g; i++){
+        for(int j=-g; j<ny+g; j++){
+            for(int k=-g; k<nz+g; k++){
+                ConservativeState U(w[i,j,k]);
+                U += dt_dx * (F_X[i,j,k] - F_X[i+1,j,k]);
+                U += dt_dy * (F_Y[i,j,k] - F_Y[i,j+1,k]);
+                U += dt_dz * (F_Z[i,j,k] - F_Z[i,j,k+1]);
+                _w[i,j,k] = U;
+
+                if(!U.isFinite()) throw std::runtime_error(std::format("\tNaN state would be produced at ({},{},{})\n",i,j,k));
             }
         }
     }
