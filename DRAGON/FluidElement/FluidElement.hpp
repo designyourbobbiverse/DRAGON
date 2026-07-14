@@ -141,6 +141,8 @@ vec3 operator*(const double &a, vec3 v); //scalar * vector
 vec3& operator*=(vec3 &v, double a); //vector *= scalar
 //Arithmetic (*): Dot product
 double operator*(const vec3& v, const vec3& w); //Returns v.x*w.x + v.y*w.y + v.z*w.z
+//Arithmetic: Cross product
+vec3 cross(const vec3& v, const vec3& w);
 
 //Arithmetic (/): Divide a conservative state or 3-vector by some scalar
 ConservativeState operator/(ConservativeState X, double a);

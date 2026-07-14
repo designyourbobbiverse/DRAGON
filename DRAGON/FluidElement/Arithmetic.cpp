@@ -88,10 +88,18 @@ vec3& operator*=(vec3 &v, double a){
     v.z *= a;
     return v;
 }
-//MARK: (*): Dot product
+//MARK: Dot + Cross product
 double operator*(const vec3& v, const vec3& w){
     return v.x*w.x + v.y*w.y + v.z*w.z;
 }
+vec3 cross(const vec3& u, const vec3& v){
+    vec3 w;
+    w.x = u.y * v.z - u.z * v.y;
+    w.y = u.z * v.x - u.x * v.z;
+    w.z = u.x * v.y - u.y * v.x;
+    return w;
+}
+
 
 
 //MARK: (/): Divide state by scalar
