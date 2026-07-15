@@ -114,6 +114,10 @@ void MHDJet::apply(Grid3D& grid) {
     double _rm = 1/rm;
     double _rm2 = _rm*_rm;
     double Am = Bm*rm*log(rj/rm);
+    auto toroidalScale = [&](double r) {
+        if (r <= 0 || r > rj) return 0.0;
+        return r < rm ? Bm * _rm : Bm * rm / (r*r);
+    };
     
     if (jetface & X_negative){
         for(int j = j0; j < jn; j++){
@@ -121,9 +125,11 @@ void MHDJet::apply(Grid3D& grid) {
                 //Pressure on Body-centered cells
                 double y = (j+0.5-ny*0.5)*dy, z = (k+0.5-nz*0.5)*dz;
                 double r = sqrt(y*y+z*z);
-                if (r < rm){
+                if (r <= rj){
+                    double Bscale = toroidalScale(r);
                     for(int g = 1; g <= ng; g++){
-                        grid[-g,j,k].p += pmag * (1 - (r*r)*_rm2);
+                        grid[-g,j,k].B = {0, -Bscale*z, Bscale*y};
+                        if (r < rm) grid[-g,j,k].p += pmag * (1 - (r*r)*_rm2);
                     }
                 }
                 //A field is edge-centered
@@ -150,9 +156,11 @@ void MHDJet::apply(Grid3D& grid) {
                 //Pressure on Body-centered cells
                 double y = (j+0.5-ny*0.5)*dy, z = (k+0.5-nz*0.5)*dz;
                 double r = sqrt(y*y+z*z);
-                if (r < rm){
+                if (r <= rj){
+                    double Bscale = toroidalScale(r);
                     for(int g = 1; g <= ng; g++){
-                        grid[nx-1+g,j,k].p += pmag * (1 - (r*r)*_rm2);
+                        grid[nx-1+g,j,k].B = {0, -Bscale*z, Bscale*y};
+                        if (r < rm) grid[nx-1+g,j,k].p += pmag * (1 - (r*r)*_rm2);
                     }
                 }
                 //A field is edge-centered
@@ -179,9 +187,11 @@ void MHDJet::apply(Grid3D& grid) {
                 //Pressure on Body-centered cells
                 double x = (i+0.5-nx*0.5)*dx, z = (k+0.5-nz*0.5)*dz;
                 double r = sqrt(x*x+z*z);
-                if (r < rm){
+                if (r <= rj){
+                    double Bscale = toroidalScale(r);
                     for(int g = 1; g <= ng; g++){
-                        grid[i,-g,k].p += pmag * (1 - (r*r)*_rm2);
+                        grid[i,-g,k].B = {Bscale*z, 0, -Bscale*x};
+                        if (r < rm) grid[i,-g,k].p += pmag * (1 - (r*r)*_rm2);
                     }
                 }
                 //A field is edge-centered
@@ -208,9 +218,11 @@ void MHDJet::apply(Grid3D& grid) {
                 //Pressure on Body-centered cells
                 double x = (i+0.5-nx*0.5)*dx, z = (k+0.5-nz*0.5)*dz;
                 double r = sqrt(x*x+z*z);
-                if (r < rm){
+                if (r <= rj){
+                    double Bscale = toroidalScale(r);
                     for(int g = 1; g <= ng; g++){
-                        grid[i,ny-1+g,k].p += pmag * (1 - (r*r)*_rm2);
+                        grid[i,ny-1+g,k].B = {Bscale*z, 0, -Bscale*x};
+                        if (r < rm) grid[i,ny-1+g,k].p += pmag * (1 - (r*r)*_rm2);
                     }
                 }
                 //A field is edge-centered
@@ -237,9 +249,11 @@ void MHDJet::apply(Grid3D& grid) {
                 //Pressure on Body-centered cells
                 double x = (i+0.5-nx*0.5)*dx, y = (j+0.5-ny*0.5)*dy;
                 double r = sqrt(x*x+y*y);
-                if (r < rm){
+                if (r <= rj){
+                    double Bscale = toroidalScale(r);
                     for(int g = 1; g <= ng; g++){
-                        grid[i,j,-g].p += pmag * (1 - (r*r)*_rm2);
+                        grid[i,j,-g].B = {-Bscale*y, Bscale*x, 0};
+                        if (r < rm) grid[i,j,-g].p += pmag * (1 - (r*r)*_rm2);
                     }
                 }
                 //A field is edge-centered
@@ -267,9 +281,11 @@ void MHDJet::apply(Grid3D& grid) {
                 //Pressure on Body-centered cells
                 double x = (i+0.5-nx*0.5)*dx, y = (j+0.5-ny*0.5)*dy;
                 double r = sqrt(x*x+y*y);
-                if (r < rm){
+                if (r <= rj){
+                    double Bscale = toroidalScale(r);
                     for(int g = 1; g <= ng; g++){
-                        grid[i,j,nz-1+g].p += pmag * (1 - (r*r)*_rm2);
+                        grid[i,j,nz-1+g].B = {-Bscale*y, Bscale*x, 0};
+                        if (r < rm) grid[i,j,nz-1+g].p += pmag * (1 - (r*r)*_rm2);
                     }
                 }
                 //A field is edge-centered

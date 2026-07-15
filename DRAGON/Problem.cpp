@@ -7,19 +7,46 @@
 
 #include "Problem.hpp"
 #include "DistGrid.hpp"
+#include "Jets.hpp"
+#include <cmath>
+#include <iostream>
+#include <fstream>
 
-typedef Grid1D MyGrid;//Choose the dimension of your grid here
+typedef DistGrid3D MyGrid;
+constexpr double rho_jet = 3;
+constexpr double rho_amb = rho_jet/6.0;
+constexpr double p_amb = rho_amb * 1.5e-5 ;
 
 Grid& Problem::makeProblem(){
-    //Construct your grid object. Don't worry about initial setup, you'll do that later
-    auto _grid = new MyGrid(64, 1.0);
-    return *_grid;
+    auto _grid = new MyGrid(100, 100,100, 0.1, 0.1, 0.1);
+    MyGrid& grid = *_grid;
+    
+    grid.boundary = Boundary::Periodic();
+    
+    return grid;
 }
 
 void Problem::initializeProblem(Grid& problem){
     MyGrid& grid = *dynamic_cast<MyGrid*>(&problem);
     //This is where you should initialize the initial data of the grid
-    
+
+    PrimitiveState W{};
+    W.rho = 1.0;
+    W.v = {5,0,5};
+    W.p = 50;
+
+    for (int i = 0; i <= grid.getSizeX(); i++){
+        for (int j = 0; j <= grid.getSizeY(); j++){
+            for (int k = 0; k <= grid.getSizeZ(); k++){
+                grid[i,j,k] = W;
+                double x = i*0.1-5, y = j*0.1 - 5, z = k*0.1 - 5;
+                double r2 = x*x + y*y + z*z;
+                double Az = fmax(4.0-r2, 0);
+                grid._A()[i,j,k] = vec3{0,0,Az};
+            }
+        }
+    }
+    grid.initialize_B_fields();
 }
 
 
