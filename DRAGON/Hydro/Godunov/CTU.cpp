@@ -146,8 +146,8 @@ void ctu_sweep_MHD(FluidArray3D& _xL, FluidArray3D& _xR, FluidArray3D& _yL, Flui
                 double lim_z = TVD::minmod(-dBy, dBx);
                 corr.p = 0.5 * _1_4pi * dBx * W.B;
                 corr.E = 0.5 * _1_4pi * (W.B.y * W.v.y * lim_y + W.B.z * W.v.z * lim_z);
-                corr.B.y = -0.25 * dt_dz * (E[i,j,k+1].x - E[i,j,k].x + E[i+1,j,k+1].x - E[i+1,j,k].x) + 0.5 * W.v.y * lim_y;
-                corr.B.z = 0.25 * dt_dy * (E[i,j+1,k].x - E[i,j,k].x + E[i+1,j+1,k].x - E[i+1,j,k].x) + 0.5 * W.v.z * lim_z;
+                corr.B.y = -0.25 * dt_dz * (E[i,j,k+1].x - E[i,j,k].x + E[i,j+1,k+1].x - E[i,j+1,k].x) + 0.5 * W.v.y * lim_y;
+                corr.B.z = 0.25 * dt_dy * (E[i,j+1,k].x - E[i,j,k].x + E[i,j+1,k+1].x - E[i,j,k+1].x) + 0.5 * W.v.z * lim_z;
                 uL = _xL[i,j,k] + corr;
                 uR = _xR[i,j,k] + corr;
                 uL.B.x = Bhalf[i,j,k].x;
@@ -159,8 +159,8 @@ void ctu_sweep_MHD(FluidArray3D& _xL, FluidArray3D& _xR, FluidArray3D& _yL, Flui
                 corr = ConservativeState();
                 corr.p = 0.5* (_1_4pi * dBy) * W.B;
                 corr.E = 0.5 * _1_4pi * (W.B.x * W.v.x * lim_x + W.B.z * W.v.z * lim_z);
-                corr.B.x = 0.25 * dt_dz * (E[i,j,k+1].y - E[i,j,k].y + E[i,j+1,k+1].y - E[i,j+1,k].y) + 0.5 * W.v.x * lim_x;
-                corr.B.z = -0.25 * dt_dx * (E[i+1,j,k].y - E[i,j,k].y + E[i+1,j+1,k].y - E[i,j+1,k].y) + 0.5 * W.v.z * lim_z;
+                corr.B.x = 0.25 * dt_dz * (E[i,j,k+1].y - E[i,j,k].y + E[i+1,j,k+1].y - E[i+1,j,k].y) + 0.5 * W.v.x * lim_x;
+                corr.B.z = -0.25 * dt_dx * (E[i+1,j,k].y - E[i,j,k].y + E[i+1,j,k+1].y - E[i,j,k+1].y) + 0.5 * W.v.z * lim_z;
                 uL = _yL[i,j,k] + corr;
                 uR = _yR[i,j,k] + corr;
                 uL.B.y = Bhalf[i,j,k].y;
@@ -173,8 +173,8 @@ void ctu_sweep_MHD(FluidArray3D& _xL, FluidArray3D& _xR, FluidArray3D& _yL, Flui
                 corr = ConservativeState();
                 corr.p = 0.5 * (_1_4pi * dBz) * W.B;
                 corr.E = 0.5 * _1_4pi * (W.B.x * W.v.x * lim_x + W.B.y * W.v.y * lim_y);
-                corr.B.x =  -0.25 * dt_dy * (E[i,j+1,k].z - E[i,j,k].z + E[i,j+1,k+1].z - E[i,j,k+1].z) + 0.5 * W.v.x * lim_x;
-                corr.B.y =  0.25 * dt_dx * (E[i+1,j,k].z - E[i,j,k].z + E[i+1,j,k+1].z - E[i,j,k+1].z) + 0.5 * W.v.y * lim_y;
+                corr.B.x =  -0.25 * dt_dy * (E[i,j+1,k].z - E[i,j,k].z + E[i+1,j+1,k].z - E[i+1,j,k].z) + 0.5 * W.v.x * lim_x;
+                corr.B.y =  0.25 * dt_dx * (E[i+1,j,k].z - E[i,j,k].z + E[i+1,j+1,k].z - E[i,j+1,k].z) + 0.5 * W.v.y * lim_y;
                 uL = _zL[i,j,k] + corr;
                 uR = _zR[i,j,k] + corr;
                 uL.B.z = Bhalf[i,j,k].z;
