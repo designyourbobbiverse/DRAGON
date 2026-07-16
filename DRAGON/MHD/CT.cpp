@@ -16,6 +16,9 @@
 
 constexpr double CTU_TOL = 1e-18;
 inline double upwindCorr(double massFlux, double faceEminus, double faceEplus, double refMinus, double refPlus);
+inline double upwindCorrX(double massFlux, double faceEminus, double faceEplus, double refMinus, double refPlus);
+inline double upwindCorrY(double massFlux, double faceEminus, double faceEplus, double refMinus, double refPlus);
+inline double upwindCorrZ(double massFlux, double faceEminus, double faceEplus, double refMinus, double refPlus);
 
 #ifdef MHD
 
@@ -61,20 +64,20 @@ void CT::computeElectric(MagneticArray3D& E, const FluxArray3D& F_X,const FluxAr
         for(int j=-g; j<=ny+g; j++){
             for(int k=-g; k<=nz+g; k++){
                 // X upwinds
-                E[i,j,k].y += upwindCorr(F_X[i,j,k].rho, -F_Z[i-1,j,k].B.x, -F_Z[i,j,k].B.x, Eref[i-1,j,k].y, Eref[i,j,k].y);
-                E[i,j,k].y -= upwindCorr(F_X[i,j,k-1].rho, -F_Z[i-1,j,k].B.x, -F_Z[i,j,k].B.x, Eref[i-1,j,k-1].y, Eref[i,j,k-1].y);
-                E[i,j,k].z += upwindCorr(F_X[i,j,k].rho, F_Y[i-1,j,k].B.x, F_Y[i,j,k].B.x, Eref[i-1,j,k].z, Eref[i,j,k].z);
-                E[i,j,k].z -= upwindCorr(F_X[i,j-1,k].rho, F_Y[i-1,j,k].B.x, F_Y[i,j,k].B.x, Eref[i-1,j-1,k].z, Eref[i,j-1,k].z);
+                E[i,j,k].y += upwindCorrX(F_X[i,j,k].rho, -F_Z[i-1,j,k].B.x, -F_Z[i,j,k].B.x, Eref[i-1,j,k].y, Eref[i,j,k].y);
+                E[i,j,k].y += upwindCorrX(F_X[i,j,k-1].rho, -F_Z[i-1,j,k].B.x, -F_Z[i,j,k].B.x, Eref[i-1,j,k-1].y, Eref[i,j,k-1].y);
+                E[i,j,k].z += upwindCorrX(F_X[i,j,k].rho, F_Y[i-1,j,k].B.x, F_Y[i,j,k].B.x, Eref[i-1,j,k].z, Eref[i,j,k].z);
+                E[i,j,k].z += upwindCorrX(F_X[i,j-1,k].rho, F_Y[i-1,j,k].B.x, F_Y[i,j,k].B.x, Eref[i-1,j-1,k].z, Eref[i,j-1,k].z);
                 // Y upwinds
-                E[i,j,k].x += upwindCorr(F_Y[i,j,k].rho, F_Z[i,j-1,k].B.y, F_Z[i,j,k].B.y, Eref[i,j-1,k].x, Eref[i,j,k].x);
-                E[i,j,k].x -= upwindCorr(F_Y[i,j,k-1].rho, F_Z[i,j-1,k].B.y, F_Z[i,j,k].B.y, Eref[i,j-1,k-1].x, Eref[i,j,k-1].x);
-                E[i,j,k].z += upwindCorr(F_Y[i,j,k].rho, -F_X[i,j-1,k].B.y, -F_X[i,j,k].B.y, Eref[i,j-1,k].z, Eref[i,j,k].z);
-                E[i,j,k].z -= upwindCorr(F_Y[i-1,j,k].rho, -F_X[i,j-1,k].B.y, -F_X[i,j,k].B.y, Eref[i-1,j-1,k].z, Eref[i-1,j,k].z);
+                E[i,j,k].x += upwindCorrY(F_Y[i,j,k].rho, F_Z[i,j-1,k].B.y, F_Z[i,j,k].B.y, Eref[i,j-1,k].x, Eref[i,j,k].x);
+                E[i,j,k].x += upwindCorrY(F_Y[i,j,k-1].rho, F_Z[i,j-1,k].B.y, F_Z[i,j,k].B.y, Eref[i,j-1,k-1].x, Eref[i,j,k-1].x);
+                E[i,j,k].z += upwindCorrY(F_Y[i,j,k].rho, -F_X[i,j-1,k].B.y, -F_X[i,j,k].B.y, Eref[i,j-1,k].z, Eref[i,j,k].z);
+                E[i,j,k].z += upwindCorrY(F_Y[i-1,j,k].rho, -F_X[i,j-1,k].B.y, -F_X[i,j,k].B.y, Eref[i-1,j-1,k].z, Eref[i-1,j,k].z);
                 // Z upwinds
-                E[i,j,k].x += upwindCorr(F_Z[i,j,k].rho, -F_Y[i,j,k-1].B.z, -F_Y[i,j,k].B.z, Eref[i,j,k-1].x, Eref[i,j,k].x);
-                E[i,j,k].x -= upwindCorr(F_Z[i,j-1,k].rho, -F_Y[i,j,k-1].B.z, -F_Y[i,j,k].B.z, Eref[i,j-1,k-1].x, Eref[i,j-1,k].x);
-                E[i,j,k].y += upwindCorr(F_Z[i,j,k].rho, F_X[i,j,k-1].B.z, F_X[i,j,k].B.z, Eref[i,j,k-1].y, Eref[i,j,k].y);
-                E[i,j,k].y -= upwindCorr(F_Z[i-1,j,k].rho, F_X[i,j,k-1].B.z, F_X[i,j,k].B.z, Eref[i-1,j,k-1].y, Eref[i-1,j,k].y);
+                E[i,j,k].x += upwindCorrZ(F_Z[i,j,k].rho, -F_Y[i,j,k-1].B.z, -F_Y[i,j,k].B.z, Eref[i,j,k-1].x, Eref[i,j,k].x);
+                E[i,j,k].x += upwindCorrZ(F_Z[i,j-1,k].rho, -F_Y[i,j,k-1].B.z, -F_Y[i,j,k].B.z, Eref[i,j-1,k-1].x, Eref[i,j-1,k].x);
+                E[i,j,k].y += upwindCorrZ(F_Z[i,j,k].rho, F_X[i,j,k-1].B.z, F_X[i,j,k].B.z, Eref[i,j,k-1].y, Eref[i,j,k].y);
+                E[i,j,k].y += upwindCorrZ(F_Z[i-1,j,k].rho, F_X[i,j,k-1].B.z, F_X[i,j,k].B.z, Eref[i-1,j,k-1].y, Eref[i-1,j,k].y);
             }
         }
     }
@@ -92,6 +95,26 @@ inline double upwindCorr(double massFlux, double faceEminus, double faceEplus, d
     return 0.125 * (faceEminus + faceEplus - refMinus - refPlus);
 }
 
+inline double upwindCorrX(double massFlux, double faceEminus, double faceEplus, double refMinus, double refPlus) {
+    if (massFlux > CTU_TOL) return 0.25 * (faceEminus - refMinus);
+    if (massFlux < -CTU_TOL) return 0.25 * (faceEplus - refPlus);
+    return 0.125 * (faceEminus + faceEplus - refMinus - refPlus);
+}
+
+
+inline double upwindCorrY(double massFlux, double faceEminus, double faceEplus, double refMinus, double refPlus) {
+    if (massFlux > CTU_TOL) return 0.25 * (faceEminus - refMinus);
+    if (massFlux < -CTU_TOL) return 0.25 * (faceEplus - refPlus);
+    return 0.125 * (faceEminus + faceEplus - refMinus - refPlus);
+}
+
+
+
+inline double upwindCorrZ(double massFlux, double faceEminus, double faceEplus, double refMinus, double refPlus) {
+    if (massFlux > CTU_TOL) return 0.25 * (faceEminus - refMinus);
+    if (massFlux < -CTU_TOL) return 0.25 * (faceEplus - refPlus);
+    return 0.125 * (faceEminus + faceEplus - refMinus - refPlus);
+}
 
 
 
