@@ -26,58 +26,43 @@ bool Grid::on_step_fail(const std::exception &e){
 //MARK: 2D Unsplit Step
 
 void Grid2D::unsplit_step(double dt){
-    int nx = w.getSizeX(), ny = w.getSizeY(), ghosts = w.getGhosts();
+    const int nx = w.getSizeX(), ny = w.getSizeY(), ghosts = w.getGhosts();
     
     if(!DRAGONWING::waitForRelease()) return;
-    //Half States
+    
+    #ifdef MHD//Compute face-normal fields
+        auto __B = DRAGONWING::requestVec3Arrays(1, nx+1, ny+1, ghosts);
+    MagneticArray2D& B = *__B[0];
+    CT::computeFaceFields(A, B, dx, dy);
+    #endif
+    
+    //Compute Half States
         auto __half_states = DRAGONWING::requestPrimitiveArrays(4, nx, ny, ghosts);
     FluidArray2D& _xL = *__half_states[0];
     FluidArray2D& _xR = *__half_states[1];
     FluidArray2D& _yL = *__half_states[2];
     FluidArray2D& _yR = *__half_states[3];
-    
-    //Compute Half States
     computeHalfStates_X(_xL, (*this), _xR, dt);//_xLR needs (-1...nx, -1...ny), (-2...nx+1, -1...ny)for MHD
     computeHalfStates_Y(_yL, (*this), _yR, dt);//_yLR needs (-1...nx, -1...ny), (-1...nx, -2...ny+1) for MHD
-    #ifdef MHD//Compute face-normal fields
-        auto __B = DRAGONWING::requestVec3Arrays(1, nx+1, ny+1, ghosts);
-    MagneticArray2D& B = *__B[0];
-    CT::computeFaceFields(A, B, dx, dy);
+    
+    
+    #ifdef CTU //Colella (1990). https://doi.org/10.1016/0021-9991(90)90233-Q
+        #ifdef MHD //Gardiner and Stone (2005). https://doi.org/10.1016/j.jcp.2004.11.016
+            auto __w_half = DRAGONWING::requestPrimitiveArrays(1, nx, ny, ghosts);
+        FluidArray2D& _w_half = *__w_half[0];
+        ctu_sweep_MHD(_xL, _xR, _yL, _yR, A, B, w, _w_half, dt, dx, dy);
+        #else
+        ctu_sweep_hydro(_xL, _xR, _yL, _yR, dt/dx, dt/dy);
+        #endif
+    #elif defined(MHD) //ctu_sweep_MHD already takes care of this
     CT::copyFaceFields_X(_xL, B, _xR);
     CT::copyFaceFields_Y(_yL, B, _yR);
     #endif
     
-    //Fluxes
+    //Compute Fluxes
         auto __fluxes = DRAGONWING::requestFluxArrays(2, nx, ny, ghosts);
     FluxArray2D& F_X = *__fluxes[0];
     FluxArray2D& F_Y = *__fluxes[1];
-#ifdef CTU //Colella (1990). https://doi.org/10.1016/0021-9991(90)90233-Q
-    //Compute preliminary Fluxes
-    computeFlux_X(_xL, _xR, F_X, -1, nx+1, -2, ny+2, dt/dx);  //F_X needs (0...nx, -1...ny), (-1...nx+1, -1...ny)for MHD
-    computeFlux_Y(_yL, _yR, F_Y, -2, nx+2, -1, ny+1, dt/dy);  //F_Y needs (-1...nx, 0...ny), (-1...nx, -1...ny+1) for MHD
-    #ifdef MHD//Half-update A and compute the face-normal fields
-        auto __CTU_A = DRAGONWING::requestVec3Arrays(2, nx+1, ny+1, ghosts);
-    MagneticArray2D& _A_half = *__CTU_A[0];
-    _A_half.clone(A);
-    //Compute the new A
-    MagneticArray2D& _E = *__CTU_A[1];
-    CT::computeElectric(_E, F_X, F_Y, 1);
-    CT::updatePotential(_A_half, _E, dt/2,1);
-    //Update the B fields
-    CT::computeFaceFields(_A_half, B, dx, dy);
-        __CTU_A.release();
-    #endif
-    
-    //Correct states
-    correctState(_xL, _xR, F_Y, (0.5*dt/dy), 1); //_xLR needs (-1...nx, 0...ny-1), (-1...nx, -1...ny) for MHD
-    correctState(_yL, _yR, F_X, (0.5*dt/dx), 0); //_yLR needs (0...nx-1, -1...ny), (-1...nx, -1...ny) for MHD
- 
-    #ifdef MHD //Apply half-step face-normal B
-    CT::copyFaceFields_X(_xL, B, _xR);
-    CT::copyFaceFields_Y(_yL, B, _yR);
-    #endif
-#endif
-    //Compute Fluxes
     computeFlux_X(_xL, _xR, F_X, 0, nx, -1, ny+1, dt/dx); //F_X needs (0...nx, 0...ny-1), (0...nx, -1...ny) for MHD
     computeFlux_Y(_yL, _yR, F_Y, -1, nx+1, 0, ny, dt/dy); //F_Y needs (0...nx-1, 0...ny), (-1...nx, 0...ny) for MHD
         __half_states.release();
@@ -92,18 +77,23 @@ void Grid2D::unsplit_step(double dt){
         auto __A = DRAGONWING::requestVec3Arrays(2, nx+1, ny+1, ghosts);
     MagneticArray2D& _A = *__A[0];
     _A.clone(A);
-    //Compute the new A
+    //Compute Electric Fields
     MagneticArray2D& E = *__A[1];
+    #ifdef CTU
+    CT::computeElectric(E, F_X, F_Y, _w_half);
+        __w_half.release();
+    #else
     CT::computeElectric(E, F_X, F_Y);
+    #endif
+    //Update A then B fields
     CT::updatePotential(_A, E, dt);
-    //Update the B fields
     CT::computeFaceFields(_A, B, dx, dy);
     CT::computeBodyFields(B, _w);
         __B.release();
     #endif
         __fluxes.release();
 
-
+    //Verify Physicality of solution
     for(int i=0; i<nx; i++){
         for(int j=0; j<ny; j++){
             if(!_w[i,j].isPhysical()) throw std::runtime_error(std::format("Unphysical state would be produced at ({},{})",i,j));
@@ -128,7 +118,15 @@ void Grid3D::unsplit_step(double dt){
     int nx = w.getSizeX(), ny = w.getSizeY(), nz = w.getSizeZ(), ghosts = w.getGhosts();
     
     if(!DRAGONWING::waitForRelease()) return;
-    //Half States
+    
+    #ifdef MHD//Compute face-normal fields
+        auto __B = DRAGONWING::requestVec3Arrays(1, nx+1, ny+1, nz+1, ghosts);
+    MagneticArray3D& B = *__B[0];
+    CT::computeFaceFields(A, B, dx, dy, dz);
+    #endif
+
+    
+    //Compute Half States
         auto __half_states = DRAGONWING::requestPrimitiveArrays(6, nx, ny, nz, ghosts);
     FluidArray3D& _xL = *__half_states[0];
     FluidArray3D& _xR = *__half_states[1];
@@ -136,19 +134,12 @@ void Grid3D::unsplit_step(double dt){
     FluidArray3D& _yR = *__half_states[3];
     FluidArray3D& _zL = *__half_states[4];
     FluidArray3D& _zR = *__half_states[5];
-           
-    //Compute Half States
     computeHalfStates_X(_xL, (*this), _xR, dt);
     computeHalfStates_Y(_yL, (*this), _yR, dt);
     computeHalfStates_Z(_zL, (*this), _zR, dt);
-    #ifdef MHD//Compute face-normal fields
-        auto __B = DRAGONWING::requestVec3Arrays(1, nx+1, ny+1, nz+1, ghosts);
-    MagneticArray3D& B = *__B[0];
-    CT::computeFaceFields(A, B, dx, dy, dz);
-    #endif
-
+    
     #ifdef CTU //Colella (1990). https://doi.org/10.1016/0021-9991(90)90233-Q
-        #if defined(MHD)
+        #if defined(MHD) //Gardiner and Stone (2005). https://doi.org/10.1016/j.jcp.2004.11.016
             auto __w_half = DRAGONWING::requestPrimitiveArrays(1, nx, ny, nz, ghosts);
         FluidArray3D& _w_half = *__w_half[0];
         ctu_sweep_MHD(_xL, _xR, _yL, _yR, _zL, _zR, A, B, w, _w_half, dt, dx, dy, dz);
@@ -156,9 +147,6 @@ void Grid3D::unsplit_step(double dt){
         ctu_sweep_hydro(_xL, _xR, _yL, _yR, _zL, _zR, dt/dx, dt/dy, dt/dz);
         #endif
     #elif defined(MHD) //ctu_sweep_MHD already takes care of this
-        auto __w_half = DRAGONWING::requestPrimitiveArrays(1, nx, ny, nz, ghosts);
-    FluidArray3D& _w_half = *__w_half[0];
-    _w_half.clone(w);
     CT::copyFaceFields_X(_xL, B, _xR);
     CT::copyFaceFields_Y(_yL, B, _yR);
     CT::copyFaceFields_Z(_zL, B, _zR);
@@ -184,12 +172,16 @@ void Grid3D::unsplit_step(double dt){
         auto __mags = DRAGONWING::requestVec3Arrays(2, nx+1, ny+1, nz+1, ghosts);
     MagneticArray3D& _A = *__mags[0];
     _A.clone(A);
-    //Compute the new A
+    //Compute Electric Fields
     MagneticArray3D& E = *__mags[1];
+    #ifdef CTU
     CT::computeElectric(E, F_X, F_Y, F_Z, _w_half);
         __w_half.release();
+    #else
+    CT::computeElectric(E, F_X, F_Y, F_Z);
+    #endif
+    //Update A then B fields
     CT::updatePotential(_A, E, dt);
-    //Update the B fields
     CT::computeFaceFields(_A, B, dx, dy, dz);
     CT::computeBodyFields(B, _w);
         __B.release();
@@ -205,9 +197,11 @@ void Grid3D::unsplit_step(double dt){
             }
         }
     }
+    
     //Wait for any parallel grids to finish
     DRAGONWING::reportCheckpoint1();
     if(!DRAGONWING::waitForCheckpoint1()) return;
+    
     //Commit Flux updates
     w.clone(_w, false);
     #ifdef MHD

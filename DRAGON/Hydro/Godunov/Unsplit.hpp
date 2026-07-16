@@ -19,7 +19,7 @@ void applyFluxes(const FluidArray2D& w, FluidArray2D& _w, const FluxArray2D& F_X
 void computeHalfStates_X(FluidArray2D& _L, const Grid2D& _W,  FluidArray2D& _R, double dt);
 void computeHalfStates_Y( FluidArray2D& _L,const Grid2D& _W, FluidArray2D& _R, double dt);
 void correctState(FluidArray2D& _L, FluidArray2D& _R, const FluxArray2D& F, double dt_dL, int dim);
-
+void ctu_sweep_hydro(FluidArray2D& _xL, FluidArray2D& _xR, FluidArray2D& _yL, FluidArray2D& _yR,  double dt_dx, double dt_dy);
 //2D MHD
 #ifdef MHD
 void ctu_sweep_MHD(FluidArray2D& _xL, FluidArray2D& _xR, FluidArray2D& _yL, FluidArray2D& _yR, const MagneticArray2D& A, MagneticArray2D &B, const FluidArray2D& w, FluidArray2D& whalf, double dt, double dx, double dy);

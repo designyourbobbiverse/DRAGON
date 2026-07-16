@@ -5,7 +5,7 @@
 //  Created by Bobbie Markwick on 10/06/2026.
 //  Implementation based in part on  Toro (2009). https://doi.org/10.1007/b79761
 //      Colella (1990). https://doi.org/10.1016/0021-9991(90)90233-Q
-//  MHD CTU based on Gardiner and Stone (2005). https://doi.org/10.1016/j.jcp.2004.11.016
+//      Gardiner and Stone (2005). https://doi.org/10.1016/j.jcp.2004.11.016
 
 
 #include "Grid.hpp"
@@ -25,7 +25,23 @@
 #endif
 #endif
 
-//MARK: CTU Hydro 12-Solve
+//MARK: CTU 2D Hydro
+void ctu_sweep_hydro(FluidArray2D& _xL, FluidArray2D& _xR, FluidArray2D& _yL, FluidArray2D& _yR, double dt_dx, double dt_dy){
+    const int nx = _xL.getSizeX(), ny = _yL.getSizeY(), ghosts = _xL.getGhosts();
+    //Compute preliminary Fluxes
+        auto __fluxes = DRAGONWING::requestFluxArrays(2, nx, ny, ghosts);
+    auto& F_X = *__fluxes[0];
+    auto& F_Y = *__fluxes[1];
+    computeFlux_X(_xL, _xR, F_X, -1, nx+1, -2, ny+2, dt_dx);
+    computeFlux_Y(_yL, _yR, F_Y, -2, nx+2, -1, ny+1, dt_dy);
+    
+    //Correct states
+    correctState(_xL, _xR, F_Y, (0.5*dt_dy), 1);
+    correctState(_yL, _yR, F_X, (0.5*dt_dx), 0);
+}
+
+
+//MARK: CTU Hydro 12-Solve (3D)
 void ctu_sweep_hydro(FluidArray3D& _xL, FluidArray3D& _xR, FluidArray3D& _yL, FluidArray3D& _yR, FluidArray3D& _zL, FluidArray3D& _zR, double dt_dx, double dt_dy, double dt_dz){
     const int nx = _xL.getSizeX(), ny = _xL.getSizeY(), nz = _xL.getSizeZ(), ghosts = _xL.getGhosts();
     
