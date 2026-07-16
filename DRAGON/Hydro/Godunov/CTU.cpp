@@ -67,7 +67,7 @@ void ctu_sweep_hydro(FluidArray3D& _xL, FluidArray3D& _xR, FluidArray3D& _yL, Fl
     correctState(_zL, _zR, F_Yx, (0.5*dt_dy), 1);
 }
 
-//MARK: CTU MHD 6-Solve
+//MARK: CTU MHD 6-Solve (3D)
 #ifdef MHD
 void ctu_sweep_MHD(FluidArray3D& _xL, FluidArray3D& _xR, FluidArray3D& _yL, FluidArray3D& _yR, FluidArray3D& _zL, FluidArray3D& _zR, const MagneticArray3D &A, MagneticArray3D &B, const FluidArray3D& w, FluidArray3D& whalf, double dt, double dx, double dy, double dz){
     const int nx = _xL.getSizeX(), ny = _xL.getSizeY(), nz = _xL.getSizeZ(), g = _xL.getGhosts();
@@ -191,6 +191,89 @@ void ctu_sweep_MHD(FluidArray3D& _xL, FluidArray3D& _xR, FluidArray3D& _yL, Flui
 }
 #endif
 
+//MARK: CTU MHD 4-Solve (2D)
+#ifdef MHD
+void ctu_sweep_MHD(FluidArray2D& _xL, FluidArray2D& _xR, FluidArray2D& _yL, FluidArray2D& _yR, const MagneticArray2D& A, MagneticArray2D &B, const FluidArray2D& w, FluidArray2D& whalf, double dt, double dx, double dy){
+    const int nx = _xL.getSizeX(), ny = _xL.getSizeY(), g = _xL.getGhosts();
+    const double dt_dx = dt/dx, dt_dy = dt/dy;
+    //Faux Source Terms in MUSCL
+    for(int i=-g; i<nx+g; i++){
+        for(int j=-g; j<ny+g; j++){
+            double dBx = (B[i+1,j].x - B[i,j].x) * dt_dx;
+            double dBy = (B[i,j+1].y - B[i,j].y) * dt_dy;
+
+            _xL[i,j].B.y += 0.5 * _xL[i,j].v.y * TVD::minmod(dBx, -dBy);
+            _xR[i,j].B.y += 0.5 * _xR[i,j].v.y * TVD::minmod(dBx, -dBy);
+            
+            _yL[i,j].B.x += 0.5 * _yL[i,j].v.x * TVD::minmod(dBy, -dBx);
+            _yR[i,j].B.x += 0.5 * _yR[i,j].v.x * TVD::minmod(dBy, -dBx);
+        }
+    }
+    CT::copyFaceFields_X(_xL, B, _xR);
+    CT::copyFaceFields_Y(_yL, B, _yR);
+    
+    //Preliminary Fluxes
+        auto __fluxes = DRAGONWING::requestFluxArrays(2, nx, ny, g);
+    FluxArray2D& F_X = *__fluxes[0];
+    FluxArray2D& F_Y = *__fluxes[1];
+    computeFlux_X(_xL, _xR, F_X, -2, nx+2, -2, ny+2, dt_dx);
+    computeFlux_Y(_yL, _yR, F_Y, -2, nx+2, -2, ny+2, dt_dy);
+    
+    //Preliminary CT Update
+        auto __mags = DRAGONWING::requestVec3Arrays(3, nx+1, ny+1, g);
+    MagneticArray2D &_A = *__mags[0], &E = *__mags[1], &Bhalf = *__mags[2];
+    CT::computeElectric(E, F_X, F_Y, w, 1);
+    _A.clone(A);
+    CT::updatePotential(_A, E, dt/2,1);
+    CT::computeFaceFields(_A, Bhalf, dx, dy);
+    
+    
+    //CTU corrections (Fluid components)
+    correctState(_xL, _xR, F_Y, 0.5*dt_dy, 1);
+    correctState(_yL, _yR, F_X, 0.5*dt_dx, 0);
+
+    
+    //Correct Magnetic fields
+    for(int i=-1; i<nx+1; i++){
+        for(int j=-1; j<ny+1; j++){
+            double dBx = (B[i+1,j].x - B[i,j].x) * dt_dx;
+            double dBy = (B[i,j+1].y - B[i,j].y) * dt_dy;
+
+            ConservativeState uL, uR;
+            
+            auto& W = w[i,j];
+            
+            
+            auto corr = ConservativeState();
+            double lim_z = TVD::minmod(-dBy, dBx);
+            corr.p = 0.5 * _1_4pi * dBx * W.B;
+            corr.E = 0.5 * _1_4pi * (W.B.z * W.v.z * lim_z);
+            corr.B.z = 0.5 * dt_dy * (E[i,j+1].x - E[i,j].x) + 0.5 * W.v.z * lim_z;
+            uL = _xL[i,j] + corr;
+            uR = _xR[i,j] + corr;
+            uL.B.x = Bhalf[i,j].x;
+            uR.B.x = Bhalf[i+1,j].x;
+            _xL[i,j] = uL; _xR[i,j] = uR;
+
+            lim_z = TVD::minmod(-dBx, dBy);
+            corr = ConservativeState();
+            corr.p = 0.5* (_1_4pi * dBy) * W.B;
+            corr.E = 0.5 * _1_4pi * (W.B.z * W.v.z * lim_z);
+            corr.B.z = -0.5 * dt_dx * (E[i+1,j].y - E[i,j].y) + 0.5 * W.v.z * lim_z;
+            uL = _yL[i,j] + corr;
+            uR = _yR[i,j] + corr;
+            uL.B.y = Bhalf[i,j].y;
+            uR.B.y = Bhalf[i,j+1].y;
+            _yL[i,j] = uL; _yR[i,j] = uR;
+        }
+    }
+    
+    B.clone(Bhalf);
+    //Construct whalf
+    applyFluxes(w, whalf, F_X, F_Y, 0.5*dt_dx, 0.5*dt_dy, 1);
+    CT::computeBodyFields(Bhalf, whalf);
+}
+#endif
 
 
 
@@ -206,6 +289,9 @@ void correctState(FluidArray2D& _L, FluidArray2D& _R, const FluxArray2D& F, doub
     for(int i=xL; i<xR; i++){
         for(int j=yL; j<yR; j++){
             auto trans = (F[i+isX,j+isY] - F[i,j]) * dt_dL;
+            #ifdef MHD
+            trans.B = {0,0,0};
+            #endif
             _L[i,j] = _L[i,j] -  trans;
             _R[i,j] = _R[i,j] -  trans;
         }
