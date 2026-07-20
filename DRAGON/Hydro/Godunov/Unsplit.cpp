@@ -30,12 +30,6 @@ void Grid2D::unsplit_step(double dt){
     
     if(!DRAGONWING::waitForRelease()) return;
     
-    #ifdef MHD//Compute face-normal fields
-        auto __B = DRAGONWING::requestVec3Arrays(1, nx+1, ny+1, ghosts);
-    MagneticArray2D& B = *__B[0];
-    CT::computeFaceFields(A, B, dx, dy);
-    #endif
-    
     //Compute Half States
         auto __half_states = DRAGONWING::requestPrimitiveArrays(4, nx, ny, ghosts);
     FluidArray2D& _xL = *__half_states[0];
@@ -46,18 +40,23 @@ void Grid2D::unsplit_step(double dt){
     computeHalfStates_Y(_yL, (*this), _yR, dt);//_yLR needs (-1...nx, -1...ny), (-1...nx, -2...ny+1) for MHD
     
     
-    #ifdef CTU //Colella (1990). https://doi.org/10.1016/0021-9991(90)90233-Q
-        #ifdef MHD //Gardiner and Stone (2005). https://doi.org/10.1016/j.jcp.2004.11.016
-            auto __A = DRAGONWING::requestVec3Arrays(1, nx+1, ny+1, ghosts);
-        MagneticArray2D& _E_half = *__A[0];
-        ctu_sweep_MHD(_xL, _xR, _yL, _yR, A, B, w, _E_half, dt, dx, dy);
-        #else
-        ctu_sweep_hydro(_xL, _xR, _yL, _yR, dt/dx, dt/dy);
-        #endif
-    #elif defined(MHD) //ctu_sweep_MHD already takes care of this
+    //Corrections: CTU and/or face fields
+#ifdef MHD
+        auto __B = DRAGONWING::requestVec3Arrays(1, nx+1, ny+1, ghosts);
+    MagneticArray2D& B = *__B[0];
+    CT::computeFaceFields(A, B, dx, dy);
+    #ifdef CTU //Gardiner and Stone (2005). https://doi.org/10.1016/j.jcp.2004.11.016
+        auto __A = DRAGONWING::requestVec3Arrays(1, nx+1, ny+1, ghosts);
+    MagneticArray2D& _E_half = *__A[0]; //We'll be done with this by the time we actually need _A
+    ctu_sweep_MHD(_xL, _xR, _yL, _yR, A, B, w, _E_half, dt, dx, dy);
+    #else //Copy Face fields. CTU already took care of this
     CT::copyFaceFields_X(_xL, B, _xR);
     CT::copyFaceFields_Y(_yL, B, _yR);
     #endif
+        __B.release();
+#elif defined(CTU)
+    ctu_sweep_hydro(_xL, _xR, _yL, _yR, dt/dx, dt/dy);
+#endif
     
     //Compute Fluxes
         auto __fluxes = DRAGONWING::requestFluxArrays(2, nx, ny, ghosts);
@@ -121,13 +120,6 @@ void Grid3D::unsplit_step(double dt){
     
     if(!DRAGONWING::waitForRelease()) return;
     
-    #ifdef MHD//Compute face-normal fields
-        auto __B = DRAGONWING::requestVec3Arrays(1, nx+1, ny+1, nz+1, ghosts);
-    MagneticArray3D& B = *__B[0];
-    CT::computeFaceFields(A, B, dx, dy, dz);
-    #endif
-
-    
     //Compute Half States
         auto __half_states = DRAGONWING::requestPrimitiveArrays(6, nx, ny, nz, ghosts);
     FluidArray3D& _xL = *__half_states[0];
@@ -140,21 +132,24 @@ void Grid3D::unsplit_step(double dt){
     computeHalfStates_Y(_yL, (*this), _yR, dt);
     computeHalfStates_Z(_zL, (*this), _zR, dt);
     
-    #ifdef CTU //Colella (1990). https://doi.org/10.1016/0021-9991(90)90233-Q
-        #if defined(MHD) //Gardiner and Stone (2005). https://doi.org/10.1016/j.jcp.2004.11.016
-            auto __A = DRAGONWING::requestVec3Arrays(1, nx+1, ny+1, nz+1, ghosts);
-        MagneticArray3D& _E_half = *__A[0]; //We'll be done with this by the time we actually need _A
-        ctu_sweep_MHD(_xL, _xR, _yL, _yR, _zL, _zR, A, B, w, _E_half, dt, dx, dy, dz);
-            __B.release();
-        #else
-        ctu_sweep_hydro(_xL, _xR, _yL, _yR, _zL, _zR, dt/dx, dt/dy, dt/dz);
-        #endif
-    #elif defined(MHD) //ctu_sweep_MHD already takes care of this
+    //Corrections: CTU and/or face fields
+#ifdef MHD
+        auto __B = DRAGONWING::requestVec3Arrays(1, nx+1, ny+1, nz+1, ghosts);
+    MagneticArray3D& B = *__B[0];
+    CT::computeFaceFields(A, B, dx, dy, dz);
+    #ifdef CTU //Gardiner and Stone (2005). https://doi.org/10.1016/j.jcp.2004.11.016
+        auto __A = DRAGONWING::requestVec3Arrays(1, nx+1, ny+1, nz+1, ghosts);
+    MagneticArray3D& _E_half = *__A[0]; //We'll be done with this by the time we actually need _A
+    ctu_sweep_MHD(_xL, _xR, _yL, _yR, _zL, _zR, A, B, w, _E_half, dt, dx, dy, dz);
+    #else //Copy Face fields. CTU already took care of this
     CT::copyFaceFields_X(_xL, B, _xR);
     CT::copyFaceFields_Y(_yL, B, _yR);
     CT::copyFaceFields_Z(_zL, B, _zR);
-        __B.release();
     #endif
+        __B.release();
+#elif defined(CTU)
+    ctu_sweep_hydro(_xL, _xR, _yL, _yR, _zL, _zR, dt/dx, dt/dy, dt/dz);
+#endif
     
     //Compute Fluxes
         auto __fluxes = DRAGONWING::requestFluxArrays(3, nx, ny, nz, ghosts);
