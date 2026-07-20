@@ -48,9 +48,9 @@ void Grid2D::unsplit_step(double dt){
     
     #ifdef CTU //Colella (1990). https://doi.org/10.1016/0021-9991(90)90233-Q
         #ifdef MHD //Gardiner and Stone (2005). https://doi.org/10.1016/j.jcp.2004.11.016
-            auto __w_half = DRAGONWING::requestPrimitiveArrays(1, nx, ny, ghosts);
-        FluidArray2D& _w_half = *__w_half[0];
-        ctu_sweep_MHD(_xL, _xR, _yL, _yR, A, B, w, _w_half, dt, dx, dy);
+            auto __E_half = DRAGONWING::requestVec3Arrays(1, nx+1, ny+1, ghosts);
+        MagneticArray2D& _E_half = *__E_half[0];
+        ctu_sweep_MHD(_xL, _xR, _yL, _yR, A, B, w, _E_half, dt, dx, dy);
         #else
         ctu_sweep_hydro(_xL, _xR, _yL, _yR, dt/dx, dt/dy);
         #endif
@@ -79,11 +79,10 @@ void Grid2D::unsplit_step(double dt){
     _A.clone(A);
     //Compute Electric Fields
     MagneticArray2D& E = *__A[1];
-    #ifdef CTU
-    CT::computeElectric(E, F_X, F_Y, _w_half);
-        __w_half.release();
-    #else
     CT::computeElectric(E, F_X, F_Y);
+    #ifdef CTU
+    CT::upwindElectric(E, F_X, F_Y, _E_half);
+        __E_half.release();
     #endif
     //Update A then B fields
     CT::updatePotential(_A, E, dt);
@@ -140,9 +139,9 @@ void Grid3D::unsplit_step(double dt){
     
     #ifdef CTU //Colella (1990). https://doi.org/10.1016/0021-9991(90)90233-Q
         #if defined(MHD) //Gardiner and Stone (2005). https://doi.org/10.1016/j.jcp.2004.11.016
-            auto __w_half = DRAGONWING::requestPrimitiveArrays(1, nx, ny, nz, ghosts);
-        FluidArray3D& _w_half = *__w_half[0];
-        ctu_sweep_MHD(_xL, _xR, _yL, _yR, _zL, _zR, A, B, w, _w_half, dt, dx, dy, dz);
+            auto __E_half = DRAGONWING::requestVec3Arrays(1, nx+1, ny+1, nz+1, ghosts);
+        MagneticArray3D& _E_half = *__E_half[0];
+        ctu_sweep_MHD(_xL, _xR, _yL, _yR, _zL, _zR, A, B, w, _E_half, dt, dx, dy, dz);
         #else
         ctu_sweep_hydro(_xL, _xR, _yL, _yR, _zL, _zR, dt/dx, dt/dy, dt/dz);
         #endif
@@ -174,11 +173,10 @@ void Grid3D::unsplit_step(double dt){
     _A.clone(A);
     //Compute Electric Fields
     MagneticArray3D& E = *__mags[1];
-    #ifdef CTU
-    CT::computeElectric(E, F_X, F_Y, F_Z, _w_half);
-        __w_half.release();
-    #else
     CT::computeElectric(E, F_X, F_Y, F_Z);
+    #ifdef CTU
+    CT::upwindElectric(E, F_X, F_Y, F_Z, _E_half);
+        __E_half.release();
     #endif
     //Update A then B fields
     CT::updatePotential(_A, E, dt);

@@ -22,7 +22,7 @@ void correctState(FluidArray2D& _L, FluidArray2D& _R, const FluxArray2D& F, doub
 void ctu_sweep_hydro(FluidArray2D& _xL, FluidArray2D& _xR, FluidArray2D& _yL, FluidArray2D& _yR,  double dt_dx, double dt_dy);
 //2D MHD
 #ifdef MHD
-void ctu_sweep_MHD(FluidArray2D& _xL, FluidArray2D& _xR, FluidArray2D& _yL, FluidArray2D& _yR, const MagneticArray2D& A, MagneticArray2D &B, const FluidArray2D& w, FluidArray2D& whalf, double dt, double dx, double dy);
+void ctu_sweep_MHD(FluidArray2D& _xL, FluidArray2D& _xR, FluidArray2D& _yL, FluidArray2D& _yR, const MagneticArray2D& A, MagneticArray2D &B, const FluidArray2D& w, MagneticArray2D& Ehalf, double dt, double dx, double dy);
 #endif
 
 //3D
@@ -43,6 +43,6 @@ void computeCTUFlux_Z(const FluidArray3D& _L, const FluidArray3D& _R, const Flux
 
 //3D MHD
 #ifdef MHD
-void ctu_sweep_MHD(FluidArray3D& _xL, FluidArray3D& _xR, FluidArray3D& _yL, FluidArray3D& _yR, FluidArray3D& _zL, FluidArray3D& _zR, const MagneticArray3D& A, MagneticArray3D &B, const FluidArray3D& w, FluidArray3D& whalf, double dt, double dx, double dy, double dz);
+void ctu_sweep_MHD(FluidArray3D& _xL, FluidArray3D& _xR, FluidArray3D& _yL, FluidArray3D& _yR, FluidArray3D& _zL, FluidArray3D& _zR, const MagneticArray3D& A, MagneticArray3D &B, const FluidArray3D& w, MagneticArray3D& Ehalf, double dt, double dx, double dy, double dz);
 #endif
 #endif /* Unsplit_h */

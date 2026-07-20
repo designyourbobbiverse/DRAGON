@@ -79,14 +79,6 @@
 			);
 			target = F77A715B2FB415A5006C2776 /* DRAGON_TESTS */;
 		};
-		F77DDCAE30081B2400B1A200 /* Exceptions for "Examples" folder in "DRAGON" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				CollidingFlows/Jets/Jet.cpp,
-				CollidingFlows/Jets/MHDJet.cpp,
-			);
-			target = F70D18F22FA12B5A00A2B235 /* DRAGON */;
-		};
 		F790CF822FC9F8D90094987D /* Exceptions for "Testing" folder in "DRAGON_TESTS" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
@@ -106,6 +98,7 @@
 				Core/Grid_Tests.cpp,
 				Core/IO_Tests.cpp,
 				Core/MHD/CT_Tests.cpp,
+				Core/MHD/Farady_tests.cpp,
 				Core/Riemann/HLL_Tests.cpp,
 				Core/Riemann/Riemann_Exact_Tests.cpp,
 				Core/Riemann/Riemann_Tests.cpp,

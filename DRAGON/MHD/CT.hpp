@@ -24,12 +24,14 @@ namespace CT {
 //Electric Fields
     //2D
     void computeElectric(MagneticArray2D& E, const FluxArray2D& F_X,const FluxArray2D& F_Y, int ghosts=0);
-    void computeElectric(MagneticArray2D& E, const FluxArray2D& F_X,const FluxArray2D& F_Y, const FluidArray2D& wref, int ghosts=0);
+    void upwindElectric(MagneticArray2D& E, const FluxArray2D& F_X,const FluxArray2D& F_Y, const MagneticArray2D& Eref, int ghosts=0);
     void updatePotential(MagneticArray2D& _A, const MagneticArray2D& E, double dt, int ghosts=0);
+    void bodyElectric(const FluidArray2D& w, MagneticArray2D& E, int ghosts=0); //1001001
     //3D
     void computeElectric(MagneticArray3D& E, const FluxArray3D& F_X,const FluxArray3D& F_Y,const FluxArray3D& F_Z, int ghosts=0);
-    void computeElectric(MagneticArray3D& E, const FluxArray3D& F_X,const FluxArray3D& F_Y,const FluxArray3D& F_Z, const FluidArray3D& wref, int ghosts=0);
+    void upwindElectric(MagneticArray3D& E, const FluxArray3D& F_X,const FluxArray3D& F_Y,const FluxArray3D& F_Z, const MagneticArray3D& Eref, int ghosts=0);
     void updatePotential(MagneticArray3D& _A, const MagneticArray3D& E, double dt, int ghosts=0);
+    void bodyElectric(const FluidArray3D& w, MagneticArray3D& E, int ghosts=0); //1001001
 
 //B = Curl(A)
     //2D

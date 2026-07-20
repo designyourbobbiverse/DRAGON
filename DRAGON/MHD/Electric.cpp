@@ -14,15 +14,39 @@
 #include "DragonWing.hpp"
 #include <cmath>
 
-constexpr double CTU_TOL = 1e-18;
-inline double upwindCorr(double massFlux, double faceEminus, double faceEplus, double refMinus, double refPlus) {
-    if (massFlux > CTU_TOL) return 0.25 * (faceEminus - refMinus);
-    if (massFlux < -CTU_TOL) return 0.25 * (faceEplus - refPlus);
-    return 0.125 * (faceEminus + faceEplus - refMinus - refPlus);
-}
-#ifdef MHD
 
-//MARK: Electric Field Calculation
+#ifdef MHD
+#ifndef DIMENSION_UNSPLIT
+#error MHD requires Unsplit dimensions. Please enable DIMENSION_UNSPLIT in Config.h
+#endif
+
+
+
+//MARK: Vector Potential Update
+void CT::updatePotential(MagneticArray2D& _A, const MagneticArray2D& E, double dt, int g){
+    const int nx = _A.getSizeX()-1, ny = _A.getSizeY()-1;
+    
+    for(int i=-g; i<=nx+g; i++){
+        for(int j=-g; j<=ny+g; j++){
+            _A[i,j] -= E[i,j] * dt;
+        }
+    }
+}
+void CT::updatePotential(MagneticArray3D& _A, const MagneticArray3D& E, double dt, int g){
+    const int nx = _A.getSizeX()-1, ny = _A.getSizeY()-1, nz = _A.getSizeZ()-1;
+    
+    for(int i=-g; i<=nx+g; i++){
+        for(int j=-g; j<=ny+g; j++){
+            for(int k=-g; k<=nz+g; k++){
+                _A[i,j,k] -= E[i,j,k] * dt;
+            }
+        }
+    }
+}
+
+
+
+//MARK: E field from Fluxes
 void CT::computeElectric(MagneticArray2D& E, const FluxArray2D& F_X,const FluxArray2D& F_Y,  const int g){
     const int nx = E.getSizeX()-1, ny = E.getSizeY()-1;
     for(int i=-g; i<=nx+g; i++){
@@ -30,35 +54,6 @@ void CT::computeElectric(MagneticArray2D& E, const FluxArray2D& F_X,const FluxAr
             E[i,j].x = - F_Y[i,j].B.z * 0.5;
             E[i,j].y = F_X[i,j].B.z * 0.5;
             E[i,j].z = (F_Y[i-1,j].B.x -  F_X[i,j-1].B.y + F_Y[i,j].B.x  - F_X[i,j].B.y) * 0.25;
-        }
-    }
-}
-    
-void CT::computeElectric(MagneticArray2D& E, const FluxArray2D& F_X,const FluxArray2D& F_Y,const FluidArray2D& wref, int g){
-    const int nx = E.getSizeX()-1, ny = E.getSizeY()-1;
-    //Extract base terms from fluxes
-    computeElectric(E, F_X, F_Y, g);
-    
-    //Calculate Body-centred E
-        auto __E = DRAGONWING::requestVec3Arrays(1, nx, ny, E.getGhosts());
-    MagneticArray2D& Eref = *__E[0];
-    for(int i=-g-1; i <= nx+g; i++){
-        for(int j=-g-1; j <= ny+g; j++){
-            Eref[i,j] = cross(wref[i,j].B, wref[i,j].v);
-        }
-    }
-    //Upwind terms
-    for(int i=-g; i<=nx+g; i++){
-        for(int j=-g; j<=ny+g; j++){
-            // X upwinds
-            E[i,j].z += upwindCorr(F_X[i,j].rho, F_Y[i-1,j].B.x, F_Y[i,j].B.x, Eref[i-1,j].z, Eref[i,j].z);
-            E[i,j].z += upwindCorr(F_X[i,j-1].rho, F_Y[i-1,j].B.x, F_Y[i,j].B.x, Eref[i-1,j-1].z, Eref[i,j-1].z);
-            // Y upwinds
-            E[i,j].z += upwindCorr(F_Y[i,j].rho, -F_X[i,j-1].B.y, -F_X[i,j].B.y, Eref[i,j-1].z, Eref[i,j].z);
-            E[i,j].z += upwindCorr(F_Y[i-1,j].rho, -F_X[i,j-1].B.y, -F_X[i,j].B.y, Eref[i-1,j-1].z, Eref[i-1,j].z);
-            // Z upwinds
-            E[i,j].x += 0.25 * (-2*F_Y[i,j].B.z - Eref[i,j].x - Eref[i,j-1].x);
-            E[i,j].y += 0.25 * (2*F_X[i,j].B.z - Eref[i,j].y - Eref[i-1,j].y);
         }
     }
 }
@@ -76,23 +71,37 @@ void CT::computeElectric(MagneticArray3D& E, const FluxArray3D& F_X,const FluxAr
         }
     }
 }
+
     
-void CT::computeElectric(MagneticArray3D& E, const FluxArray3D& F_X,const FluxArray3D& F_Y, const FluxArray3D& F_Z, const FluidArray3D& wref, int g){
-    const int nx = E.getSizeX()-1, ny = E.getSizeY()-1, nz = E.getSizeZ()-1;
-    //Extract base terms from fluxes
-    computeElectric(E, F_X, F_Y, F_Z, g);
-    
-    //Calculate Body-centred E
-        auto __E = DRAGONWING::requestVec3Arrays(1, nx, ny, nz, E.getGhosts());
-    MagneticArray3D& Eref = *__E[0];
-    for(int i=-g-1; i <= nx+g; i++){
-        for(int j=-g-1; j <= ny+g; j++){
-            for(int k=-g-1; k <= nz+g; k++){
-                Eref[i,j,k] = cross(wref[i,j,k].B, wref[i,j,k].v);
-            }
+//MARK: CTU Upwinding
+
+constexpr double CTU_TOL = 1e-18;
+inline double upwindCorr(double massFlux, double faceEminus, double faceEplus, double refMinus, double refPlus) {
+    if (massFlux > CTU_TOL) return 0.25 * (faceEminus - refMinus);
+    if (massFlux < -CTU_TOL) return 0.25 * (faceEplus - refPlus);
+    return 0.125 * (faceEminus + faceEplus - refMinus - refPlus);
+}
+
+void CT::upwindElectric(MagneticArray2D& E, const FluxArray2D& F_X,const FluxArray2D& F_Y,const MagneticArray2D& Eref, int g){
+    const int nx = E.getSizeX()-1, ny = E.getSizeY()-1;
+    for(int i=-g; i<=nx+g; i++){
+        for(int j=-g; j<=ny+g; j++){
+            // X upwinds
+            E[i,j].z += upwindCorr(F_X[i,j].rho, F_Y[i-1,j].B.x, F_Y[i,j].B.x, Eref[i-1,j].z, Eref[i,j].z);
+            E[i,j].z += upwindCorr(F_X[i,j-1].rho, F_Y[i-1,j].B.x, F_Y[i,j].B.x, Eref[i-1,j-1].z, Eref[i,j-1].z);
+            // Y upwinds
+            E[i,j].z += upwindCorr(F_Y[i,j].rho, -F_X[i,j-1].B.y, -F_X[i,j].B.y, Eref[i,j-1].z, Eref[i,j].z);
+            E[i,j].z += upwindCorr(F_Y[i-1,j].rho, -F_X[i,j-1].B.y, -F_X[i,j].B.y, Eref[i-1,j-1].z, Eref[i-1,j].z);
+            // Z upwinds
+            E[i,j].x += 0.25 * (-2*F_Y[i,j].B.z - Eref[i,j].x - Eref[i,j-1].x);
+            E[i,j].y += 0.25 * (2*F_X[i,j].B.z - Eref[i,j].y - Eref[i-1,j].y);
         }
     }
-    //Upwind terms
+}
+
+    
+void CT::upwindElectric(MagneticArray3D& E, const FluxArray3D& F_X,const FluxArray3D& F_Y, const FluxArray3D& F_Z, const MagneticArray3D& Eref, int g){
+    const int nx = E.getSizeX()-1, ny = E.getSizeY()-1, nz = E.getSizeZ()-1;
     for(int i=-g; i<=nx+g; i++){
         for(int j=-g; j<=ny+g; j++){
             for(int k=-g; k<=nz+g; k++){
@@ -121,31 +130,26 @@ void CT::computeElectric(MagneticArray3D& E, const FluxArray3D& F_X,const FluxAr
 
 
 
-//MARK: Vector Potential Update
-void CT::updatePotential(MagneticArray2D& _A, const MagneticArray2D& E, double dt, int g){
-    const int nx = _A.getSizeX()-1, ny = _A.getSizeY()-1;
-    
-    for(int i=-g; i<=nx+g; i++){
-        for(int j=-g; j<=ny+g; j++){
-            _A[i,j] -= E[i,j] * dt;
+//MARK: Body Electric Fields
+void CT::bodyElectric(const FluidArray2D &w, MagneticArray2D &E, int g){
+    const int nx = w.getSizeX(), ny = w.getSizeY();
+    for(int i=-g-1; i <= nx+g; i++){
+        for(int j=-g-1; j <= ny+g; j++){
+            E[i,j] = cross(w[i,j].B, w[i,j].v);
         }
     }
 }
-void CT::updatePotential(MagneticArray3D& _A, const MagneticArray3D& E, double dt, int g){
-    const int nx = _A.getSizeX()-1, ny = _A.getSizeY()-1, nz = _A.getSizeZ()-1;
-    
-    for(int i=-g; i<=nx+g; i++){
-        for(int j=-g; j<=ny+g; j++){
-            for(int k=-g; k<=nz+g; k++){
-                _A[i,j,k] -= E[i,j,k] * dt;
+void CT::bodyElectric(const FluidArray3D &w, MagneticArray3D &E, int g){
+    const int nx = w.getSizeX(), ny = w.getSizeY(), nz = w.getSizeZ();
+    for(int i=-g-1; i <= nx+g; i++){
+        for(int j=-g-1; j <= ny+g; j++){
+            for(int k=-g-1; k <= nz+g; k++){
+                E[i,j,k] = cross(w[i,j,k].B, w[i,j,k].v);
             }
         }
     }
 }
 
-#ifndef DIMENSION_UNSPLIT
-#error MHD requires Unsplit dimensions. Please enable DIMENSION_UNSPLIT in Config.h
-#endif
 #endif
 
 
