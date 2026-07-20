@@ -16,7 +16,6 @@ import numpy as np
 from Config import *
 
 from FileUtils import *
-from Ranges import range
 
 import sys
 
@@ -27,11 +26,6 @@ def readMetadata(n):
         dy = f.attrs[key_dy]
         t = f.attrs[key_time]
     return  t,dx,dy
-    
-def readFile(n, field):
-    with h5py.File(h5FileName(n), "r") as f:
-        return f[keys[field]][:]
-    return  []
     
 def plotField(data, n, dx, dy, rng, key):
     ny, nx = data.shape
@@ -100,13 +94,13 @@ def plotField(data, n, dx, dy, rng, key):
 
 rngs = {}
 for field in sys.argv[1:]:
-    rngs[field] = range(keys[field])
+    rngs[field] = range(field)
     
 n = 0
 while fileExists(n):
     t, dx, dy = readMetadata(n)
     for field in sys.argv[1:]:
-        data = readFile(n, field)
+        data = readField(n, field)
         plotField(data,n,dx,dy,rngs[field],field)
     n+=1
 

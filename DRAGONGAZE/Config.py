@@ -23,6 +23,7 @@ fileprefix = {
     "Bx": "Bx",
     "By": "By",
     "Bz": "Bz",
+    "Bmag": "B",
     "p": "pressure",
     "E": "energy"
 }
@@ -45,6 +46,7 @@ titles = {
     "vy": "Velocity (y)",
     "Bz": "Mangetic Field (z)",
     "vz": "Velocity (z)",
+    "Bmag": "Mangetic Field Strength",
 }
 
 
@@ -62,6 +64,7 @@ labels = {
     "Bx": r"$B_x$",
     "By": r"$B_y$",
     "Bz": r"$B_z$",
+    "Bmag": r"$|B|$",
     "p": r"$p$",#\ (\mathrm{g \cdot cm^{-1} s^{-2}})$"
     "E": r"$E$"#\ (\mathrm{g \cdot cm^{2}\cdot s^{-2}})$",
 }
@@ -92,7 +95,8 @@ cmaps = {
     "E": "magma",
     "Bx": "seismic",
     "By": "seismic",
-    "Bz": "seismic"
+    "Bz": "seismic",
+    "Bmag": "plasma"
 }
 
 log_plots = { #If true, plots this quantity logarithmically. If false, plots it linearly
@@ -103,6 +107,7 @@ log_plots = { #If true, plots this quantity logarithmically. If false, plots it 
     "Bx": False,
     "By": False,
     "Bz": False,
+    "Bmag": False,
     "p": True,
     "E": True
 }
