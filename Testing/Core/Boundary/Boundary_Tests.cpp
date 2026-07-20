@@ -201,7 +201,7 @@ void DRAGON_Test::verify_boundary_composition(bool output){
     verify_boundary_composition_overlap_order();
     if(output) std::cout<<"Passed\n";
 }
-void reflectX2D(PrimitiveState& w, bool conductive=true);
+void reflectX2D(PrimitiveState& w);
 void DRAGON_Test::verify_boundary_set_missing_faces_outflow_2D() {
 
     Grid2D grid(3, 4, 1.0, 1.0, 1);
@@ -210,9 +210,9 @@ void DRAGON_Test::verify_boundary_set_missing_faces_outflow_2D() {
     boundary.apply(grid);
     
     // X should be reflective
-    PrimitiveState wxL = grid[0,0]; reflectX2D(wxL);  wxL.B = grid[-1,0].B;
+    PrimitiveState wxL = grid[0,0]; reflectX2D(wxL);
     expect_close(grid[-1,0], wxL);
-    PrimitiveState wxR = grid[2,0]; reflectX2D(wxR); wxR.B = grid[3,0].B;
+    PrimitiveState wxR = grid[2,0]; reflectX2D(wxR);
     expect_close(grid[3,0], wxR);
     // Y should be default outflow
     expect_close(grid[0,-1], grid[0,0]);
@@ -235,9 +235,9 @@ void DRAGON_Test::verify_boundary_composition_3D() {
     expect_close(grid[0,-1,0], grid[0,3,0]);
     expect_close(grid[0, 4,0], grid[0,0,0]);
     // Z should be reflective
-    PrimitiveState wxL = grid[0,0,0]; reflectZ3D(wxL); wxL.B = grid[0,0,-1].B;
+    PrimitiveState wxL = grid[0,0,0]; reflectZ3D(wxL);
     expect_close(grid[0,0,-1], wxL);
-    PrimitiveState wxR = grid[0,0,4]; reflectZ3D(wxR); wxR.B = grid[0,0,5].B;
+    PrimitiveState wxR = grid[0,0,4]; reflectZ3D(wxR);
     expect_close(grid[0,0,5], wxR);
     //Corner
     PrimitiveState w = grid[0,3,0]; reflectZ3D(w); w.B = grid[-1,-1,-1].B;
