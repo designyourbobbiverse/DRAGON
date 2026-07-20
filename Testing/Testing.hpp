@@ -261,19 +261,17 @@ void verify_god_dist_grid_3D_MHD();
 //2D
 void verify_ct_2D(bool output = true);
 void verify_ct_divergence_2D();
+void verify_ct_compute_faces_2D();
 void verify_ct_copy_face_fields_2D();
 void verify_ct_body_fields_2D();
 void verify_ct_stationary_2D();
-void verify_ct_loop_advection_2D();
-void verify_ct_alfven_wave_2D();
 //3D
 void verify_ct_3D(bool output = true);
 void verify_ct_divergence_3D();
+void verify_ct_compute_faces_3D();
 void verify_ct_copy_face_fields_3D();
 void verify_ct_body_fields_3D();
 void verify_ct_stationary_3D();
-void verify_ct_loop_advection_3D();
-void verify_ct_alfven_wave_3D();
 
 
 #endif
