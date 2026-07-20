@@ -120,9 +120,6 @@ void verify_boundary_reflective(bool output = true);
 void verify_boundary_reflective_1D();
 void verify_boundary_reflective_2D();
 void verify_boundary_reflective_3D();
-void verify_boundary_reflective_conductive_1D();
-void verify_boundary_reflective_conductive_2D();
-void verify_boundary_reflective_conductive_3D();
 //Periodic
 void verify_boundary_periodic(bool output = true);
 void verify_boundary_periodic_1D();
