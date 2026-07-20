@@ -48,8 +48,8 @@ void Grid2D::unsplit_step(double dt){
     
     #ifdef CTU //Colella (1990). https://doi.org/10.1016/0021-9991(90)90233-Q
         #ifdef MHD //Gardiner and Stone (2005). https://doi.org/10.1016/j.jcp.2004.11.016
-            auto __E_half = DRAGONWING::requestVec3Arrays(1, nx+1, ny+1, ghosts);
-        MagneticArray2D& _E_half = *__E_half[0];
+            auto __A = DRAGONWING::requestVec3Arrays(1, nx+1, ny+1, ghosts);
+        MagneticArray2D& _E_half = *__A[0];
         ctu_sweep_MHD(_xL, _xR, _yL, _yR, A, B, w, _E_half, dt, dx, dy);
         #else
         ctu_sweep_hydro(_xL, _xR, _yL, _yR, dt/dx, dt/dy);
@@ -74,21 +74,24 @@ void Grid2D::unsplit_step(double dt){
 
     //Preliminary CT Update
     #ifdef MHD
-        auto __A = DRAGONWING::requestVec3Arrays(2, nx+1, ny+1, ghosts);
-    MagneticArray2D& _A = *__A[0];
-    _A.clone(A);
+        auto __CT_Scratch = DRAGONWING::requestVec3Arrays(1, nx+1, ny+1, ghosts);
     //Compute Electric Fields
-    MagneticArray2D& E = *__A[1];
+    MagneticArray2D& E = *__CT_Scratch[0];
     CT::computeElectric(E, F_X, F_Y);
     #ifdef CTU
     CT::upwindElectric(E, F_X, F_Y, _E_half);
-        __E_half.release();
+    #else //CTU reuses E_half grid, non-CTU needs to allocate _A
+        auto __A = DRAGONWING::requestVec3Arrays(1, nx+1, ny+1, ghosts);
     #endif
-    //Update A then B fields
+    //Update A
+    MagneticArray2D& _A = *__A[0];
+    _A.clone(A);
     CT::updatePotential(_A, E, dt);
-    CT::computeFaceFields(_A, B, dx, dy);
-    CT::computeBodyFields(B, _w);
-        __B.release();
+    //Compute B
+    MagneticArray2D& _B = *__CT_Scratch[0]; //Done with E so can reuse it
+    CT::computeFaceFields(_A, _B, dx, dy);
+    CT::computeBodyFields(_B, _w);
+        __CT_Scratch.release();
     #endif
         __fluxes.release();
 
@@ -139,9 +142,10 @@ void Grid3D::unsplit_step(double dt){
     
     #ifdef CTU //Colella (1990). https://doi.org/10.1016/0021-9991(90)90233-Q
         #if defined(MHD) //Gardiner and Stone (2005). https://doi.org/10.1016/j.jcp.2004.11.016
-            auto __E_half = DRAGONWING::requestVec3Arrays(1, nx+1, ny+1, nz+1, ghosts);
-        MagneticArray3D& _E_half = *__E_half[0];
+            auto __A = DRAGONWING::requestVec3Arrays(1, nx+1, ny+1, nz+1, ghosts);
+        MagneticArray3D& _E_half = *__A[0]; //We'll be done with this by the time we actually need _A
         ctu_sweep_MHD(_xL, _xR, _yL, _yR, _zL, _zR, A, B, w, _E_half, dt, dx, dy, dz);
+            __B.release();
         #else
         ctu_sweep_hydro(_xL, _xR, _yL, _yR, _zL, _zR, dt/dx, dt/dy, dt/dz);
         #endif
@@ -149,6 +153,7 @@ void Grid3D::unsplit_step(double dt){
     CT::copyFaceFields_X(_xL, B, _xR);
     CT::copyFaceFields_Y(_yL, B, _yR);
     CT::copyFaceFields_Z(_zL, B, _zR);
+        __B.release();
     #endif
     
     //Compute Fluxes
@@ -168,21 +173,24 @@ void Grid3D::unsplit_step(double dt){
     
     //Preliminary CT Update
     #ifdef MHD
-        auto __mags = DRAGONWING::requestVec3Arrays(2, nx+1, ny+1, nz+1, ghosts);
-    MagneticArray3D& _A = *__mags[0];
-    _A.clone(A);
+        auto __CT_Scratch = DRAGONWING::requestVec3Arrays(1, nx+1, ny+1, nz+1, ghosts);
     //Compute Electric Fields
-    MagneticArray3D& E = *__mags[1];
+    MagneticArray3D& E = *__CT_Scratch[0];
     CT::computeElectric(E, F_X, F_Y, F_Z);
     #ifdef CTU
     CT::upwindElectric(E, F_X, F_Y, F_Z, _E_half);
-        __E_half.release();
+    #else //CTU reuses E_half grid, non-CTU needs to allocate _A
+        auto __A = DRAGONWING::requestVec3Arrays(1, nx+1, ny+1, nz+1, ghosts);
     #endif
-    //Update A then B fields
+    //Update A
+    MagneticArray3D& _A = *__A[0];
+    _A.clone(A);
     CT::updatePotential(_A, E, dt);
-    CT::computeFaceFields(_A, B, dx, dy, dz);
-    CT::computeBodyFields(B, _w);
-        __B.release();
+    //Compute B
+    MagneticArray3D& _B = *__CT_Scratch[0]; //Done with E so can reuse it
+    CT::computeFaceFields(_A, _B, dx, dy, dz);
+    CT::computeBodyFields(_B, _w);
+        __CT_Scratch.release();
     #endif
         __fluxes.release();
 

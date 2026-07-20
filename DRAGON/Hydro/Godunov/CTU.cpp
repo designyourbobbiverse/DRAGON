@@ -85,7 +85,7 @@ void ctu_sweep_hydro(FluidArray3D& _xL, FluidArray3D& _xR, FluidArray3D& _yL, Fl
 
 //MARK: CTU MHD 6-Solve (3D)
 #ifdef MHD
-void ctu_sweep_MHD(FluidArray3D& _xL, FluidArray3D& _xR, FluidArray3D& _yL, FluidArray3D& _yR, FluidArray3D& _zL, FluidArray3D& _zR, const MagneticArray3D &A, MagneticArray3D &B, const FluidArray3D& w, MagneticArray3D& E, double dt, double dx, double dy, double dz){
+void ctu_sweep_MHD(FluidArray3D& _xL, FluidArray3D& _xR, FluidArray3D& _yL, FluidArray3D& _yR, FluidArray3D& _zL, FluidArray3D& _zR, const MagneticArray3D &A, const MagneticArray3D &B, const FluidArray3D& w, MagneticArray3D& E, double dt, double dx, double dy, double dz){
     const int nx = _xL.getSizeX(), ny = _xL.getSizeY(), nz = _xL.getSizeZ(), g = _xL.getGhosts();
     const double dt_dx = dt/dx, dt_dy = dt/dy, dt_dz = dt/dz;
     //Faux Source Terms in MUSCL
@@ -209,14 +209,12 @@ void ctu_sweep_MHD(FluidArray3D& _xL, FluidArray3D& _xR, FluidArray3D& _yL, Flui
             }
         }
     }
-    //Update B
-    B.clone(Bhalf);
 }
 #endif
 
 //MARK: CTU MHD 4-Solve (2D)
 #ifdef MHD
-void ctu_sweep_MHD(FluidArray2D& _xL, FluidArray2D& _xR, FluidArray2D& _yL, FluidArray2D& _yR, const MagneticArray2D& A, MagneticArray2D &B, const FluidArray2D& w, MagneticArray2D& E, double dt, double dx, double dy){
+void ctu_sweep_MHD(FluidArray2D& _xL, FluidArray2D& _xR, FluidArray2D& _yL, FluidArray2D& _yR, const MagneticArray2D& A, const MagneticArray2D &B, const FluidArray2D& w, MagneticArray2D& E, double dt, double dx, double dy){
     const int nx = _xL.getSizeX(), ny = _xL.getSizeY(), g = _xL.getGhosts();
     const double dt_dx = dt/dx, dt_dy = dt/dy;
     //Faux Source Terms in MUSCL
@@ -301,8 +299,6 @@ void ctu_sweep_MHD(FluidArray2D& _xL, FluidArray2D& _xR, FluidArray2D& _yL, Flui
             _yL[i,j] = uL; _yR[i,j] = uR;
         }
     }
-    
-    B.clone(Bhalf);
 }
 #endif
 
