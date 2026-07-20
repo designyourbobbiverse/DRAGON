@@ -9,8 +9,8 @@ Created by Bobbie Markwick on 07/07/2026.
 '''
 Files
 '''
-hdf_dir = "" #Where to find the HDF5 outputs from DRAGON
-img_dir = "" #Where to put the plots
+hdf_dir = "/Users/bobbiemarkwick/DRAGON_OUT" #Where to find the HDF5 outputs from DRAGON
+img_dir = "/Users/bobbiemarkwick/DRAGON_IMG" #Where to put the plots
 h5_base_filename = "frame" #Specifieds HDF5 file names via <base_filename>_#####.h5
 img_base_filename = "frame" #Specifieds image file names via <base_filename>_#####.png
 #In 2D, image file names will be <prefix>_<base_filename>_#####.png
