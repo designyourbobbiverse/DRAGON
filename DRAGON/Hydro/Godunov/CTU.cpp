@@ -88,34 +88,7 @@ void ctu_sweep_hydro(FluidArray3D& _xL, FluidArray3D& _xR, FluidArray3D& _yL, Fl
 void ctu_sweep_MHD(FluidArray3D& _xL, FluidArray3D& _xR, FluidArray3D& _yL, FluidArray3D& _yR, FluidArray3D& _zL, FluidArray3D& _zR, const MagneticArray3D &A, const MagneticArray3D &B, const FluidArray3D& w, MagneticArray3D& E, double dt, double dx, double dy, double dz){
     const int nx = _xL.getSizeX(), ny = _xL.getSizeY(), nz = _xL.getSizeZ(), g = _xL.getGhosts();
     const double dt_dx = dt/dx, dt_dy = dt/dy, dt_dz = dt/dz;
-    //Faux Source Terms in MUSCL
-    for(int i=-g; i<nx+g; i++){
-        for(int j=-g; j<ny+g; j++){
-            for(int k=-g; k<nz+g; k++){
-                double dBx = (B[i+1,j,k].x - B[i,j,k].x) * dt_dx;
-                double dBy = (B[i,j+1,k].y - B[i,j,k].y) * dt_dy;
-                double dBz = (B[i,j,k+1].z - B[i,j,k].z) * dt_dz;
-                _xL[i,j,k].B.y += 0.5 * _xL[i,j,k].v.y * TVD::minmod(dBx, -dBy);
-                _xR[i,j,k].B.y += 0.5 * _xR[i,j,k].v.y * TVD::minmod(dBx, -dBy);
-                _xL[i,j,k].B.z += 0.5 * _xL[i,j,k].v.z * TVD::minmod(dBx, -dBz);
-                _xR[i,j,k].B.z += 0.5 * _xR[i,j,k].v.z * TVD::minmod(dBx, -dBz);
-                
-                _yL[i,j,k].B.x += 0.5 * _yL[i,j,k].v.x * TVD::minmod(dBy, -dBx);
-                _yR[i,j,k].B.x += 0.5 * _yR[i,j,k].v.x * TVD::minmod(dBy, -dBx);
-                _yL[i,j,k].B.z += 0.5 * _yL[i,j,k].v.z * TVD::minmod(dBy, -dBz);
-                _yR[i,j,k].B.z += 0.5 * _yR[i,j,k].v.z * TVD::minmod(dBy, -dBz);
-                
-                _zL[i,j,k].B.x += 0.5 * _zL[i,j,k].v.x * TVD::minmod(dBz, -dBx);
-                _zR[i,j,k].B.x += 0.5 * _zR[i,j,k].v.x * TVD::minmod(dBz, -dBx);
-                _zL[i,j,k].B.y += 0.5 * _zL[i,j,k].v.y * TVD::minmod(dBz, -dBy);
-                _zR[i,j,k].B.y += 0.5 * _zR[i,j,k].v.y * TVD::minmod(dBz, -dBy);
-            }
-        }
-    }
-    CT::copyFaceFields_X(_xL, B, _xR);
-    CT::copyFaceFields_Y(_yL, B, _yR);
-    CT::copyFaceFields_Z(_zL, B, _zR);
-    
+
     //Preliminary Fluxes
         auto __fluxes = DRAGONWING::requestFluxArrays(3, nx, ny, nz, g);
     FluxArray3D& F_X = *__fluxes[0];
@@ -152,6 +125,7 @@ void ctu_sweep_MHD(FluidArray3D& _xL, FluidArray3D& _xR, FluidArray3D& _yL, Flui
     correctState(_zL, _zR, F_X, 0.5*dt_dx, 0);
     correctState(_zL, _zR, F_Y, 0.5*dt_dy, 1);
         __fluxes.release();
+    
     
     //Correct Magnetic fields
     for(int i=-1; i<nx+1; i++){
@@ -217,22 +191,7 @@ void ctu_sweep_MHD(FluidArray3D& _xL, FluidArray3D& _xR, FluidArray3D& _yL, Flui
 void ctu_sweep_MHD(FluidArray2D& _xL, FluidArray2D& _xR, FluidArray2D& _yL, FluidArray2D& _yR, const MagneticArray2D& A, const MagneticArray2D &B, const FluidArray2D& w, MagneticArray2D& E, double dt, double dx, double dy){
     const int nx = _xL.getSizeX(), ny = _xL.getSizeY(), g = _xL.getGhosts();
     const double dt_dx = dt/dx, dt_dy = dt/dy;
-    //Faux Source Terms in MUSCL
-    for(int i=-g; i<nx+g; i++){
-        for(int j=-g; j<ny+g; j++){
-            double dBx = (B[i+1,j].x - B[i,j].x) * dt_dx;
-            double dBy = (B[i,j+1].y - B[i,j].y) * dt_dy;
 
-            _xL[i,j].B.y += 0.5 * _xL[i,j].v.y * TVD::minmod(dBx, -dBy);
-            _xR[i,j].B.y += 0.5 * _xR[i,j].v.y * TVD::minmod(dBx, -dBy);
-            
-            _yL[i,j].B.x += 0.5 * _yL[i,j].v.x * TVD::minmod(dBy, -dBx);
-            _yR[i,j].B.x += 0.5 * _yR[i,j].v.x * TVD::minmod(dBy, -dBx);
-        }
-    }
-    CT::copyFaceFields_X(_xL, B, _xR);
-    CT::copyFaceFields_Y(_yL, B, _yR);
-    
     //Preliminary Fluxes
         auto __fluxes = DRAGONWING::requestFluxArrays(2, nx, ny, g);
     FluxArray2D& F_X = *__fluxes[0];
@@ -263,8 +222,9 @@ void ctu_sweep_MHD(FluidArray2D& _xL, FluidArray2D& _xR, FluidArray2D& _yL, Flui
     //CTU corrections (Fluid components)
     correctState(_xL, _xR, F_Y, 0.5*dt_dy, 1);
     correctState(_yL, _yR, F_X, 0.5*dt_dx, 0);
+    //CT::copyFaceFields_X(_xL, Bhalf, _xR);
+    //CT::copyFaceFields_Y(_yL, Bhalf, _yR);
 
-    
     //Correct Magnetic fields
     for(int i=-1; i<nx+1; i++){
         for(int j=-1; j<ny+1; j++){
