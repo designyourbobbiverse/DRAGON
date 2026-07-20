@@ -17,20 +17,31 @@ using namespace DRAGON_Test;
 
 void DRAGON_Test::verify_ct_2D(bool output){
     if(output) std::cout << "Constrained Transport (2D):\n";
-    if(output) std::cout << "- Edge A -> Face B: ";
+    if(output) std::cout << "- Faraday Pipeline:\n";
+    if(output) std::cout << "\t- Edge E -> Edge A: ";
+    verify_ct_E_updates_A_2D();
+    if(output) std::cout << "Passed\n";
+
+    if(output) std::cout << "\t- Edge A -> Face B: ";
     verify_ct_compute_faces_2D();
     if(output) std::cout << "Passed\n";
-    if(output) std::cout << "- Copy Face B: ";
-    verify_ct_copy_face_fields_2D();
-    if(output) std::cout << "Passed\n";
-    if(output) std::cout << "- Face B -> Body B: ";
+    if(output) std::cout << "\t- Face B -> Body B: ";
     verify_ct_body_fields_2D();
     if(output) std::cout << "Passed\n";
+    if(output) std::cout << "\t- Face B -> Half-states: ";
+    verify_ct_copy_face_fields_2D();
+    if(output) std::cout << "Passed\n";
+
+    
     
     if(output) std::cout << "- Zero Divergence: ";
     verify_ct_divergence_2D();
     if(output) std::cout << "Passed\n";
 
+    
+    if(output) std::cout << "- Uniform E: ";
+    verify_ct_uniform_E_2D();
+    if(output) std::cout << "Passed\n";
     
     if(output) std::cout << "- Stationary Field: ";
     verify_ct_stationary_2D();
@@ -39,19 +50,30 @@ void DRAGON_Test::verify_ct_2D(bool output){
 void DRAGON_Test::verify_ct_3D(bool output){
     if(output) std::cout << "Constrained Transport (3D): \n";
     
-    if(output) std::cout << "- Edge A -> Face B: ";
+    if(output) std::cout << "- Faraday Pipeline:\n";
+    if(output) std::cout << "\t- Edge E -> Edge A: ";
+    verify_ct_E_updates_A_3D();
+    if(output) std::cout << "Passed\n";
+    if(output) std::cout << "\t- Edge A -> Face B: ";
     verify_ct_compute_faces_3D();
     if(output) std::cout << "Passed\n";
-    if(output) std::cout << "- Copy Face B: ";
-    verify_ct_copy_face_fields_3D();
-    if(output) std::cout << "Passed\n";
-    if(output) std::cout << "- Face B -> Body B: ";
+    if(output) std::cout << "\t- Face B -> Body B: ";
     verify_ct_body_fields_3D();
     if(output) std::cout << "Passed\n";
+    if(output) std::cout << "\t- Face B -> Half-states: ";
+    verify_ct_copy_face_fields_3D();
+    if(output) std::cout << "Passed\n";
+
     
     if(output) std::cout << "- Zero Divergence: ";
     verify_ct_divergence_3D();
     if(output) std::cout << "Passed\n";
+    
+    
+    if(output) std::cout << "- Uniform E: ";
+    verify_ct_uniform_E_3D();
+    if(output) std::cout << "Passed\n";
+
 
     if(output) std::cout << "- Stationary Field: ";
     verify_ct_stationary_3D();
@@ -96,7 +118,7 @@ void DRAGON_Test::verify_ct_divergence_2D(){
     MagneticArray2D A(nx,ny,ng);
     for(int i = -ng; i < nx+ng; i++){
         for(int j = -ng; j < ny+ng; j++){
-            A[i,j] = { (rand()%1000000)*1e-3 - 1e3, (rand()%1000000)*1e-3 - 1e3 , (rand()%1000000)*1e-3 - 1e3};
+            A[i,j] = { (rand()%2000001)*1e-3 - 1e3, (rand()%2000001)*1e-3 - 1e3 , (rand()%2000001)*1e-3 - 1e3};
         }
     }
     assert_divergenceless(A, 1, 2);
@@ -109,12 +131,161 @@ void DRAGON_Test::verify_ct_divergence_3D(){
     for(int i = -ng; i < nx+ng; i++){
         for(int j = -ng; j < ny+ng; j++){
             for(int k = -ng; k < nz+ng; k++){
-                A[i,j,k] = { (rand()%1000000)*1e-3 - 1e3, (rand()%1000000)*1e-3 - 1e3 , (rand()%1000000)*1e-3 - 1e3};
+                A[i,j,k] = { (rand()%2000001)*1e-3 - 1e3, (rand()%2000001)*1e-3 - 1e3 , (rand()%2000001)*1e-3 - 1e3};
             }
         }
     }
     
     assert_divergenceless(A, 1, 2,3);
+}
+
+//MARK: E = -dA/dt
+void DRAGON_Test::verify_ct_E_updates_A_2D(){
+    const int nx = 10, ny = 10, ng = 2;
+    MagneticArray2D A0(nx,ny,ng);
+
+    for(int i = -ng; i < nx+ng; i++){
+        for(int j = -ng; j < ny+ng; j++){
+            A0[i,j] = { (rand()%2000001)*1e-3 - 1e3, (rand()%2000001)*1e-3 - 1e3 , (rand()%2000001)*1e-3 - 1e3};
+        }
+    }
+    
+    MagneticArray2D A(nx,ny,ng);
+    A.clone(A0);
+    
+    MagneticArray2D E(nx,ny,ng);
+    for(int i = -ng; i < nx+ng; i++){
+        for(int j = -ng; j < ny+ng; j++){
+            E[i,j] = { (rand()%2000001)*1e-3 - 1e3, (rand()%2000001)*1e-3 - 1e3 , (rand()%2000001)*1e-3 - 1e3};
+        }
+    }
+    //Check a single update
+    CT::updatePotential(A, E, 1.0,ng);
+    for(int i = -ng; i < nx+ng; i++){
+        for(int j = -ng; j < ny+ng; j++){
+            expect_close(A[i,j], A0[i,j] - E[i,j]);
+        }
+    }
+    //Check another update to catch dt bugs
+    CT::updatePotential(A, E, -2.0,ng);
+    for(int i = -ng; i < nx+ng; i++){
+        for(int j = -ng; j < ny+ng; j++){
+            expect_close(A[i,j], A0[i,j] + E[i,j]);
+        }
+    }
+}
+void DRAGON_Test::verify_ct_E_updates_A_3D(){
+    const int nx = 10, ny = 10, nz = 10, ng = 2;
+    MagneticArray3D A0(nx,ny,nz,ng);
+
+    for(int i = -ng; i < nx+ng; i++){
+        for(int j = -ng; j < ny+ng; j++){
+            for(int k = -ng; k < nz+ng; k++){
+                A0[i,j,k] = { (rand()%2000001)*1e-3 - 1e3, (rand()%2000001)*1e-3 - 1e3 , (rand()%2000001)*1e-3 - 1e3};
+            }
+        }
+    }
+    
+    MagneticArray3D A(nx,ny,nz,ng);
+    A.clone(A0);
+    
+    MagneticArray3D E(nx,ny,nz,ng);
+    for(int i = -ng; i < nx+ng; i++){
+        for(int j = -ng; j < ny+ng; j++){
+            for(int k = -ng; k < nz+ng; k++){
+                E[i,j,k] = { (rand()%2000001)*1e-3 - 1e3, (rand()%2000001)*1e-3 - 1e3 , (rand()%2000001)*1e-3 - 1e3};
+            }
+        }
+    }
+    //Check a single update
+    CT::updatePotential(A, E, 1.0,ng);
+    for(int i = -ng; i < nx+ng; i++){
+        for(int j = -ng; j < ny+ng; j++){
+            for(int k = -ng; k < nz+ng; k++){
+                expect_close(A[i,j,k], A0[i,j,k] - E[i,j,k]);
+            }
+        }
+    }
+    //Check another update to catch dt bugs
+    CT::updatePotential(A, E, -2.0,ng);
+    for(int i = -ng; i < nx+ng; i++){
+        for(int j = -ng; j < ny+ng; j++){
+            for(int k = -ng; k < nz+ng; k++){
+                expect_close(A[i,j,k], A0[i,j,k] + E[i,j,k]);
+            }
+        }
+    }
+}
+
+
+//MARK: Uniform E
+void DRAGON_Test::verify_ct_uniform_E_2D(){
+    const int nx = 10, ny = 10, ng = 2;
+    MagneticArray2D A(nx,ny,ng);
+
+    for(int i = -ng; i < nx+ng; i++){
+        for(int j = -ng; j < ny+ng; j++){
+            A[i,j] = { (rand()%2000001)*1e-3 - 1e3, (rand()%2000001)*1e-3 - 1e3 , (rand()%2000001)*1e-3 - 1e3};
+        }
+    }
+    MagneticArray2D B(nx,ny,ng);
+    CT::computeFaceFields(A, B, 1, 1);
+    
+    
+    MagneticArray2D expected(nx,ny,ng);
+    expected.clone(B);
+    
+    MagneticArray2D E(nx,ny,ng);
+    for(int i = -ng; i < nx+ng; i++){
+        for(int j = -ng; j < ny+ng; j++){
+            E[i,j] = {1,2,3};
+        }
+    }
+    CT::updatePotential(A, E, 1.0,ng);
+    CT::computeFaceFields(A, B, 1, 1);
+    for(int i = -ng; i < nx+ng; i++){
+        for(int j = -ng; j < ny+ng; j++){
+            expect_close(B[i,j], expected[i,j]);
+        }
+    }
+}
+void DRAGON_Test::verify_ct_uniform_E_3D(){
+    const int nx = 10, ny = 10, nz = 10, ng = 2;
+    MagneticArray3D A(nx,ny,nz,ng);
+
+    for(int i = -ng; i < nx+ng; i++){
+        for(int j = -ng; j < ny+ng; j++){
+            for(int k = -ng; k < nz+ng; k++){
+                A[i,j,k] = { (rand()%2000001)*1e-3 - 1e3, (rand()%2000001)*1e-3 - 1e3 , (rand()%2000001)*1e-3 - 1e3};
+            }
+        }
+    }
+    MagneticArray3D B(nx,ny,nz,ng);
+    CT::computeFaceFields(A, B, 1, 1,1);
+    
+    
+    MagneticArray3D expected(nx,ny,nz,ng);
+    expected.clone(B);
+    
+    MagneticArray3D E(nx,ny,nz,ng);
+    for(int i = -ng; i < nx+ng; i++){
+        for(int j = -ng; j < ny+ng; j++){
+            for(int k = -ng; k < nz+ng; k++){
+                E[i,j,k] = {1,2,3};
+            }
+        }
+    }
+    CT::updatePotential(A, E, 1.0,ng);
+    CT::computeFaceFields(A, B, 1, 1,1);
+    for(int i = -ng; i < nx+ng; i++){
+        for(int j = -ng; j < ny+ng; j++){
+            for(int k = -ng; k < nz+ng; k++){
+                expect_close(B[i,j,k], expected[i,j,k]);
+            }
+        }
+    }
+    
+
 }
 
 //MARK: Stationary Field
