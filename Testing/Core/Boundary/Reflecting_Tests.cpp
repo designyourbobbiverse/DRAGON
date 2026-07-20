@@ -105,12 +105,14 @@ void DRAGON_Test::verify_boundary_reflective_2D(){
         PrimitiveState w = grid[0,j]; reflectX2D(w);
         expect_close(grid[-1, j], w);
         #ifdef MHD //Transverse Magnetic Fields
+        assert(magneticX(grid, -1, j) == magneticX(grid, 0, j));
         assert(magneticY(grid, -1, j) == -magneticY(grid, 0, j));
         #endif
        
         w = grid[2,j]; reflectX2D(w);
         expect_close(grid[3, j], w);
         #ifdef MHD //Transverse Magnetic Fields
+        assert(magneticX(grid, 3, j) == magneticX(grid, 2, j));
         assert(magneticY(grid, 3, j) == -magneticY(grid, 2, j));
         #endif
     }
@@ -123,14 +125,16 @@ void DRAGON_Test::verify_boundary_reflective_2D(){
     for (int i = 0; i < grid.getSizeX(); i++) {
         PrimitiveState w = grid[i,0]; reflectY2D(w);
         expect_close(grid[i,-1], w);
-        #ifdef MHD //Transverse Magnetic Fields
+        #ifdef MHD //Magnetic Fields via A fields
         assert(magneticX(grid, i,-1) == -magneticX(grid, i,0));
+        assert(magneticY(grid, i,-1) == magneticY(grid, i,0));
         #endif
        
         w = grid[i,3]; reflectY2D(w);
         expect_close(grid[i,4], w);
         #ifdef MHD //Transverse Magnetic Fields
         assert(magneticX(grid, i,4) == -magneticX(grid, i,3));
+        assert(magneticY(grid, i,4) == magneticY(grid, i,3));
         #endif
     }
     //Corner
@@ -175,6 +179,7 @@ void DRAGON_Test::verify_boundary_reflective_3D(){
             PrimitiveState w = grid[0,j,k]; reflectX3D(w);
             expect_close(grid[-1, j,k], w);
             #ifdef MHD //Transverse Magnetic Fields
+            assert(magneticX(grid, -1, j,k) == magneticX(grid, 0, j,k));
             assert(magneticY(grid, -1, j,k) == -magneticY(grid, 0, j,k));
             assert(magneticZ(grid, -1, j,k) == -magneticZ(grid, 0, j,k));
             #endif
@@ -182,6 +187,7 @@ void DRAGON_Test::verify_boundary_reflective_3D(){
             w = grid[2,j,k]; reflectX3D(w);
             expect_close(grid[3, j,k], w);
             #ifdef MHD //Transverse Magnetiic Fields
+            assert(magneticX(grid, 3, j,k) == magneticX(grid, 2, j,k));
             assert(magneticY(grid, 3, j,k) == -magneticY(grid, 2, j,k));
             assert(magneticZ(grid, 3, j,k) == -magneticZ(grid, 2, j,k));
             #endif
@@ -196,6 +202,7 @@ void DRAGON_Test::verify_boundary_reflective_3D(){
             expect_close(grid[i,-1,k], w);
             #ifdef MHD //Transverse Magnetic Fields
             assert(magneticX(grid, i,-1,k) == -magneticX(grid, i,0,k));
+            assert(magneticY(grid, i,-1,k) == magneticY(grid, i,0,k));
             assert(magneticZ(grid, i,-1,k) == -magneticZ(grid, i,0,k));
             #endif
             
@@ -203,6 +210,7 @@ void DRAGON_Test::verify_boundary_reflective_3D(){
             expect_close(grid[i,4,k], w);
             #ifdef MHD //Transverse Magnetic Fields
             assert(magneticX(grid, i,4,k) == -magneticX(grid, i,3,k));
+            assert(magneticY(grid, i,4,k) == magneticY(grid, i,3,k));
             assert(magneticZ(grid, i,4,k) == -magneticZ(grid, i,3,k));
             #endif
         }
@@ -217,6 +225,7 @@ void DRAGON_Test::verify_boundary_reflective_3D(){
             #ifdef MHD //Transverse Magnetic Fields
             assert(magneticX(grid, i,j,-1) == -magneticX(grid, i,j,0));
             assert(magneticY(grid, i,j,-1) == -magneticY(grid, i,j,0));
+            assert(magneticZ(grid, i,j,-1) == magneticZ(grid, i,j,0));
             #endif
             
             w = grid[i,j,4]; reflectZ3D(w);
@@ -224,6 +233,7 @@ void DRAGON_Test::verify_boundary_reflective_3D(){
             #ifdef MHD //Transverse Magnetic Fields
             assert(magneticX(grid, i,j,5) == -magneticX(grid, i,j,4));
             assert(magneticY(grid, i,j,5) == -magneticY(grid, i,j,4));
+            assert(magneticZ(grid, i,j,5) == magneticZ(grid, i,j,4));
             #endif
         }
     }
