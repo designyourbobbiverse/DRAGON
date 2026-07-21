@@ -88,7 +88,7 @@ void DRAGON_Test::expect_close(const vec3& a, const vec3& b, double rel, double 
 void DRAGON_Test::expect_close(const ConservativeState& a, const ConservativeState& b, double rel, double abs) {
     assert(approx(a.rho, b.rho, rel, abs));
     assert(approx(a.E,   b.E,   rel, abs));
-    expect_close(a.p, b.p, rel, abs);
+    expect_close(a.mom, b.mom, rel, abs);
 #ifdef MHD
     expect_close(a.B, b.B, rel, abs);
 #endif
@@ -119,9 +119,9 @@ void DRAGON_Test::verify_constructors(){
 
     ConservativeState U;
     assert(U.rho == 0);
-    assert(U.p.x == 0);
-    assert(U.p.y == 0);
-    assert(U.p.z == 0);
+    assert(U.mom.x == 0);
+    assert(U.mom.y == 0);
+    assert(U.mom.z == 0);
     assert(U.E == 0);
 #ifdef MHD
     assert(U.B.x == 0);
@@ -137,9 +137,9 @@ void DRAGON_Test::verify_conversion(){
     ConservativeState U(W);
 
     assert(approx(U.rho, 2.0));
-    assert(approx(U.p.x, 6.0));
-    assert(approx(U.p.y, 8.0));
-    assert(approx(U.p.z, 0.0));
+    assert(approx(U.mom.x, 6.0));
+    assert(approx(U.mom.y, 8.0));
+    assert(approx(U.mom.z, 0.0));
     assert(approx(U.E, 40.0));
     assert(approx(U.pressure(), 10.0));
     
@@ -152,9 +152,9 @@ void DRAGON_Test::verify_conversion(){
     ConservativeState U2(W);
 
     assert(approx(U2.rho, 2.0));
-    assert(approx(U2.p.x, 6.0));
-    assert(approx(U2.p.y, 8.0));
-    assert(approx(U2.p.z, 0.0));
+    assert(approx(U2.mom.x, 6.0));
+    assert(approx(U2.mom.y, 8.0));
+    assert(approx(U2.mom.z, 0.0));
     assert(approx(U2.E, 40.0 + (14.0)/(8*M_PI) ));
     assert(approx(U2.pressure(), 10.0));
     
@@ -170,9 +170,9 @@ void DRAGON_Test::verify_flux(){
     ConservativeState F = U.flux();
 
     assert(approx(F.rho, 6.0));
-    assert(approx(F.p.x, 28.0));  // rho v.x^2 + p = 2*9 + 10
-    assert(approx(F.p.y, 24.0));  // rho v.x v.y = 2*3*4
-    assert(approx(F.p.z, 30.0));  // rho v.x v.z = 2*3*5
+    assert(approx(F.mom.x, 28.0));  // rho v.x^2 + p = 2*9 + 10
+    assert(approx(F.mom.y, 24.0));  // rho v.x v.y = 2*3*4
+    assert(approx(F.mom.z, 30.0));  // rho v.x v.z = 2*3*5
     assert(approx(F.E, W.v.x * (U.E + W.p)));
     
 #ifdef MHD
@@ -180,9 +180,9 @@ void DRAGON_Test::verify_flux(){
     F = W.flux();
 
     assert(approx(F.rho, 6.0));
-    assert(approx(F.p.x, 28.0 + 12/(8*M_PI) ));  // rho v.x^2 + p = 2*9 + 10
-    assert(approx(F.p.y, 24.0 - 2/(4*M_PI)));  // rho v.x v.y = 2*3*4
-    assert(approx(F.p.z, 30.0- 3/(4*M_PI)));  // rho v.x v.z = 2*3*5
+    assert(approx(F.mom.x, 28.0 + 12/(8*M_PI) ));  // rho v.x^2 + p = 2*9 + 10
+    assert(approx(F.mom.y, 24.0 - 2/(4*M_PI)));  // rho v.x v.y = 2*3*4
+    assert(approx(F.mom.z, 30.0- 3/(4*M_PI)));  // rho v.x v.z = 2*3*5
     assert(approx(F.B.x, 0));
     assert(approx(F.B.y, W.v.x * W.B.y - W.v.y * W.B.x));
     assert(approx(F.B.z, W.v.x * W.B.z - W.v.z * W.B.x));
@@ -319,15 +319,15 @@ void DRAGON_Test::verify_swaps_P(){
 //Conservative
 void DRAGON_Test::verify_swaps_C(){
     ConservativeState U;
-    U.p = {1,2,3};
+    U.mom = {1,2,3};
 #ifdef MHD
     U.B = {1,2,3};
 #endif
     
     ConservativeState _XY = U.swappedXY();
-    assert(approx(_XY.p.x, 2));
-    assert(approx(_XY.p.y, 1));
-    assert(approx(_XY.p.z, 3));
+    assert(approx(_XY.mom.x, 2));
+    assert(approx(_XY.mom.y, 1));
+    assert(approx(_XY.mom.z, 3));
 #ifdef MHD
     assert(approx(_XY.B.x, 2));
     assert(approx(_XY.B.y, 1));
@@ -335,9 +335,9 @@ void DRAGON_Test::verify_swaps_C(){
 #endif
     
     ConservativeState _XZ = U.swappedXZ();
-    assert(approx(_XZ.p.x, 3));
-    assert(approx(_XZ.p.y, 2));
-    assert(approx(_XZ.p.z, 1));
+    assert(approx(_XZ.mom.x, 3));
+    assert(approx(_XZ.mom.y, 2));
+    assert(approx(_XZ.mom.z, 1));
 #ifdef MHD
     assert(approx(_XZ.B.x, 3));
     assert(approx(_XZ.B.y, 2));
@@ -345,9 +345,9 @@ void DRAGON_Test::verify_swaps_C(){
 #endif
 
     ConservativeState _YZ = U.swappedYZ();
-    assert(approx(_YZ.p.x, 1));
-    assert(approx(_YZ.p.y, 3));
-    assert(approx(_YZ.p.z, 2));
+    assert(approx(_YZ.mom.x, 1));
+    assert(approx(_YZ.mom.y, 3));
+    assert(approx(_YZ.mom.z, 2));
 #ifdef MHD
     assert(approx(_YZ.B.x, 1));
     assert(approx(_YZ.B.y, 3));
@@ -355,9 +355,9 @@ void DRAGON_Test::verify_swaps_C(){
 #endif
     
     //Original Unchanged
-    assert(approx(U.p.x, 1));
-    assert(approx(U.p.y, 2));
-    assert(approx(U.p.z, 3));
+    assert(approx(U.mom.x, 1));
+    assert(approx(U.mom.y, 2));
+    assert(approx(U.mom.z, 3));
 #ifdef MHD
     assert(approx(U.B.x, 1));
     assert(approx(U.B.y, 2));
@@ -371,14 +371,14 @@ void DRAGON_Test::verify_swaps_C(){
 
 void DRAGON_Test::verify_add(){
     ConservativeState A;
-    A.rho = 1; A.p.x = 2; A.p.y = 3; A.p.z = 4; A.E = 5;
+    A.rho = 1; A.mom.x = 2; A.mom.y = 3; A.mom.z = 4; A.E = 5;
 #ifdef MHD
     A.B = {1,2,3};
 #endif
     ConservativeState _A = A;
 
     ConservativeState B;
-    B.rho = 10; B.p.x = 20; B.p.y = 30; B.p.z = 40; B.E = 50;
+    B.rho = 10; B.mom.x = 20; B.mom.y = 30; B.mom.z = 40; B.E = 50;
 #ifdef MHD
     B.B = {0.1,0.2,0.3};
 #endif
@@ -386,9 +386,9 @@ void DRAGON_Test::verify_add(){
 
     ConservativeState C = A + B;
     assert(approx(C.rho, 11));
-    assert(approx(C.p.x, 22));
-    assert(approx(C.p.y, 33));
-    assert(approx(C.p.z, 44));
+    assert(approx(C.mom.x, 22));
+    assert(approx(C.mom.y, 33));
+    assert(approx(C.mom.z, 44));
     assert(approx(C.E, 55));
 #ifdef MHD
     assert(approx(C.B.x, 1.1));
@@ -401,9 +401,9 @@ void DRAGON_Test::verify_add(){
     
     A += B;
     assert(approx(A.rho, 11));
-    assert(approx(A.p.x, 22));
-    assert(approx(A.p.y, 33));
-    assert(approx(A.p.z, 44));
+    assert(approx(A.mom.x, 22));
+    assert(approx(A.mom.y, 33));
+    assert(approx(A.mom.z, 44));
     assert(approx(A.E, 55));
 #ifdef MHD
     assert(approx(A.B.x, 1.1));
@@ -414,14 +414,14 @@ void DRAGON_Test::verify_add(){
 }
 void DRAGON_Test::verify_sub(){
     ConservativeState A;
-    A.rho = 1; A.p.x = 2; A.p.y = 3; A.p.z = 4; A.E = 5;
+    A.rho = 1; A.mom.x = 2; A.mom.y = 3; A.mom.z = 4; A.E = 5;
 #ifdef MHD
     A.B = {1,2,3};
 #endif
     ConservativeState _A = A;
 
     ConservativeState B;
-    B.rho = 10; B.p.x = 20; B.p.y = 30; B.p.z = 40; B.E = 50;
+    B.rho = 10; B.mom.x = 20; B.mom.y = 30; B.mom.z = 40; B.E = 50;
 #ifdef MHD
     B.B = {0.1,0.2,0.3};
 #endif
@@ -429,9 +429,9 @@ void DRAGON_Test::verify_sub(){
     
     ConservativeState C = B - A;
     assert(approx(C.rho, 9));
-    assert(approx(C.p.x, 18));
-    assert(approx(C.p.y, 27));
-    assert(approx(C.p.z, 36));
+    assert(approx(C.mom.x, 18));
+    assert(approx(C.mom.y, 27));
+    assert(approx(C.mom.z, 36));
     assert(approx(C.E, 45));
 #ifdef MHD
     assert(approx(C.B.x, -0.9));
@@ -444,9 +444,9 @@ void DRAGON_Test::verify_sub(){
     
     B -= A;
     assert(approx(B.rho, 9));
-    assert(approx(B.p.x, 18));
-    assert(approx(B.p.y, 27));
-    assert(approx(B.p.z, 36));
+    assert(approx(B.mom.x, 18));
+    assert(approx(B.mom.y, 27));
+    assert(approx(B.mom.z, 36));
     assert(approx(B.E, 45));
 #ifdef MHD
     assert(approx(B.B.x, -0.9));
@@ -456,7 +456,7 @@ void DRAGON_Test::verify_sub(){
 }
 void DRAGON_Test::verify_mult(){
     ConservativeState A;
-    A.rho = 1; A.p.x = 2; A.p.y = 3; A.p.z = 4; A.E = 5;
+    A.rho = 1; A.mom.x = 2; A.mom.y = 3; A.mom.z = 4; A.E = 5;
 #ifdef MHD
     A.B = {1,2,3};
 #endif
@@ -466,9 +466,9 @@ void DRAGON_Test::verify_mult(){
     
     ConservativeState C = k * A;
     assert(approx(C.rho, 2));
-    assert(approx(C.p.x, 4));
-    assert(approx(C.p.y, 6));
-    assert(approx(C.p.z, 8));
+    assert(approx(C.mom.x, 4));
+    assert(approx(C.mom.y, 6));
+    assert(approx(C.mom.z, 8));
     assert(approx(C.E, 10));
 #ifdef MHD
     assert(approx(C.B.x, 2));
@@ -478,9 +478,9 @@ void DRAGON_Test::verify_mult(){
     
     C = A * k;
     assert(approx(C.rho, 2));
-    assert(approx(C.p.x, 4));
-    assert(approx(C.p.y, 6));
-    assert(approx(C.p.z, 8));
+    assert(approx(C.mom.x, 4));
+    assert(approx(C.mom.y, 6));
+    assert(approx(C.mom.z, 8));
     assert(approx(C.E, 10));
 #ifdef MHD
     assert(approx(C.B.x, 2));
@@ -492,9 +492,9 @@ void DRAGON_Test::verify_mult(){
     
     A *= k;
     assert(approx(A.rho, 2));
-    assert(approx(A.p.x, 4));
-    assert(approx(A.p.y, 6));
-    assert(approx(A.p.z, 8));
+    assert(approx(A.mom.x, 4));
+    assert(approx(A.mom.y, 6));
+    assert(approx(A.mom.z, 8));
     assert(approx(A.E, 10));
 #ifdef MHD
     assert(approx(A.B.x, 2));
@@ -506,7 +506,7 @@ void DRAGON_Test::verify_mult(){
 
 void DRAGON_Test::verify_div(){
     ConservativeState A;
-    A.rho = 1; A.p.x = 2; A.p.y = 3; A.p.z = 4; A.E = 5;
+    A.rho = 1; A.mom.x = 2; A.mom.y = 3; A.mom.z = 4; A.E = 5;
 #ifdef MHD
     A.B = {1,2,3};
 #endif
@@ -516,9 +516,9 @@ void DRAGON_Test::verify_div(){
     
     ConservativeState C = A / k;
     assert(approx(C.rho, 0.5));
-    assert(approx(C.p.x, 1.0));
-    assert(approx(C.p.y, 1.5));
-    assert(approx(C.p.z, 2.0));
+    assert(approx(C.mom.x, 1.0));
+    assert(approx(C.mom.y, 1.5));
+    assert(approx(C.mom.z, 2.0));
     assert(approx(C.E, 2.5));
 #ifdef MHD
     assert(approx(C.B.x, 0.5));
@@ -530,9 +530,9 @@ void DRAGON_Test::verify_div(){
     
     A /= k;
     assert(approx(A.rho, 0.5));
-    assert(approx(A.p.x, 1.0));
-    assert(approx(A.p.y, 1.5));
-    assert(approx(A.p.z, 2.0));
+    assert(approx(A.mom.x, 1.0));
+    assert(approx(A.mom.y, 1.5));
+    assert(approx(A.mom.z, 2.0));
     assert(approx(A.E, 2.5));
     
 #ifdef MHD
@@ -552,9 +552,9 @@ void DRAGON_Test::verify_flux_add() {
 
     ConservativeState dU;
     dU.rho = 0.1;
-    dU.p.x  = 0.2;
-    dU.p.y  = 0.3;
-    dU.p.z  = 0.4;
+    dU.mom.x  = 0.2;
+    dU.mom.y  = 0.3;
+    dU.mom.z  = 0.4;
     dU.E   = 0.5;
 #ifdef MHD
     dU.B.x  = 0.6;
@@ -568,8 +568,8 @@ void DRAGON_Test::verify_flux_add() {
     ConservativeState expected = U0 + dU;
 
     assert(approx(U1.rho, expected.rho, 1e-12, 1e-12));
-    assert(approx(U1.p.x,  expected.p.x,  1e-12, 1e-12));
-    assert(approx(U1.p.y,  expected.p.y,  1e-12, 1e-12));
-    assert(approx(U1.p.z,  expected.p.z,  1e-12, 1e-12));
+    assert(approx(U1.mom.x,  expected.mom.x,  1e-12, 1e-12));
+    assert(approx(U1.mom.y,  expected.mom.y,  1e-12, 1e-12));
+    assert(approx(U1.mom.z,  expected.mom.z,  1e-12, 1e-12));
     assert(approx(U1.E,   expected.E,   1e-12, 1e-12));
 }

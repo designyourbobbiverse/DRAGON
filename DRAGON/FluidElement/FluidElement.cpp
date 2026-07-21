@@ -21,7 +21,7 @@ PrimitiveState::PrimitiveState(){
 }
 ConservativeState::ConservativeState(){
     rho = 0;
-    p = {0,0,0};
+    mom = {0,0,0};
     E = 0;
 #ifdef MHD
     B = {0,0,0};
@@ -32,7 +32,7 @@ ConservativeState::ConservativeState(){
 
 ConservativeState::ConservativeState(PrimitiveState state){
     rho = state.rho;
-    p = rho * state.v; //Momentum Density = Mass Denisty * Velocity
+    mom = rho * state.v; //Momentum Density = Mass Denisty * Velocity
     E = state.energy();
 #ifdef MHD
     B = state.B;
@@ -41,7 +41,7 @@ ConservativeState::ConservativeState(PrimitiveState state){
 
 PrimitiveState::PrimitiveState(ConservativeState state){
     rho = state.rho;
-    v = state.p / rho; //Bulk Velocity = Momentum Density / Mass Denisty
+    v = state.mom / rho; //Bulk Velocity = Momentum Density / Mass Denisty
     p = state.pressure();
 #ifdef MHD
     B = state.B;
@@ -56,7 +56,7 @@ double PrimitiveState::energy() const {
     return E;
 }
 double ConservativeState::pressure() const {
-    double E_thermal = this->E - (p*p)/(2*rho); //Remove Bulk Kinetic Energy Density
+    double E_thermal = this->E - (mom*mom)/(2*rho); //Remove Bulk Kinetic Energy Density
 #ifdef MHD
      E_thermal -= (B*B) * _1_8pi; //Remove Magnetic Energy Density (if applicable)
 #endif
@@ -83,7 +83,7 @@ bool ConservativeState::isFinite()  const {
 #ifdef MHD
     if( !isfinite(B.x) || !isfinite(B.y) || !isfinite(B.z)) return false;
 #endif
-    return isfinite(rho) && isfinite(p.x)  && isfinite(p.y)  && isfinite(p.z)  && isfinite(E);
+    return isfinite(rho) && isfinite(mom.x)  && isfinite(mom.y)  && isfinite(mom.z)  && isfinite(E);
 }
 bool ConservativeState::isPhysical()  const {
     return isFinite() && rho > 0.0 && pressure() > 0.0;
@@ -118,27 +118,27 @@ double PrimitiveState::c_fast_max() const {
 ConservativeState PrimitiveState::flux() const { return ConservativeState(*this).flux(v); }
 ConservativeState ConservativeState::flux() const {
 #ifdef MHD
-    return flux(p / rho); //Compute the velocity then call the flux method
+    return flux(mom / rho); //Compute the velocity then call the flux method
 #else
     //vy and vz are never used in hydro flux, so don't waste a division on them
-    return flux({p.x / rho, 0 , 0});
+    return flux({mom.x / rho, 0 , 0});
 #endif
 }
 ConservativeState ConservativeState::flux(vec3 v) const {
     ConservativeState F = ConservativeState();
     double _p = pressure();
-    F.rho = p.x; //Mass Flux = rho*v = Momentum density
-    F.p = p * v.x; //Momentum flux from advection = \rho (v\otimes v)_x = (Momentum density) * x-velocity
-    F.p.x += _p; //Thermal pressure contributes to the normal component of momentum flux
+    F.rho = mom.x; //Mass Flux = rho*v = Momentum density
+    F.mom = mom * v.x; //Momentum flux from advection = \rho (v\otimes v)_x = (Momentum density) * x-velocity
+    F.mom.x += _p; //Thermal pressure contributes to the normal component of momentum flux
     F.E =  (E + _p) * v.x; //Energy Flux = (Enthalpy density) * normal velocity [1st law of thermodynamics]
 #ifdef MHD
     //Magnetic Pressure
     double p_mag = B*B * _1_8pi;
-    F.p.x += p_mag;
+    F.mom.x += p_mag;
     F.E += p_mag * v.x;
     //Magnetic Tension
     vec3 mag_ten = (B.x * B) * _1_4pi;
-    F.p -= mag_ten;
+    F.mom -= mag_ten;
     F.E -= v * mag_ten; //Poynting Flux
     //Magnetic Induction
     F.B = v.x * B - B.x * v;
@@ -222,7 +222,7 @@ PrimitiveState PrimitiveState::swappedYZ() const {
 
 
 void ConservativeState::swapXY() {
-    p.swapXY();
+    mom.swapXY();
 #ifdef MHD
     B.swapXY();
 #endif
@@ -234,7 +234,7 @@ ConservativeState ConservativeState::swappedXY() const {
 }
 
 void ConservativeState::swapXZ() {
-    p.swapXZ();
+    mom.swapXZ();
 #ifdef MHD
     B.swapXZ();
 #endif
@@ -246,7 +246,7 @@ ConservativeState ConservativeState::swappedXZ() const {
 }
 
 void ConservativeState::swapYZ() {
-    p.swapYZ();
+    mom.swapYZ();
 #ifdef MHD
     B.swapYZ();
 #endif

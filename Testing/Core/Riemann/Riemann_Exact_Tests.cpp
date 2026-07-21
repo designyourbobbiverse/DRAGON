@@ -25,8 +25,8 @@ PrimitiveState mirrored_state(PrimitiveState W) {
 
 ConservativeState mirrored_flux(ConservativeState F) {
     F.rho *= -1.0;
-    F.p.y *= -1.0;
-    F.p.z *= -1.0;
+    F.mom.y *= -1.0;
+    F.mom.z *= -1.0;
     F.E *= -1.0;
 #ifdef MHD
     F.B.y *= -1.0;
@@ -88,9 +88,9 @@ void DRAGON_Test::verify_exact_stationary_contact() {
     PrimitiveState R = make_state(2.0, 0.0, 0.0, 0.0, 1.0);
     ConservativeState expected;
     expected.rho = 0.0;
-    expected.p.x  = 1.0;
-    expected.p.y  = 0.0;
-    expected.p.z  = 0.0;
+    expected.mom.x  = 1.0;
+    expected.mom.y  = 0.0;
+    expected.mom.z  = 0.0;
     expected.E   = 0.0;
 
     expect_close(Riemann(L,R).exact().flux(), expected, 1e-10, 1e-10);

@@ -123,7 +123,7 @@ ConservativeState Riemann::HLLC(double sl, double sr){
     ConservativeState UX = ConservativeState(X);
     //Compute Star Region
     ConservativeState U = UX * (sx - X.v.x) / (sx - sc);
-    U.p.x = U.rho * sc;
+    U.mom.x = U.rho * sc;
     U.E +=  U.rho*(sc - X.v.x)*(sc + X.p/(X.rho*(sx-X.v.x)) );
     //Compute Flux
     return UX.flux(X.v) + (U - UX) * sx;

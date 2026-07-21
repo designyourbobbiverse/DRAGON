@@ -144,7 +144,7 @@ void ctu_sweep_MHD(FluidArray3D& _xL, FluidArray3D& _xR, FluidArray3D& _yL, Flui
                 auto corr = ConservativeState();
                 double lim_y = TVD::minmod(-dBz, dBx);
                 double lim_z = TVD::minmod(-dBy, dBx);
-                corr.p = 0.5 * _1_4pi * dBx * W.B;
+                corr.mom = 0.5 * _1_4pi * dBx * W.B;
                 corr.E = 0.5 * _1_4pi * (W.B.y * W.v.y * lim_y + W.B.z * W.v.z * lim_z);
                 corr.B.y = -0.25 * dt_dz * (E0[i,j,k+1].x - E0[i,j,k].x + E0[i,j+1,k+1].x - E0[i,j+1,k].x) + 0.5 * W.v.y * lim_y;
                 corr.B.z = 0.25 * dt_dy * (E0[i,j+1,k].x - E0[i,j,k].x + E0[i,j+1,k+1].x - E0[i,j,k+1].x) + 0.5 * W.v.z * lim_z;
@@ -157,7 +157,7 @@ void ctu_sweep_MHD(FluidArray3D& _xL, FluidArray3D& _xR, FluidArray3D& _yL, Flui
                 double lim_x = TVD::minmod(-dBz, dBy);
                 lim_z = TVD::minmod(-dBx, dBy);
                 corr = ConservativeState();
-                corr.p = 0.5* (_1_4pi * dBy) * W.B;
+                corr.mom = 0.5* (_1_4pi * dBy) * W.B;
                 corr.E = 0.5 * _1_4pi * (W.B.x * W.v.x * lim_x + W.B.z * W.v.z * lim_z);
                 corr.B.x = 0.25 * dt_dz * (E0[i,j,k+1].y - E0[i,j,k].y + E0[i+1,j,k+1].y - E0[i+1,j,k].y) + 0.5 * W.v.x * lim_x;
                 corr.B.z = -0.25 * dt_dx * (E0[i+1,j,k].y - E0[i,j,k].y + E0[i+1,j,k+1].y - E0[i,j,k+1].y) + 0.5 * W.v.z * lim_z;
@@ -171,7 +171,7 @@ void ctu_sweep_MHD(FluidArray3D& _xL, FluidArray3D& _xR, FluidArray3D& _yL, Flui
                 lim_x = TVD::minmod(-dBy, dBz);
                 lim_y = TVD::minmod(-dBx, dBz);
                 corr = ConservativeState();
-                corr.p = 0.5 * (_1_4pi * dBz) * W.B;
+                corr.mom = 0.5 * (_1_4pi * dBz) * W.B;
                 corr.E = 0.5 * _1_4pi * (W.B.x * W.v.x * lim_x + W.B.y * W.v.y * lim_y);
                 corr.B.x =  -0.25 * dt_dy * (E0[i,j+1,k].z - E0[i,j,k].z + E0[i+1,j+1,k].z - E0[i+1,j,k].z) + 0.5 * W.v.x * lim_x;
                 corr.B.y =  0.25 * dt_dx * (E0[i+1,j,k].z - E0[i,j,k].z + E0[i+1,j+1,k].z - E0[i,j+1,k].z) + 0.5 * W.v.y * lim_y;
@@ -238,7 +238,7 @@ void ctu_sweep_MHD(FluidArray2D& _xL, FluidArray2D& _xR, FluidArray2D& _yL, Flui
             
             auto corr = ConservativeState();
             double lim_z = TVD::minmod(-dBy, dBx);
-            corr.p = 0.5 * _1_4pi * dBx * W.B;
+            corr.mom = 0.5 * _1_4pi * dBx * W.B;
             corr.E = 0.5 * _1_4pi * (W.B.z * W.v.z * lim_z);
             corr.B.z = 0.5 * dt_dy * (E0[i,j+1].x - E0[i,j].x) + 0.5 * W.v.z * lim_z;
             uL = _xL[i,j] + corr;
@@ -249,7 +249,7 @@ void ctu_sweep_MHD(FluidArray2D& _xL, FluidArray2D& _xR, FluidArray2D& _yL, Flui
 
             lim_z = TVD::minmod(-dBx, dBy);
             corr = ConservativeState();
-            corr.p = 0.5* (_1_4pi * dBy) * W.B;
+            corr.mom = 0.5* (_1_4pi * dBy) * W.B;
             corr.E = 0.5 * _1_4pi * (W.B.z * W.v.z * lim_z);
             corr.B.z = -0.5 * dt_dx * (E0[i+1,j].y - E0[i,j].y) + 0.5 * W.v.z * lim_z;
             uL = _yL[i,j] + corr;

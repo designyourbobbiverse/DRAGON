@@ -19,33 +19,33 @@
 inline ConservativeState _K1(vec3 _v, double _H, double _a){
     ConservativeState K = ConservativeState();
     K.rho = 1;
-    K.p = _v - vec3{_a,0,0};
+    K.mom = _v - vec3{_a,0,0};
     K.E = _H - _v.x*_a;
     return K;
 }
 inline ConservativeState _K2(vec3 _v, double _V2){
     ConservativeState K = ConservativeState();
     K.rho = 1;
-    K.p = _v;
+    K.mom = _v;
     K.E = _V2/2;
     return K;
 }
 inline ConservativeState _K3(double _vy){
     ConservativeState K = ConservativeState();
-    K.p.y = 1;
+    K.mom.y = 1;
     K.E = _vy;
     return K;
 }
 inline ConservativeState _K4(double _vz){
     ConservativeState K = ConservativeState();
-    K.p.z = 1;
+    K.mom.z = 1;
     K.E = _vz;
     return K;
 }
 inline ConservativeState _K5(vec3 _v, double _H, double _a){
     ConservativeState K = ConservativeState();
     K.rho = 1;
-    K.p = _v + vec3{_a,0,0};
+    K.mom = _v + vec3{_a,0,0};
     K.E = _H + _v.x*_a;
     return K;
 }
@@ -76,14 +76,14 @@ ConservativeState Riemann::Roe(){
 #ifdef Harten_Hyman
     ConservativeState SL = UL + alpha[0]*K[0];
     double aL = sqrt(_gamma * L.p/L.rho), aSL = sqrt(_gamma*SL.pressure()/SL.rho);
-    double lambdaL = L.v.x-aL, lambdaLS = SL.p.x/SL.rho - aSL;
+    double lambdaL = L.v.x-aL, lambdaLS = SL.mom.x/SL.rho - aSL;
     if(lambdaL < 0 &&  lambdaLS > 0 ) {//Left Rarefaction
         double _lambda = lambdaL * (lambda[0] - lambdaLS)/(lambdaL - lambdaLS);
         return UL.flux(L.v) + _lambda*alpha[0]*K[0];
     }
     ConservativeState SR = UR - alpha[4]*K[4];
     double aR = sqrt(_gamma * R.p/R.rho), aSR = sqrt(_gamma*SR.pressure()/SR.rho);
-    double lambdaR = R.v.x+aR, lambdaRS = SR.p.x/SR.rho + aSR;
+    double lambdaR = R.v.x+aR, lambdaRS = SR.mom.x/SR.rho + aSR;
     if(lambdaR > 0 &&  lambdaRS  < 0) {//Right Rarefaction
         double _lambda = lambdaR * (lambda[4] - lambdaRS)/(lambdaR - lambdaRS);
         return UR.flux(R.v) - _lambda*alpha[4]*K[4];

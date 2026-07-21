@@ -72,9 +72,9 @@ void DRAGON_Test::verify_hll_stationary_contact() {
     PrimitiveState R = make_state(2.0, 0.0, 0.0, 0.0, 1.0);
     ConservativeState expected;
     expected.rho = 0.0;
-    expected.p.x  = 1.0;
-    expected.p.y  = 0.0;
-    expected.p.z  = 0.0;
+    expected.mom.x  = 1.0;
+    expected.mom.y  = 0.0;
+    expected.mom.z  = 0.0;
     expected.E   = 0.0;
 
     expect_close(Riemann(L,R).HLLC(),expected, 1e-10, 1e-10);

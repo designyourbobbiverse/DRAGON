@@ -19,7 +19,7 @@ ConservativeState operator+(ConservativeState X, const ConservativeState &Y){
 }
 ConservativeState& operator+=(ConservativeState &X, const ConservativeState &Y){
     X.rho += Y.rho;
-    X.p += Y.p;
+    X.mom += Y.mom;
     X.E += Y.E;
 #ifdef MHD
     X.B += Y.B;
@@ -45,7 +45,7 @@ ConservativeState operator-(ConservativeState X, const ConservativeState &Y){
 }
 ConservativeState& operator-=(ConservativeState &X, const ConservativeState &Y){
     X.rho -= Y.rho;
-    X.p -= Y.p;
+    X.mom -= Y.mom;
     X.E -= Y.E;
 #ifdef MHD
     X.B -= Y.B;
@@ -70,7 +70,7 @@ ConservativeState operator*(ConservativeState X, double a){
 }
 ConservativeState& operator*=(ConservativeState &X, double a){
     X.rho *= a;
-    X.p *= a;
+    X.mom *= a;
     X.E *= a;
 #ifdef MHD
     X.B *= a;
@@ -109,7 +109,7 @@ ConservativeState operator/(ConservativeState X, double a){
 }
 ConservativeState& operator/=(ConservativeState &X, double a){
     X.rho /= a;
-    X.p /= a;
+    X.mom /= a;
     X.E /= a;
 #ifdef MHD
     X.B /= a;
@@ -141,7 +141,7 @@ bool operator==(const PrimitiveState &X, const PrimitiveState &Y){
 }
 bool operator==(const ConservativeState &X, const ConservativeState &Y){
     if(fabs(X.rho - Y.rho) >= 1e-12) return false;
-    if(X.p != Y.p) return false;
+    if(X.mom != Y.mom) return false;
     if(fabs(X.E - Y.E) >= 1e-12) return false;
 #ifdef MHD
     if(X.B != Y.B) return false;
