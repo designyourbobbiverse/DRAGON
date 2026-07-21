@@ -4,7 +4,7 @@
 
 #include "Problem.hpp"
 #include "Config.h"
-#include "DragonHoard.hpp"
+//#include "DragonHoard.hpp"
 #include <iostream>
 #include <chrono>
 
@@ -13,13 +13,14 @@
 
 static void verify_dir(){
     try{
-        DRAGONHOARD::verifyOutputDirectory();
+        //DRAGONHOARD::verifyOutputDirectory();
     } catch (std::exception& e){
         std::cout<<e.what()<<std::endl;
         throw e;
     }
 }
 static void load(Grid& problem, double& time, int& cycle){
+    /*
     #ifdef RESTART_FROM_FILE
     std::string file = DRAGONHOARD::restartFileName();
     if(file.size() > 0) {
@@ -31,8 +32,9 @@ static void load(Grid& problem, double& time, int& cycle){
         }
     }
     #endif
+     */
     Problem::initializeProblem(problem);
-    DRAGONHOARD::writeToFile(problem, 0, 0, CONFIG::output_base_name + "_" + DRAGONHOARD::cycle_string(0));
+    //DRAGONHOARD::writeToFile(problem, 0, 0, CONFIG::output_base_name + "_" + DRAGONHOARD::cycle_string(0));
 
 }
  
@@ -46,6 +48,12 @@ static void cycle_output(std::string cycleStr, double clock_time){
     std::cout << "Time: "<< h << "h "<< m <<"m " << s <<"s \n";
 }
 
+std::string cycle_string(int n){
+    std::string zeroes = n<10 ? "0000" : (n<100 ? "000" : (n<1000 ? "00" : (n<10000 ? "0" : "")));
+    return zeroes +  std::to_string(n);
+}
+
+
 
 int main(int argc, const char * argv[]) {
     verify_dir();
@@ -57,7 +65,7 @@ int main(int argc, const char * argv[]) {
     
     load(problem, time, cycle);
     //Monitor Output
-    std::string cycleStr = DRAGONHOARD::cycle_string(cycle);
+    std::string cycleStr = cycle_string(cycle);
     double clock_time = std::chrono::duration<double>(std::chrono::system_clock::now() - start).count();
     cycle_output(cycleStr, clock_time);
     
@@ -73,12 +81,12 @@ int main(int argc, const char * argv[]) {
         Problem::afterCycle(problem, cycle, time);
         
         //Monitor Output
-        std::string cycleStr = DRAGONHOARD::cycle_string(cycle);
+        std::string cycleStr = cycle_string(cycle);
         double clock_time = std::chrono::duration<double>(std::chrono::system_clock::now() - start).count();
         cycle_output(cycleStr, clock_time);
         
         //Write to File
-        DRAGONHOARD::writeToFile(problem, time, cycle, CONFIG::output_base_name + "_" + cycleStr);
+        //DRAGONHOARD::writeToFile(problem, time, cycle, CONFIG::output_base_name + "_" + cycleStr);
     }
     
     Problem::problemComplete(problem, time);

@@ -17,7 +17,7 @@ int main() {
     
     verify_grid();
     verify_boundary();
-    verify_IO();
+   // verify_IO();
     
     verify_riemann();
     verify_tvd();

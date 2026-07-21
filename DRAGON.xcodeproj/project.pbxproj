@@ -35,15 +35,6 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		F76451713003578200C1547C /* Exceptions for "DRAGONHOARD" folder in "DRAGON_TESTS" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				HDF5Output.cpp,
-				HDF5Restart.cpp,
-				OutputDir.cpp,
-			);
-			target = F77A715B2FB415A5006C2776 /* DRAGON_TESTS */;
-		};
 		F76C27C52FDB955000B706F5 /* Exceptions for "DRAGONWING" folder in "DRAGON_TESTS" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
@@ -110,23 +101,6 @@
 		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
-/* Begin PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
-		F76451703003578200C1547C /* Exceptions for "DRAGONHOARD" folder in "Compile Sources" phase from "DRAGON" target */ = {
-			isa = PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet;
-			buildPhase = F70D18EF2FA12B5A00A2B235 /* Sources */;
-			membershipExceptions = (
-				HDF5_Attrs.hpp,
-			);
-		};
-		F76451723003578200C1547C /* Exceptions for "DRAGONHOARD" folder in "Compile Sources" phase from "DRAGON_TESTS" target */ = {
-			isa = PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet;
-			buildPhase = F77A71582FB415A5006C2776 /* Sources */;
-			membershipExceptions = (
-				HDF5_Attrs.hpp,
-			);
-		};
-/* End PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
-
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		F70D18F52FA12B5A00A2B235 /* DRAGON */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
@@ -143,11 +117,6 @@
 		};
 		F76451673003578100C1547C /* DRAGONHOARD */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-				F76451703003578200C1547C /* Exceptions for "DRAGONHOARD" folder in "Compile Sources" phase from "DRAGON" target */,
-				F76451713003578200C1547C /* Exceptions for "DRAGONHOARD" folder in "DRAGON_TESTS" target */,
-				F76451723003578200C1547C /* Exceptions for "DRAGONHOARD" folder in "Compile Sources" phase from "DRAGON_TESTS" target */,
-			);
 			path = DRAGONHOARD;
 			sourceTree = "<group>";
 		};
@@ -233,7 +202,6 @@
 			);
 			fileSystemSynchronizedGroups = (
 				F70D18F52FA12B5A00A2B235 /* DRAGON */,
-				F76451673003578100C1547C /* DRAGONHOARD */,
 				F76C27BD2FDB8F6500B706F5 /* DRAGONWING */,
 				F79053D12FFD6FB50083CDFB /* DRAGONGAZE */,
 			);
@@ -373,20 +341,13 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				HEADER_SEARCH_PATHS = "";
-				LD_RUNPATH_SEARCH_PATHS = /opt/homebrew/opt/hdf5/lib;
-				LIBRARY_SEARCH_PATHS = /opt/homebrew/opt/hdf5/lib;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MACOSX_DEPLOYMENT_TARGET = 26.3;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
-				OTHER_LDFLAGS = (
-					"-lhdf5_cpp",
-					"-lhdf5",
-				);
 				SDKROOT = macosx;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
-				SYSTEM_HEADER_SEARCH_PATHS = /opt/homebrew/opt/hdf5/include;
 			};
 			name = Debug;
 		};
@@ -439,19 +400,12 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				HEADER_SEARCH_PATHS = "";
-				LD_RUNPATH_SEARCH_PATHS = /opt/homebrew/opt/hdf5/lib;
-				LIBRARY_SEARCH_PATHS = /opt/homebrew/opt/hdf5/lib;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MACOSX_DEPLOYMENT_TARGET = 26.3;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
-				OTHER_LDFLAGS = (
-					"-lhdf5_cpp",
-					"-lhdf5",
-				);
 				SDKROOT = macosx;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
-				SYSTEM_HEADER_SEARCH_PATHS = /opt/homebrew/opt/hdf5/include;
 			};
 			name = Release;
 		};
@@ -473,6 +427,9 @@
 				ENABLE_RESOURCE_ACCESS_PHOTO_LIBRARY = NO;
 				GCC_C_LANGUAGE_STANDARD = gnu23;
 				GCC_OPTIMIZATION_LEVEL = 3;
+				LD_RUNPATH_SEARCH_PATHS = "";
+				LIBRARY_SEARCH_PATHS = "";
+				OTHER_LDFLAGS = "";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				RUNTIME_EXCEPTION_ALLOW_DYLD_ENVIRONMENT_VARIABLES = NO;
@@ -481,6 +438,7 @@
 				RUNTIME_EXCEPTION_DEBUGGING_TOOL = NO;
 				RUNTIME_EXCEPTION_DISABLE_EXECUTABLE_PAGE_PROTECTION = NO;
 				RUNTIME_EXCEPTION_DISABLE_LIBRARY_VALIDATION = YES;
+				SYSTEM_HEADER_SEARCH_PATHS = "";
 			};
 			name = Debug;
 		};
@@ -502,6 +460,9 @@
 				ENABLE_RESOURCE_ACCESS_PHOTO_LIBRARY = NO;
 				GCC_C_LANGUAGE_STANDARD = gnu23;
 				GCC_OPTIMIZATION_LEVEL = 3;
+				LD_RUNPATH_SEARCH_PATHS = "";
+				LIBRARY_SEARCH_PATHS = "";
+				OTHER_LDFLAGS = "";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				RUNTIME_EXCEPTION_ALLOW_DYLD_ENVIRONMENT_VARIABLES = NO;
@@ -510,6 +471,7 @@
 				RUNTIME_EXCEPTION_DEBUGGING_TOOL = NO;
 				RUNTIME_EXCEPTION_DISABLE_EXECUTABLE_PAGE_PROTECTION = NO;
 				RUNTIME_EXCEPTION_DISABLE_LIBRARY_VALIDATION = YES;
+				SYSTEM_HEADER_SEARCH_PATHS = "";
 			};
 			name = Release;
 		};
@@ -535,6 +497,9 @@
 					"$(inherited)",
 					"TESTMODE=1",
 				);
+				LD_RUNPATH_SEARCH_PATHS = "";
+				LIBRARY_SEARCH_PATHS = "";
+				OTHER_LDFLAGS = "";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				RUNTIME_EXCEPTION_ALLOW_DYLD_ENVIRONMENT_VARIABLES = NO;
 				RUNTIME_EXCEPTION_ALLOW_JIT = NO;
@@ -542,6 +507,7 @@
 				RUNTIME_EXCEPTION_DEBUGGING_TOOL = NO;
 				RUNTIME_EXCEPTION_DISABLE_EXECUTABLE_PAGE_PROTECTION = NO;
 				RUNTIME_EXCEPTION_DISABLE_LIBRARY_VALIDATION = YES;
+				SYSTEM_HEADER_SEARCH_PATHS = "";
 			};
 			name = Debug;
 		};
@@ -562,6 +528,9 @@
 				ENABLE_RESOURCE_ACCESS_PHOTO_LIBRARY = NO;
 				GCC_C_LANGUAGE_STANDARD = gnu23;
 				GCC_OPTIMIZATION_LEVEL = 3;
+				LD_RUNPATH_SEARCH_PATHS = "";
+				LIBRARY_SEARCH_PATHS = "";
+				OTHER_LDFLAGS = "";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				RUNTIME_EXCEPTION_ALLOW_DYLD_ENVIRONMENT_VARIABLES = NO;
 				RUNTIME_EXCEPTION_ALLOW_JIT = NO;
@@ -569,6 +538,7 @@
 				RUNTIME_EXCEPTION_DEBUGGING_TOOL = NO;
 				RUNTIME_EXCEPTION_DISABLE_EXECUTABLE_PAGE_PROTECTION = NO;
 				RUNTIME_EXCEPTION_DISABLE_LIBRARY_VALIDATION = YES;
+				SYSTEM_HEADER_SEARCH_PATHS = "";
 			};
 			name = Release;
 		};
