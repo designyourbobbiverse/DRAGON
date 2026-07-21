@@ -142,7 +142,7 @@ void DRAGONHOARD::loadFromFile(Grid1D& grid, double& t, int& cycle, const std::s
             size_t n = (i-i0);
             ConservativeState U;
             U.rho = grid[i].rho;
-            U.p = {px[n],py[n],pz[n]};
+            U.mom = {px[n],py[n],pz[n]};
             U.E = E[n];
             #ifdef MHD
             U.B = grid[i].B;
@@ -240,7 +240,7 @@ void DRAGONHOARD::loadFromFile(Grid2D& grid, double& t, int& cycle, const std::s
                 size_t n = (j-j0)*(in-i0) + (i-i0);
                 ConservativeState U;
                 U.rho = grid[i,j].rho;
-                U.p = {px[n],py[n],pz[n]};
+                U.mom = {px[n],py[n],pz[n]};
                 U.E = E[n];
                 #ifdef MHD
                 U.B = grid[i,j].B;
@@ -349,7 +349,7 @@ void DRAGONHOARD::loadFromFile(Grid3D& grid, double& t, int& cycle, const std::s
                     size_t n = ((k-k0)*(jn-j0) + (j-j0))*(in-i0) + (i-i0);
                     ConservativeState U;
                     U.rho = grid[i,j,k].rho;
-                    U.p = {px[n],py[n],pz[n]};
+                    U.mom = {px[n],py[n],pz[n]};
                     U.E = E[n];
                     #ifdef MHD
                     U.B = grid[i,j,k].B;

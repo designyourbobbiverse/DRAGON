@@ -240,9 +240,9 @@ void DRAGON_Test::verify_riemann_flux_dimension_wrappers_mhd(){
 //MARK: Verify Finiteness
 void DRAGON_Test::expect_finite(const ConservativeState& U) {
     assert(std::isfinite(U.rho));
-    assert(std::isfinite(U.p.x));
-    assert(std::isfinite(U.p.y));
-    assert(std::isfinite(U.p.z));
+    assert(std::isfinite(U.mom.x));
+    assert(std::isfinite(U.mom.y));
+    assert(std::isfinite(U.mom.z));
     assert(std::isfinite(U.E));
 #ifdef MHD
     assert(std::isfinite(U.B.x));

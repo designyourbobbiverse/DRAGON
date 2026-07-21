@@ -185,9 +185,9 @@ void DRAGONHOARD::writeToFile(Grid1D& grid, double t, int cycle, const std::stri
         #endif
         #if HDF5_WRITE_CONSV
         ConservativeState u(w);
-        px[n] = u.p.x;
-        py[n] = u.p.y;
-        pz[n] = u.p.z;
+        px[n] = u.mom.x;
+        py[n] = u.mom.y;
+        pz[n] = u.mom.z;
         E[n] = u.E;
         #elif HDF5_WRITE_E
         E[n] = w.energy();
@@ -307,9 +307,9 @@ void DRAGONHOARD::writeToFile(Grid2D& grid, double t, int cycle, const std::stri
             #endif
             #if HDF5_WRITE_CONSV
             ConservativeState u(w);
-            px[n] = u.p.x;
-            py[n] = u.p.y;
-            pz[n] = u.p.z;
+            px[n] = u.mom.x;
+            py[n] = u.mom.y;
+            pz[n] = u.mom.z;
             E[n] = u.E;
             #elif HDF5_WRITE_E
             E[n] = w.energy();
@@ -450,9 +450,9 @@ void DRAGONHOARD::writeToFile(Grid3D& grid, double t, int cycle, const std::stri
                 #endif
                 #if HDF5_WRITE_CONSV
                 ConservativeState u(w);
-                px[n] = u.p.x;
-                py[n] = u.p.y;
-                pz[n] = u.p.z;
+                px[n] = u.mom.x;
+                py[n] = u.mom.y;
+                pz[n] = u.mom.z;
                 E[n] = u.E;
                 #elif HDF5_WRITE_E
                 E[n] = w.energy();

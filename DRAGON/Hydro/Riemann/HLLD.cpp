@@ -26,7 +26,7 @@ void compute_outer_star(ConservativeState& usK, const PrimitiveState& K, double 
     //Velocities
     auto vsK = K.v - (fabs(denom)<1e-12 ? vec3{0,0,0} :  K.B * Bx*(SM-K.v.x)/denom * _1_4pi );
     vsK.x = SM;
-    usK.p = usK.rho * vsK;
+    usK.mom = usK.rho * vsK;
     //Energy
     usK.E = K.energy() * (SK - K.v.x);
     usK.E += pT*SM - (K.p + K.B*K.B*_1_8pi)*K.v.x;
@@ -69,7 +69,7 @@ ConservativeState Riemann::HLLD(){
     if(SsR >= 0) {//If this isn't true, we are between right fast/alfven, so we won't need FsL
         compute_outer_star(usL, L, _xL, SL, SM, pT, Bx);
         wsL.rho = usL.rho;
-        wsL.v = usL.p / usL.rho;
+        wsL.v = usL.mom / usL.rho;
         wsL.B = usL.B;
 
         #ifdef HLLD_PHYSICAL_SAFETY
@@ -82,7 +82,7 @@ ConservativeState Riemann::HLLD(){
     if(SsL <= 0) { //If this isn't true, we are between left fast/alfven, so we won't need FsR
         compute_outer_star(usR, R, _xR, SR, SM, pT, Bx);
         wsR.rho = usR.rho;
-        wsR.v = usR.p / usR.rho;
+        wsR.v = usR.mom / usR.rho;
         wsR.B = usR.B;
 
         #ifdef HLLD_PHYSICAL_SAFETY
@@ -109,7 +109,7 @@ ConservativeState Riemann::HLLD(){
     //Set transverse components via vector arithmatic, then override x component
     wss.v = _sqL*wsL.v + _sqR*wsR.v + (sbx*(usR.B - usL.B)*_1_4pi)/(sqL+sqR);
     wss.v.x = SM;
-    uss.p = uss.rho * wss.v;
+    uss.mom = uss.rho * wss.v;
     wss.B = _sqL*usR.B + _sqR*usL.B + sbx*(wsR.v - wsL.v)*sqL*sqR/(sqL+sqR);
     wss.B.x = Bx;
     uss.B = wss.B;
@@ -140,7 +140,7 @@ void compute_outer_star_zero_B(ConservativeState& usK, const PrimitiveState& K, 
     //Velocities
     auto vsK = K.v;
     vsK.x = SM;
-    usK.p = usK.rho * vsK;
+    usK.mom = usK.rho * vsK;
     //Energy
     usK.E = K.energy() * (SK - K.v.x);
     usK.E += pT*SM - (K.p + K.B*K.B*_1_8pi)*K.v.x;
@@ -167,7 +167,7 @@ ConservativeState Riemann::HLLD_zero_B(double SL, double SR){
     if(SM >= 0) {//If this isn't true, we are between right fast/alfven, so we won't need FsL
         compute_outer_star_zero_B(usL, L, _xL, SL, SM, pT);
         wsL.rho = usL.rho;
-        wsL.v = usL.p / usL.rho;
+        wsL.v = usL.mom / usL.rho;
         wsL.B = usL.B;
 
         #ifdef HLLD_PHYSICAL_SAFETY
@@ -180,7 +180,7 @@ ConservativeState Riemann::HLLD_zero_B(double SL, double SR){
     if(SM <= 0) { //If this isn't true, we are between left fast/alfven, so we won't need FsR
         compute_outer_star_zero_B(usR, R, _xR, SR, SM, pT);
         wsR.rho = usR.rho;
-        wsR.v = usR.p / usR.rho;
+        wsR.v = usR.mom / usR.rho;
         wsR.B = usR.B;
 
         #ifdef HLLD_PHYSICAL_SAFETY

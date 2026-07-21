@@ -81,7 +81,7 @@ struct ConservativeState {
     //Mass Density, Energy Density
     double rho, E;
     //Momentum density
-    vec3 p;
+    vec3 mom;
 #ifdef MHD
     //Magnetic Field
     //Stored in Gaussian units, be explicit  with 4*M_PI
