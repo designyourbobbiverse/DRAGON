@@ -122,7 +122,7 @@ def plotField(data, n, dx, dy, dz, rng, key, dim):
 rngs = {}
 for field in sys.argv[1:]:
     n = field.find("-")
-    if n >= 0 and field[:n] not in rngs: rngs[field[:n]] = range[field[:n])
+    if n >= 0 and field[:n] not in rngs: rngs[field[:n]] = range(field[:n])
     else: rngs[field] = range(field)
     
     
@@ -135,12 +135,12 @@ while fileExists(n):
         if idx >= 0:
             axis_code = field[idx+1:]
             field = field[:idx]
-            data = readFile(n, field)
+            data = readField(n, field)
             if axis_code == "yz" or axis_code == "zy":   plotField(data,n,dx,dy,dz,rngs[field],field,0)
             elif axis_code == "xz" or axis_code == "zx": plotField(data,n,dx,dy,dz,rngs[field],field,1)
             elif axis_code == "xy" or axis_code == "yx": plotField(data,n,dx,dy,dz,rngs[field],field,2)
         else:
-            data = readFile(n, field)
+            data = readField(n, field)
             plotField(data,n,dx,dy,dz,rngs[field],field,0)
             plotField(data,n,dx,dy,dz,rngs[field],field,1)
             plotField(data,n,dx,dy,dz,rngs[field],field,2)
