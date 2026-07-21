@@ -47,15 +47,17 @@ void Grid2D::unsplit_step(double dt){
     #endif
     
     #ifdef CTU
-    #ifdef MHD //Gardiner and Stone (2005). https://doi.org/10.1016/j.jcp.2004.11.016
-        auto __A = DRAGONWING::requestVec3Arrays(1, nx+1, ny+1, ghosts);
-    MagneticArray2D& _E_half = *__A[0]; //We'll be done with this by the time we actually need _A
-    ctu_sweep_MHD(_xL, _xR, _yL, _yR, A, B, w, _E_half, dt, dx, dy);
-    #else
+        #ifdef MHD //Gardiner and Stone (2005). https://doi.org/10.1016/j.jcp.2004.11.016
+            auto __A = DRAGONWING::requestVec3Arrays(1, nx+1, ny+1, ghosts);
+        MagneticArray2D& _E_half = *__A[0]; //We'll be done with this by the time we actually need _A
+        ctu_sweep_MHD(_xL, _xR, _yL, _yR, A, B, w, _E_half, dt, dx, dy);
+        #else
         ctu_sweep_hydro(_xL, _xR, _yL, _yR, dt/dx, dt/dy);
+        #endif
     #endif
-    #endif
-        __B.release();
+        #ifdef MHD
+            __B.release();
+        #endif
 
     //Compute Fluxes
         auto __fluxes = DRAGONWING::requestFluxArrays(2, nx, ny, ghosts);
@@ -139,15 +141,17 @@ void Grid3D::unsplit_step(double dt){
     #endif
     
     #ifdef CTU
-    #ifdef MHD //Gardiner and Stone (2005). https://doi.org/10.1016/j.jcp.2004.11.016
-        auto __A = DRAGONWING::requestVec3Arrays(1, nx+1, ny+1, nz+1, ghosts);
-    MagneticArray3D& _E_half = *__A[0]; //We'll be done with this by the time we actually need _A
-    ctu_sweep_MHD(_xL, _xR, _yL, _yR, _zL, _zR, A, B, w, _E_half, dt, dx, dy, dz);
-    #else
-    ctu_sweep_hydro(_xL, _xR, _yL, _yR, _zL, _zR, dt/dx, dt/dy, dt/dz);
+        #ifdef MHD //Gardiner and Stone (2005). https://doi.org/10.1016/j.jcp.2004.11.016
+            auto __A = DRAGONWING::requestVec3Arrays(1, nx+1, ny+1, nz+1, ghosts);
+        MagneticArray3D& _E_half = *__A[0]; //We'll be done with this by the time we actually need _A
+        ctu_sweep_MHD(_xL, _xR, _yL, _yR, _zL, _zR, A, B, w, _E_half, dt, dx, dy, dz);
+        #else
+        ctu_sweep_hydro(_xL, _xR, _yL, _yR, _zL, _zR, dt/dx, dt/dy, dt/dz);
+        #endif
     #endif
-    #endif
-        __B.release();
+        #ifdef MHD
+            __B.release();
+        #endif
 
     //Compute Fluxes
         auto __fluxes = DRAGONWING::requestFluxArrays(3, nx, ny, nz, ghosts);

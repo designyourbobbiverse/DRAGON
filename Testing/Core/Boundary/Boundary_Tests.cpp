@@ -240,7 +240,7 @@ void DRAGON_Test::verify_boundary_composition_3D() {
     PrimitiveState wxR = grid[0,0,4]; reflectZ3D(wxR);
     expect_close(grid[0,0,5], wxR);
     //Corner
-    PrimitiveState w = grid[0,3,0]; reflectZ3D(w); w.B = grid[-1,-1,-1].B;
+    PrimitiveState w = grid[0,3,0]; reflectZ3D(w);
     expect_close(grid[-1,-1,-1], w);
 }
 void reflectX3D(PrimitiveState& w);
@@ -255,12 +255,12 @@ void DRAGON_Test::verify_boundary_composition_order() {
     expect_close(grid[0,-1,0], grid[0,3,0]);
     expect_close(grid[0, 4,0], grid[0,0,0]);
     // Z should be reflective
-    PrimitiveState wxL = grid[0,0,0]; reflectZ3D(wxL); wxL.B = grid[0,0,-1].B;
+    PrimitiveState wxL = grid[0,0,0]; reflectZ3D(wxL);
     expect_close(grid[0,0,-1], wxL);
-    PrimitiveState wxR = grid[0,0,4]; reflectZ3D(wxR); wxR.B = grid[0,0,5].B;
+    PrimitiveState wxR = grid[0,0,4]; reflectZ3D(wxR);
     expect_close(grid[0,0,5], wxR);
     //Corner
-    PrimitiveState w = grid[0,3,0]; reflectX3D(w);reflectZ3D(w); w.B = grid[-1,-1,-1].B;
+    PrimitiveState w = grid[0,3,0]; reflectX3D(w);reflectZ3D(w);
     expect_close(grid[-1,-1,-1], w);
 }
 void DRAGON_Test::verify_boundary_composition_overlap_order() {
@@ -270,7 +270,7 @@ void DRAGON_Test::verify_boundary_composition_overlap_order() {
     BoundaryList boundary = Fixed(W, X) + Reflective(X_negative);
     boundary.apply(grid);
 
-    PrimitiveState reflected = grid[0,0]; reflectX2D(reflected); reflected.B = grid[-1,0].B;
+    PrimitiveState reflected = grid[0,0]; reflectX2D(reflected);
     expect_close(grid[-1,0], reflected);
     expect_close(grid[3,0], W);
 }
