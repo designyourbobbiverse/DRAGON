@@ -36,8 +36,8 @@ void Grid2D::unsplit_step(double dt){
     FluidArray2D& _xR = *__half_states[1];
     FluidArray2D& _yL = *__half_states[2];
     FluidArray2D& _yR = *__half_states[3];
-    computeHalfStates_X(_xL, (*this), _xR, dt);//_xLR needs (-1...nx, -1...ny), (-2...nx+1, -1...ny)for MHD
-    computeHalfStates_Y(_yL, (*this), _yR, dt);//_yLR needs (-1...nx, -1...ny), (-1...nx, -2...ny+1) for MHD
+    computeHalfStates_X(_xL, (*this), _xR, dt);
+    computeHalfStates_Y(_yL, (*this), _yR, dt);
     #ifdef MHD //Face Fields
         auto __B = DRAGONWING::requestVec3Arrays(1, nx+1, ny+1, ghosts);
     MagneticArray2D& B = *__B[0];
@@ -63,8 +63,13 @@ void Grid2D::unsplit_step(double dt){
         auto __fluxes = DRAGONWING::requestFluxArrays(2, nx, ny, ghosts);
     FluxArray2D& F_X = *__fluxes[0];
     FluxArray2D& F_Y = *__fluxes[1];
-    computeFlux_X(_xL, _xR, F_X, 0, nx, -1, ny+1, dt/dx); //F_X needs (0...nx, 0...ny-1), (0...nx, -1...ny) for MHD
-    computeFlux_Y(_yL, _yR, F_Y, -1, nx+1, 0, ny, dt/dy); //F_Y needs (0...nx-1, 0...ny), (-1...nx, 0...ny) for MHD
+    #ifdef MHD //MHD also needs the transverse fluxes in the first ghost layer to calculate E
+    computeFlux_X(_xL, _xR, F_X, 0, nx, -1, ny+1, dt/dx);
+    computeFlux_Y(_yL, _yR, F_Y, -1, nx+1, 0, ny, dt/dy);
+    #else //Hydro doesn't need transverse fluxes in the first ghost layer
+    computeFlux_X(_xL, _xR, F_X, 0, nx, 0, ny, dt/dx);
+    computeFlux_Y(_yL, _yR, F_Y, 0, nx, 0, ny, dt/dy);
+    #endif
         __half_states.release();
     
     //Preliminarily apply all fluxes
@@ -158,9 +163,15 @@ void Grid3D::unsplit_step(double dt){
     FluxArray3D& F_X = *__fluxes[0];
     FluxArray3D& F_Y = *__fluxes[1];
     FluxArray3D& F_Z = *__fluxes[2];
-    computeFlux_X(_xL, _xR, F_X, 0, nx, -1, ny+1, -1, nz+1, dt/dx); //F_X needs (0...nx, -1...ny, -1...nz)
-    computeFlux_Y(_yL, _yR, F_Y, -1, nx+1, 0, ny, -1, nz+1, dt/dy); //F_Y needs (-1...nx, 0...ny, -1...nz)
-    computeFlux_Z(_zL, _zR, F_Z, -1, nx+1, -1, ny+1, 0, nz, dt/dz); //F_Z needs (-1...nx, -1...ny, 0...nz)
+    #ifdef MHD //MHD also needs the transverse fluxes in the first ghost layer to calculate E
+    computeFlux_X(_xL, _xR, F_X, 0, nx, -1, ny+1, -1, nz+1, dt/dx);
+    computeFlux_Y(_yL, _yR, F_Y, -1, nx+1, 0, ny, -1, nz+1, dt/dy);
+    computeFlux_Z(_zL, _zR, F_Z, -1, nx+1, -1, ny+1, 0, nz, dt/dz);
+    #else //Hydro doesn't need transverse fluxes in the first ghost layer
+    computeFlux_X(_xL, _xR, F_X, 0, nx, 0, ny, 0, nz, dt/dx);
+    computeFlux_Y(_yL, _yR, F_Y, 0, nx, 0, ny, 0, nz, dt/dy);
+    computeFlux_Z(_zL, _zR, F_Z, 0, nx, 0, ny, 0, nz, dt/dz);
+    #endif
         __half_states.release();
     
     //Preliminarily apply all fluxes

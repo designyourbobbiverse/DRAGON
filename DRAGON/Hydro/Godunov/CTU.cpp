@@ -25,6 +25,7 @@
 #endif
 #endif
 
+#ifndef MHD
 //MARK: CTU 2D Hydro
 void ctu_sweep_hydro(FluidArray2D& _xL, FluidArray2D& _xR, FluidArray2D& _yL, FluidArray2D& _yR, double dt_dx, double dt_dy){
     const int nx = _xL.getSizeX(), ny = _yL.getSizeY(), ghosts = _xL.getGhosts();
@@ -32,8 +33,8 @@ void ctu_sweep_hydro(FluidArray2D& _xL, FluidArray2D& _xR, FluidArray2D& _yL, Fl
         auto __fluxes = DRAGONWING::requestFluxArrays(2, nx, ny, ghosts);
     auto& F_X = *__fluxes[0];
     auto& F_Y = *__fluxes[1];
-    computeFlux_X(_xL, _xR, F_X, -1, nx+1, -2, ny+2, dt_dx);
-    computeFlux_Y(_yL, _yR, F_Y, -2, nx+2, -1, ny+1, dt_dy);
+    computeFlux_X(_xL, _xR, F_X, 0, nx, -1, ny+1, dt_dx);
+    computeFlux_Y(_yL, _yR, F_Y, -1, nx+1, 0, ny, dt_dy);
     
     //Correct states
     correctState(_xL, _xR, F_Y, (0.5*dt_dy), 1);
@@ -50,9 +51,9 @@ void ctu_sweep_hydro(FluidArray3D& _xL, FluidArray3D& _xR, FluidArray3D& _yL, Fl
     FluxArray3D& F_Y = *__fluxes[1];
     FluxArray3D& F_Z = *__fluxes[2];
     //Compute preliminary face fluxes
-    computeFlux_X(_xL, _xR, F_X, -2, nx+2, -2, ny+2, -2, nz+2, dt_dx);
-    computeFlux_Y(_yL, _yR, F_Y, -2, nx+2, -2, ny+2, -2, nz+2, dt_dy);
-    computeFlux_Z(_zL, _zR, F_Z, -2, nx+2, -2, ny+2, -2, nz+2, dt_dz);
+    computeFlux_X(_xL, _xR, F_X, 0, nx, -1, ny+1, -1, nz+1, dt_dx);
+    computeFlux_Y(_yL, _yR, F_Y, -1, nx+1, 0, ny, -1, nz+1, dt_dy);
+    computeFlux_Z(_zL, _zR, F_Z, -1, nx+1, -1, ny+1, 0, nz, dt_dz);
         
     //Compute Edge-correct the fluxes
     FluxArray3D& F_Xz = *__fluxes[3];
@@ -66,8 +67,8 @@ void ctu_sweep_hydro(FluidArray3D& _xL, FluidArray3D& _xR, FluidArray3D& _yL, Fl
     computeCTUFlux_Z(_zL, _zR, F_Y, F_Zy, dt_dz, (0.5*dt_dy),1);
 
     //Update the X half states based on the YZ corner fluxes
-    correctState(_xL, _xR, F_Yz, (0.5*dt_dy), 1);
-    correctState(_xL, _xR, F_Zy, (0.5*dt_dz), 2);
+    correctState(_xL, _xR, F_Yz, (0.5*dt_dy), 0,1);
+    correctState(_xL, _xR, F_Zy, (0.5*dt_dz), 0,2);
     //Doing this early means we can reuse the F_Yz and F_Zy grids for F_Yx and F_Zx
     
     FluxArray3D& F_Yx = F_Yz; //Reuse existing grid that has already served its purpose
@@ -76,15 +77,15 @@ void ctu_sweep_hydro(FluidArray3D& _xL, FluidArray3D& _xR, FluidArray3D& _yL, Fl
     computeCTUFlux_Z(_zL, _zR, F_X, F_Zx, dt_dz, (0.5*dt_dx),0);
 
     //Update the Y half states based on the XZ corner fluxes
-    correctState(_yL, _yR, F_Xz, (0.5*dt_dx), 0);
-    correctState(_yL, _yR, F_Zx, (0.5*dt_dz), 2);
+    correctState(_yL, _yR, F_Xz, (0.5*dt_dx), 1,0);
+    correctState(_yL, _yR, F_Zx, (0.5*dt_dz), 1,2);
     //Update the Z half states based on the XY corner fluxes
-    correctState(_zL, _zR, F_Xy, (0.5*dt_dx), 0);
-    correctState(_zL, _zR, F_Yx, (0.5*dt_dy), 1);
+    correctState(_zL, _zR, F_Xy, (0.5*dt_dx), 2,0);
+    correctState(_zL, _zR, F_Yx, (0.5*dt_dy), 2,1);
 }
 
 //MARK: CTU MHD 6-Solve (3D)
-#ifdef MHD
+#else
 void ctu_sweep_MHD(FluidArray3D& _xL, FluidArray3D& _xR, FluidArray3D& _yL, FluidArray3D& _yR, FluidArray3D& _zL, FluidArray3D& _zR, const MagneticArray3D &A, const MagneticArray3D &B, const FluidArray3D& w, MagneticArray3D& E, double dt, double dx, double dy, double dz){
     const int nx = _xL.getSizeX(), ny = _xL.getSizeY(), nz = _xL.getSizeZ(), g = _xL.getGhosts();
     const double dt_dx = dt/dx, dt_dy = dt/dy, dt_dz = dt/dz;
@@ -94,9 +95,9 @@ void ctu_sweep_MHD(FluidArray3D& _xL, FluidArray3D& _xR, FluidArray3D& _yL, Flui
     FluxArray3D& F_X = *__fluxes[0];
     FluxArray3D& F_Y = *__fluxes[1];
     FluxArray3D& F_Z = *__fluxes[2];
-    computeFlux_X(_xL, _xR, F_X, -2, nx+2, -2, ny+2, -2, nz+2, dt_dx);
-    computeFlux_Y(_yL, _yR, F_Y, -2, nx+2, -2, ny+2, -2, nz+2, dt_dy);
-    computeFlux_Z(_zL, _zR, F_Z, -2, nx+2, -2, ny+2, -2, nz+2, dt_dz);
+    computeFlux_X(_xL, _xR, F_X, -1, nx+1, -2, ny+2, -2, nz+2, dt_dx);
+    computeFlux_Y(_yL, _yR, F_Y, -2, nx+2, -1, ny+1, -2, nz+2, dt_dy);
+    computeFlux_Z(_zL, _zR, F_Z, -2, nx+2, -2, ny+2, -1, nz+1, dt_dz);
     
     //Preliminary CT Update
         auto __mags = DRAGONWING::requestVec3Arrays(3, nx+1, ny+1, nz+1, g);
@@ -196,8 +197,8 @@ void ctu_sweep_MHD(FluidArray2D& _xL, FluidArray2D& _xR, FluidArray2D& _yL, Flui
         auto __fluxes = DRAGONWING::requestFluxArrays(2, nx, ny, g);
     FluxArray2D& F_X = *__fluxes[0];
     FluxArray2D& F_Y = *__fluxes[1];
-    computeFlux_X(_xL, _xR, F_X, -2, nx+2, -2, ny+2, dt_dx);
-    computeFlux_Y(_yL, _yR, F_Y, -2, nx+2, -2, ny+2, dt_dy);
+    computeFlux_X(_xL, _xR, F_X, -1, nx+1, -2, ny+2, dt_dx);
+    computeFlux_Y(_yL, _yR, F_Y, -2, nx+2, -1, ny+1, dt_dy);
     
     //Preliminary CT Update
         auto __mags = DRAGONWING::requestVec3Arrays(3, nx+1, ny+1, g);
@@ -265,13 +266,16 @@ void ctu_sweep_MHD(FluidArray2D& _xL, FluidArray2D& _xR, FluidArray2D& _yL, Flui
 
 
 //MARK: CTU Corrections
-
-
 void correctState(FluidArray2D& _L, FluidArray2D& _R, const FluxArray2D& F, double dt_dL, int dim){
-    const int xL = -1, xR = F.getSizeX()+1, yL = -1, yR = F.getSizeY()+1;
     //Extract direction encoding
-    int isX = dim%2 == 0 ? 1 : 0;
-    int isY = dim%2 == 1 ? 1 : 0;
+    const int isX = dim%2 == 0 ? 1 : 0;
+    const int isY = dim%2 == 1 ? 1 : 0;
+    #ifdef MHD
+    const int xL = -1, xR = F.getSizeX()+1, yL = -1, yR = F.getSizeY()+1;
+    #else
+    const int xL = -isY, xR = F.getSizeX()+isY, yL = -isX, yR = F.getSizeY()+isX;
+    #endif
+    
     //Cycle
     for(int i=xL; i<xR; i++){
         for(int j=yL; j<yR; j++){
@@ -284,35 +288,53 @@ void correctState(FluidArray2D& _L, FluidArray2D& _R, const FluxArray2D& F, doub
         }
     }
 }
+
+#ifdef MHD
 void correctState(FluidArray3D& _L, FluidArray3D& _R, const FluxArray3D& F, double dt_dL, int dim){
     const int xL = -1, xR = F.getSizeX()+1, yL = -1, yR = F.getSizeY()+1, zL = -1, zR = F.getSizeZ()+1;
     //Extract direction encoding
-    int isX = dim%3 == 0 ? 1 : 0;
-    int isY = dim%3 == 1 ? 1 : 0;
-    int isZ = dim%3 == 2 ? 1 : 0;
-    //cycle
-    for(int i=xL; i<xR; i++){
-        for(int j=yL; j<yR; j++){
-            for(int k=zL; k<zR; k++){
-                auto trans = (F[i+isX, j+isY, k+isZ] - F[i,j,k]) * dt_dL;
-                #ifdef MHD
-                trans.B = {0,0,0};
-                #endif
-                _L[i,j,k] = _L[i,j,k] -  trans;
-                _R[i,j,k] = _R[i,j,k] -  trans;
+    const int isX = dim%3 == 0 ? 1 : 0;
+    const int isY = dim%3 == 1 ? 1 : 0;
+    const int isZ = dim%3 == 2 ? 1 : 0;
+#else
+    void correctState(FluidArray3D& _L, FluidArray3D& _R, const FluxArray3D& F, double dt_dL, int state_dim, int flux_dim){
+        //Extract direction encoding
+        const int isX = flux_dim%3 == 0 ? 1 : 0;
+        const int isY = flux_dim%3 == 1 ? 1 : 0;
+        const int isZ = flux_dim%3 == 2 ? 1 : 0;
+        const int isX_ = state_dim%3 == 0 ? 1 : 0;
+        const int isY_ = state_dim%3 == 1 ? 1 : 0;
+        const int isZ_ = state_dim%3 == 2 ? 1 : 0;
+        
+        const int xL = -isX_, xR = F.getSizeX()+isX_, yL = -isY_, yR = F.getSizeY()+isY_, zL = -isZ_, zR = F.getSizeZ()+isZ_;
+#endif
+        
+        //cycle
+        for(int i=xL; i<xR; i++){
+            for(int j=yL; j<yR; j++){
+                for(int k=zL; k<zR; k++){
+                    auto trans = (F[i+isX, j+isY, k+isZ] - F[i,j,k]) * dt_dL;
+#ifdef MHD
+                    trans.B = {0,0,0};
+#endif
+                    _L[i,j,k] = _L[i,j,k] -  trans;
+                    _R[i,j,k] = _R[i,j,k] -  trans;
+                }
             }
         }
     }
-}
-
-//MARK: CTU Correction -> Flux
+    
+#ifndef MHD
+//MARK: 12-Solve Correction -> Flux
 //Compute X fluxes between Right(_R) and Left (_L) half-states, as corrected by transverse fluxes FYZ
-//Equivalent to correctState -> computeFlux_X but without needing intermediate arrays
+//Equivalent to correctState (with wider bounds) -> computeFlux_X but without needing intermediate arrays
 void computeCTUFlux_X(const FluidArray3D& _L, const FluidArray3D& _R, const FluxArray3D& FYZ, FluxArray3D& F,  double dt_dx, double dt_dy, int dim){
-    const int xL = -1, xR = F.getSizeX()+1, yL = -1, yR = F.getSizeY()+1, zL = -1, zR = F.getSizeZ()+1;
     //Extract direction encoding
     int isY = dim%3 == 1 ? 1 : 0;
     int isZ = dim%3 == 2 ? 1 : 0;
+    
+    const int xL = 0, xR = F.getSizeX(), yL = -1+isY, yR = F.getSizeY()+1-isY, zL = -1+isZ, zR = F.getSizeZ()+1-isZ;
+    
     //cycle
     for(int j=yL; j<yR; j++){
         for(int k=zL; k<zR; k++){
@@ -328,13 +350,14 @@ void computeCTUFlux_X(const FluidArray3D& _L, const FluidArray3D& _R, const Flux
     }
 }
 //Compute Y fluxes between Right(_R) and Left (_L) half-states, as corrected by transverse fluxes FXZ
-//Equivalent to correctState -> computeFlux_Y but without needing intermediate arrays
+//Equivalent to correctState (with wider bounds) -> computeFlux_Y but without needing intermediate arrays
 void computeCTUFlux_Y(const FluidArray3D& _L, const FluidArray3D& _R, const FluxArray3D& FXZ, FluxArray3D& F, double dt_dy, double dt_dz, int dim){
-    const int xL = -1, xR = F.getSizeX()+1, yL = -1, yR = F.getSizeY()+1, zL = -1, zR = F.getSizeZ()+1;
-
     //Extract direction encoding
-    int isX = dim%3 == 0 ? 1 : 0;
-    int isZ = dim%3 == 2 ? 1 : 0;
+    const int isX = dim%3 == 0 ? 1 : 0;
+    const int isZ = dim%3 == 2 ? 1 : 0;
+    const int xL = -1+isX, xR = F.getSizeX()+1-isX, yL = 0, yR = F.getSizeY(), zL = -1+isZ, zR = F.getSizeZ()+1-isZ;
+    
+    
     //cycle
     for(int i=xL; i<xR; i++){
         for(int k=zL; k<zR; k++){
@@ -350,12 +373,12 @@ void computeCTUFlux_Y(const FluidArray3D& _L, const FluidArray3D& _R, const Flux
     }
 }
 //Compute Z fluxes between Right(_R) and Left (_L) half-states, as corrected by transverse fluxes FXY
-//Equivalent to correctState -> computeFlux_Z but without needing intermediate arrays
+//Equivalent to correctState (with wider bounds) -> computeFlux_Z but without needing intermediate arrays
 void computeCTUFlux_Z(const FluidArray3D& _L, const FluidArray3D& _R, const FluxArray3D& FXY, FluxArray3D& F, double dt_dz, double dt_dy, int dim){
-    const int xL = -1, xR = F.getSizeX()+1, yL = -1, yR = F.getSizeY()+1, zL = -1, zR = F.getSizeZ()+1;
     //Extract direction encoding
     int isX = dim%3 == 0 ? 1 : 0;
     int isY = dim%3 == 1 ? 1 : 0;
+    const int xL = -1+isX, xR = F.getSizeX()+1-isX, yL = -1+isY, yR = F.getSizeY()+1-isY, zL = 0, zR = F.getSizeZ();
     //cycle
     for(int i=xL; i<xR; i++){
         for(int j=yL; j<yR; j++){
@@ -370,3 +393,4 @@ void computeCTUFlux_Z(const FluidArray3D& _L, const FluidArray3D& _R, const Flux
         }
     }
 }
+#endif
