@@ -143,6 +143,7 @@ void Grid3D::unsplit_step(double dt){
     CT::computeFaceFields(A, B, dx, dy, dz);
     CT::copyFaceFields_X(_xL, B, _xR);
     CT::copyFaceFields_Y(_yL, B, _yR);
+    CT::copyFaceFields_Z(_zL, B, _zR);
     #endif
     
     #ifdef CTU
