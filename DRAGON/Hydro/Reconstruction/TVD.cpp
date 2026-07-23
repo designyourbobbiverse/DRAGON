@@ -10,10 +10,11 @@
 #include "TVD.hpp"
 #include <math.h>
 #include "Config.h"
+#include "Constants.h"
 
 
 //MARK: MUSCL-Hancock
-void TVD::MUSCL(const PrimitiveState& wL, PrimitiveState& _L, const PrimitiveState& wC, PrimitiveState& _R, const PrimitiveState& wR, double dt_dL){
+void TVD::MUSCL(const PrimitiveState& wL, PrimitiveState& _L, const PrimitiveState& wC, PrimitiveState& _R, const PrimitiveState& wR, double dt_dL, const vec3& dB){
 #ifdef MUSCL_Hancock
     // Reconstruct a limited primitive-variable slope
     PrimitiveState leftDiff, rightDiff;
@@ -38,7 +39,17 @@ void TVD::MUSCL(const PrimitiveState& wL, PrimitiveState& _L, const PrimitiveSta
     
     //Time half step (MUSCL-Hancock Predictor)
     ConservativeState UL = ConservativeState(_L), UR = ConservativeState(_R);
-    ConservativeState correction = (UR.flux() - UL.flux()) * (0.5 * dt_dL);
+    ConservativeState correction = (UR.flux(_R.v) - UL.flux(_L.v)) * (0.5 * dt_dL);
+    #ifdef MHD//MHD Source Terms
+    const double a_s = (_R.B.x - _L.B.x) * dt_dL;
+    const double vy = 0.5*(_L.v.y + _R.v.y), vz = 0.5*(_L.v.z + _R.v.z);
+    const double dBy_ = 0.5 * wC.v.y * TVD::minmod(dB.x, -dB.y) - 0.5*vy*a_s;
+    const double dBz_ = 0.5 * wC.v.z * TVD::minmod(dB.x, -dB.z) - 0.5*vz*a_s;
+
+    correction.B.y -= dBy_;
+    correction.B.z -= dBz_;
+    correction.E   -= _1_4pi * (wC.B.y*dBy_ + wC.B.z*dBz_);   // hold thermal p fixed
+    #endif
     // Correction is applied in conservative, then automatically converted back to primitive
     _L = UL - correction;
     _R = UR - correction;

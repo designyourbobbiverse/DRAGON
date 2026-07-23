@@ -33,6 +33,8 @@ void Grid2D::unsplit_step(double dt){
         auto __B = DRAGONWING::requestVec3Arrays(1, nx+1, ny+1, ghosts);
     MagneticArray2D& B = *__B[0];
     CT::computeFaceFields(A, B, dx, dy);
+    #else//Dummy B array
+        auto B = MagneticArray2D(0,0);
     #endif
     
     //Compute Half States
@@ -41,12 +43,8 @@ void Grid2D::unsplit_step(double dt){
     FluidArray2D& _xR = *__half_states[1];
     FluidArray2D& _yL = *__half_states[2];
     FluidArray2D& _yR = *__half_states[3];
-    computeHalfStates_X(_xL, (*this), _xR, dt);
-    computeHalfStates_Y(_yL, (*this), _yR, dt);
-    #ifdef MHD
-    CT::copyFaceFields_X(_xL, B, _xR);
-    CT::copyFaceFields_Y(_yL, B, _yR);
-    #endif
+    computeHalfStates_X(_xL, (*this), _xR, B, dt);
+    computeHalfStates_Y(_yL, (*this), _yR, B, dt);
     
     #ifdef CTU
         #ifdef MHD //Gardiner and Stone (2005). https://doi.org/10.1016/j.jcp.2004.11.016
@@ -131,6 +129,8 @@ void Grid3D::unsplit_step(double dt){
         auto __B = DRAGONWING::requestVec3Arrays(1, nx+1, ny+1, nz+1, ghosts);
     MagneticArray3D& B = *__B[0];
     CT::computeFaceFields(A, B, dx, dy, dz);
+    #else//Dummy B array
+        auto B = MagneticArray3D(0,0,0);
     #endif
     
     //Compute Half States
@@ -141,14 +141,9 @@ void Grid3D::unsplit_step(double dt){
     FluidArray3D& _yR = *__half_states[3];
     FluidArray3D& _zL = *__half_states[4];
     FluidArray3D& _zR = *__half_states[5];
-    computeHalfStates_X(_xL, (*this), _xR, dt);
-    computeHalfStates_Y(_yL, (*this), _yR, dt);
-    computeHalfStates_Z(_zL, (*this), _zR, dt);
-    #ifdef MHD
-    CT::copyFaceFields_X(_xL, B, _xR);
-    CT::copyFaceFields_Y(_yL, B, _yR);
-    CT::copyFaceFields_Z(_zL, B, _zR);
-    #endif
+    computeHalfStates_X(_xL, (*this), _xR, B, dt);
+    computeHalfStates_Y(_yL, (*this), _yR, B, dt);
+    computeHalfStates_Z(_zL, (*this), _zR, B, dt);
     
     #ifdef CTU
         #ifdef MHD //Gardiner and Stone (2005). https://doi.org/10.1016/j.jcp.2004.11.016
@@ -312,14 +307,19 @@ void applyFluxes(const FluidArray3D& w, FluidArray3D& _w, const FluxArray3D& F_X
 
 //MARK: MUSCL
 //Apply MUSCL over the entire grid
-void computeHalfStates_X(FluidArray2D& _L, const Grid2D& _W, FluidArray2D& _R, double dt){
-    const double dt_dL = dt/_W.dx;//Compute once
+void computeHalfStates_X(FluidArray2D& _L, const Grid2D& _W, FluidArray2D& _R, const MagneticArray2D& B,  double dt){
+    const double dt_dx = dt/_W.dx, dt_dy = dt/_W.dy;//Compute once
     const int nx = _W.getSizeX(), ny = _W.getSizeY(), g = _W.getGhosts();
     //MUSCL Reconstruction
     for(int i=-g+1; i<nx+g - 1; i++){
         for(int j=-g; j<ny+g; j++){
+            vec3 dB = {0,0,0};
+            #ifdef MHD
+            dB.x = (B[i+1,j].x - B[i,j].x) * dt_dx;
+            dB.y = (B[i,j+1].y - B[i,j].y) * dt_dy;
+            #endif
             auto wL =_W[i-1,j], wR = _W[i+1,j];
-            TVD::MUSCL(wL, _L[i,j], _W[i,j], _R[i,j], wR, dt_dL);
+            TVD::MUSCL(wL, _L[i,j], _W[i,j], _R[i,j], wR, dt_dx, dB);
         }
     }
     //Leftmost and rightmost ghosts
@@ -327,17 +327,25 @@ void computeHalfStates_X(FluidArray2D& _L, const Grid2D& _W, FluidArray2D& _R, d
         _L[-g,j] = _W[-g,j]; _R[-g,j] = _W[-g,j];
         _L[nx-1+g,j] = _W[nx-1+g,j]; _R[nx-1+g,j] = _W[nx-1+g,j];
     }
+    #ifdef MHD
+    CT::copyFaceFields_X(_L, B, _R);
+    #endif
 }
-void computeHalfStates_Y(FluidArray2D& _L, const Grid2D& _W, FluidArray2D& _R, double dt){
-    const double dt_dL = dt/_W.dy;//Compute once
+void computeHalfStates_Y(FluidArray2D& _L, const Grid2D& _W, FluidArray2D& _R, const MagneticArray2D& B, double dt){
+    const double dt_dx = dt/_W.dx, dt_dy = dt/_W.dy;//Compute once
     const int nx = _W.getSizeX(), ny = _W.getSizeY(), g = _W.getGhosts();
 
     //MUSCL Reconstruction
     for(int i=-g; i<nx+g; i++){
         for(int j=-g + 1; j<ny+g - 1; j++){
+            vec3 dB = {0,0,0};
+            #ifdef MHD //Calculate with swapped XY
+            dB.y = (B[i+1,j].x - B[i,j].x) * dt_dx;
+            dB.x = (B[i,j+1].y - B[i,j].y) * dt_dy;
+            #endif
             //Swap XY inputs to MUSCL, then swap output back
             auto wL =_W[i,j-1].swappedXY(), wR = _W[i,j+1].swappedXY();
-            TVD::MUSCL(wL, _L[i,j], _W[i,j].swappedXY(), _R[i,j],wR, dt_dL);
+            TVD::MUSCL(wL, _L[i,j], _W[i,j].swappedXY(), _R[i,j],wR, dt_dy, dB);
             _L[i,j].swapXY(); _R[i,j].swapXY();
         }
     }
@@ -346,17 +354,26 @@ void computeHalfStates_Y(FluidArray2D& _L, const Grid2D& _W, FluidArray2D& _R, d
         _L[i,-g] = _W[i,-g]; _R[i,-g] = _W[i,-g];
         _L[i,ny-1+g] = _W[i,ny-1+g]; _R[i,ny-1+g] = _W[i,ny-1+g];
     }
+    #ifdef MHD
+    CT::copyFaceFields_Y(_L, B, _R);
+    #endif
 }
-void computeHalfStates_X(FluidArray3D& _L, const Grid3D& _W, FluidArray3D& _R, double dt){
-    const double dt_dL = dt/_W.dx;//Compute once
+void computeHalfStates_X(FluidArray3D& _L, const Grid3D& _W, FluidArray3D& _R, const MagneticArray3D& B, double dt){
+    const double dt_dx = dt/_W.dx, dt_dy = dt/_W.dy, dt_dz = dt/_W.dz;//Compute once
     const int nx = _W.getSizeX(), ny = _W.getSizeY(),nz = _W.getSizeZ(), g = _W.getGhosts();
 
     //MUSCL Reconstruction
     for(int i=-g + 1; i<nx+g - 1; i++){
         for(int j=-g; j<ny+g; j++){
             for(int k=-g; k<nz+g; k++){
+                vec3 dB = {0,0,0};
+                #ifdef MHD
+                dB.x = (B[i+1,j,k].x - B[i,j,k].x) * dt_dx;
+                dB.y = (B[i,j+1,k].y - B[i,j,k].y) * dt_dy;
+                dB.z = (B[i,j,k+1].z - B[i,j,k].z) * dt_dz;
+                #endif
                 auto wL = _W[i-1,j,k], wR = _W[i+1,j,k];
-                TVD::MUSCL(wL, _L[i,j,k], _W[i,j,k], _R[i,j,k], wR, dt_dL);
+                TVD::MUSCL(wL, _L[i,j,k], _W[i,j,k], _R[i,j,k], wR, dt_dx, dB);
             }
         }
     }
@@ -367,18 +384,27 @@ void computeHalfStates_X(FluidArray3D& _L, const Grid3D& _W, FluidArray3D& _R, d
             _L[nx-1+g,j,k] = _W[nx-1+g,j,k]; _R[nx-1+g,j,k] = _W[nx-1+g,j,k];
         }
     }
+    #ifdef MHD
+    CT::copyFaceFields_X(_L, B, _R);
+    #endif
 }
-void computeHalfStates_Y(FluidArray3D& _L, const Grid3D& _W, FluidArray3D& _R, double dt){
-    const double dt_dL = dt/_W.dy;//Compute once
+void computeHalfStates_Y(FluidArray3D& _L, const Grid3D& _W, FluidArray3D& _R, const MagneticArray3D& B, double dt){
+    const double dt_dx = dt/_W.dx, dt_dy = dt/_W.dy, dt_dz = dt/_W.dz;//Compute once
     const int nx = _W.getSizeX(), ny = _W.getSizeY(),nz = _W.getSizeZ(), g = _W.getGhosts();
     
     //MUSCL Reconstruction
     for(int i=-g; i<nx+g; i++){
         for(int j=-g + 1; j<ny+g - 1; j++){
             for(int k=-g; k<nz+g; k++){
+                vec3 dB = {0,0,0};
+                #ifdef MHD //Calculate with swapped XY
+                dB.y = (B[i+1,j,k].x - B[i,j,k].x) * dt_dx;
+                dB.x = (B[i,j+1,k].y - B[i,j,k].y) * dt_dy;
+                dB.z = (B[i,j,k+1].z - B[i,j,k].z) * dt_dz;
+                #endif
                 //Swap XY inputs to MUSCL, then swap output back
                 auto wL =_W[i,j-1,k].swappedXY(), wR = _W[i,j+1,k].swappedXY();
-                TVD::MUSCL(wL, _L[i,j,k], _W[i,j,k].swappedXY(), _R[i,j,k],wR, dt_dL);
+                TVD::MUSCL(wL, _L[i,j,k], _W[i,j,k].swappedXY(), _R[i,j,k],wR, dt_dy,dB);
                 _L[i,j,k].swapXY(); _R[i,j,k].swapXY();
             }
         }
@@ -390,18 +416,27 @@ void computeHalfStates_Y(FluidArray3D& _L, const Grid3D& _W, FluidArray3D& _R, d
             _L[i,ny-1+g,k] = _W[i,ny-1+g,k]; _R[i,ny-1+g,k] = _W[i,ny-1+g,k];
         }
     }
+    #ifdef MHD
+    CT::copyFaceFields_Y(_L, B, _R);
+    #endif
 }
-void computeHalfStates_Z(FluidArray3D& _L, const Grid3D& _W, FluidArray3D& _R, double dt){
-    const double dt_dL = dt/_W.dz;//Compute once
+void computeHalfStates_Z(FluidArray3D& _L, const Grid3D& _W, FluidArray3D& _R, const MagneticArray3D& B,  double dt){
+    const double dt_dx = dt/_W.dx, dt_dy = dt/_W.dy, dt_dz = dt/_W.dz;//Compute once
     const int nx = _W.getSizeX(), ny = _W.getSizeY(),nz = _W.getSizeZ(), g = _W.getGhosts();
     
     //MUSCL Reconstruction
     for(int i=-g; i<nx+g; i++){
         for(int j=-g; j<ny+g; j++){
             for(int k=-g + 1; k<nz+g - 1; k++){
+                vec3 dB = {0,0,0};
+                #ifdef MHD //Calculate with swapped XZ
+                dB.z = (B[i+1,j,k].x - B[i,j,k].x) * dt_dx;
+                dB.y = (B[i,j+1,k].y - B[i,j,k].y) * dt_dy;
+                dB.x = (B[i,j,k+1].z - B[i,j,k].z) * dt_dz;
+                #endif
                 //Swap XZ inputs to MUSCL, then swap output back
                 auto wL = _W[i,j,k-1].swappedXZ(), wR = _W[i,j,k+1].swappedXZ();
-                TVD::MUSCL(wL, _L[i,j,k], _W[i,j,k].swappedXZ(), _R[i,j,k],wR, dt_dL);
+                TVD::MUSCL(wL, _L[i,j,k], _W[i,j,k].swappedXZ(), _R[i,j,k],wR, dt_dz,dB);
                 _L[i,j,k].swapXZ(); _R[i,j,k].swapXZ();
             }
         }
@@ -413,4 +448,7 @@ void computeHalfStates_Z(FluidArray3D& _L, const Grid3D& _W, FluidArray3D& _R, d
             _L[i,j,nz-1+g] = _W[i,j,nz-1+g]; _R[i,j,nz-1+g] = _W[i,j,nz-1+g];
         }
     }
+    #ifdef MHD
+    CT::copyFaceFields_Z(_L, B, _R);
+    #endif
 }
