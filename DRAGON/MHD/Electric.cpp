@@ -51,8 +51,8 @@ void CT::computeElectric(MagneticArray2D& E, const FluxArray2D& F_X,const FluxAr
     const int nx = E.getSizeX()-1, ny = E.getSizeY()-1;
     for(int i=-g; i<=nx+g; i++){
         for(int j=-g; j<=ny+g; j++){
-            E[i,j].x = - F_Y[i,j].B.z * 0.5;
-            E[i,j].y = F_X[i,j].B.z * 0.5;
+            E[i,j].x = - F_Y[i,j].B.z;
+            E[i,j].y = F_X[i,j].B.z;
             E[i,j].z = (F_Y[i-1,j].B.x -  F_X[i,j-1].B.y + F_Y[i,j].B.x  - F_X[i,j].B.y) * 0.25;
         }
     }
