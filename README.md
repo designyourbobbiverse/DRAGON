@@ -37,13 +37,16 @@ DRAGON/
   MHD/              Constrained Transport
   Refinement/       Partitioning Grids into parallelisable subgrids (will eventually evolve into AMR)
   
-  Config.h          Solver, reconstruction, CFL, MHD, and threading configuration
+  Config.h          Algorithm configuration
   Constants.h       Physical constants
   Problem.cpp       Example problem initialization and output handling
 
 DRAGONWING/         Multithreading & Memory Management
+  Config.h          Performance-related Settings
 DRAGONHOARD/        HDF5 output + simulation restart
+  Config.h          Output Settings
 DRAGONGAZE/         Plotting Tools
+  Config.h          Visualisation Settings
 Examples/           Example Problems & Validation
 Testing/            Unit test suite
 ```
@@ -196,8 +199,8 @@ For macOS users, you may need to use `pip3` instead of `pip`.
 
 
 Before making your plots, edit `DRAGONGAZE/Config.py` with the following:
-- `hdf_dir` should match `output_dir` from `Config.h`
-- `h5_base_filename` should match `output_base_name` from `Config.h`
+- `hdf_dir` should match `output_dir` from `DRAGONHOARD/Config.h`
+- `h5_base_filename` should match `output_base_name` from `DRAGONHOARD/Config.h`
 - `img_dir` controls where the plots are written
 - Any other options you wish to edit. These typically the contents of the plots
 
