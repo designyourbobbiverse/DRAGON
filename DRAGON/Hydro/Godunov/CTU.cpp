@@ -78,7 +78,7 @@ void ctu_sweep_MHD(FluidArray3D& _xL, FluidArray3D& _xR, FluidArray3D& _yL, Flui
                 //MHD Source Terms
                 double lim_y = TVD::minmod(-dBz, dBx);
                 double lim_z = TVD::minmod(-dBy, dBx);
-                corr.mom += _1_8pi * dBx * W.B;
+                //corr.mom += _1_8pi * dBx * W.B;
                 corr.E += _1_8pi * (W.B.y * W.v.y * lim_y + W.B.z * W.v.z * lim_z);
                 corr.B.y = -0.25 * dt_dz * (E0[i,j,k+1].x - E0[i,j,k].x + E0[i,j+1,k+1].x - E0[i,j+1,k].x) + 0.5 * W.v.y * lim_y;
                 corr.B.z = 0.25 * dt_dy * (E0[i,j+1,k].x - E0[i,j,k].x + E0[i,j+1,k+1].x - E0[i,j,k+1].x) + 0.5 * W.v.z * lim_z;
@@ -95,7 +95,7 @@ void ctu_sweep_MHD(FluidArray3D& _xL, FluidArray3D& _xR, FluidArray3D& _yL, Flui
                 //MHD Source Terms
                 double lim_x = TVD::minmod(-dBz, dBy);
                 lim_z = TVD::minmod(-dBx, dBy);
-                corr.mom += _1_8pi * dBy * W.B;
+                //corr.mom += _1_8pi * dBy * W.B;
                 corr.E += _1_8pi * (W.B.x * W.v.x * lim_x + W.B.z * W.v.z * lim_z);
                 corr.B.x = 0.25 * dt_dz * (E0[i,j,k+1].y - E0[i,j,k].y + E0[i+1,j,k+1].y - E0[i+1,j,k].y) + 0.5 * W.v.x * lim_x;
                 corr.B.z = -0.25 * dt_dx * (E0[i+1,j,k].y - E0[i,j,k].y + E0[i+1,j,k+1].y - E0[i,j,k+1].y) + 0.5 * W.v.z * lim_z;
@@ -112,7 +112,7 @@ void ctu_sweep_MHD(FluidArray3D& _xL, FluidArray3D& _xR, FluidArray3D& _yL, Flui
                 //MHD Source Terms
                 lim_x = TVD::minmod(-dBy, dBz);
                 lim_y = TVD::minmod(-dBx, dBz);
-                corr.mom += _1_8pi * dBz * W.B;
+                //corr.mom += _1_8pi * dBz * W.B;
                 corr.E += _1_8pi * (W.B.x * W.v.x * lim_x + W.B.y * W.v.y * lim_y);
                 corr.B.x =  -0.25 * dt_dy * (E0[i,j+1,k].z - E0[i,j,k].z + E0[i+1,j+1,k].z - E0[i+1,j,k].z) + 0.5 * W.v.x * lim_x;
                 corr.B.y =  0.25 * dt_dx * (E0[i+1,j,k].z - E0[i,j,k].z + E0[i+1,j+1,k].z - E0[i,j+1,k].z) + 0.5 * W.v.y * lim_y;
@@ -174,7 +174,7 @@ void ctu_sweep_MHD(FluidArray2D& _xL, FluidArray2D& _xR, FluidArray2D& _yL, Flui
             corr.B = {0,0,0};
             //MHD Source Terms
             double lim_z = TVD::minmod(-dBy, dBx);
-            corr.mom +=  _1_8pi * dBx * W.B;
+            //corr.mom +=  _1_8pi * dBx * W.B;
             corr.E += _1_8pi * (W.B.z * W.v.z * lim_z);
             corr.B.z = 0.5 * dt_dy * (E0[i,j+1].x - E0[i,j].x) + 0.5 * W.v.z * lim_z;
             //Apply Fluxes & Face Fields
@@ -189,7 +189,7 @@ void ctu_sweep_MHD(FluidArray2D& _xL, FluidArray2D& _xR, FluidArray2D& _yL, Flui
             corr.B = {0,0,0};
             //MHD Source Terms
             lim_z = TVD::minmod(-dBx, dBy);
-            corr.mom +=  _1_8pi * dBy * W.B;
+            //corr.mom +=  _1_8pi * dBy * W.B;
             corr.E +=  _1_8pi * (W.B.z * W.v.z * lim_z);
             corr.B.z = -0.5 * dt_dx * (E0[i+1,j].y - E0[i,j].y) + 0.5 * W.v.z * lim_z;
             //Apply Fluxes & Face Fields
@@ -233,14 +233,14 @@ void ctu_sweep_hydro(FluidArray3D& _xL, FluidArray3D& _xR, FluidArray3D& _yL, Fl
         
     //Compute Edge-correct the fluxes
     FluxArray3D& F_Xz = *__fluxes[3];
-    computeCTUFlux_X(_xL, _xR, F_Z, F_Xz, dt_dx, (dt_dz/3), 2);
+    computeCTUFlux_X(_xL, _xR, F_Z, F_Xz, dt_dx, (dt_dz/3.0), 2);
     FluxArray3D& F_Yz = *__fluxes[4];
-    computeCTUFlux_Y(_yL, _yR, F_Z, F_Yz, dt_dy, (dt_dz/3), 2);
+    computeCTUFlux_Y(_yL, _yR, F_Z, F_Yz, dt_dy, (dt_dz/3.0), 2);
 
     FluxArray3D& F_Xy = F_Z; //F_Z isn't used again before it gets recomputed, so we can resue it here
-    computeCTUFlux_X(_xL, _xR, F_Y, F_Xy, dt_dx, (dt_dy/3), 1);
+    computeCTUFlux_X(_xL, _xR, F_Y, F_Xy, dt_dx, (dt_dy/3.0), 1);
     FluxArray3D& F_Zy = F_Y;  //In computeCTUFlux, the last read of [i,j,k] happens before [i,j,k] gets written, so we can likewise repurpose F_Y here
-    computeCTUFlux_Z(_zL, _zR, F_Y, F_Zy, dt_dz, (dt_dy/3),1);
+    computeCTUFlux_Z(_zL, _zR, F_Y, F_Zy, dt_dz, (dt_dy/3.0),1);
 
     //Update the X half states based on the YZ corner fluxes
     correctState(_xL, _xR, F_Yz, (0.5*dt_dy), 0,1);
@@ -248,9 +248,9 @@ void ctu_sweep_hydro(FluidArray3D& _xL, FluidArray3D& _xR, FluidArray3D& _yL, Fl
     //Doing this early means we can reuse the F_Yz and F_Zy grids for F_Yx and F_Zx
     
     FluxArray3D& F_Yx = F_Yz; //Reuse existing grid that has already served its purpose
-    computeCTUFlux_Y(_yL, _yR, F_X, F_Yx, dt_dy, (dt_dx/3), 0);
+    computeCTUFlux_Y(_yL, _yR, F_X, F_Yx, dt_dy, (dt_dx/3.0), 0);
     FluxArray3D& F_Zx = F_Zy; //Reuse existing grid that has already served its purpose
-    computeCTUFlux_Z(_zL, _zR, F_X, F_Zx, dt_dz, (dt_dx/3),0);
+    computeCTUFlux_Z(_zL, _zR, F_X, F_Zx, dt_dz, (dt_dx/3.0),0);
 
     //Update the Y half states based on the XZ corner fluxes
     correctState(_yL, _yR, F_Xz, (0.5*dt_dx), 1,0);
