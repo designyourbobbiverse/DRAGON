@@ -9,6 +9,7 @@
 #define HDF5Output_hpp
 
 #include "Grid.hpp"
+#include "DRAGONHOARD_Config.h"
 #include <string>
 
 namespace DRAGONHOARD{

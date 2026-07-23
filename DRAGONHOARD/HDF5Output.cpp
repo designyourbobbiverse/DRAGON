@@ -7,6 +7,7 @@
 
 #include "DragonHoard.hpp"
 #include "Config.h"
+#include "DRAGONHOARD_Config.h"
 #include "HDF5_Attrs.hpp"
 #include <H5Cpp.h>
 #include <vector>
@@ -125,7 +126,7 @@ void DRAGONHOARD::writeToFile(Grid1D& grid, double t, int cycle, const std::stri
     const int i0 = 0, in = nx;
     #endif
  
-    std::string path = CONFIG::output_dir + "/" + filename + file_ext;
+    std::string path = DRAGONHOARD::output_dir + "/" + filename + file_ext;
     H5::H5File file(path, H5F_ACC_TRUNC);
     
     //Metadata
@@ -237,7 +238,7 @@ void DRAGONHOARD::writeToFile(Grid2D& grid, double t, int cycle, const std::stri
     const int i0 = 0, in = nx, j0 = 0, jn = ny;
     #endif
 
-    std::string path = CONFIG::output_dir + "/" + filename + file_ext;
+    std::string path = DRAGONHOARD::output_dir + "/" + filename + file_ext;
     H5::H5File file(path, H5F_ACC_TRUNC);
     
     //Metadata
@@ -314,12 +315,10 @@ void DRAGONHOARD::writeToFile(Grid2D& grid, double t, int cycle, const std::stri
             #elif HDF5_WRITE_E
             E[n] = w.energy();
             #endif
-            #ifdef MHD
-            Bz[n] = w.B.z;
-            #if HDF5_REDUNDANT_VALS_OPTION != HDF5_WRITE_OMIT
+            #if defined(MHD) && HDF5_REDUNDANT_VALS_OPTION != HDF5_WRITE_OMIT
             Bx[n] = w.B.x;
             By[n] = w.B.y;
-            #endif
+            Bz[n] = w.B.z;
             #endif
         }
     }
@@ -374,7 +373,7 @@ void DRAGONHOARD::writeToFile(Grid3D& grid, double t, int cycle, const std::stri
     const int i0 = 0, in = nx, j0 = 0, jn = ny, k0 = 0, kn = nz;
     #endif
 
-    std::string path = CONFIG::output_dir + "/" + filename + file_ext;
+    std::string path = DRAGONHOARD::output_dir + "/" + filename + file_ext;
     H5::H5File file(path, H5F_ACC_TRUNC);
     
     //Metadata

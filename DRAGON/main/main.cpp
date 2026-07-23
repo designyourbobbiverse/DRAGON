@@ -32,7 +32,7 @@ static void load(Grid& problem, double& time, int& cycle){
     }
     #endif
     Problem::initializeProblem(problem);
-    DRAGONHOARD::writeToFile(problem, 0, 0, CONFIG::output_base_name + "_" + DRAGONHOARD::cycle_string(0));
+    DRAGONHOARD::writeToFile(problem, 0, 0, DRAGONHOARD::output_base_name + "_" + DRAGONHOARD::cycle_string(0));
 
 }
  
@@ -78,7 +78,7 @@ int main(int argc, const char * argv[]) {
         cycle_output(cycleStr, clock_time);
         
         //Write to File
-        DRAGONHOARD::writeToFile(problem, time, cycle, CONFIG::output_base_name + "_" + cycleStr);
+        DRAGONHOARD::writeToFile(problem, time, cycle, DRAGONHOARD::output_base_name + "_" + cycleStr);
     }
     
     Problem::problemComplete(problem, time);

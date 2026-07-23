@@ -6,6 +6,7 @@
 //
 
 #include "DragonHoard.hpp"
+#include "DRAGONHOARD_Config.h"
 #include "HDF5_Attrs.hpp"
 #include <filesystem>
 #include <vector>
@@ -15,7 +16,7 @@
 
 //MARK: Verify the output directory exists
 void DRAGONHOARD::verifyOutputDirectory(){
-    const std::filesystem::path& dir = CONFIG::output_dir;
+    const std::filesystem::path& dir = DRAGONHOARD::output_dir;
     if (std::filesystem::exists(dir)) {
         if (!std::filesystem::is_directory(dir)) {
             throw std::runtime_error(dir.string() + " exists but is not a directory");
@@ -49,7 +50,7 @@ std::string DRAGONHOARD::restartFileName(){
     std::string filename = "";
     int max_frame_num = -1;
     
-    const std::filesystem::path& dir = CONFIG::output_dir;
+    const std::filesystem::path& dir = DRAGONHOARD::output_dir;
     for (const auto& entry : std::filesystem::directory_iterator(dir)) {
         if (!entry.is_regular_file()) continue;
         auto str = entry.path().filename().string();

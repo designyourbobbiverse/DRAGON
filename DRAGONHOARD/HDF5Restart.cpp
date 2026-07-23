@@ -8,6 +8,7 @@
 #include "DragonHoard.hpp"
 #include "HDF5_Attrs.hpp"
 #include "Config.h"
+#include "DRAGONHOARD_Config.h"
 #include <H5Cpp.h>
 #include <vector>
 #include <format>
@@ -75,7 +76,7 @@ void DRAGONHOARD::loadFromFile(Grid& grid, double& t, int& cycle, const std::str
 
 //MARK: 1D
 void DRAGONHOARD::loadFromFile(Grid1D& grid, double& t, int& cycle, const std::string& filename){
-    std::string path = CONFIG::output_dir + "/" + checkExtension(filename);
+    std::string path = DRAGONHOARD::output_dir + "/" + checkExtension(filename);
     H5::H5File file(path, H5F_ACC_RDONLY);
     
     //Verify compatibility
@@ -154,7 +155,7 @@ void DRAGONHOARD::loadFromFile(Grid1D& grid, double& t, int& cycle, const std::s
 
 //MARK: 2D
 void DRAGONHOARD::loadFromFile(Grid2D& grid, double& t, int& cycle, const std::string& filename){
-    std::string path = CONFIG::output_dir + "/" + checkExtension(filename);
+    std::string path = DRAGONHOARD::output_dir + "/" + checkExtension(filename);
     H5::H5File file(path, H5F_ACC_RDONLY);
     
     //Verify compatibility
@@ -257,7 +258,7 @@ void DRAGONHOARD::loadFromFile(Grid2D& grid, double& t, int& cycle, const std::s
 }
 //MARK: 3D
 void DRAGONHOARD::loadFromFile(Grid3D& grid, double& t, int& cycle, const std::string& filename){
-    std::string path = CONFIG::output_dir + "/" + checkExtension(filename);
+    std::string path = DRAGONHOARD::output_dir + "/" + checkExtension(filename);
     H5::H5File file(path, H5F_ACC_RDONLY);
     
     //Verify compatibility
