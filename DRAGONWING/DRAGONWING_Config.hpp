@@ -5,6 +5,8 @@
 //  Created by Bobbie Markwick on 10/07/2026.
 //
 
+#ifndef DRAGONWING_CONFIG_h
+#define DRAGONWING_CONFIG_h
 
 namespace DRAGONWING::CONFIG{
 
@@ -28,3 +30,4 @@ constexpr int phase_1_max_threads = 10000;
 }
 
 
+#endif
