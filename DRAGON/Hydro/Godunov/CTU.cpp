@@ -233,14 +233,14 @@ void ctu_sweep_hydro(FluidArray3D& _xL, FluidArray3D& _xR, FluidArray3D& _yL, Fl
         
     //Compute Edge-correct the fluxes
     FluxArray3D& F_Xz = *__fluxes[3];
-    computeCTUFlux_X(_xL, _xR, F_Z, F_Xz, dt_dx, (0.333333333*dt_dz), 2);
+    computeCTUFlux_X(_xL, _xR, F_Z, F_Xz, dt_dx, (dt_dz/3), 2);
     FluxArray3D& F_Yz = *__fluxes[4];
-    computeCTUFlux_Y(_yL, _yR, F_Z, F_Yz, dt_dy, (0.333333333*dt_dz), 2);
+    computeCTUFlux_Y(_yL, _yR, F_Z, F_Yz, dt_dy, (dt_dz/3), 2);
 
     FluxArray3D& F_Xy = F_Z; //F_Z isn't used again before it gets recomputed, so we can resue it here
-    computeCTUFlux_X(_xL, _xR, F_Y, F_Xy, dt_dx, (0.333333333*dt_dy), 1);
+    computeCTUFlux_X(_xL, _xR, F_Y, F_Xy, dt_dx, (dt_dy/3), 1);
     FluxArray3D& F_Zy = F_Y;  //In computeCTUFlux, the last read of [i,j,k] happens before [i,j,k] gets written, so we can likewise repurpose F_Y here
-    computeCTUFlux_Z(_zL, _zR, F_Y, F_Zy, dt_dz, (0.333333333*dt_dy),1);
+    computeCTUFlux_Z(_zL, _zR, F_Y, F_Zy, dt_dz, (dt_dy/3),1);
 
     //Update the X half states based on the YZ corner fluxes
     correctState(_xL, _xR, F_Yz, (0.5*dt_dy), 0,1);
@@ -248,9 +248,9 @@ void ctu_sweep_hydro(FluidArray3D& _xL, FluidArray3D& _xR, FluidArray3D& _yL, Fl
     //Doing this early means we can reuse the F_Yz and F_Zy grids for F_Yx and F_Zx
     
     FluxArray3D& F_Yx = F_Yz; //Reuse existing grid that has already served its purpose
-    computeCTUFlux_Y(_yL, _yR, F_X, F_Yx, dt_dy, (0.333333333*dt_dx), 0);
+    computeCTUFlux_Y(_yL, _yR, F_X, F_Yx, dt_dy, (dt_dx/3), 0);
     FluxArray3D& F_Zx = F_Zy; //Reuse existing grid that has already served its purpose
-    computeCTUFlux_Z(_zL, _zR, F_X, F_Zx, dt_dz, (0.333333333*dt_dx),0);
+    computeCTUFlux_Z(_zL, _zR, F_X, F_Zx, dt_dz, (dt_dx/3),0);
 
     //Update the Y half states based on the XZ corner fluxes
     correctState(_yL, _yR, F_Xz, (0.5*dt_dx), 1,0);
