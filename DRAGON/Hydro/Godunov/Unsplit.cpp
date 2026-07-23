@@ -29,6 +29,11 @@ void Grid2D::unsplit_step(double dt){
     const int nx = w.getSizeX(), ny = w.getSizeY(), ghosts = w.getGhosts();
     
     if(!DRAGONWING::waitForRelease()) return;
+    #ifdef MHD //Face Fields
+        auto __B = DRAGONWING::requestVec3Arrays(1, nx+1, ny+1, ghosts);
+    MagneticArray2D& B = *__B[0];
+    CT::computeFaceFields(A, B, dx, dy);
+    #endif
     
     //Compute Half States
         auto __half_states = DRAGONWING::requestPrimitiveArrays(4, nx, ny, ghosts);
@@ -38,10 +43,7 @@ void Grid2D::unsplit_step(double dt){
     FluidArray2D& _yR = *__half_states[3];
     computeHalfStates_X(_xL, (*this), _xR, dt);
     computeHalfStates_Y(_yL, (*this), _yR, dt);
-    #ifdef MHD //Face Fields
-        auto __B = DRAGONWING::requestVec3Arrays(1, nx+1, ny+1, ghosts);
-    MagneticArray2D& B = *__B[0];
-    CT::computeFaceFields(A, B, dx, dy);
+    #ifdef MHD
     CT::copyFaceFields_X(_xL, B, _xR);
     CT::copyFaceFields_Y(_yL, B, _yR);
     #endif
@@ -125,6 +127,11 @@ void Grid3D::unsplit_step(double dt){
     int nx = w.getSizeX(), ny = w.getSizeY(), nz = w.getSizeZ(), ghosts = w.getGhosts();
     
     if(!DRAGONWING::waitForRelease()) return;
+    #ifdef MHD //Face Fields
+        auto __B = DRAGONWING::requestVec3Arrays(1, nx+1, ny+1, nz+1, ghosts);
+    MagneticArray3D& B = *__B[0];
+    CT::computeFaceFields(A, B, dx, dy, dz);
+    #endif
     
     //Compute Half States
         auto __half_states = DRAGONWING::requestPrimitiveArrays(6, nx, ny, nz, ghosts);
@@ -137,10 +144,7 @@ void Grid3D::unsplit_step(double dt){
     computeHalfStates_X(_xL, (*this), _xR, dt);
     computeHalfStates_Y(_yL, (*this), _yR, dt);
     computeHalfStates_Z(_zL, (*this), _zR, dt);
-    #ifdef MHD //Face Fields
-        auto __B = DRAGONWING::requestVec3Arrays(1, nx+1, ny+1, nz+1, ghosts);
-    MagneticArray3D& B = *__B[0];
-    CT::computeFaceFields(A, B, dx, dy, dz);
+    #ifdef MHD
     CT::copyFaceFields_X(_xL, B, _xR);
     CT::copyFaceFields_Y(_yL, B, _yR);
     CT::copyFaceFields_Z(_zL, B, _zR);
