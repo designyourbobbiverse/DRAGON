@@ -65,35 +65,76 @@ void CT::computeFaceFields(const MagneticArray3D& _A, MagneticArray3D& _B, doubl
 }
 
 //MARK: Body Fields
+namespace CT{
+
+void computeBodyField(const MagneticArray2D& B, FluidArray2D& w, int i, int j, bool consv_E){
+    const vec3 _B =  {(B[i,j].x + B[i+1,j].x)*0.5, (B[i,j].y + B[i,j+1].y)*0.5, B[i,j].z};
+    if(consv_E) {
+        ConservativeState U(w[i,j]);//Update the conservative element to keep quantities conserved
+        U.B = _B;
+        w[i,j] = U;
+    } else {
+        w[i,j].B = _B;
+    }
+}
+void computeBodyField(const MagneticArray3D& B, FluidArray3D& w, int i, int j, int k, bool consv_E){
+    const vec3 _B = (B[i,j,k] + vec3{B[i+1,j,k].x, B[i,j+1,k].y, B[i,j,k+1].z}) * 0.5;
+    if(consv_E) {
+        ConservativeState U(w[i,j,k]);//Update the conservative element to keep quantities conserved
+        U.B = _B;
+        w[i,j,k] = U;
+    } else {
+        w[i,j,k].B = _B;
+    }
+}
+
+bool shouldProtectThermal(const PrimitiveState& w){
+    #if CT_ENERGY_CONSV == CHOOSE_RUNTIME
+    switch (CONFIG::CT_energy_choice) {
+        case CT_CONSV_TOTAL_E: false;
+        case CT_CONSV_THERMAL: true;
+        case CT_CONSV_BETA_GATED:
+            double B2 = (w.B * w.B);
+            if(B2 == 0) return false;
+            double beta = 8*M_PI*w.p / (w.B*w.B);
+            return beta <= CONFIG::CT_Energy_Beta;
+        default: return false;
+    }
+    #elif CT_ENERGY_CONSV == CT_CONSV_TOTAL_E
+    return false;
+    #elif CT_ENERGY_CONSV == CT_CONSV_THERMAL
+    return true;
+    #elif CT_CONSV_BETA_GATED
+    double B2 = (w.B * w.B);
+    if(B2 == 0) return false;
+    double beta = 8*M_PI*w.p / (w.B*w.B);
+    return beta <= CONFIG::CT_Energy_Beta;
+    #endif
+}
+}
+
 void Grid2D::initialize_B_fields(){
     const int nx = w.getSizeX(), ny = w.getSizeY(), ng = w.getGhosts();
     boundary.apply(*this);
-
+    
     MagneticArray2D B(nx+1,ny+1,w.getGhosts());
     CT::computeFaceFields(A, B, dx, dy);
-    
     for(int i=-ng; i<nx+ng; i++){
         for(int j=-ng; j<ny+ng; j++){
-            w[i,j].B.x = (B[i,j].x + B[i+1,j].x)/2;
-            w[i,j].B.y = (B[i,j].y + B[i,j+1].y)/2;
-            w[i,j].B.z = B[i,j].z;
+            CT::computeBodyField(B,w,i,j,false);
         }
     }
 }
+
+void Grid2D::computeBodyAveragedFields(const MagneticArray2D& B){ CT::computeBodyFields(B, w); }
 void CT::computeBodyFields(const MagneticArray2D& B, FluidArray2D& w){
     const int nx = w.getSizeX(), ny = w.getSizeY(), ng = w.getGhosts();
-
     for(int i=-ng; i<nx+ng; i++){
         for(int j=-ng; j<ny+ng; j++){
-            ConservativeState U(w[i,j]);//Update the conservative element to keep quantities conserved
-            U.B.x = (B[i,j].x + B[i+1,j].x)/2;
-            U.B.y = (B[i,j].y + B[i,j+1].y)/2;
-            U.B.z = B[i,j].z;
-            w[i,j] = U;
+            computeBodyField(B, w, i, j, !shouldProtectThermal(w[i,j]));
         }
     }
 }
-void Grid2D::computeBodyAveragedFields(const MagneticArray2D& B){ CT::computeBodyFields(B, w); }
 
 void Grid3D::initialize_B_fields(){
     const int nx = w.getSizeX(), ny = w.getSizeY(), nz = w.getSizeZ(), ng = w.getGhosts();
@@ -105,9 +146,7 @@ void Grid3D::initialize_B_fields(){
     for(int i=-ng; i<nx+ng; i++){
         for(int j=-ng; j<ny+ng; j++){
             for(int k=-ng; k<nz+ng; k++){
-                w[i,j,k].B.x = (B[i,j,k].x + B[i+1,j,k].x)/2;
-                w[i,j,k].B.y = (B[i,j,k].y + B[i,j+1,k].y)/2;
-                w[i,j,k].B.z = (B[i,j,k].z + B[i,j,k+1].z)/2;
+                CT::computeBodyField(B,w,i,j,k,false);
             }
         }
     }
@@ -117,18 +156,13 @@ void Grid3D::initialize_B_fields(){
 void Grid3D::computeBodyAveragedFields(const MagneticArray3D& B){ CT::computeBodyFields(B, w); }
 void CT::computeBodyFields(const MagneticArray3D& B, FluidArray3D& w){
     const int nx = w.getSizeX(), ny = w.getSizeY(), nz = w.getSizeZ(), ng = w.getGhosts();
-
-        for(int i=-ng; i<nx+ng; i++){
-            for(int j=-ng; j<ny+ng; j++){
-                for(int k=-ng; k<nz+ng; k++){
-                    ConservativeState U(w[i,j,k]);//Update the conservative element to keep quantities conserved
-                    U.B.x = (B[i,j,k].x + B[i+1,j,k].x)/2;
-                    U.B.y = (B[i,j,k].y + B[i,j+1,k].y)/2;
-                    U.B.z = (B[i,j,k].z + B[i,j,k+1].z)/2;
-                    w[i,j,k] = U;
-                }
+    for(int i=-ng; i<nx+ng; i++){
+        for(int j=-ng; j<ny+ng; j++){
+            for(int k=-ng; k<nz+ng; k++){
+                computeBodyField(B, w, i, j, k, !shouldProtectThermal(w[i,j,k]));
             }
         }
+    }
 }
 
 
