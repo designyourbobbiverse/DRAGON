@@ -63,6 +63,14 @@ void DRAGON_Test::verify_tvd_scalar_minmod() {
     assert(approx(TVD::minmod(3.0, 2.0), 2.0));
     assert(approx(TVD::minmod(-2.0, -3.0), -2.0));
     assert(approx(TVD::minmod(-2.0, 3.0), 0.0));
+    
+    //Assert limiter identity
+    for(int i=0; i<100;i++){
+        double a = (rand()%2000001 - 1000000)*1e-3, b = (rand()%2000001 - 1000000)*1e-3;
+        double c = -(a+b);
+        double mm = TVD::minmod(a,-b) + TVD::minmod(a,-c);
+        assert(approx(mm, a));
+    }
 }
 
 void DRAGON_Test::verify_tvd_scalar_mc() {
