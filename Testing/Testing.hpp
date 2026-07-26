@@ -249,12 +249,18 @@ void verify_god_uniform_stationary_2D_MHD();
 void verify_god_uniform_moving_2D_MHD();
 void verify_god_periodic_conservation_2D_MHD();
 void verify_god_dist_grid_2D_MHD();
+void verify_2D_X_match_1D_MHD();
+void verify_2D_Y_match_1D_MHD();
+
 //3D
 void verify_godunov_3D_MHD(bool output = true);
 void verify_god_uniform_stationary_3D_MHD();
 void verify_god_uniform_moving_3D_MHD();
 void verify_god_periodic_conservation_3D_MHD();
 void verify_god_dist_grid_3D_MHD();
+void verify_3D_X_match_1D_MHD();
+void verify_3D_Y_match_1D_MHD();
+void verify_3D_Z_match_1D_MHD();
 
 
 //MARK: Constrained Transport

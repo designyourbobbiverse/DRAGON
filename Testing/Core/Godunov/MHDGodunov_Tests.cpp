@@ -109,11 +109,11 @@ void DRAGON_Test::verify_god_uniform_stationary_2D_MHD(){
 void DRAGON_Test::verify_god_uniform_moving_2D_MHD(){
     Grid2D grid(10,10,1.0, 1.0, 2);
     PrimitiveState W = make_state(1.0, 1.0, 2.0, 3.0, 5.0);
-    W.B.z = 1.0;
+
     for (int i = 0; i <= grid.getSizeX(); i++){
         for (int j = 0; j <= grid.getSizeY(); j++){
             grid[i,j] = W;
-            grid._A()[i,j] = vec3{0,0,0.2*i};
+            grid._A()[i,j] = vec3{0,0.2*j,0.2*i};
         }
     }
     grid.boundary = Outflow();
@@ -163,7 +163,7 @@ void DRAGON_Test::verify_god_uniform_moving_3D_MHD(){
         for (int j = 0; j <= grid.getSizeY(); j++){
             for (int k = 0; k <= grid.getSizeZ(); k++){
                 grid[i,j,k] = W;
-                grid._A()[i,j,k] = vec3{0,0,0.125*i};
+                grid._A()[i,j,k] = vec3{0.3*k,0.2*j,0.125*i};
             }
         }
     }
