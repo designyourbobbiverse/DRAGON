@@ -234,9 +234,6 @@ void verify_ctu_blast_3D();
 namespace MagneticGrid{
 double magneticX(Grid2D& grid, int i, int j);
 double magneticY(Grid2D& grid, int i, int j);
-double magneticX(Grid3D& grid, int i, int j, int k);
-double magneticY(Grid3D& grid, int i, int j, int k);
-double magneticZ(Grid3D& grid, int i, int j, int k);
 }
 //1D
 void verify_godunov_1D_MHD(bool output = true);
