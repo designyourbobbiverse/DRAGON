@@ -161,7 +161,7 @@ void DRAGON_Test::verify_IO3D(){
     for(int i = -2; i <= 3 + 2; i++) {
         for(int j = -2; j <= 4 + 2; j++) {
             for(int k = -2; k <= 5 + 2; k++) {
-                g._A()[i,j,k] = make_tagged_A(i*0.1 + j*0.01 + k*0.001);
+                g._B()[i,j,k] = make_tagged_A(i*0.1 + j*0.01 + k*0.001);
             }
         }
     }
@@ -180,7 +180,7 @@ void DRAGON_Test::verify_IO3D(){
     for(int i = -2; i <= 3 + 2; i++) {
         for(int j = -2; j <= 4 + 2; j++) {
             for(int k = -2; k <= 5 + 2; k++) {
-                expect_close(g._A()[i,j,k], make_tagged_A(i*0.1 + j*0.01 + k*0.001));
+                expect_close(g._B()[i,j,k], make_tagged_A(i*0.1 + j*0.01 + k*0.001));
             }
         }
     }
@@ -219,7 +219,7 @@ void DRAGON_Test::verify_IO3D(){
     for(int i = -ng; i <= 3 + ng; i++) {
         for(int j = -ng; j <= 4 + ng; j++) {
             for(int k = -ng; k <= 5 + ng; k++) {
-                expect_close(g._A()[i,j,k],  g2._A()[i,j,k]);
+                expect_close(g._B()[i,j,k],  g2._B()[i,j,k]);
             }
         }
     }
