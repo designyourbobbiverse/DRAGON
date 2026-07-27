@@ -126,10 +126,7 @@ void Grid3D::unsplit_step(double dt){
     const double dt_dx = dt/dx, dt_dy = dt/dy, dt_dz = dt/dz;
     
     if(!DRAGONWING::waitForRelease()) return;
-    #ifdef MHD //Face Fields
-        auto __B = DRAGONWING::requestVec3Arrays(1, nx+1, ny+1, nz+1, ghosts);
-    MagneticArray3D& B = *__B[0];
-    #else//Dummy B array
+    #ifndef MHD //Face Fields Dummy array
         auto B = MagneticArray3D(0,0,0);
     #endif
     
@@ -147,8 +144,8 @@ void Grid3D::unsplit_step(double dt){
     
     #ifdef CTU
         #ifdef MHD //Gardiner and Stone (2005). https://doi.org/10.1016/j.jcp.2004.11.016
-            auto __E_half = DRAGONWING::requestVec3Arrays(1, nx+1, ny+1, nz+1, ghosts);
-        MagneticArray3D& _E_half = *__E_half[0];
+            auto __CT_scratch = DRAGONWING::requestVec3Arrays(1, nx+1, ny+1, nz+1, ghosts);
+        MagneticArray3D& _E_half = *__CT_scratch[0];
         ctu_sweep_MHD(_xL, _xR, _yL, _yR, _zL, _zR, B, w, _E_half, dt_dx, dt_dy, dt_dz);
         #else
         ctu_sweep_hydro(_xL, _xR, _yL, _yR, _zL, _zR, dt/dx, dt/dy, dt/dz);
@@ -184,10 +181,9 @@ void Grid3D::unsplit_step(double dt){
     CT::computeElectric(E, F_X, F_Y, F_Z);
     #ifdef CTU
     CT::upwindElectric(E, F_X, F_Y, F_Z, _E_half);
-        __E_half.release();
     #endif
     //Update B
-    MagneticArray3D& _B = *__B[0];
+    MagneticArray3D& _B = *__CT_scratch[0]; //Done with _E_half, reuse it
     _B.clone(B);
     CT::Faraday(E, _B, dt_dx, dt_dy, dt_dz);
         __Elec.release();
