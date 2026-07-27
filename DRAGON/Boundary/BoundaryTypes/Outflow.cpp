@@ -199,8 +199,10 @@ void Boundary::Outflow::apply(Grid3D& grid) {
     if (faces & X_positive) {
         for (int j = j0; j <= jn; j++) {
             for (int k = k0; k <= kn; k++) {
+                _B[nx,j,k].y = _B[nx-1,j,k].y;
+                _B[nx,j,k].z = _B[nx-1,j,k].z;
                 for (int g = 1; g <= ng; g++) {
-                    _B[nx+g-1,j,k] = _B[nx,j,k];
+                    _B[nx+g,j,k] = _B[nx,j,k];
                     _B[nx+g,j,k].x = 2*_B[nx+g-1,j,k].x - _B[nx+g-2,j,k].x;//Handle divergences
                 }
             }
@@ -219,8 +221,10 @@ void Boundary::Outflow::apply(Grid3D& grid) {
     if (faces & Y_positive) {
         for (int i = i0; i <= in; i++) {
             for (int k = k0; k <= kn; k++) {
+                _B[i,ny,k].x = _B[i,ny-1,k].x;
+                _B[i,ny,k].z = _B[i,ny-1,k].z;
                 for (int g = 1; g <= ng; g++) {
-                    _B[i,ny+g-1,k] = _B[i,ny,k];
+                    _B[i,ny+g,k] = _B[i,ny,k];
                     _B[i,ny+g,k].y = 2*_B[i,ny+g-1,k].y - _B[i,ny+g-2,k].y;//Handle divergences
                 }
             }
@@ -239,8 +243,10 @@ void Boundary::Outflow::apply(Grid3D& grid) {
     if (faces & Z_positive) {
         for (int i = i0; i <= in; i++) {
             for (int j = j0; j <= jn; j++) {
+                _B[i,j,nz].x = _B[i,j,nz-1].x;
+                _B[i,j,nz].y = _B[i,j,nz-1].y;
                 for (int g = 1; g <= ng; g++) {
-                    _B[i,j,nz+g-1] = _B[i,j,nz];
+                    _B[i,j,nz+g] = _B[i,j,nz];
                     _B[i,j,nz+g].z = 2*_B[i,j,nz+g-1].z - _B[i,j,nz+g-2].z;//Handle divergences
                 }
             }
