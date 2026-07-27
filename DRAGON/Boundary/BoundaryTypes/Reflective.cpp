@@ -229,16 +229,15 @@ void Boundary::Reflective::apply(Grid3D& grid) {
         }
     }
 //MARK: 3D MHD
-    /*
     #ifdef MHD //Mirror Transverse Magnetic Fields, preserve normal magnetic fields
-    auto& _A = grid._A();
+    auto& _B = grid._B();
     // A has one more physical point per dimension than w. Transverse components are offset by 1/2 from w
     if (faces & X_negative){
         for(int j = j0 ; j <= jn; j++){
             for(int k = k0 ; k <= kn; k++){
                 for(int g = 1; g <= ng; g++){
-                    _A[-g,j,k] = _A[g,j,k]; //Copy the Transverse A field (reflected over 0 instead of -1/2)
-                    _A[-g,j,k].x = -_A[g-1,j,k].x; //Invert the Normal A field (which reflects over -1/2)
+                    _B[-g,j,k] = _B[g-1,j,k] * -1; //Invert the Transverse B field
+                    _B[-g,j,k].x = _B[g,j,k].x; //Copy the Normal B field  (reflected over 0 instead of -1/2)
                 }
             }
         }
@@ -246,9 +245,10 @@ void Boundary::Reflective::apply(Grid3D& grid) {
     if (faces & X_positive){
         for(int j = j0 ; j <= jn; j++){
             for(int k = k0 ; k <= kn; k++){
+                _B[nx,j,k] = _B[nx-1,j,k] * -1; //Invert the Transverse B field
                 for(int g = 1; g <= ng; g++){
-                    _A[nx+g,j,k] = _A[nx-g,j,k]; //Copy the Transverse A field (reflected over nx instead of nx+1/2)
-                    _A[nx-1+g,j,k].x = -_A[nx-g,j,k].x; //Invert the Normal A field (which reflects over nx+1/2)
+                    _B[nx+g,j,k] = _B[nx-g-1,j,k] * -1; //Invert the Transverse B field
+                    _B[nx+g,j,k].x = _B[nx-g,j,k].x; //Copy the Normal A field
                 }
             }
         }
@@ -257,8 +257,8 @@ void Boundary::Reflective::apply(Grid3D& grid) {
         for(int i = i0 ; i <= in; i++){
             for(int k = k0 ; k <= kn; k++){
                 for(int g = 1; g <= ng; g++){
-                    _A[i,-g,k] = _A[i,g,k]; //Copy the Transverse A field (reflected over 0 instead of -1/2)
-                    _A[i,-g,k].y = -_A[i,g-1,k].y; //Invert the Normal A field (which reflects over -1/2)
+                    _B[i,-g,k] = _B[i,g-1,k] * -1; //Invert the Transverse B field
+                    _B[i,-g,k].y = _B[i,g,k].y; //Copy the Normal B field (reflected over 0 instead of -1/2)
                 }
             }
         }
@@ -266,9 +266,10 @@ void Boundary::Reflective::apply(Grid3D& grid) {
     if (faces & Y_positive){
         for(int i = i0 ; i <= in; i++){
             for(int k = k0 ; k <= kn; k++){
+                _B[i,ny,k] = _B[i,ny-1,k] * -1; //Invert the Transverse B field
                 for(int g = 1; g <= ng; g++){
-                    _A[i,ny+g,k] = _A[i,ny-g,k]; //Copy the Transverse A field (reflected over ny instead of ny+1/2)
-                    _A[i,ny-1+g,k].y = -_A[i,ny-g,k].y; //Invert the Normal A field (which reflects over ny+1/2)
+                    _B[i,ny+g,k] = _B[i,ny-g-1,k] * -1; //Invert the Transverse B field
+                    _B[i,ny+g,k].y = _B[i,ny-g,k].y; //Copy the Normal B field
                 }
             }
         }
@@ -277,8 +278,8 @@ void Boundary::Reflective::apply(Grid3D& grid) {
         for(int i = i0 ; i <= in; i++){
             for(int j = j0 ; j <= jn; j++){
                 for(int g = 1; g <= ng; g++){
-                    _A[i,j,-g] = _A[i,j,g]; //Copy the Transverse A field (reflected over 0 instead of -1/2)
-                    _A[i,j,-g].z = -_A[i,j,g-1].z; //Invert the Normal A field (which reflects over -1/2)
+                    _B[i,j,-g] = _B[i,j,g-1] * -1; //Invert the Transverse B field
+                    _B[i,j,-g].z = _B[i,j,g].z; //Copy the Normal B field (reflected over 0 instead of -1/2)
                 }
             }
         }
@@ -286,13 +287,13 @@ void Boundary::Reflective::apply(Grid3D& grid) {
     if (faces & Z_positive){
         for(int i = i0 ; i <= in; i++){
             for(int j = j0 ; j <= jn; j++){
+                _B[i,j,nz] = _B[i,j,nz-1] * -1; //Invert the Transverse B field
                 for(int g = 1; g <= ng; g++){
-                    _A[i,j,nz+g] = _A[i,j,nz-g]; //Copy the Transverse A field (reflected over nz instead of nz+1/2)
-                    _A[i,j,nz-1+g].z = -_A[i,j,nz-g].z; //Invert the Normal A field (which reflects over nz+1/2)
+                    _B[i,j,nz+g] = _B[i,j,nz-g-1] * -1; //Invert the Transverse B field
+                    _B[i,j,nz+g].z = _B[i,j,nz-g].z; //Copy the Normal B field
                 }
             }
         }
     }
     #endif
-     */
 }
