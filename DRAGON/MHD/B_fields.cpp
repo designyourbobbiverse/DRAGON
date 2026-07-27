@@ -138,8 +138,8 @@ void computeBodyField(const MagneticArray3D& B, FluidArray3D& w, int i, int j, i
 bool shouldProtectThermal(const PrimitiveState& w){
     #if CT_ENERGY_CONSV == CHOOSE_RUNTIME
     switch (CONFIG::CT_energy_choice) {
-        case CT_CONSV_TOTAL_E: false;
-        case CT_CONSV_THERMAL: true;
+        case CT_CONSV_TOTAL_E: return false;
+        case CT_CONSV_THERMAL: return true;
         case CT_CONSV_BETA_GATED:
             double B2 = (w.B * w.B);
             if(B2 == 0) return false;
