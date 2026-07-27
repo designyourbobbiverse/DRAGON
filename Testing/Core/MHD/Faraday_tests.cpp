@@ -49,48 +49,6 @@ void DRAGON_Test::verify_ct_E_updates_A_2D(){
         }
     }
 }
-void DRAGON_Test::verify_ct_E_updates_A_3D(){
-    const int nx = 10, ny = 10, nz = 10, ng = 2;
-    MagneticArray3D A0(nx,ny,nz,ng);
-
-    for(int i = -ng; i < nx+ng; i++){
-        for(int j = -ng; j < ny+ng; j++){
-            for(int k = -ng; k < nz+ng; k++){
-                A0[i,j,k] = { (rand()%2000001)*1e-3 - 1e3, (rand()%2000001)*1e-3 - 1e3 , (rand()%2000001)*1e-3 - 1e3};
-            }
-        }
-    }
-    
-    MagneticArray3D A(nx,ny,nz,ng);
-    A.clone(A0);
-    
-    MagneticArray3D E(nx,ny,nz,ng);
-    for(int i = -ng; i < nx+ng; i++){
-        for(int j = -ng; j < ny+ng; j++){
-            for(int k = -ng; k < nz+ng; k++){
-                E[i,j,k] = { (rand()%2000001)*1e-3 - 1e3, (rand()%2000001)*1e-3 - 1e3 , (rand()%2000001)*1e-3 - 1e3};
-            }
-        }
-    }
-    //Check a single update
-    CT::updatePotential(A, E, 1.0,ng);
-    for(int i = -ng; i < nx+ng; i++){
-        for(int j = -ng; j < ny+ng; j++){
-            for(int k = -ng; k < nz+ng; k++){
-                expect_close(A[i,j,k], A0[i,j,k] - E[i,j,k]);
-            }
-        }
-    }
-    //Check another update to catch dt bugs
-    CT::updatePotential(A, E, -2.0,ng);
-    for(int i = -ng; i < nx+ng; i++){
-        for(int j = -ng; j < ny+ng; j++){
-            for(int k = -ng; k < nz+ng; k++){
-                expect_close(A[i,j,k], A0[i,j,k] + E[i,j,k]);
-            }
-        }
-    }
-}
 
 
 //MARK: Uniform E
@@ -163,7 +121,7 @@ void DRAGON_Test::verify_ct_uniform_E_3D(){
 //Tests above this line, I wrote myself from scratch
 //Tests below this line, AI originally drafted.  I have since revised the tests to better match my coding style.
 
-//MARK: B = curl(A)
+//MARK: Stokes Theorem
 //Theses tests check that Stokes Theorem Holds for B = curl(A)
 void DRAGON_Test::verify_ct_compute_faces_2D(){
     const int nx = 3, ny = 4, ng = 1;
@@ -202,27 +160,28 @@ void DRAGON_Test::verify_ct_compute_faces_2D(){
     }
 }
 
-void DRAGON_Test::verify_ct_compute_faces_3D(){
+void DRAGON_Test::verify_ct_stokes_theorem_3D(){
     const int nx = 2, ny = 3, nz = 4, ng = 1;
     const double dx = 0.5, dy = 2.0, dz = 0.25;
     MagneticArray3D A(nx+1, ny+1, nz+1, ng);
+    MagneticArray3D B(nx+1, ny+1, nz+1, ng);
     for(int i = -ng; i < nx+1+ng; i++){
         for(int j = -ng; j < ny+1+ng; j++){
             for(int k = -ng; k < nz+1+ng; k++){
                 // Ax = ij+2k², Ay = jk+3i², Az = ki+4j²
                 A[i,j,k] = vec3{1.0*i*j + 2.0*k*k, 1.0*j*k + 3.0*i*i, 1.0*k*i + 4.0*j*j};
+                B[i,j,k] = {0,0,0};
             }
         }
     }
 
-    MagneticArray3D B(nx+1, ny+1, nz+1, ng);
-    CT::computeFaceFields(A, B, dx, dy, dz);
+    CT::Faraday(A, B, 1.0/dx, 1.0/dy, 1.0/dz, ng);
 
     // _B[i,j,k].x = (_A[i,j+1,k].z - _A[i,j,k].z)*_dy - (_A[i,j,k+1].y - _A[i,j,k].y) * _dz;
     for(int i = -ng; i <= nx+ng; i++){
         for(int j = -ng; j < ny+ng; j++){
             for(int k = -ng; k < nz+ng; k++){
-                double line_integral = A[i,j,k].y*dy + A[i,j+1,k].z*dz - A[i,j,k+1].y*dy - A[i,j,k].z*dz;
+                double line_integral = -(A[i,j,k].y*dy + A[i,j+1,k].z*dz - A[i,j,k+1].y*dy - A[i,j,k].z*dz);
                 double flux = B[i,j,k].x * dy * dz;
                 assert(approx(flux, line_integral));
             }
@@ -231,7 +190,7 @@ void DRAGON_Test::verify_ct_compute_faces_3D(){
     for(int i = -ng; i < nx+ng; i++){
         for(int j = -ng; j <= ny+ng; j++){
             for(int k = -ng; k < nz+ng; k++){
-                double line_integral = A[i,j,k].z*dz + A[i,j,k+1].x*dx - A[i+1,j,k].z*dz - A[i,j,k].x*dx;
+                double line_integral = -(A[i,j,k].z*dz + A[i,j,k+1].x*dx - A[i+1,j,k].z*dz - A[i,j,k].x*dx);
                 double flux = B[i,j,k].y * dx * dz;
                 assert(approx(flux, line_integral));
             }
@@ -240,7 +199,7 @@ void DRAGON_Test::verify_ct_compute_faces_3D(){
     for(int i = -ng; i < nx+ng; i++){
         for(int j = -ng; j < ny+ng; j++){
             for(int k = -ng; k <= nz+ng; k++){
-                double line_integral = A[i,j,k].x*dx + A[i+1,j,k].y*dy - A[i,j+1,k].x*dx - A[i,j,k].y*dy;
+                double line_integral = -(A[i,j,k].x*dx + A[i+1,j,k].y*dy - A[i,j+1,k].x*dx - A[i,j,k].y*dy);
                 double flux = B[i,j,k].z * dx * dy;
                 assert(approx(flux, line_integral));
             }

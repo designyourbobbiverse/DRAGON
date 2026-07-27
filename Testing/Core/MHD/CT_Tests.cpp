@@ -50,14 +50,19 @@ void DRAGON_Test::verify_ct_2D(bool output){
 }
 void DRAGON_Test::verify_ct_3D(bool output){
     if(output) std::cout << "Constrained Transport (3D): \n";
+    if(output) std::cout << "- Faraday Update:\n";
+    if(output) std::cout << "\t- Zero Divergence: ";
+    verify_ct_divergence_3D();
+    if(output) std::cout << "Passed\n";
+    if(output) std::cout << "\t- Stokes Theorem: ";
+    verify_ct_stokes_theorem_3D();
+    if(output) std::cout << "Passed\n";
+    if(output) std::cout << "\t- Uniform E: ";
+    verify_ct_uniform_E_3D();
+    if(output) std::cout << "Passed\n";
     
-    if(output) std::cout << "- Faraday Pipeline:\n";
-    if(output) std::cout << "\t- Edge E -> Edge A: ";
-    verify_ct_E_updates_A_3D();
-    if(output) std::cout << "Passed\n";
-    if(output) std::cout << "\t- Edge A -> Face B: ";
-    verify_ct_compute_faces_3D();
-    if(output) std::cout << "Passed\n";
+    
+    if(output) std::cout << "- Face & Body Fields:\n";
     if(output) std::cout << "\t- Face B -> Body B: ";
     verify_ct_body_fields_3D();
     if(output) std::cout << "Passed\n";
@@ -66,17 +71,9 @@ void DRAGON_Test::verify_ct_3D(bool output){
     if(output) std::cout << "Passed\n";
 
     
-    if(output) std::cout << "- Zero Divergence: ";
-   // verify_ct_divergence_3D();
-    if(output) std::cout << "Passed\n";
-    
-    if(output) std::cout << "- Uniform E: ";
-    verify_ct_uniform_E_3D();
-    if(output) std::cout << "Passed\n";
-    if(output) std::cout << "- Stationary Field: ";
+    if(output) std::cout << "- Stationary Field Test: ";
     verify_ct_stationary_3D();
     if(output) std::cout << "Passed\n";
-
 }
 
 
@@ -257,4 +254,43 @@ void DRAGON_Test::verify_ct_stationary_3D(){
     
     DRAGONWING::initialize(0);
 }
+
+/*
+//MARK: d/dz = 0 -> Bz stays zero
+void DRAGON_Test::verify_ct_uniform_Bz0_2D(){
+    constexpr int n = 16;
+    constexpr double dx = 2.0/n;
+    
+    auto grid = Grid3D(n,n,n, dx, dx, dx);
+    grid.boundary = Boundary::Periodic();
+    
+    for(int i=0; i<=grid.getSizeX();i++){
+        for(int j=0; j<=grid.getSizeY(); j++){
+            for(int k=0; k<=grid.getSizeZ(); k++){
+                grid[i,j,k] = make_state(1.0, 2.0, 3.0, 4.0, 5.0);
+                grid._A()[i,j,k] = {0,0, 0.125*(i+j)};
+            }
+        }
+    }    
+    grid.initialize_B_fields();
+    
+    
+    std::cout<<CFL::cfl_time(grid)<<"\n";
+    double dt = 0.00001;
+    grid.advance(dt);
+    double Bzmax = 0;
+    for(int i=0; i<grid.getSizeX();i++){
+        for(int j=0; j<grid.getSizeY(); j++){
+            for(int k=0; k<grid.getSizeZ(); k++){
+                double Bz = grid[i,j,k].B.z;
+                if(Bzmax < fabs(Bz)) Bzmax = fabs(Bz);
+                //assert(approx(Bz,0));
+            }
+        }
+    }
+    std::cout<<dt<<","<<Bzmax<<"\n";
+}
+*/
+
+
 #endif

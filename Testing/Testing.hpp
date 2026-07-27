@@ -276,16 +276,14 @@ void verify_ct_uniform_E_2D();
 void verify_ct_stationary_2D();
 //3D
 void verify_ct_3D(bool output = true);
-//3D Fundamental properties
+//Faraday Update
 void verify_ct_divergence_3D();
-void verify_ct_gauge_3D();
-//Faraday Pipeline
-void verify_ct_E_updates_A_3D();
-void verify_ct_compute_faces_3D();
+void verify_ct_stokes_theorem_3D();
+void verify_ct_uniform_E_3D();
+//Face and Body Field Machinery
 void verify_ct_body_fields_3D();
 void verify_ct_copy_face_fields_3D();
 //Other 3D tests
-void verify_ct_uniform_E_3D();
 void verify_ct_stationary_3D();
 
 
