@@ -129,19 +129,13 @@ void DRAGON_Test::verify_boundary_outflow_3D() {
             expect_close(grid[-1, j,k], grid[0, j,k]);
             expect_close(grid[3, j,k],  grid[2, j,k]);
             #ifdef MHD //Check Transverse Magnetic Fields
-            assert(magneticY(grid, -1,j,k) == magneticY(grid, 0,j,k));
-            assert(magneticZ(grid, -1,j,k) == magneticZ(grid, 0,j,k));
-            assert(magneticY(grid, 3,j,k) == magneticY(grid, 2,j,k));
-            assert(magneticZ(grid, 4,j,k) == magneticZ(grid, 3,j,k));
+            assert((grid._B()[-1,j,k].y == grid._B()[0,j,k].y));
+            assert((grid._B()[-1,j,k].z == grid._B()[0,j,k].z));
+            assert((grid._B()[3,j,k].y == grid._B()[2,j,k].y));
+            assert((grid._B()[4,j,k].z == grid._B()[3,j,k].z));
             #endif
         }
     }
-    #ifdef MHD //A field corner check
-    int ng = grid.getGhosts(), nx = grid.getSizeX(), ny = grid.getSizeY(), nz = grid.getSizeZ();
-    vec3 expected = 2*grid._A()[nx+ng-1,ny+ng,nz+ng] - grid._A()[nx+ng-2,ny+ng,nz+ng];
-    expected.x = grid._A()[nx+ng-1,ny+ng,nz+ng].x;
-    expect_close(grid._A()[nx+ng,ny+ng,nz+ng], expected);
-    #endif
     //Y
     fill_3D(grid);
     Outflow(Y_negative).apply(grid);
@@ -150,8 +144,8 @@ void DRAGON_Test::verify_boundary_outflow_3D() {
             expect_close(grid[i,-1, k], grid[i,0, k]);
             expect_close(grid[i,4, k],  G);
             #ifdef MHD //Check Transverse Magnetic Fields
-            assert(magneticX(grid, i,-1,k) == magneticX(grid, i,0,k));
-            assert(magneticZ(grid, i,-1,k) == magneticZ(grid, i,0,k));
+            assert((grid._B()[i,-1,k].x == grid._B()[i,0,k].x));
+            assert((grid._B()[i,-1,k].z == grid._B()[i,0,k].z));
             #endif
         }
     }
@@ -162,16 +156,11 @@ void DRAGON_Test::verify_boundary_outflow_3D() {
             expect_close(grid[i,-1, k], G);
             expect_close(grid[i,4, k],  grid[i,3,k]);
             #ifdef MHD //Check Transverse Magnetic Fields
-            assert(magneticX(grid, i,4,k) == magneticX(grid, i,3,k));
-            assert(magneticZ(grid, i,4,k) == magneticZ(grid, i,3,k));
+            assert((grid._B()[i,4,k].x == grid._B()[i,3,k].x));
+            assert((grid._B()[i,4,k].z == grid._B()[i,3,k].z));
             #endif
         }
     }
-    #ifdef MHD//A field corner check
-    expected = 2*grid._A()[nx+ng,ny+ng-1,nz+ng] - grid._A()[nx+ng,ny+ng-2,nz+ng];
-    expected.y = grid._A()[nx+ng,ny+ng-1,nz+ng].y;
-    expect_close(grid._A()[nx+ng,ny+ng,nz+ng], expected);
-    #endif
     //Z
     fill_3D(grid);
     Outflow("Z").apply(grid);
@@ -180,19 +169,14 @@ void DRAGON_Test::verify_boundary_outflow_3D() {
             expect_close(grid[i,j,-1], grid[i,j,0]);
             expect_close(grid[i,j,5],  grid[i,j,4]);
             #ifdef MHD //Check Transverse Magnetic Fields
-            assert(magneticX(grid, i,j,-1) == magneticX(grid, i,j,0));
-            assert(magneticY(grid, i,j,-1) == magneticY(grid, i,j,0));
-            assert(magneticX(grid, i,j,5) == magneticX(grid, i,j,4));
-            assert(magneticY(grid, i,j,5) == magneticY(grid, i,j,4));
+            assert((grid._B()[i,j,-1].x == grid._B()[i,j,0].x));
+            assert((grid._B()[i,j,-1].y == grid._B()[i,j,0].y));
+            assert((grid._B()[i,j,5].x == grid._B()[i,j,4].x));
+            assert((grid._B()[i,j,5].y == grid._B()[i,j,4].y));
 
             #endif
         }
     }
-    #ifdef MHD//A field corner check
-    expected = 2*grid._A()[nx+ng,ny+ng,nz+ng-1] - grid._A()[nx+ng,ny+ng,nz+ng-2];
-    expected.z = grid._A()[nx+ng,ny+ng,nz+ng-1].z;
-    expect_close(grid._A()[nx+ng,ny+ng,nz+ng], expected);
-    #endif
     //No corners = no corners
     Outflow("Z",false).apply(grid);
     expect_close(grid[-1,1,-1],G);

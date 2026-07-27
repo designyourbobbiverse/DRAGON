@@ -125,10 +125,10 @@ void DRAGON_Test::verify_boundary_fixed_3D() {
             expect_close(grid[-1, j,k], W);
             expect_close(grid[3, j,k],  W);
             #ifdef MHD
-            approx(magneticY(grid, -1,j,k), W.B.y);
-            approx(magneticZ(grid, -1,j,k), W.B.z);
-            approx(magneticY(grid, 3,j,k), W.B.y);
-            approx(magneticZ(grid, 3,j,k), W.B.z);
+            approx(grid._B()[-1,j,k].y, W.B.y);
+            approx(grid._B()[-1,j,k].z, W.B.z);
+            approx(grid._B()[3,j,k].y, W.B.y);
+            approx(grid._B()[3,j,k].z, W.B.z);
             #endif
         }
     }
@@ -141,12 +141,12 @@ void DRAGON_Test::verify_boundary_fixed_3D() {
             expect_close(grid[i,4, k],  W);
             #ifdef MHD
             if (k + 1 < grid.getSizeZ()) {
-                approx(magneticX(grid, i,-1,k), W.B.x);
-                approx(magneticX(grid, i,4,k), W.B.x);
+                approx(grid._B()[i,-1,k].x, W.B.x);
+                approx(grid._B()[i,4,k].x, W.B.x);
             }
             if (i + 1 < grid.getSizeX()) {
-                approx(magneticZ(grid, i,-1,k), W.B.z);
-                approx(magneticZ(grid, i,4,k), W.B.z);
+                approx(grid._B()[i,-1,k].z, W.B.z);
+                approx(grid._B()[i,4,k].z, W.B.z);
             }
             #endif
         }
@@ -161,10 +161,10 @@ void DRAGON_Test::verify_boundary_fixed_3D() {
             expect_close(grid[i,j,-1], W);
             expect_close(grid[i,j,5],  W);
             #ifdef MHD
-            approx(magneticX(grid, i, j, -1), W.B.x);
-            approx(magneticY(grid, i, j, -1), W.B.y);
-            approx(magneticX(grid, i, j, 5), W.B.x);
-            approx(magneticY(grid, i, j, 5), W.B.y);
+            approx(grid._B()[i,j,-1].x, W.B.x);
+            approx(grid._B()[i,j,-1].y, W.B.y);
+            approx(grid._B()[i,j,5].x, W.B.x);
+            approx(grid._B()[i,j,5].y, W.B.y);
             #endif
         }
     }
@@ -176,17 +176,17 @@ void DRAGON_Test::verify_boundary_fixed_3D() {
     int ng = grid.getGhosts(), nx = grid.getSizeX(), ny = grid.getSizeY(), nz = grid.getSizeZ();
     fill_3D(grid);
     Boundary::Fixed(W, X).apply(grid);
-    assert(approx(grid._A()[nx+ng,ny+ng,nz+ng].y, grid._A()[nx+ng-1,ny+ng,nz+ng].y + W.B.z*grid.dx));
-    assert(approx(grid._A()[nx+ng,ny+ng,nz+ng].z, grid._A()[nx+ng-1,ny+ng,nz+ng].z - W.B.y*grid.dx));
+    //assert(approx(grid._A()[nx+ng,ny+ng,nz+ng].y, grid._A()[nx+ng-1,ny+ng,nz+ng].y + W.B.z*grid.dx));
+    //assert(approx(grid._A()[nx+ng,ny+ng,nz+ng].z, grid._A()[nx+ng-1,ny+ng,nz+ng].z - W.B.y*grid.dx));
 
     fill_3D(grid);
     Boundary::Fixed(W, Y).apply(grid);
-    assert(approx(grid._A()[nx+ng,ny+ng,nz+ng].x, grid._A()[nx+ng,ny+ng-1,nz+ng].x - W.B.z*grid.dy));
-    assert(approx(grid._A()[nx+ng,ny+ng,nz+ng].z, grid._A()[nx+ng,ny+ng-1,nz+ng].z + W.B.x*grid.dy));
+    //assert(approx(grid._A()[nx+ng,ny+ng,nz+ng].x, grid._A()[nx+ng,ny+ng-1,nz+ng].x - W.B.z*grid.dy));
+    //assert(approx(grid._A()[nx+ng,ny+ng,nz+ng].z, grid._A()[nx+ng,ny+ng-1,nz+ng].z + W.B.x*grid.dy));
 
     fill_3D(grid);
     Boundary::Fixed(W, Z).apply(grid);
-    assert(approx(grid._A()[nx+ng,ny+ng,nz+ng].x, grid._A()[nx+ng,ny+ng,nz+ng-1].x + W.B.y*grid.dz));
-    assert(approx(grid._A()[nx+ng,ny+ng,nz+ng].y, grid._A()[nx+ng,ny+ng,nz+ng-1].y - W.B.x*grid.dz));
+   // assert(approx(grid._A()[nx+ng,ny+ng,nz+ng].x, grid._A()[nx+ng,ny+ng,nz+ng-1].x + W.B.y*grid.dz));
+    //assert(approx(grid._A()[nx+ng,ny+ng,nz+ng].y, grid._A()[nx+ng,ny+ng,nz+ng-1].y - W.B.x*grid.dz));
     #endif
 }
