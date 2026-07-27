@@ -170,7 +170,7 @@ void Grid::advance_split(double dt, bool check_cfl){
             t1 *= 0.5;
             if(t1 < CONFIG::Timestep_Tolerance){
                 std::cout<<"Timestep has fallen below minimum. Exiting\n";
-                abort();
+                exit(1);
             }
         } while(true);
         
@@ -201,7 +201,7 @@ void Grid::advance_unsplit(double dt, bool check_cfl){
             t1 *= 0.5;
             if(t1 < CONFIG::Timestep_Tolerance){
                 std::cout<<"Timestep has fallen below minimum. Exiting\n";
-                abort();
+                exit(1);
             }
         } while(true);
         
