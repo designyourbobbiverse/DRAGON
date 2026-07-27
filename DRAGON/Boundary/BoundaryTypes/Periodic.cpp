@@ -114,18 +114,15 @@ void Boundary::Periodic::apply(Grid3D& grid) {
         }
     }
 //MARK: 3D MHD
-    /*
     #ifdef MHD
-    auto& _A = grid._A();
-    // A has one more physical point per dimension than w.
+    auto& _B = grid._B();
+    // Faces have one more physical point per dimension than bodies
     if (faces & X){
         for(int j = j0 ; j <= jn; j++){
             for(int k = k0 ; k <= kn; k++){
-                auto dA = _A[nx,j,k] - _A[0,j,k]; //B must be periodic, but A has some gauge freedom
-
                 for(int g = 1; g <= ng; g++){
-                    _A[-g,j,k] = _A[nx-g,j,k] - dA;
-                    _A[nx+g,j,k] = _A[g,j,k] +  dA;
+                    _B[-g,j,k] = _B[nx-g,j,k];
+                    _B[nx-1+g,j,k] = _B[g-1,j,k];
                 }
             }
         }
@@ -133,11 +130,9 @@ void Boundary::Periodic::apply(Grid3D& grid) {
     if (faces & Y){
         for(int i = i0 ; i <= in; i++){
             for(int k = k0 ; k <= kn; k++){
-                auto dA = _A[i,ny,k] - _A[i,0,k]; //B must be periodic, but A has some gauge freedom
-
                 for(int g = 1; g <= ng; g++){
-                    _A[i,-g,k] = _A[i,ny-g,k] - dA;
-                    _A[i,ny+g,k] = _A[i,g,k] + dA;
+                    _B[i,-g,k] = _B[i,ny-g,k];
+                    _B[i,ny-1+g,k] = _B[i,g-1,k];
                 }
             }
         }
@@ -145,15 +140,12 @@ void Boundary::Periodic::apply(Grid3D& grid) {
     if (faces & Z){
         for(int i = i0 ; i <= in; i++){
             for(int j = j0 ; j <= jn; j++){
-                auto dA = _A[i,j,nz] - _A[i,j,0]; //B must be periodic, but A has some gauge freedom
-
                 for(int g = 1; g <= ng; g++){
-                    _A[i,j,-g] = _A[i,j,nz-g] - dA;
-                    _A[i,j,nz+g] = _A[i,j,g] + dA;
+                    _B[i,j,-g] = _B[i,j,nz-g];
+                    _B[i,j,nz-1+g] = _B[i,j,g-1];
                 }
             }
         }
     }
     #endif
-     */
 }

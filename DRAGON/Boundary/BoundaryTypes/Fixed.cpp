@@ -167,22 +167,16 @@ void Boundary::Fixed::apply(Grid3D& grid) {
     }
     
 //MARK: 3D MHD
-    /*
 #ifdef MHD
-    auto& _A = grid._A();
+    auto& _B = grid._B();
     // A has one more physical point per dimension than w.
-
     double dx = grid.dx, dy = grid.dy, dz = grid.dz;
     if (faces & X_negative){
         for(int j = j0; j <= jn; j++){
             for(int k = k0; k <= kn; k++){
+                _B[0,j,k].x = state.B.x;
                 for(int g = 1; g <= ng; g++){
-                    _A[-g,j,k].x = _A[-g+1,j,k].x;
-                    double dAx_dz = k==kn ? 0 : (_A[-g+1,j,k+1].x - _A[-g+1,j,k].x) / dz;
-                    double dAx_dy = j == jn ? 0 : (_A[-g+1,j+1,k].x - _A[-g+1,j,k].x) / dy;
-                    
-                    _A[-g,j,k].y = _A[-g+1,j,k].y - (state.B.z+dAx_dy) * dx;
-                    _A[-g,j,k].z = _A[-g+1,j,k].z + (state.B.y-dAx_dz) * dx;
+                    _B[-g,j,k] = state.B;
                 }
             }
         }
@@ -190,13 +184,8 @@ void Boundary::Fixed::apply(Grid3D& grid) {
     if (faces & X_positive){
         for(int j = j0; j <= jn; j++){
             for(int k = k0; k <= kn; k++){
-                for(int g = 1; g <= ng; g++){
-                    _A[nx+g-1,j,k].x = _A[nx+g-2,j,k].x;
-                    double dAx_dz = k == kn ? 0 : (_A[nx+g-2,j,k+1].x - _A[nx+g-2,j,k].x) / dz;
-                    double dAx_dy = j == jn ? 0 : (_A[nx+g-2,j+1,k].x - _A[nx+g-2,j,k].x) / dy;
-                    
-                    _A[nx+g,j,k].y = _A[nx+g-1,j,k].y + (state.B.z+dAx_dy) * dx;
-                    _A[nx+g,j,k].z = _A[nx+g-1,j,k].z - (state.B.y-dAx_dz) * dx;
+                for(int g = 0; g < ng; g++){
+                    _B[nx+g,j,k] = state.B;
                 }
             }
         }
@@ -204,13 +193,9 @@ void Boundary::Fixed::apply(Grid3D& grid) {
     if (faces & Y_negative){
         for(int i = i0; i <= in; i++){
             for(int k = k0; k <= kn; k++){
+                _B[i,0,k].y = state.B.y;
                 for(int g = 1; g <= ng; g++){
-                    _A[i,-g,k].y = _A[i,-g+1,k].y;
-                    double dAy_dz = k == kn ? 0 : (_A[i,-g+1,k+1].y - _A[i,-g+1,k].y) / dz;
-                    double dAy_dx = i == in ? 0 : (_A[i+1,-g+1,k].y - _A[i,-g+1,k].y) / dx;
-
-                    _A[i,-g,k].x = _A[i,-g+1,k].x + (state.B.z-dAy_dx) * dy;
-                    _A[i,-g,k].z = _A[i,-g+1,k].z - (state.B.x+dAy_dz) * dy;
+                    _B[i,-g,k] = state.B;
                 }
             }
         }
@@ -218,13 +203,8 @@ void Boundary::Fixed::apply(Grid3D& grid) {
     if (faces & Y_positive){
         for(int i = i0; i <= in; i++){
             for(int k = k0; k <= kn; k++){
-                for(int g = 1; g <= ng; g++){
-                    _A[i,ny+g-1,k].y = _A[i,ny+g-2,k].y;
-                    double dAy_dz = k == kn ? 0 : (_A[i,ny+g-2,k+1].y - _A[i,ny+g-2,k].y) / dz;
-                    double dAy_dx = i == in ? 0 : (_A[i+1,ny+g-2,k].y - _A[i,ny+g-2,k].y) / dx;
-
-                    _A[i,ny+g,k].x = _A[i,ny+g-1,k].x - (state.B.z-dAy_dx) * dy;
-                    _A[i,ny+g,k].z = _A[i,ny+g-1,k].z + (state.B.x+dAy_dz) * dy;
+                for(int g = 0; g < ng; g++){
+                    _B[i,ny+g,k] = state.B;
                 }
             }
         }
@@ -232,13 +212,9 @@ void Boundary::Fixed::apply(Grid3D& grid) {
     if (faces & Z_negative){
         for(int i = i0; i <= in; i++){
             for(int j = j0; j <= jn; j++){
+                _B[i,j,0].z = state.B.z;
                 for(int g = 1; g <= ng; g++){
-                    _A[i,j,-g].z = _A[i,j,-g+1].z;
-                    double dAz_dy = j == jn ? 0 : (_A[i,j+1,-g+1].z - _A[i,j,-g+1].z) / dy;
-                    double dAz_dx = i == in ? 0 : (_A[i+1,j,-g+1].z - _A[i,j,-g+1].z) / dx;
-
-                    _A[i,j,-g].y = _A[i,j,-g+1].y + (state.B.x-dAz_dy) * dz;
-                    _A[i,j,-g].x = _A[i,j,-g+1].x - (state.B.y+dAz_dx) * dz;
+                    _B[i,j,-g] = state.B;
                 }
             }
         }
@@ -246,17 +222,11 @@ void Boundary::Fixed::apply(Grid3D& grid) {
     if (faces & Z_positive){
         for(int i = i0; i <= in; i++){
             for(int j = j0; j <= jn; j++){
-                for(int g = 1; g <= ng; g++){
-                    _A[i,j,nz+g-1].z = _A[i,j,nz+g-2].z;
-                    double dAz_dy = j == jn ? 0 : (_A[i,j+1,nz+g-2].z - _A[i,j,nz+g-2].z) / dy;
-                    double dAz_dx = i == in ? 0 : (_A[i+1,j,nz+g-2].z - _A[i,j,nz+g-2].z) / dx;
-
-                    _A[i,j,nz+g].y = _A[i,j,nz+g-1].y - (state.B.x-dAz_dy) * dz;
-                    _A[i,j,nz+g].x = _A[i,j,nz+g-1].x + (state.B.y+dAz_dx) * dz;
+                for(int g = 0; g < ng; g++){
+                    _B[i,j,nz+g] = state.B;
                 }
             }
         }
     }
 #endif
-     */
 }

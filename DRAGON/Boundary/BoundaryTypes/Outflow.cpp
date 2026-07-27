@@ -184,15 +184,14 @@ void Boundary::Outflow::apply(Grid3D& grid) {
     
 //MARK: 3D MHD
 #ifdef MHD //Copy Transverse Fields
-    /*
-    auto& _A = grid._A();
-    // A is vertex-centred and has one more physical point per dimension than w.
+    auto& _B = grid._B();
+    // Faces have one more physical point per dimension than bodies.
     if (faces & X_negative) {
         for (int j = j0; j <= jn; j++) {
             for (int k = k0; k <= kn; k++) {
                 for (int g = 1; g <= ng; g++) {
-                    _A[-g,j,k] = 2*_A[1-g,j,k] - _A[2-g,j,k];
-                    _A[-g,j,k].x = _A[1-g,j,k].x;
+                    _B[-g,j,k] = _B[0,j,k];
+                    _B[-g,j,k].x = 2*_B[-g+1,j,k].x - _B[-g+2,j,k].x;//Handle divergences
                 }
             }
         }
@@ -201,8 +200,8 @@ void Boundary::Outflow::apply(Grid3D& grid) {
         for (int j = j0; j <= jn; j++) {
             for (int k = k0; k <= kn; k++) {
                 for (int g = 1; g <= ng; g++) {
-                    _A[nx+g,j,k] = 2*_A[nx+g-1,j,k] - _A[nx+g-2,j,k];
-                    _A[nx+g,j,k].x = _A[nx+g-1,j,k].x;
+                    _B[nx+g-1,j,k] = _B[nx,j,k];
+                    _B[nx+g,j,k].x = 2*_B[nx+g-1,j,k].x - _B[nx+g-2,j,k].x;//Handle divergences
                 }
             }
         }
@@ -211,8 +210,8 @@ void Boundary::Outflow::apply(Grid3D& grid) {
         for (int i = i0; i <= in; i++) {
             for (int k = k0; k <= kn; k++) {
                 for (int g = 1; g <= ng; g++) {
-                    _A[i,-g,k] = 2*_A[i,1-g,k] - _A[i,2-g,k];
-                    _A[i,-g,k].y = _A[i,1-g,k].y;
+                    _B[i,-g,k] = _B[i,0,k];
+                    _B[i,-g,k].y = 2*_B[i,-g+1,k].y - _B[i,-g+2,k].y;//Handle divergences
                 }
             }
         }
@@ -221,8 +220,8 @@ void Boundary::Outflow::apply(Grid3D& grid) {
         for (int i = i0; i <= in; i++) {
             for (int k = k0; k <= kn; k++) {
                 for (int g = 1; g <= ng; g++) {
-                    _A[i,ny+g,k] = 2*_A[i,ny+g-1,k] - _A[i,ny+g-2,k];
-                    _A[i,ny+g,k].y = _A[i,ny+g-1,k].y;
+                    _B[i,ny+g-1,k] = _B[i,ny,k];
+                    _B[i,ny+g,k].y = 2*_B[i,ny+g-1,k].y - _B[i,ny+g-2,k].y;//Handle divergences
                 }
             }
         }
@@ -231,8 +230,8 @@ void Boundary::Outflow::apply(Grid3D& grid) {
         for (int i = i0; i <= in; i++) {
             for (int j = j0; j <= jn; j++) {
                 for (int g = 1; g <= ng; g++) {
-                    _A[i,j,-g] = 2*_A[i,j,1-g] - _A[i,j,2-g];
-                    _A[i,j,-g].z = _A[i,j,1-g].z;
+                    _B[i,j,-g] = _B[i,j,0];
+                    _B[i,j,-g].z = 2*_B[i,j,-g+1].z - _B[i,j,-g+2].z;//Handle divergences
                 }
             }
         }
@@ -241,12 +240,11 @@ void Boundary::Outflow::apply(Grid3D& grid) {
         for (int i = i0; i <= in; i++) {
             for (int j = j0; j <= jn; j++) {
                 for (int g = 1; g <= ng; g++) {
-                    _A[i,j,nz+g] = 2*_A[i,j,nz+g-1] - _A[i,j,nz+g-2];
-                    _A[i,j,nz+g].z = _A[i,j,nz+g-1].z;
+                    _B[i,j,nz+g-1] = _B[i,j,nz];
+                    _B[i,j,nz+g].z = 2*_B[i,j,nz+g-1].z - _B[i,j,nz+g-2].z;//Handle divergences
                 }
             }
         }
     }
-     */
 #endif
 }
