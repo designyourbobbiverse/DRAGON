@@ -184,6 +184,7 @@ void Boundary::Outflow::apply(Grid3D& grid) {
     
 //MARK: 3D MHD
 #ifdef MHD //Copy Transverse Fields
+    /*
     auto& _A = grid._A();
     // A is vertex-centred and has one more physical point per dimension than w.
     if (faces & X_negative) {
@@ -246,5 +247,6 @@ void Boundary::Outflow::apply(Grid3D& grid) {
             }
         }
     }
+     */
 #endif
 }

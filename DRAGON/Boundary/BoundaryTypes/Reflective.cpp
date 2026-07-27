@@ -229,6 +229,7 @@ void Boundary::Reflective::apply(Grid3D& grid) {
         }
     }
 //MARK: 3D MHD
+    /*
     #ifdef MHD //Mirror Transverse Magnetic Fields, preserve normal magnetic fields
     auto& _A = grid._A();
     // A has one more physical point per dimension than w. Transverse components are offset by 1/2 from w
@@ -293,4 +294,5 @@ void Boundary::Reflective::apply(Grid3D& grid) {
         }
     }
     #endif
+     */
 }

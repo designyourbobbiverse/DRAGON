@@ -114,6 +114,7 @@ void Boundary::Periodic::apply(Grid3D& grid) {
         }
     }
 //MARK: 3D MHD
+    /*
     #ifdef MHD
     auto& _A = grid._A();
     // A has one more physical point per dimension than w.
@@ -154,4 +155,5 @@ void Boundary::Periodic::apply(Grid3D& grid) {
         }
     }
     #endif
+     */
 }
