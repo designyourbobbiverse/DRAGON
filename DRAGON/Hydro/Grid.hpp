@@ -103,7 +103,7 @@ class Grid3D: public Grid{
 protected:
     ExtendedArray3D<PrimitiveState>  w;
 #ifdef MHD
-    ExtendedArray3D<vec3> A;//Magnetic Vector Potential
+    ExtendedArray3D<vec3> B;//B fields on the faces
 #endif
 public:
     double dx, dy, dz;
@@ -121,7 +121,7 @@ public:
     #ifdef MHD
     //Access Edge Magnetic potentials.
     //A[i,j,k] is the corner w[i-1/2,j-1/2,k-1/2] to each of the 3 adjacent corners of w[i,j,k]
-    ExtendedArray3D<vec3>& _A(){return A;}
+    ExtendedArray3D<vec3>& _B(){return B;}
     #endif
     
     //Advance Forward in time

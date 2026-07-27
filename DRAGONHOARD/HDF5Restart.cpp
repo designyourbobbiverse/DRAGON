@@ -294,13 +294,13 @@ void DRAGONHOARD::loadFromFile(Grid3D& grid, double& t, int& cycle, const std::s
     //Write-option-indepependent values
     std::vector<double> rho = readArray(file, key_rho);
     #ifdef MHD
-    std::vector<double> Bx, By, Bz, Ax, Ay, Az;
+    std::vector<double> Bx, By, Bz, Bfx, Bfy, Bfz;
     try { Bx = readArray(file, key_Bx); } catch (...) { Bx = std::vector<double>(magvecsize); }
     try { By = readArray(file, key_By); } catch (...) { By = std::vector<double>(magvecsize); }
     try { Bz = readArray(file, key_Bz); } catch (...) { Bz = std::vector<double>(magvecsize); }
-    try { Ax = readArray(file, key_Ax); } catch (...) { Ax = std::vector<double>(magvecsize); }
-    try { Ay = readArray(file, key_Ay); } catch (...) { Ay = std::vector<double>(magvecsize); }
-    try { Az = readArray(file, key_Az); } catch (...) { Az = std::vector<double>(magvecsize); }
+    try { Bfx = readArray(file, key_Bfx); } catch (...) { Bfx = std::vector<double>(magvecsize); }
+    try { Bfy = readArray(file, key_Bfy); } catch (...) { Bfy = std::vector<double>(magvecsize); }
+    try { Bfz = readArray(file, key_Bfz); } catch (...) { Bfz = std::vector<double>(magvecsize); }
     #endif
     for(int i = i0; i<in; i++){
         for(int j=j0; j<jn; j++){
@@ -323,9 +323,9 @@ void DRAGONHOARD::loadFromFile(Grid3D& grid, double& t, int& cycle, const std::s
             for(int k=k0; k<=kn; k++){
                 if(mhd) {
                     size_t n = ((k-k0)*(jn+1-j0) + (j-j0))*(in+1-i0) + (i-i0);
-                    grid._A()[i,j,k] = {Ax[n],Ay[n],Az[n]};
+                    grid._B()[i,j,k] = {Bfx[n],Bfy[n],Bfz[n]};
                 } else {
-                    grid._A()[i,j,k] = {0,0,0};
+                    grid._B()[i,j,k] = {0,0,0};
                 }
             }
         }

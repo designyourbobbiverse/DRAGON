@@ -48,7 +48,7 @@ int Grid2D::getGhosts() const { return w.getGhosts(); }
 
 Grid3D::Grid3D(int nx_, int ny_, int nz_, double dx_, double dy_, double dz_, int g_): w(nx_, ny_, nz_, validGhosts(g_)) ,
 #ifdef MHD
-    A(nx_+1, ny_+1, nz_+1, w.getGhosts()),
+    B(nx_+1, ny_+1, nz_+1, w.getGhosts()),
 #endif
     dx(dx_), dy(dy_), dz(dz_) {    }
 PrimitiveState& Grid3D::operator[](int i, int j, int k) { return w[i,j,k]; }

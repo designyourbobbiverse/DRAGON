@@ -122,13 +122,13 @@ void Grid2D::unsplit_step(double dt){
 //MARK: 3D Unsplit Step
 
 void Grid3D::unsplit_step(double dt){
-    int nx = w.getSizeX(), ny = w.getSizeY(), nz = w.getSizeZ(), ghosts = w.getGhosts();
+    const int nx = w.getSizeX(), ny = w.getSizeY(), nz = w.getSizeZ(), ghosts = w.getGhosts();
+    const double dt_dx = dt/dx, dt_dy = dt/dy, dt_dz = dt/dz;
     
     if(!DRAGONWING::waitForRelease()) return;
     #ifdef MHD //Face Fields
         auto __B = DRAGONWING::requestVec3Arrays(1, nx+1, ny+1, nz+1, ghosts);
     MagneticArray3D& B = *__B[0];
-    CT::computeFaceFields(A, B, dx, dy, dz);
     #else//Dummy B array
         auto B = MagneticArray3D(0,0,0);
     #endif
@@ -147,16 +147,13 @@ void Grid3D::unsplit_step(double dt){
     
     #ifdef CTU
         #ifdef MHD //Gardiner and Stone (2005). https://doi.org/10.1016/j.jcp.2004.11.016
-            auto __A = DRAGONWING::requestVec3Arrays(1, nx+1, ny+1, nz+1, ghosts);
-        MagneticArray3D& _E_half = *__A[0]; //We'll be done with this by the time we actually need _A
-        ctu_sweep_MHD(_xL, _xR, _yL, _yR, _zL, _zR, A, B, w, _E_half, dt, dx, dy, dz);
+            auto __E_half = DRAGONWING::requestVec3Arrays(1, nx+1, ny+1, nz+1, ghosts);
+        MagneticArray3D& _E_half = *__E_half[0];
+        ctu_sweep_MHD(_xL, _xR, _yL, _yR, _zL, _zR, B, w, _E_half, dt_dx, dt_dy, dt_dz);
         #else
         ctu_sweep_hydro(_xL, _xR, _yL, _yR, _zL, _zR, dt/dx, dt/dy, dt/dz);
         #endif
     #endif
-        #ifdef MHD
-            __B.release();
-        #endif
 
     //Compute Fluxes
         auto __fluxes = DRAGONWING::requestFluxArrays(3, nx, ny, nz, ghosts);
@@ -164,41 +161,37 @@ void Grid3D::unsplit_step(double dt){
     FluxArray3D& F_Y = *__fluxes[1];
     FluxArray3D& F_Z = *__fluxes[2];
     #ifdef MHD //MHD also needs the transverse fluxes in the first ghost layer to calculate E
-    computeFlux_X(_xL, _xR, F_X, 0, nx, -1, ny+1, -1, nz+1, dt/dx);
-    computeFlux_Y(_yL, _yR, F_Y, -1, nx+1, 0, ny, -1, nz+1, dt/dy);
-    computeFlux_Z(_zL, _zR, F_Z, -1, nx+1, -1, ny+1, 0, nz, dt/dz);
+    computeFlux_X(_xL, _xR, F_X, 0, nx, -1, ny+1, -1, nz+1, dt_dx);
+    computeFlux_Y(_yL, _yR, F_Y, -1, nx+1, 0, ny, -1, nz+1, dt_dy);
+    computeFlux_Z(_zL, _zR, F_Z, -1, nx+1, -1, ny+1, 0, nz, dt_dz);
     #else //Hydro doesn't need transverse fluxes in the first ghost layer
-    computeFlux_X(_xL, _xR, F_X, 0, nx, 0, ny, 0, nz, dt/dx);
-    computeFlux_Y(_yL, _yR, F_Y, 0, nx, 0, ny, 0, nz, dt/dy);
-    computeFlux_Z(_zL, _zR, F_Z, 0, nx, 0, ny, 0, nz, dt/dz);
+    computeFlux_X(_xL, _xR, F_X, 0, nx, 0, ny, 0, nz, dt_dx);
+    computeFlux_Y(_yL, _yR, F_Y, 0, nx, 0, ny, 0, nz, dt_dy);
+    computeFlux_Z(_zL, _zR, F_Z, 0, nx, 0, ny, 0, nz, dt_dz);
     #endif
         __half_states.release();
     
     //Preliminarily apply all fluxes
         auto __w = DRAGONWING::requestPrimitiveArrays(1, nx, ny, nz, ghosts);
     FluidArray3D& _w = *__w[0];
-    applyFluxes(w, _w, F_X, F_Y, F_Z, dt/dx, dt/dy, dt/dz);
+    applyFluxes(w, _w, F_X, F_Y, F_Z, dt_dx, dt_dy, dt_dz);
     
     //Preliminary CT Update
     #ifdef MHD
-        auto __CT_Scratch = DRAGONWING::requestVec3Arrays(1, nx+1, ny+1, nz+1, ghosts);
+        auto __Elec = DRAGONWING::requestVec3Arrays(1, nx+1, ny+1, nz+1, ghosts);
     //Compute Electric Fields
-    MagneticArray3D& E = *__CT_Scratch[0];
+    MagneticArray3D& E = *__Elec[0];
     CT::computeElectric(E, F_X, F_Y, F_Z);
     #ifdef CTU
     CT::upwindElectric(E, F_X, F_Y, F_Z, _E_half);
-    #else //CTU reuses E_half grid, non-CTU needs to allocate _A
-        auto __A = DRAGONWING::requestVec3Arrays(1, nx+1, ny+1, nz+1, ghosts);
+        __E_half.release();
     #endif
-    //Update A
-    MagneticArray3D& _A = *__A[0];
-    _A.clone(A);
-    CT::updatePotential(_A, E, dt);
-    //Compute B
-    MagneticArray3D& _B = *__CT_Scratch[0]; //Done with E so can reuse it
-    CT::computeFaceFields(_A, _B, dx, dy, dz);
+    //Update B
+    MagneticArray3D& _B = *__B[0];
+    _B.clone(B);
+    CT::Faraday(E, _B, dt_dx, dt_dy, dt_dz);
+        __Elec.release();
     CT::computeBodyFields(_B, _w);
-        __CT_Scratch.release();
     #endif
         __fluxes.release();
 
@@ -219,7 +212,7 @@ void Grid3D::unsplit_step(double dt){
     //Commit Flux updates
     w.clone(_w, false);
     #ifdef MHD
-    A.clone(_A, false);
+    B.clone(_B, false);
     #endif
 }
 

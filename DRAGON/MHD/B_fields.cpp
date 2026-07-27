@@ -64,6 +64,53 @@ void CT::computeFaceFields(const MagneticArray3D& _A, MagneticArray3D& _B, doubl
     }
 }
 
+
+void CT::Faraday(const MagneticArray2D& E, MagneticArray2D& _B, double dt_dx, double dt_dy, int g){
+    
+    const int nx = _B.getSizeX()-1, ny = _B.getSizeY()-1;
+    
+    for(int i=-g; i<=nx+g; i++){
+        for(int j=-g; j<ny+g; j++){
+            _B[i,j].x -= (E[i,j+1].z - E[i,j].z) * dt_dy;
+        }
+    }
+    for(int i=-g; i<nx+g; i++){
+        for(int j=-g; j<=ny+g; j++){
+            _B[i,j].y -= - (E[i+1,j].z - E[i,j].z) * dt_dx;
+        }
+    }
+    for(int i=-g; i<nx+g; i++){
+        for(int j=-g; j<ny+g; j++){
+            _B[i,j].z -= (E[i+1,j].y - E[i,j].y) * dt_dx -  (E[i,j+1].x - E[i,j].x) * dt_dy;
+        }
+    }
+}
+void CT::Faraday(const MagneticArray3D& E, MagneticArray3D& _B, double dt_dx, double dt_dy, double dt_dz, int g){
+    
+    const int nx = _B.getSizeX()-1, ny = _B.getSizeY()-1, nz = _B.getSizeZ()-1;
+    
+    for(int i=-g; i<=nx+g; i++){
+        for(int j=-g; j<ny+g; j++){
+            for(int k=-g; k<nz+g; k++){
+                _B[i,j,k].x -= (E[i,j+1,k].z - E[i,j,k].z) * dt_dy - (E[i,j,k+1].y - E[i,j,k].y) * dt_dz;
+            }
+        }
+    }
+    for(int i=-g; i<nx+g; i++){
+        for(int j=-g; j<=ny+g; j++){
+            for(int k=-g; k<nz+g; k++){
+                _B[i,j,k].y -= (E[i,j,k+1].x - E[i,j,k].x) * dt_dz - (E[i+1,j,k].z - E[i,j,k].z) * dt_dx;
+            }
+        }
+    }
+    for(int i=-g; i<nx+g; i++){
+        for(int j=-g; j<ny+g; j++){
+            for(int k=-g; k<=nz+g; k++){
+                _B[i,j,k].z -= (E[i+1,j,k].y - E[i,j,k].y) * dt_dx -  (E[i,j+1,k].x - E[i,j,k].x) * dt_dy;
+            }
+        }
+    }
+}
 //MARK: Body Fields
 namespace CT{
 
@@ -139,9 +186,6 @@ void CT::computeBodyFields(const MagneticArray2D& B, FluidArray2D& w){
 void Grid3D::initialize_B_fields(){
     const int nx = w.getSizeX(), ny = w.getSizeY(), nz = w.getSizeZ(), ng = w.getGhosts();
     boundary.apply(*this);
-
-    MagneticArray3D B(nx+1,ny+1,nz+1,w.getGhosts());
-    CT::computeFaceFields(A, B, dx, dy, dz);
     
     for(int i=-ng; i<nx+ng; i++){
         for(int j=-ng; j<ny+ng; j++){
@@ -150,7 +194,6 @@ void Grid3D::initialize_B_fields(){
             }
         }
     }
-
 }
 
 void Grid3D::computeBodyAveragedFields(const MagneticArray3D& B){ CT::computeBodyFields(B, w); }

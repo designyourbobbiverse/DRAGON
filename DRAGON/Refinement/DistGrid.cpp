@@ -182,7 +182,7 @@ void DistGrid3D::pushToChildren(){
                 for(int i = -ng; i <= _nx + ng; i++){
                     for(int j = -ng; j <= _ny + ng; j++){
                         for(int k = -ng; k <= _nz + ng; k++){
-                            child->A[i,j,k] = A[i+x_offset, j+y_offset, k+z_offset];
+                            child->B[i,j,k] = B[i+x_offset, j+y_offset, k+z_offset];
                         }
                     }
                 }
@@ -269,7 +269,7 @@ void DistGrid3D::loadFromChildren(){
                 for(int i = 0; i <= _nx; i++){
                     for(int j=0; j <= _ny; j++){
                         for(int k=0; k <= _nz; k++){
-                            _A()[i+x_offset, j+y_offset, k+z_offset] = child->_A()[i,j,k];
+                            B[i+x_offset, j+y_offset, k+z_offset] = child->B[i,j,k];
                         }
                     }
                 }

@@ -34,6 +34,10 @@ inline const std::string key_A = key_fluid +"/A";
 inline const std::string key_Ax = key_A + "/x";
 inline const std::string key_Ay = key_A + "/y";
 inline const std::string key_Az = key_A + "/z";
+inline const std::string key_B_face = key_fluid +"/Bf";
+inline const std::string key_Bfx = key_B_face + "/x";
+inline const std::string key_Bfy = key_B_face + "/y";
+inline const std::string key_Bfz = key_B_face + "/z";
 
 //Metadata
 inline const std::string key_fmt = "format_version";

@@ -420,7 +420,7 @@ void DRAGONHOARD::writeToFile(Grid3D& grid, double t, int cycle, const std::stri
     std::vector<float> E(size);
     #endif
     #ifdef MHD
-    size_t size_A = (in+1-i0)*(jn+1-j0)*(kn+1-k0);
+    size_t size_B = (in+1-i0)*(jn+1-j0)*(kn+1-k0);
     #if HDF5_REDUNDANT_VALS_OPTION == HDF5_WRITE_DOUBLE
     std::vector<double> Bx(size);
     std::vector<double> By(size);
@@ -430,9 +430,9 @@ void DRAGONHOARD::writeToFile(Grid3D& grid, double t, int cycle, const std::stri
     std::vector<float> By(size);
     std::vector<float> Bz(size);
     #endif
-    std::vector<double> Ax(size_A);
-    std::vector<double> Ay(size_A);
-    std::vector<double> Az(size_A);
+    std::vector<double> Bfx(size_B);
+    std::vector<double> Bfy(size_B);
+    std::vector<double> Bfz(size_B);
     #endif
     for(int i = i0; i<in; i++){
         for(int j=j0; j<jn; j++){
@@ -468,11 +468,11 @@ void DRAGONHOARD::writeToFile(Grid3D& grid, double t, int cycle, const std::stri
     for(int i = i0; i<=in; i++){
         for(int j=j0; j<=jn; j++){
             for(int k=k0; k<=kn; k++){
-                vec3 A = grid._A()[i,j,k];
+                vec3 B = grid._B()[i,j,k];
                 size_t n = ((k-k0)*(jn-j0+1) + j-j0)*(in-i0+1) + (i-i0);
-                Ax[n] = A.x;
-                Ay[n] = A.y;
-                Az[n] = A.z;
+                Bfx[n] = B.x;
+                Bfy[n] = B.y;
+                Bfz[n] = B.z;
             }
         }
     }
@@ -504,10 +504,10 @@ void DRAGONHOARD::writeToFile(Grid3D& grid, double t, int cycle, const std::stri
     writeArray(file, key_By, By, in-i0, jn-j0, kn-k0);
     writeArray(file, key_Bz, Bz, in-i0, jn-j0, kn-k0);
     #endif
-    file.createGroup(key_A);
-    writeArray(file, key_Ax, Ax, in+1-i0, jn+1-j0, kn+1-k0);
-    writeArray(file, key_Ay, Ay, in+1-i0, jn+1-j0, kn+1-k0);
-    writeArray(file, key_Az, Az, in+1-i0, jn+1-j0, kn+1-k0);
+    file.createGroup(key_B_face);
+    writeArray(file, key_Bfx, Bfx, in+1-i0, jn+1-j0, kn+1-k0);
+    writeArray(file, key_Bfy, Bfy, in+1-i0, jn+1-j0, kn+1-k0);
+    writeArray(file, key_Bfz, Bfz, in+1-i0, jn+1-j0, kn+1-k0);
     #endif
 }
 

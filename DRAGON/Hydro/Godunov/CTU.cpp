@@ -27,9 +27,8 @@
 
 #ifdef MHD
 //MARK: CTU MHD 6-Solve (3D)
-void ctu_sweep_MHD(FluidArray3D& _xL, FluidArray3D& _xR, FluidArray3D& _yL, FluidArray3D& _yR, FluidArray3D& _zL, FluidArray3D& _zR, const MagneticArray3D &A, const MagneticArray3D &B, const FluidArray3D& w, MagneticArray3D& E, double dt, double dx, double dy, double dz){
+void ctu_sweep_MHD(FluidArray3D& _xL, FluidArray3D& _xR, FluidArray3D& _yL, FluidArray3D& _yR, FluidArray3D& _zL, FluidArray3D& _zR, const MagneticArray3D &B, const FluidArray3D& w, MagneticArray3D& E, double dt_dx, double dt_dy, double dt_dz){
     const int nx = _xL.getSizeX(), ny = _xL.getSizeY(), nz = _xL.getSizeZ(), g = _xL.getGhosts();
-    const double dt_dx = dt/dx, dt_dy = dt/dy, dt_dz = dt/dz;
 
     //Preliminary Fluxes
         auto __fluxes = DRAGONWING::requestFluxArrays(3, nx, ny, nz, g);
@@ -42,20 +41,19 @@ void ctu_sweep_MHD(FluidArray3D& _xL, FluidArray3D& _xR, FluidArray3D& _yL, Flui
     
     //Preliminary CT Update
         auto __mags = DRAGONWING::requestVec3Arrays(3, nx+1, ny+1, nz+1, g);
-    MagneticArray3D &_A = *__mags[0], &E0 = *__mags[1], &Bhalf = *__mags[2];
+    MagneticArray3D &_B = *__mags[0], &E0 = *__mags[1];
     //Compute E
     CT::computeElectric(E0, F_X, F_Y, F_Z,1);
     CT::bodyElectric(w, E,1); //Use Ehalf for Eref since we don't need it yet
     CT::upwindElectric(E0, F_X, F_Y, F_Z, E,1);
-    //Compute A and B
-    _A.clone(A);
-    CT::updatePotential(_A, E0, dt/2,1);
-    CT::computeFaceFields(_A, Bhalf, dx, dy, dz);
+    //Compute B
+    _B.clone(B);
+    CT::Faraday(E0, _B, 0.5*dt_dx, 0.5*dt_dy, 0.5*dt_dz, 1);
     //Construct Ehalf
         auto __whalf = DRAGONWING::requestPrimitiveArrays(1, nx, ny, nz, g);
     auto& whalf = *__whalf[0];
     applyFluxes(w, whalf, F_X, F_Y, F_Z, 0.5*dt_dx, 0.5*dt_dy, 0.5*dt_dz, 1);
-    CT::computeBodyFields(Bhalf, whalf);
+    CT::computeBodyFields(_B, whalf);
     CT::bodyElectric(whalf, E);
         __whalf.release();
     
@@ -85,8 +83,8 @@ void ctu_sweep_MHD(FluidArray3D& _xL, FluidArray3D& _xR, FluidArray3D& _yL, Flui
                 //Apply Fluxes and Faces
                 uL = _xL[i,j,k] + corr;
                 uR = _xR[i,j,k] + corr;
-                uL.B.x = Bhalf[i,j,k].x;
-                uR.B.x = Bhalf[i+1,j,k].x;
+                uL.B.x = _B[i,j,k].x;
+                uR.B.x = _B[i+1,j,k].x;
                 _xL[i,j,k] = uL; _xR[i,j,k] = uR;
 
                 //Fluxes
@@ -102,8 +100,8 @@ void ctu_sweep_MHD(FluidArray3D& _xL, FluidArray3D& _xR, FluidArray3D& _yL, Flui
                 //Apply Fluxes and Faces
                 uL = _yL[i,j,k] + corr;
                 uR = _yR[i,j,k] + corr;
-                uL.B.y = Bhalf[i,j,k].y;
-                uR.B.y = Bhalf[i,j+1,k].y;
+                uL.B.y = _B[i,j,k].y;
+                uR.B.y = _B[i,j+1,k].y;
                 _yL[i,j,k] = uL; _yR[i,j,k] = uR;
                 
                 //Fluxes
@@ -119,8 +117,8 @@ void ctu_sweep_MHD(FluidArray3D& _xL, FluidArray3D& _xR, FluidArray3D& _yL, Flui
                 //Apply Fluxes and Faces
                 uL = _zL[i,j,k] + corr;
                 uR = _zR[i,j,k] + corr;
-                uL.B.z = Bhalf[i,j,k].z;
-                uR.B.z = Bhalf[i,j,k+1].z;
+                uL.B.z = _B[i,j,k].z;
+                uR.B.z = _B[i,j,k+1].z;
                 _zL[i,j,k] = uL; _zR[i,j,k] = uR;
             }
         }

@@ -38,7 +38,7 @@ void computeHalfStates_Y(FluidArray3D& _L, const Grid3D& _W, FluidArray3D& _R, c
 void computeHalfStates_Z(FluidArray3D& _L, const Grid3D& _W, FluidArray3D& _R, const MagneticArray3D& B, double dt);
 //3DCTU
 #ifdef MHD
-void ctu_sweep_MHD(FluidArray3D& _xL, FluidArray3D& _xR, FluidArray3D& _yL, FluidArray3D& _yR, FluidArray3D& _zL, FluidArray3D& _zR, const MagneticArray3D& A, const MagneticArray3D &B, const FluidArray3D& w, MagneticArray3D& Ehalf, double dt, double dx, double dy, double dz);
+void ctu_sweep_MHD(FluidArray3D& _xL, FluidArray3D& _xR, FluidArray3D& _yL, FluidArray3D& _yR, FluidArray3D& _zL, FluidArray3D& _zR, const MagneticArray3D &B, const FluidArray3D& w, MagneticArray3D& Ehalf, double dt_dx, double dt_dy, double dt_dz);
 #else
 void ctu_sweep_hydro(FluidArray3D& _xL, FluidArray3D& _xR, FluidArray3D& _yL, FluidArray3D& _yR, FluidArray3D& _zL, FluidArray3D& _zR, double dt_dx, double dt_dy, double dt_dz);
 void correctState(FluidArray3D& _L, FluidArray3D& _R, const FluxArray3D& F, double dt_dL, int state_dim, int flux_dim);

@@ -35,9 +35,11 @@ namespace CT {
 
 //B = Curl(A)
     //2D
+    void Faraday(const MagneticArray2D& E, MagneticArray2D& _B, double dt_dx, double dt_dy, int ghosts = 0);
     void computeFaceFields(const MagneticArray2D& _A, MagneticArray2D& _B, double dx, double dy);
     void computeBodyFields(const MagneticArray2D& B, FluidArray2D& w);
     //3D
+    void Faraday(const MagneticArray3D& E, MagneticArray3D& _B, double dt_dx, double dt_dy, double dt_dz, int ghosts = 0);
     void computeFaceFields(const MagneticArray3D& _A, MagneticArray3D& _B, double dx, double dy, double dz);
     void computeBodyFields(const MagneticArray3D& B, FluidArray3D& w);
 
