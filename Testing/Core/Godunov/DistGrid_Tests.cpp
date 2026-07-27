@@ -132,10 +132,10 @@ void DRAGON_Test::verify_god_dist_grid_3D_MHD(){
         for (int j = 0; j <= grid.getSizeY(); j++){
             for(int k=0; k <= grid.getSizeZ(); k++){
                 grid[i,j,k] = make_state(1.0+0.1*i+0.1*j, 1.0+0.1*i, 1.0-0.1*j, 0.1*k, 10.0-0.1*i+0.1*j-0.1*k);
-                grid[i,j,k].B = vec3{0.1*i, -0.2*j, -0.3*k};
-                grid._A()[i,j,k] = vec3{0.1*j, -0.2*k, -0.3*i};
+                grid[i,j,k].B = vec3{0.1, -0.2, -0.3};
+                grid._B()[i,j,k] = vec3{0.1, -0.2, -0.3};
                 dgrid[i,j,k] = grid[i,j,k];
-                dgrid._A()[i,j,k] = grid._A()[i,j,k];
+                dgrid._B()[i,j,k] = grid._B()[i,j,k];
             }
         }
     }
@@ -147,7 +147,7 @@ void DRAGON_Test::verify_god_dist_grid_3D_MHD(){
         for (int j = 0; j < grid.getSizeY(); j++){
             for(int k = 0; k < grid.getSizeZ(); k++){
                 expect_close(grid[i,j,k], dgrid[i,j,k]);
-                expect_close(grid._A()[i,j,k], dgrid._A()[i,j,k]);
+                expect_close(grid._B()[i,j,k], dgrid._B()[i,j,k]);
             }
         }
     }

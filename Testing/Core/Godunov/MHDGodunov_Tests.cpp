@@ -133,15 +133,16 @@ void DRAGON_Test::verify_god_uniform_moving_2D_MHD(){
 void DRAGON_Test::verify_god_uniform_stationary_3D_MHD(){
     Grid3D grid(10,10,10, 1.0,1.0,1.0,2);
     PrimitiveState W = make_state(1.0, 0.0, 0.0, 0.0, 5.0);
+    W.B = {0.2, 0.125, 0.3};
     for (int i = 0; i <= grid.getSizeX(); i++){
         for (int j = 0; j <= grid.getSizeY(); j++){
             for(int k = 0; k <= grid.getSizeZ(); k++){
                 grid[i,j,k] = W;
-                grid._A()[i,j,k] = vec3{0,0,0.1*i};
+                grid._B()[i,j,k] = W.B;
             }
         }
     }
-    grid.boundary = Reflective();
+    grid.boundary = Periodic();
     grid.boundary.apply(grid);
     grid.initialize_B_fields();
     W = grid[1,1,1];
@@ -159,15 +160,15 @@ void DRAGON_Test::verify_god_uniform_stationary_3D_MHD(){
 void DRAGON_Test::verify_god_uniform_moving_3D_MHD(){
     Grid3D grid(10,10,10, 1.0,1.0, 1.0, 2);
     PrimitiveState W = make_state(1.0, 1.0, 2.0, 3.0, 5.0);
+    W.B = {0.2, 0.125, 0.3};
     for (int i = 0; i <= grid.getSizeX(); i++){
         for (int j = 0; j <= grid.getSizeY(); j++){
             for (int k = 0; k <= grid.getSizeZ(); k++){
                 grid[i,j,k] = W;
-                grid._A()[i,j,k] = vec3{0.3*k,0.2*j,0.125*i};
+                grid._B()[i,j,k] = W.B;
             }
         }
     }
-    grid.initialize_B_fields();
     W = grid[2,2,2];
 
     grid.boundary = Periodic();
@@ -246,9 +247,7 @@ void DRAGON_Test::verify_god_periodic_conservation_3D_MHD(){
         for (int j = 0; j <= grid.getSizeY(); j++){
             for(int k = 0; k <= grid.getSizeZ(); k++){
                 grid[i,j,k] = make_state(1.0+0.1*i+0.1*j, 1.0+0.1*i, 1.0-0.1*j, 0.1*k, 10.0-0.1*i+0.1*j-0.1*k);
-                grid._A()[i,j,k].x = 0.1 * k;
-                grid._A()[i,j,k].y = 0.1 * sin(2*M_PI*i/grid.getSizeX());
-                grid._A()[i,j,k].z = 0.1 * cos(2*M_PI*i/grid.getSizeX());
+                grid._B()[i,j,k] = {sin(2*M_PI*i/grid.getSizeX()), cos(2*M_PI*j/grid.getSizeY()), 0.1};
             }
         }
     }
