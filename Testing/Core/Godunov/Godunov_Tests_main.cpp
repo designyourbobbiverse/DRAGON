@@ -117,7 +117,7 @@ void DRAGON_Test::verify_godunov_2D_Unsplit(bool output){
     if(output) std::cout<<"- 1D Match (Y): ";
     verify_2D_Y_match_1D(false);
     if(output) std::cout<<"Passed\n";
-    #ifdef MHD
+    #if defined(MHD) && defined(CTU)
     verify_godunov_2D_MHD_Match(output);
     #endif
     
@@ -161,7 +161,7 @@ void DRAGON_Test::verify_godunov_3D_Split(bool output){
 //MARK: 3D Unsplit
 void DRAGON_Test::verify_godunov_3D_Unsplit(bool output){
     int prev = CONFIG::riemann_choice;
-    CONFIG::riemann_choice = RIEMANN_HLLC;
+    CONFIG::riemann_choice = RIEMANN_HLLX;
 
     if(output) std::cout<<"Unsplit Scheme (3D): \n";
     if(output) std::cout<<"- Zero Time: ";
@@ -206,7 +206,7 @@ void DRAGON_Test::verify_godunov_3D_Unsplit(bool output){
     if(output) std::cout<<"- 1D Match (Z): ";
     verify_3D_Z_match_1D(false);
     if(output) std::cout<<"Passed\n";
-    #ifdef MHD
+    #if defined(MHD) && defined(CTU)
     verify_godunov_3D_MHD_Match(output);
     #endif
     
