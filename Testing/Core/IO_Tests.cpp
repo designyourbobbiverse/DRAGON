@@ -93,7 +93,7 @@ void DRAGON_Test::verify_IO2D(){
     #ifdef MHD
     for(int i = -2; i <= 3 + 2; i++) {
         for(int j = -2; j <= 4 + 2; j++) {
-            g._A()[i,j] = make_tagged_A(i*0.1 + j*0.01);
+            g._B()[i,j] = make_tagged_A(i*0.1 + j*0.01);
         }
     }
     #endif
@@ -109,7 +109,7 @@ void DRAGON_Test::verify_IO2D(){
     #ifdef MHD
     for(int i = -2; i <= 3 + 2; i++) {
         for(int j = -2; j <= 4 + 2; j++) {
-            expect_close(g._A()[i,j], make_tagged_A(i*0.1 + j*0.01));
+            expect_close(g._B()[i,j], make_tagged_A(i*0.1 + j*0.01));
         }
     }
     #endif
@@ -143,7 +143,7 @@ void DRAGON_Test::verify_IO2D(){
     #ifdef MHD
     for(int i = -ng; i <= 3 + ng; i++) {
         for(int j = -ng; j <= 4 + ng; j++) {
-            expect_close(g._A()[i,j].z,  g2._A()[i,j].z);
+            expect_close(g._B()[i,j].z,  g2._B()[i,j].z);
         }
     }
     #endif

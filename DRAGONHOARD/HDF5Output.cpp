@@ -357,16 +357,16 @@ void DRAGONHOARD::writeToFile(Grid2D& grid, double t, int cycle, const std::stri
     #endif
     #endif
     #if defined(MHD)
-    file.createGroup(key_B);
     #if HDF5_WRITE_REDUNDANTS
+    file.createGroup(key_B);
     writeArray(file, key_Bx, Bx, in-i0, jn-j0);
     writeArray(file, key_By, By, in-i0, jn-j0);
     writeArray(file, key_Bz, Bz, in-i0, jn-j0);
     #endif
+    file.createGroup(key_B_face);
     writeArray(file, key_Bfx, Bfx, in+1-i0, jn+1-j0);
     writeArray(file, key_Bfy, Bfy, in+1-i0, jn+1-j0);
     writeArray(file, key_Bfz, Bfz, in+1-i0, jn+1-j0);
-    file.createGroup(key_A);
     #endif
 
 }
