@@ -108,6 +108,9 @@ inline int limiter_choice = LIMITER_MINMOD;
 //If set to 0, CFL uses max[ (|v.x|+a)/dx, (|v.y|+a)/dy, ... ]
 inline int cfl_choice = CFL_ADD;
 #endif
+#if CT_ENERGY_CONSV == CHOOSE_RUNTIME || defined(TESTMODE)
+inline int CT_energy_choice = CT_CONSV_TOTAL_E;
+#endif
 }
 
 #endif
