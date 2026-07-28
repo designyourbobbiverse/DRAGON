@@ -26,7 +26,7 @@ PrimitiveState Problem::initialFluidState(double x, double y, double z){
     PrimitiveState w;
     //Initialize the fluid state w at point (x,y,z).
         //(dx/2,dy/2,dz/2) corresponds to the [0,0,0] cell
-        //In fewer than 1D and 2D, z will always be zero, as will y in 1D
+        //In 1D and 2D, z will always be zero, as will y in 1D
 
     return w;
 }
@@ -34,7 +34,7 @@ vec3 Problem::initialMagneticPotential(double x, double y, double z){
     vec3 A;
     //Initialize the vector potential at point (x,y,z)
         // (0,0,0)corresponds to the [0,0,0] cell
-        // In fewer than 1D and 2D, z will always be zero, as will y in 1D
+        // In 1D and 2D, z will always be zero, as will y in 1D
     //In 2D & 3D, Magnetic Fields will be initialized from this potential to ensure div B = 0
     //This function is ignored in pure Hydro and in 1D (1D B should be given in initialFluidState)
     
