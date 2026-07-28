@@ -114,6 +114,8 @@ void DRAGON_Test::verify_riemann_flux_dispatch(){
     PrimitiveState L = make_state(1.0, 0.25, 0.2, -0.1, 1.0);
     PrimitiveState R = make_state(0.8, -0.15, -0.3, 0.4, 0.7);
 
+    int prev = CONFIG::riemann_choice;
+    
     CONFIG::riemann_choice = RIEMANN_EXACT;
     expect_close(Riemann(L,R).flux(), Riemann(L,R).exact().flux(), 1e-10, 1e-10);
 
@@ -140,7 +142,7 @@ void DRAGON_Test::verify_riemann_flux_dispatch(){
     expect_close(Riemann(L,R).flux(), Riemann(L,R).HLLC(), 1e-10, 1e-10);
 #endif
 
-    CONFIG::riemann_choice = RIEMANN_EXACT;
+    CONFIG::riemann_choice = prev;
 }
 
 void DRAGON_Test::verify_riemann_flux_safety_check(){
