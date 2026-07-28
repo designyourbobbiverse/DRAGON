@@ -42,6 +42,9 @@ void DRAGON_Test::verify_godunov_2D_MHD(bool output){
     if(output) std::cout<<"- MHD Periodic Conservation: ";
     verify_god_periodic_conservation_2D_MHD();
     if(output) std::cout<<"Passed\n";
+    if(output) std::cout << "- MHD Stationary Field Test: ";
+    verify_ct_stationary_2D();
+    if(output) std::cout << "Passed\n";
     
     CONFIG::riemann_choice = prev;
 }
@@ -56,6 +59,9 @@ void DRAGON_Test::verify_godunov_3D_MHD(bool output){
     if(output) std::cout<<"- MHD Periodic Conservation: ";
     verify_god_periodic_conservation_3D_MHD();
     if(output) std::cout<<"Passed\n";
+    if(output) std::cout << "- MHD Stationary Field Test: ";
+    verify_ct_stationary_3D();
+    if(output) std::cout << "Passed\n";
     
     CONFIG::riemann_choice = prev;
 }

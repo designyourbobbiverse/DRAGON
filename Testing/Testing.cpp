@@ -23,6 +23,12 @@ int main() {
     verify_tvd();
     verify_cfl();
 
+    #ifdef MHD
+    verify_ct_2D();
+    verify_ct_3D();
+    std::cout << "All Constrained Transport Update Tests passed.\n\n";
+    #endif
+    
     verify_godunov_1D();
     verify_godunov_2D_Split();
     verify_godunov_2D_Unsplit();
@@ -30,11 +36,7 @@ int main() {
     verify_godunov_3D_Unsplit();
     std::cout << "All Godunov Scheme tests passed.\n\n";
     
-    #ifdef MHD
-    verify_ct_2D();
-    verify_ct_3D();
-    std::cout << "All Constrained Transport Tests passed.\n\n";
-    #endif
+
     
     std::cout << "All tests passed.\n";
     

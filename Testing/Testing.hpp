@@ -264,6 +264,7 @@ void verify_3D_Z_match_1D_MHD();
 //2D
 void verify_ct_2D(bool output = true);
 //2D Fundamental properties
+void assert_divergenceless(const ExtendedArray2D<vec3>& B, double dx, double dy);
 void verify_ct_divergence_2D();
 void verify_ct_gauge_2D();
 //Faraday Pipeline
@@ -277,6 +278,7 @@ void verify_ct_stationary_2D();
 //3D
 void verify_ct_3D(bool output = true);
 //Faraday Update
+void assert_divergenceless(const ExtendedArray3D<vec3>& B, double dx, double dy, double dz);
 void verify_ct_divergence_3D();
 void verify_ct_stokes_theorem_3D();
 void verify_ct_uniform_E_3D();
