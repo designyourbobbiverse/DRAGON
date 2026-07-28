@@ -51,25 +51,21 @@ void Boundary::Periodic::apply(Grid2D& grid) {
     }
 //MARK: 2D MHD
     #ifdef MHD
-    auto& _A = grid._A();
+    auto& _B = grid._B();
     // A has one more physical point per dimension than w.
     if (faces & X){
         for(int j = j0 ; j <= jn; j++){
-            auto dA = _A[nx,j] - _A[0,j]; //B must be periodic, but A has some gauge freedom
-
             for(int g = 1; g <= ng; g++){
-                _A[-g,j] = _A[nx-g,j] - dA;
-                _A[nx+g,j] = _A[g,j] + dA;
+                _B[-g,j] = _B[nx-g,j];
+                _B[nx-1+g,j] = _B[g-1,j];
             }
         }
     }
     if (faces & Y){
         for(int i = i0 ; i <= in; i++){
-            auto dA = _A[i,ny] - _A[i,0]; //B must be periodic, but A has some gauge freedom
-
             for(int g = 1; g <= ng; g++){
-                _A[i,-g] = _A[i,ny-g] - dA;
-                _A[i,ny+g] = _A[i,g] + dA;
+                _B[i,-g] = _B[i,ny-g];
+                _B[i,ny-1+g] = _B[i,g-1];
             }
         }
     }

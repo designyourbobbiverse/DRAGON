@@ -70,33 +70,35 @@ void Boundary::Fixed::apply(Grid2D& grid) {
     }
 //MARK: 2D MHD
     #ifdef MHD
-    auto& _A = grid._A();
+    auto& _B = grid._B();
     // A has one more physical point per dimension than w.
     if (faces & X_negative){
         for(int j = j0 ; j <= jn; j++){
+            _B[0,j].x = state.B.x;
             for(int g = 1; g <= ng; g++){
-                _A[-g,j].z =_A[-g+1,j].z  + state.B.y * grid.dx;
+                _B[-g,j] = state.B;
             }
         }
     }
     if (faces & X_positive){
         for(int j = j0 ; j <= jn; j++){
-            for(int g = 1; g <= ng; g++){
-                _A[nx+g,j].z = _A[nx-1+g,j].z - state.B.y * grid.dx;
+            for(int g = 0; g < ng; g++){
+                _B[nx+g,j] = state.B;
             }
         }
     }
     if (faces & Y_negative){
         for(int i = i0 ; i <= in; i++){
+            _B[i,0].y = state.B.y;
             for(int g = 1; g <= ng; g++){
-                _A[i,-g].z =_A[i,-g+1].z  - state.B.x * grid.dy;
+                _B[i,-g] = state.B;
             }
         }
     }
     if (faces & Y_positive){
         for(int i = i0 ; i <= in; i++){
-            for(int g = 1; g <= ng; g++){
-                _A[i,ny+g].z = _A[i,ny-1+g].z + state.B.x  * grid.dy;
+            for(int g = 0; g < ng; g++){
+                _B[i,ny+g] = state.B;
             }
         }
     }
@@ -169,8 +171,6 @@ void Boundary::Fixed::apply(Grid3D& grid) {
 //MARK: 3D MHD
 #ifdef MHD
     auto& _B = grid._B();
-    // A has one more physical point per dimension than w.
-    double dx = grid.dx, dy = grid.dy, dz = grid.dz;
     if (faces & X_negative){
         for(int j = j0; j <= jn; j++){
             for(int k = k0; k <= kn; k++){

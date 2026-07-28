@@ -176,7 +176,7 @@ void DRAGONHOARD::loadFromFile(Grid2D& grid, double& t, int& cycle, const std::s
     int ng = readIntAttribute(file, key_ng);
     if(ng > grid.getGhosts()) ng = grid.getGhosts();
     const int i0 = -ng, in = nx+ng, j0 = -ng, jn = ny+ng;
-    const int vecsize = (in-i0)*(jn-j0), magvecsize = (in-i0+1)*(jn-j0+1);
+    const int arraySize = (in-i0)*(jn-j0), faceArraySize = (in-i0+1)*(jn-j0+1);
 
 
     //Other metadata
@@ -190,13 +190,13 @@ void DRAGONHOARD::loadFromFile(Grid2D& grid, double& t, int& cycle, const std::s
     //Write-option-indepependent values
     std::vector<double> rho = readArray(file, key_rho);
     #ifdef MHD
-    std::vector<double> Bx, By, Bz, Ax, Ay, Az;
-    try { Bx = readArray(file, key_Bx); } catch (...) { Bx = std::vector<double>(magvecsize); }
-    try { By = readArray(file, key_By); } catch (...) { By = std::vector<double>(magvecsize); }
-    try { Bz = readArray(file, key_Bz); } catch (...) { Bz = std::vector<double>(magvecsize); }
-    try { Ax = readArray(file, key_Ax); } catch (...) { Ax = std::vector<double>(magvecsize); }
-    try { Ay = readArray(file, key_Ay); } catch (...) { Ay = std::vector<double>(magvecsize); }
-    try { Az = readArray(file, key_Az); } catch (...) { Az = std::vector<double>(magvecsize); }
+    std::vector<double> Bx, By, Bz, Bfx, Bfy, Bfz;
+    try { Bx = readArray(file, key_Bx); } catch (...) { Bx = std::vector<double>(arraySize); }
+    try { By = readArray(file, key_By); } catch (...) { By = std::vector<double>(arraySize); }
+    try { Bz = readArray(file, key_Bz); } catch (...) { Bz = std::vector<double>(arraySize); }
+    try { Bfx = readArray(file, key_Bfx); } catch (...) { Bfx = std::vector<double>(faceArraySize); }
+    try { Bfy = readArray(file, key_Bfy); } catch (...) { Bfy = std::vector<double>(faceArraySize); }
+    try { Bfz = readArray(file, key_Bfz); } catch (...) { Bfz = std::vector<double>(faceArraySize); }
     #endif
     for(int i = i0; i<in; i++){
         for(int j=j0; j<jn; j++){
@@ -216,9 +216,9 @@ void DRAGONHOARD::loadFromFile(Grid2D& grid, double& t, int& cycle, const std::s
         for(int j=j0; j<=jn; j++){
             if(mhd) {
                 size_t n = (j-j0)*(in+1-i0) + (i-i0);
-                grid._A()[i,j] = {Ax[n],Ay[n],Az[n]};
+                grid._B()[i,j] = {Bfx[n],Bfy[n],Bfz[n]};
             } else {
-                grid._A()[i,j] = {0,0,0};
+                grid._B()[i,j] = {0,0,0};
             }
         }
     }
@@ -280,7 +280,7 @@ void DRAGONHOARD::loadFromFile(Grid3D& grid, double& t, int& cycle, const std::s
     int ng = readIntAttribute(file, key_ng);
     if(ng > grid.getGhosts()) ng = grid.getGhosts();
     const int i0 = -ng, in = nx+ng, j0 = -ng, jn = ny+ng, k0 = -ng, kn = nz+ng;
-    const int vecsize = (in-i0)*(jn-j0)*(kn-k0), magvecsize = (in-i0+1)*(jn-j0+1)*(kn-k0+1);
+    const int arraySize = (in-i0)*(jn-j0)*(kn-k0), faceArraySize = (in-i0+1)*(jn-j0+1)*(kn-k0+1);
 
     //Other metadata
     grid.dx = readDoubleAttribute(file, key_dx);
@@ -295,12 +295,12 @@ void DRAGONHOARD::loadFromFile(Grid3D& grid, double& t, int& cycle, const std::s
     std::vector<double> rho = readArray(file, key_rho);
     #ifdef MHD
     std::vector<double> Bx, By, Bz, Bfx, Bfy, Bfz;
-    try { Bx = readArray(file, key_Bx); } catch (...) { Bx = std::vector<double>(magvecsize); }
-    try { By = readArray(file, key_By); } catch (...) { By = std::vector<double>(magvecsize); }
-    try { Bz = readArray(file, key_Bz); } catch (...) { Bz = std::vector<double>(magvecsize); }
-    try { Bfx = readArray(file, key_Bfx); } catch (...) { Bfx = std::vector<double>(magvecsize); }
-    try { Bfy = readArray(file, key_Bfy); } catch (...) { Bfy = std::vector<double>(magvecsize); }
-    try { Bfz = readArray(file, key_Bfz); } catch (...) { Bfz = std::vector<double>(magvecsize); }
+    try { Bx = readArray(file, key_Bx); } catch (...) { Bx = std::vector<double>(arraySize); }
+    try { By = readArray(file, key_By); } catch (...) { By = std::vector<double>(arraySize); }
+    try { Bz = readArray(file, key_Bz); } catch (...) { Bz = std::vector<double>(arraySize); }
+    try { Bfx = readArray(file, key_Bfx); } catch (...) { Bfx = std::vector<double>(faceArraySize); }
+    try { Bfy = readArray(file, key_Bfy); } catch (...) { Bfy = std::vector<double>(faceArraySize); }
+    try { Bfz = readArray(file, key_Bfz); } catch (...) { Bfz = std::vector<double>(faceArraySize); }
     #endif
     for(int i = i0; i<in; i++){
         for(int j=j0; j<jn; j++){

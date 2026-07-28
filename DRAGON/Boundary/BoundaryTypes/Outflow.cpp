@@ -77,37 +77,40 @@ void Boundary::Outflow::apply(Grid2D& grid) {
     }
 //MARK: 2D MHD
     #ifdef MHD //Copy Transverse Fields
-    auto& _A = grid._A();
-    // A has one more physical point per dimension than w.
+    auto& _B = grid._B();
     if (faces & X_negative) {
         for (int j = j0; j <= jn; j++) {
             for (int g = 1; g <= ng; g++) {
-                _A[-g,j] = 2*_A[1-g,j] - _A[2-g,j];
-                _A[-g,j].x = _A[1-g,j].x;
+                _B[-g,j] = _B[0,j];
+                _B[-g,j].x = 2*_B[-g+1,j].x - _B[-g+2,j].x;//Handle divergences
             }
         }
     }
     if (faces & X_positive) {
         for (int j = j0; j <= jn; j++) {
+            _B[nx,j].y = _B[nx-1,j].y;
+            _B[nx,j].z = _B[nx-1,j].z;
             for (int g = 1; g <= ng; g++) {
-                _A[nx+g,j] = 2*_A[nx+g-1,j] - _A[nx+g-2,j];
-                _A[nx+g,j].x = _A[nx+g-1,j].x;
+                _B[nx+g,j] = _B[nx,j];
+                _B[nx+g,j].x = 2*_B[nx+g-1,j].x - _B[nx+g-2,j].x;//Handle divergences
             }
         }
     }
     if (faces & Y_negative) {
         for (int i = i0; i <= in; i++) {
             for (int g = 1; g <= ng; g++) {
-                _A[i,-g] = 2*_A[i,1-g] - _A[i,2-g];
-                _A[i,-g].y = _A[i,1-g].y;
+                _B[i,-g] = _B[i,0];
+                _B[i,-g].y = 2*_B[i,-g+1].y - _B[i,-g+2].y;//Handle divergences
             }
         }
     }
     if (faces & Y_positive) {
         for (int i = i0; i <= in; i++) {
+            _B[i,ny].y = _B[i,ny-1].y;
+            _B[i,ny].z = _B[i,ny-1].z;
             for (int g = 1; g <= ng; g++) {
-                _A[i,ny+g] = 2*_A[i,ny+g-1] - _A[i,ny+g-2];
-                _A[i,ny+g].y = _A[i,ny+g-1].y;
+                _B[i,ny+g] = _B[i,ny];
+                _B[i,ny+g].y = 2*_B[i,ny+g-1].y - _B[i,ny+g-2].y;//Handle divergences
             }
         }
     }

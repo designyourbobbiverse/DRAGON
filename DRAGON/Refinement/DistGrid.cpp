@@ -144,7 +144,7 @@ void DistGrid2D::pushToChildren(){
             #ifdef MHD//Copy parent magnetic potential to child
             for(int i = -ng; i <= _nx + ng; i++){
                 for(int j = -ng; j <= _ny +ng; j++){
-                    child->A[i,j] = A[i+x_offset, j+y_offset];
+                    child->B[i,j] = B[i+x_offset, j+y_offset];
                 }
             }
             #endif
@@ -233,7 +233,7 @@ void DistGrid2D::loadFromChildren(){
             #ifdef MHD//Copy child magnetic potential to parent
             for(int i = 0; i <= _nx; i++){
                 for(int j=0; j <= _ny; j++){
-                    A[i+x_offset, j+y_offset] = child->A[i,j];
+                    B[i+x_offset, j+y_offset] = child->B[i,j];
                 }
             }
             #endif

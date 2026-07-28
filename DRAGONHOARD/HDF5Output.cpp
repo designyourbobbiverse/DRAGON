@@ -283,16 +283,19 @@ void DRAGONHOARD::writeToFile(Grid2D& grid, double t, int cycle, const std::stri
     std::vector<float> E(size);
     #endif
     #ifdef MHD
-    size_t size_A = (in+1-i0)*(jn+1-j0);
+    size_t size_B = (in+1-i0)*(jn+1-j0);
     #if HDF5_REDUNDANT_VALS_OPTION == HDF5_WRITE_DOUBLE
     std::vector<double> Bx(size);
     std::vector<double> By(size);
+    std::vector<double> Bz(size);
     #elif HDF5_REDUNDANT_VALS_OPTION == HDF5_WRITE_FLOAT
     std::vector<float> Bx(size);
     std::vector<float> By(size);
+    std::vector<float> Bz(size);
     #endif
-    std::vector<double> Bz(size);
-    std::vector<double> Az(size_A);
+    std::vector<double> Bfx(size_B);
+    std::vector<double> Bfy(size_B);
+    std::vector<double> Bfz(size_B);
     #endif
     for(int i = i0; i<in; i++){
         for(int j=j0; j<jn; j++){
@@ -326,7 +329,10 @@ void DRAGONHOARD::writeToFile(Grid2D& grid, double t, int cycle, const std::stri
     for(int i = i0; i<=in; i++){
         for(int j=j0; j<=jn; j++){
             size_t n =  (j-j0)*(in-i0+1) + (i-i0);
-            Az[n] = grid._A()[i,j].z;
+            Bfx[n] = grid._B()[i,j].x;
+            Bfy[n] = grid._B()[i,j].y;
+            Bfz[n] = grid._B()[i,j].z;
+
         }
     }
     #endif
@@ -355,10 +361,12 @@ void DRAGONHOARD::writeToFile(Grid2D& grid, double t, int cycle, const std::stri
     #if HDF5_WRITE_REDUNDANTS
     writeArray(file, key_Bx, Bx, in-i0, jn-j0);
     writeArray(file, key_By, By, in-i0, jn-j0);
-    #endif
     writeArray(file, key_Bz, Bz, in-i0, jn-j0);
+    #endif
+    writeArray(file, key_Bfx, Bfx, in+1-i0, jn+1-j0);
+    writeArray(file, key_Bfy, Bfy, in+1-i0, jn+1-j0);
+    writeArray(file, key_Bfz, Bfz, in+1-i0, jn+1-j0);
     file.createGroup(key_A);
-    writeArray(file, key_Az, Az, in+1-i0, jn+1-j0);
     #endif
 
 }

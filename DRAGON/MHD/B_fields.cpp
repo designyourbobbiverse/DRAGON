@@ -164,8 +164,6 @@ void Grid2D::initialize_B_fields(){
     const int nx = w.getSizeX(), ny = w.getSizeY(), ng = w.getGhosts();
     boundary.apply(*this);
     
-    MagneticArray2D B(nx+1,ny+1,w.getGhosts());
-    CT::computeFaceFields(A, B, dx, dy);
     for(int i=-ng; i<nx+ng; i++){
         for(int j=-ng; j<ny+ng; j++){
             CT::computeBodyField(B,w,i,j,false);
