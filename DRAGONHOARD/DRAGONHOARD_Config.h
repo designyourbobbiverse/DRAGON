@@ -14,7 +14,7 @@
 
 namespace DRAGONHOARD{
 inline std::string output_base_name = "frame"; //File names will be <output_base_name>_#####.hdf
-inline std::string output_dir = "/Users/bobbiemarkwick/DRAGON_OUT"; //Set this to your output directory
+inline std::string output_dir = ""; //Set this to your output directory
 
 #define RESTART_FROM_FILE //Attempt to restart from the output of a previous run
     #define RESTART_FRAME 0 //Use a number <0 to automatically find the latest file and restart from that
