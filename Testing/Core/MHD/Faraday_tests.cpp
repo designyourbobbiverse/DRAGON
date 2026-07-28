@@ -241,7 +241,6 @@ void DRAGON_Test::verify_ct_body_fields_2D(){
 }
 
 void DRAGON_Test::verify_ct_body_fields_3D(){
-    /*
     const int nx = 2, ny = 3, nz = 4, ng = 1;
     const double dx = 0.5, dy = 2.0, dz = 4.0;
     Grid3D grid(nx,ny,nz,dx,dy,dz,ng);
@@ -249,27 +248,25 @@ void DRAGON_Test::verify_ct_body_fields_3D(){
     for(int i = -ng; i < nx+1+ng; i++){
         for(int j = -ng; j < ny+1+ng; j++){
             for(int k = -ng; k < nz+1+ng; k++){
-                grid._A()[i,j,k] = vec3{ i*j + 2.0*k*k, j*k + 3.0*i*i, k*i + 4.0*j*j };
+                grid._B()[i,j,k] = vec3{ i*j + 2.0*k*k, j*k + 3.0*i*i, k*i + 4.0*j*j };
+                grid[i,j,k].B = vec3{-7,-8,-9};
             }
         }
     }
 
-    MagneticArray3D B_face(nx+1,ny+1,nz+1,ng);
-    CT::computeFaceFields(grid._A(), B_face, dx, dy, dz);
     grid.initialize_B_fields();
 
     for(int i = 0; i < nx; i++){
         for(int j = 0; j < ny; j++){
             for(int k = 0; k < nz; k++){
                 vec3 expected;
-                expected.x = (B_face[i,j,k].x + B_face[i+1,j,k].x)/2;
-                expected.y = (B_face[i,j,k].y + B_face[i,j+1,k].y)/2;
-                expected.z = (B_face[i,j,k].z + B_face[i,j,k+1].z)/2;
+                expected.x = (grid._B()[i,j,k].x + grid._B()[i+1,j,k].x)/2;
+                expected.y = (grid._B()[i,j,k].y + grid._B()[i,j+1,k].y)/2;
+                expected.z = (grid._B()[i,j,k].z + grid._B()[i,j,k+1].z)/2;
                 expect_close(grid[i,j,k].B, expected);
             }
         }
     }
-     */
 }
 
 
