@@ -36,7 +36,7 @@ int Grid1D::getGhosts() const { return w.getGhosts(); }
 
 Grid2D::Grid2D(int nx_, int ny_, double dx_, double dy_, int g_):  w(nx_, ny_,validGhosts(g_)),
 #ifdef MHD
-    A(nx_+1, ny_+1,w.getGhosts()),
+    B(nx_+1, ny_+1,w.getGhosts()),
 #endif
     dx(dx_), dy(dy_) { }
 PrimitiveState& Grid2D::operator[](int i, int j) { return w[i,j]; }

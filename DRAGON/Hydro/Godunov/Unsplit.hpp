@@ -20,7 +20,7 @@ void computeHalfStates_X(FluidArray2D& _L, const Grid2D& _W,  FluidArray2D& _R, 
 void computeHalfStates_Y( FluidArray2D& _L,const Grid2D& _W, FluidArray2D& _R, const MagneticArray2D& B, double dt);
 //2D CTU
 #ifdef MHD
-void ctu_sweep_MHD(FluidArray2D& _xL, FluidArray2D& _xR, FluidArray2D& _yL, FluidArray2D& _yR, const MagneticArray2D& A, const MagneticArray2D &B, const FluidArray2D& w, MagneticArray2D& Ehalf, double dt, double dx, double dy);
+void ctu_sweep_MHD(FluidArray2D& _xL, FluidArray2D& _xR, FluidArray2D& _yL, FluidArray2D& _yR,  const MagneticArray2D &B, const FluidArray2D& w, MagneticArray2D& Ehalf, double dt_dx, double dt_dy);
 #else
 void ctu_sweep_hydro(FluidArray2D& _xL, FluidArray2D& _xR, FluidArray2D& _yL, FluidArray2D& _yR,  double dt_dx, double dt_dy);
 void correctState(FluidArray2D& _L, FluidArray2D& _R, const FluxArray2D& F, double dt_dL, int dim);

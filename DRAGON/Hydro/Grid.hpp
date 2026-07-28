@@ -61,7 +61,7 @@ class Grid2D: public Grid{
 protected:
     ExtendedArray2D<PrimitiveState> w;
 #ifdef MHD
-    ExtendedArray2D<vec3> A;//Magnetic Vector Potential
+    ExtendedArray2D<vec3> B;//B fields on the faces
 #endif
 public:
     double dx, dy;
@@ -79,7 +79,7 @@ public:
     #ifdef MHD
     //Access Edge Magnetic potentials. Only Az is used in 2D
     //A[i,j] is on the corner w[i-1/2,j-1/2]
-    ExtendedArray2D<vec3>& _A(){return A;}
+    ExtendedArray2D<vec3>& _B(){return B;}
     #endif
     
     //Advance Forward in time
