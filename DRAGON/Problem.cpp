@@ -8,7 +8,13 @@
 #include "Problem.hpp"
 #include "DistGrid.hpp"
 
-typedef Grid1D MyGrid;//Choose the dimension of your grid here
+typedef Grid1D MyGrid;//Replace Grid1D with one of the following:
+    //Grid1D: single dimension, single thread
+    //Grid2D: two dimensions, single thread
+    //Grid3D: three dimensions, single thread
+    //DistGrid1D: single dimension, multiple threads
+    //DistGrid2D: two dimensions, multiple threads
+    //DistGrid3D: three dimensions, multiple threads
 
 Grid& Problem::makeProblem(){
     //Construct your grid object. Don't worry about initial setup, you'll do that later
@@ -16,9 +22,29 @@ Grid& Problem::makeProblem(){
     return *_grid;
 }
 
-void Problem::initializeProblem(Grid& problem){
+PrimitiveState Problem::initialFluidState(double x, double y, double z){
+    PrimitiveState w;
+    //Initialize the fluid state w at point (x,y,z).
+        //(dx/2,dy/2,dz/2) corresponds to the [0,0,0] cell
+        //In fewer than 1D and 2D, z will always be zero, as will y in 1D
+
+    return w;
+}
+vec3 Problem::initialMagneticPotential(double x, double y, double z){
+    vec3 A;
+    //Initialize the vector potential at point (x,y,z)
+        // (0,0,0)corresponds to the [0,0,0] cell
+        // In fewer than 1D and 2D, z will always be zero, as will y in 1D
+    //In 2D & 3D, Magnetic Fields will be initialized from this potential to ensure div B = 0
+    //This function is ignored in pure Hydro and in 1D (1D B should be given in initialFluidState)
+    
+    return A;
+}
+
+
+void Problem::completeProblemInit(Grid& problem){
     MyGrid& grid = *dynamic_cast<MyGrid*>(&problem);
-    //This is where you should initialize the initial data of the grid
+    //Here you can do any initialization not covered by initialFluidState and initialMagneticPotential
     
 }
 

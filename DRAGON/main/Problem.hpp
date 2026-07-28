@@ -9,7 +9,12 @@
 
 namespace Problem{
     Grid& makeProblem();
-    void initializeProblem(Grid& grid);
+
+    PrimitiveState initialFluidState(double x, double y, double z);
+    vec3 initialMagneticPotential(double x, double y, double z);
+    void completeProblemInit(Grid& grid);
+
+
     void afterCycle(Grid& problem, int cycle, double t);
     void beforeCycle(Grid& problem, int cycle, double t);
     void problemComplete(Grid& problem, double t);
