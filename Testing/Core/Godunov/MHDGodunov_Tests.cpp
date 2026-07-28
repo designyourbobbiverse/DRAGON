@@ -45,6 +45,9 @@ void DRAGON_Test::verify_godunov_2D_MHD(bool output){
     if(output) std::cout << "- MHD Stationary Field Test: ";
     verify_ct_stationary_2D();
     if(output) std::cout << "Passed\n";
+    if(output) std::cout << "- MHD Uniform Bz=0 Test: ";
+    verify_ct_uniform_Bz0_2D();
+    if(output) std::cout << "Passed\n";
     
     CONFIG::riemann_choice = prev;
 }
@@ -61,6 +64,9 @@ void DRAGON_Test::verify_godunov_3D_MHD(bool output){
     if(output) std::cout<<"Passed\n";
     if(output) std::cout << "- MHD Stationary Field Test: ";
     verify_ct_stationary_3D();
+    if(output) std::cout << "Passed\n";
+    if(output) std::cout << "- MHD Uniform Bz=0 Test: ";
+    verify_ct_uniform_Bz0_3D();
     if(output) std::cout << "Passed\n";
     
     CONFIG::riemann_choice = prev;

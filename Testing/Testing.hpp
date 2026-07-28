@@ -107,41 +107,41 @@ void verify_boundary(bool output = true);
 void verify_boundary_constructors(bool output = true);
 //Outflow
 void verify_boundary_outflow(bool output = true);
-void verify_boundary_outflow_1D();
-void verify_boundary_outflow_2D();
-void verify_boundary_outflow_3D();
-void verify_boundary_outflow_1D_gated();
-void verify_boundary_outflow_2D_gated();
-void verify_boundary_outflow_3D_gated_X();
-void verify_boundary_outflow_3D_gated_Y();
-void verify_boundary_outflow_3D_gated_Z();
+    void verify_boundary_outflow_1D();
+    void verify_boundary_outflow_2D();
+    void verify_boundary_outflow_3D();
+    void verify_boundary_outflow_1D_gated();
+    void verify_boundary_outflow_2D_gated();
+    void verify_boundary_outflow_3D_gated_X();
+    void verify_boundary_outflow_3D_gated_Y();
+    void verify_boundary_outflow_3D_gated_Z();
 //Reflective
 void verify_boundary_reflective(bool output = true);
-void verify_boundary_reflective_1D();
-void verify_boundary_reflective_2D();
-void verify_boundary_reflective_3D();
+    void verify_boundary_reflective_1D();
+    void verify_boundary_reflective_2D();
+    void verify_boundary_reflective_3D();
 //Periodic
 void verify_boundary_periodic(bool output = true);
-void verify_boundary_periodic_1D();
-void verify_boundary_periodic_2D();
-void verify_boundary_periodic_3D();
+    void verify_boundary_periodic_1D();
+    void verify_boundary_periodic_2D();
+    void verify_boundary_periodic_3D();
 //Fixed
 void verify_boundary_fixed(bool output = true);
-void verify_boundary_fixed_1D();
-void verify_boundary_fixed_2D();
-void verify_boundary_fixed_3D();
+    void verify_boundary_fixed_1D();
+    void verify_boundary_fixed_2D();
+    void verify_boundary_fixed_3D();
 //Ignore
 void verify_boundary_ignore(bool output = true);
-void verify_boundary_ignore_1D();
-void verify_boundary_ignore_2D();
-void verify_boundary_ignore_3D();
-void verify_boundary_ignore_blocks_implicit_outflow();
+    void verify_boundary_ignore_1D();
+    void verify_boundary_ignore_2D();
+    void verify_boundary_ignore_3D();
+    void verify_boundary_ignore_blocks_implicit_outflow();
 //Composition
 void verify_boundary_composition(bool output = true);
-void verify_boundary_set_missing_faces_outflow_2D();
-void verify_boundary_composition_3D();
-void verify_boundary_composition_order();
-void verify_boundary_composition_overlap_order();
+    void verify_boundary_set_missing_faces_outflow_2D();
+    void verify_boundary_composition_3D();
+    void verify_boundary_composition_order();
+    void verify_boundary_composition_overlap_order();
 
 
 //MARK: CFL
@@ -197,87 +197,91 @@ void verify_tvd_muscl_falls_back_when_unphysical();
 //MARK: Godunov Scheme
 //1D
 void verify_godunov_1D(bool output = true);
-void verify_god_uniform_stationary_1D();
-void verify_god_uniform_moving_1D();
-void verify_god_periodic_conservation_1D();
-void verify_god_dist_grid_1D();
-void verify_god_dt0_1D();
+    void verify_god_uniform_stationary_1D();
+    void verify_god_uniform_moving_1D();
+    void verify_god_periodic_conservation_1D();
+    void verify_god_dist_grid_1D();
+    void verify_god_dt0_1D();
 //2D
 void verify_godunov_2D_Split(bool output = true);
 void verify_godunov_2D_Unsplit(bool output = true);
-void verify_god_uniform_stationary_2D(bool split);
-void verify_god_uniform_moving_2D(bool split);
-void verify_god_periodic_conservation_2D(bool split);
-void verify_god_dist_grid_2D();
-void verify_god_dt0_2D(bool split);
-void verify_2D_X_match_1D(bool split);
-void verify_2D_Y_match_1D(bool split);
-void verify_ctu_diagonal_contact_2D();
-void verify_ctu_blast_2D();
+    void verify_god_uniform_stationary_2D(bool split);
+    void verify_god_uniform_moving_2D(bool split);
+    void verify_god_periodic_conservation_2D(bool split);
+    void verify_god_dist_grid_2D();
+    void verify_god_dt0_2D(bool split);
+    void verify_2D_X_match_1D(bool split);
+    void verify_2D_Y_match_1D(bool split);
+    void verify_ctu_diagonal_contact_2D();
+    void verify_ctu_blast_2D();
 //3D
 void verify_godunov_3D_Split(bool output = true);
 void verify_godunov_3D_Unsplit(bool output = true);
-void verify_god_uniform_stationary_3D(bool split);
-void verify_god_uniform_moving_3D(bool split);
-void verify_god_periodic_conservation_3D(bool split);
-void verify_god_dist_grid_3D();
-void verify_god_dt0_3D(bool split);
-void verify_3D_X_match_1D(bool split);
-void verify_3D_Y_match_1D(bool split);
-void verify_3D_Z_match_1D(bool split);
-void verify_ctu_diagonal_contact_3D();
-void verify_ctu_blast_3D();
+    void verify_god_uniform_stationary_3D(bool split);
+    void verify_god_uniform_moving_3D(bool split);
+    void verify_god_periodic_conservation_3D(bool split);
+    void verify_god_dist_grid_3D();
+    void verify_god_dt0_3D(bool split);
+    void verify_3D_X_match_1D(bool split);
+    void verify_3D_Y_match_1D(bool split);
+    void verify_3D_Z_match_1D(bool split);
+    void verify_ctu_diagonal_contact_3D();
+    void verify_ctu_blast_3D();
 
 #ifdef MHD
 //MARK: Godunov Scheme (MHD)
 //1D
 void verify_godunov_1D_MHD(bool output = true);
-void verify_god_uniform_stationary_1D_MHD();
-void verify_god_uniform_moving_1D_MHD();
-void verify_god_periodic_conservation_1D_MHD();
+    void verify_god_uniform_stationary_1D_MHD();
+    void verify_god_uniform_moving_1D_MHD();
+    void verify_god_periodic_conservation_1D_MHD();
 //2D
 void verify_godunov_2D_MHD(bool output = true);
-void verify_god_uniform_stationary_2D_MHD();
-void verify_god_uniform_moving_2D_MHD();
-void verify_god_periodic_conservation_2D_MHD();
-void verify_ct_stationary_2D();
+    void verify_god_uniform_stationary_2D_MHD();
+    void verify_god_uniform_moving_2D_MHD();
+    void verify_god_periodic_conservation_2D_MHD();
+    void verify_ct_stationary_2D();
+    void verify_ct_uniform_Bz0_2D();
 void verify_god_dist_grid_2D_MHD();
-void verify_2D_X_match_1D_MHD();
-void verify_2D_Y_match_1D_MHD();
+void verify_godunov_2D_MHD_Match(bool output = true);
+    void verify_2D_X_match_1D_MHD();
+    void verify_2D_Y_match_1D_MHD();
 
 //3D
 void verify_godunov_3D_MHD(bool output = true);
-void verify_god_uniform_stationary_3D_MHD();
-void verify_god_uniform_moving_3D_MHD();
-void verify_god_periodic_conservation_3D_MHD();
-void verify_ct_stationary_3D();
+    void verify_god_uniform_stationary_3D_MHD();
+    void verify_god_uniform_moving_3D_MHD();
+    void verify_god_periodic_conservation_3D_MHD();
+    void verify_ct_stationary_3D();
+    void verify_ct_uniform_Bz0_3D();
 void verify_god_dist_grid_3D_MHD();
-void verify_3D_X_match_1D_MHD();
-void verify_3D_Y_match_1D_MHD();
-void verify_3D_Z_match_1D_MHD();
+void verify_godunov_3D_MHD_Match(bool output = true);
+    void verify_3D_X_match_1D_MHD();
+    void verify_3D_Y_match_1D_MHD();
+    void verify_3D_Z_match_1D_MHD();
 
 
 //MARK: Constrained Transport
 //2D
 void verify_ct_2D(bool output = true);
 //Faraday Update
-void assert_divergenceless(const ExtendedArray2D<vec3>& B, double dx, double dy);
-void verify_ct_divergence_2D();
-void verify_ct_stokes_theorem_2D();
-void verify_ct_uniform_E_2D();
-//Face and Body Field Machinery
-void verify_ct_body_fields_2D();
-void verify_ct_copy_face_fields_2D();
+    void verify_ct_divergence_2D();
+        void assert_divergenceless(const ExtendedArray2D<vec3>& B, double dx, double dy);
+    void verify_ct_stokes_theorem_2D();
+    void verify_ct_uniform_E_2D();
+    //Face and Body Field Machinery
+    void verify_ct_body_fields_2D();
+    void verify_ct_copy_face_fields_2D();
 //3D
 void verify_ct_3D(bool output = true);
 //Faraday Update
-void assert_divergenceless(const ExtendedArray3D<vec3>& B, double dx, double dy, double dz);
-void verify_ct_divergence_3D();
-void verify_ct_stokes_theorem_3D();
-void verify_ct_uniform_E_3D();
+    void verify_ct_divergence_3D();
+        void assert_divergenceless(const ExtendedArray3D<vec3>& B, double dx, double dy, double dz);
+    void verify_ct_stokes_theorem_3D();
+    void verify_ct_uniform_E_3D();
 //Face and Body Field Machinery
-void verify_ct_body_fields_3D();
-void verify_ct_copy_face_fields_3D();
+    void verify_ct_body_fields_3D();
+    void verify_ct_copy_face_fields_3D();
 
 
 #endif

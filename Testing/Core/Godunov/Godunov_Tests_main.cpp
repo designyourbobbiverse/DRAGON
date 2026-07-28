@@ -90,7 +90,7 @@ void DRAGON_Test::verify_godunov_2D_Unsplit(bool output){
     verify_god_periodic_conservation_2D(false);
     if(output) std::cout<<"Passed\n";
     #ifdef MHD
-    verify_godunov_2D_MHD();
+    verify_godunov_2D_MHD(output);
     #endif
 
     #ifdef DIMENSION_UNSPLIT
@@ -117,14 +117,10 @@ void DRAGON_Test::verify_godunov_2D_Unsplit(bool output){
     if(output) std::cout<<"- 1D Match (Y): ";
     verify_2D_Y_match_1D(false);
     if(output) std::cout<<"Passed\n";
-/*#ifdef MHD
-    if(output) std::cout<<"- 1D Match (MHD-X): ";
-    verify_2D_X_match_1D_MHD();
-    if(output) std::cout<<"Passed\n";
-    if(output) std::cout<<"- 1D Match (MHD-Y): ";
-    verify_2D_Y_match_1D_MHD();
-    if(output) std::cout<<"Passed\n";
-#endif*/
+    #ifdef MHD
+    verify_godunov_2D_MHD_Match(output);
+    #endif
+    
     CONFIG::riemann_choice = prev;
 }
 
@@ -180,7 +176,7 @@ void DRAGON_Test::verify_godunov_3D_Unsplit(bool output){
     if(output) std::cout<<"Passed\n";
 
     #ifdef MHD
-    verify_godunov_3D_MHD();
+    verify_godunov_3D_MHD(output);
     #endif
 
     #ifdef DIMENSION_UNSPLIT
@@ -210,17 +206,9 @@ void DRAGON_Test::verify_godunov_3D_Unsplit(bool output){
     if(output) std::cout<<"- 1D Match (Z): ";
     verify_3D_Z_match_1D(false);
     if(output) std::cout<<"Passed\n";
-    /*#ifdef MHD
-    if(output) std::cout<<"- 1D Match (MHD-X): ";
-    verify_3D_X_match_1D_MHD();
-    if(output) std::cout<<"Passed\n";
-    if(output) std::cout<<"- 1D Match (MHD-Y): ";
-    verify_3D_Y_match_1D_MHD();
-    if(output) std::cout<<"Passed\n";
-    if(output) std::cout<<"- 1D Match (MHD-Z): ";
-    verify_3D_Z_match_1D_MHD();
-    if(output) std::cout<<"Passed\n";
-    #endif */
+    #ifdef MHD
+    verify_godunov_3D_MHD_Match(output);
+    #endif
     
 
     CONFIG::riemann_choice = prev;

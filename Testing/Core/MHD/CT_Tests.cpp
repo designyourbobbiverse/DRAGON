@@ -86,7 +86,7 @@ void DRAGON_Test::verify_ct_stationary_3D(){
     assert_divergenceless(grid._B(),dx,dx,dx);
 
     
-    grid.advance(0.0001);
+    grid.advance(0.1);
     
     for (int i = 0; i < grid.getSizeX(); i++){
         for (int j = 0; j < grid.getSizeY(); j++){
@@ -100,9 +100,59 @@ void DRAGON_Test::verify_ct_stationary_3D(){
     DRAGONWING::initialize(0);
 }
 
-/*
+
 //MARK: d/dz = 0 -> Bz stays zero
 void DRAGON_Test::verify_ct_uniform_Bz0_2D(){
+    constexpr int n = 32;
+    constexpr double dx = 2.0/n;
+    
+    auto grid = Grid2D(n,n, dx, dx);
+    grid.boundary = Boundary::Periodic();
+    
+    for(int i=0; i<=grid.getSizeX();i++){
+        for(int j=0; j<=grid.getSizeY(); j++){
+            grid[i,j] = make_state(1.0, 2.0, 3.0, 4.0, 5.0);
+            grid._B()[i,j] = {0.2,0.3,0.0};
+        }
+    }    
+    grid.initialize_B_fields();
+    
+    grid.advance(1.0);
+    for(int i=0; i<grid.getSizeX();i++){
+        for(int j=0; j<grid.getSizeY(); j++){
+            assert(approx(grid[i,j].B.z,0));
+        }
+    }
+    for(int i=0; i<=grid.getSizeX();i++){
+        for(int j=0; j<=grid.getSizeY(); j++){
+            grid._B()[i,j] = {0.0,0.2,0.3};
+        }
+    }
+    grid.initialize_B_fields();
+    
+    grid.advance(0.1);
+    for(int i=0; i<grid.getSizeX();i++){
+        for(int j=0; j<grid.getSizeY(); j++){
+            assert(approx(grid[i,j].B.x,0));
+        }
+    }
+    for(int i=0; i<=grid.getSizeX();i++){
+        for(int j=0; j<=grid.getSizeY(); j++){
+            grid._B()[i,j] = {0.2,0.0,0.3};
+        }
+    }
+    grid.initialize_B_fields();
+    
+    grid.advance(0.1);
+    for(int i=0; i<grid.getSizeX();i++){
+        for(int j=0; j<grid.getSizeY(); j++){
+            assert(approx(grid[i,j].B.y,0));
+        }
+    }
+}
+
+
+void DRAGON_Test::verify_ct_uniform_Bz0_3D(){
     constexpr int n = 16;
     constexpr double dx = 2.0/n;
     
@@ -113,29 +163,19 @@ void DRAGON_Test::verify_ct_uniform_Bz0_2D(){
         for(int j=0; j<=grid.getSizeY(); j++){
             for(int k=0; k<=grid.getSizeZ(); k++){
                 grid[i,j,k] = make_state(1.0, 2.0, 3.0, 4.0, 5.0);
-                grid._A()[i,j,k] = {0,0, 0.125*(i+j)};
-            }
-        }
-    }    
-    grid.initialize_B_fields();
-    
-    
-    std::cout<<CFL::cfl_time(grid)<<"\n";
-    double dt = 0.00001;
-    grid.advance(dt);
-    double Bzmax = 0;
-    for(int i=0; i<grid.getSizeX();i++){
-        for(int j=0; j<grid.getSizeY(); j++){
-            for(int k=0; k<grid.getSizeZ(); k++){
-                double Bz = grid[i,j,k].B.z;
-                if(Bzmax < fabs(Bz)) Bzmax = fabs(Bz);
-                //assert(approx(Bz,0));
+                grid._B()[i,j,k] = {0.2,0.3,0.0};
             }
         }
     }
-    std::cout<<dt<<","<<Bzmax<<"\n";
+    grid.initialize_B_fields();
+    
+    grid.advance(1.0);
+    for(int i=0; i<grid.getSizeX();i++){
+        for(int j=0; j<grid.getSizeY(); j++){
+            for(int k=0; k<grid.getSizeZ(); k++){
+                assert(approx(grid[i,j,k].B.z,0));
+            }
+        }
+    }
 }
-*/
-
-
 #endif
