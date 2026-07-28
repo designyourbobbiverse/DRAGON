@@ -106,7 +106,7 @@ void Boundary::Outflow::apply(Grid2D& grid) {
     }
     if (faces & Y_positive) {
         for (int i = i0; i <= in; i++) {
-            _B[i,ny].y = _B[i,ny-1].y;
+            _B[i,ny].x = _B[i,ny-1].x;
             _B[i,ny].z = _B[i,ny-1].z;
             for (int g = 1; g <= ng; g++) {
                 _B[i,ny+g] = _B[i,ny];
