@@ -73,7 +73,7 @@ void fill_2D(Grid2D& grid) {
 #ifdef MHD
     for (int i = -grid.getGhosts(); i <= grid.getSizeX()+grid.getGhosts(); i++) {
         for (int j = -grid.getGhosts(); j <= grid.getSizeY()+grid.getGhosts(); j++) {
-            grid._A()[i, j] = make_tagged_vec(10*i + j);
+            grid._B()[i, j] = make_tagged_vec(10*i + j);
         }
     }
 #endif
@@ -321,7 +321,7 @@ void DRAGON_Test::verify_boundary_ignore_2D(){
 #ifdef MHD
     for(int i = -grid.getGhosts(); i <= grid.getSizeX() + grid.getGhosts(); i++) {
         for(int j = -grid.getGhosts(); j <= grid.getSizeY() + grid.getGhosts(); j++) {
-            expect_close(grid._A()[i,j], make_tagged_vec(10*i + j));
+            expect_close(grid._B()[i,j], make_tagged_vec(10*i + j));
         }
     }
 #endif

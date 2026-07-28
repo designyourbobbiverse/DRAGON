@@ -13,9 +13,6 @@
 
 using namespace DRAGON_Test;
 using namespace Boundary;
-#ifdef MHD
-using namespace MagneticGrid;
-#endif
 
 //MARK: Helpers
 
@@ -60,22 +57,11 @@ void DRAGON_Test::verify_boundary_periodic_2D() {
         expect_close(grid[-1, j], grid[2, j]);
         expect_close(grid[3, j],  grid[0, j]);
         #ifdef MHD
-        expect_close(magneticX(grid, -1, j), magneticX(grid, 2, j));
-        expect_close(magneticY(grid, -1, j), magneticY(grid, 2, j));
-
-        expect_close(magneticX(grid, 3, j), magneticX(grid, 0, j));
-        expect_close(magneticY(grid, 3, j), magneticY(grid, 0, j));
-
-        expect_close(magneticX(grid, 4, j), magneticX(grid, 1, j));
-        expect_close(magneticY(grid, 4, j), magneticY(grid, 1, j));
-
+        expect_close(grid._B()[-1,j], grid._B()[2,j]);
+        expect_close(grid._B()[3,j], grid._B()[0,j]);
+        expect_close(grid._B()[4,j], grid._B()[1,j]);
         #endif
     }
-    #ifdef MHD//A field corner check
-    int ng = grid.getGhosts(), nx = grid.getSizeX(), ny = grid.getSizeY();
-    vec3 dA = grid._A()[nx,ny+ng] - grid._A()[0,ny+ng];
-    expect_close(grid._A()[nx+ng,ny+ng], grid._A()[ng,ny+ng] + dA);
-    #endif
     //Y
     fill_2D(grid);
     Periodic(Y).apply(grid);
@@ -83,14 +69,9 @@ void DRAGON_Test::verify_boundary_periodic_2D() {
         expect_close(grid[i,-1], grid[i,3]);
         expect_close(grid[i,4],  grid[i,0]);
         #ifdef MHD
-        expect_close(magneticX(grid, i,-1), magneticX(grid, i,3));
-        expect_close(magneticY(grid, i,-1), magneticY(grid, i,3));
-
-        expect_close(magneticX(grid, i,4), magneticX(grid, i,0));
-        expect_close(magneticY(grid, i,4), magneticY(grid, i,0));
-
-        expect_close(magneticX(grid, i,5), magneticX(grid, i,1));
-        expect_close(magneticY(grid, i,5), magneticY(grid, i,1));
+        expect_close(grid._B()[i,-1], grid._B()[i,3]);
+        expect_close(grid._B()[i,4], grid._B()[i,0]);
+        expect_close(grid._B()[i,5], grid._B()[i,1]);
         #endif
     }
     //No corners = no corners
@@ -114,9 +95,7 @@ void DRAGON_Test::verify_boundary_periodic_3D() {
             expect_close(grid[-1, j,k], grid[2, j,k]);
             expect_close(grid[3, j,k],  grid[0, j,k]);
             #ifdef MHD
-            expect_close(grid._B()[-1,j,k].x, grid._B()[2,j,k].x);
-            expect_close(grid._B()[-1,j,k].y, grid._B()[2,j,k].y);
-            expect_close(grid._B()[-1,j,k].z, grid._B()[2,j,k].z);
+            expect_close(grid._B()[-1,j,k], grid._B()[2,j,k]);
 
             expect_close(grid._B()[3,j,k].x, grid._B()[0,j,k].x);
             expect_close(grid._B()[3,j,k].y, grid._B()[0,j,k].y);

@@ -18,48 +18,6 @@ using namespace DRAGON_Test;
 
 
 
-
-
-
-//MARK: Gauge Invariance
-void DRAGON_Test::verify_ct_gauge_2D(){
-    const int nx = 10, ny = 10, ng = 2;
-    const double dx = 1, dy = 2;
-    MagneticArray2D A(nx,ny,ng);
-    for(int i = -ng; i < nx+ng; i++){
-        for(int j = -ng; j < ny+ng; j++){
-            A[i,j] = { (rand()%2000001)*1e-3 - 1e3, (rand()%2000001)*1e-3 - 1e3 , (rand()%2000001)*1e-3 - 1e3};
-        }
-    }
-    //Compute Magnetic
-    MagneticArray2D B0(nx,ny,ng);
-    CT::computeFaceFields(A, B0, dx, dy);
-    //Update A by a Random Gradient
-    ExtendedArray2D<double> chi(nx+1,ny+1,ng);
-    for(int i = -ng; i <= nx+ng; i++){
-        for(int j = -ng; j <= ny+ng; j++){
-            chi[i,j] = (rand()%2000001)*1e-3 - 1e3;
-        }
-    }
-    double chi_z = (rand()%2000001)*1e-3 - 1e3;
-    for(int i = -ng; i < nx+ng; i++){
-        for(int j = -ng; j < ny+ng; j++){
-            A[i,j].x += (chi[i+1,j]-chi[i,j]) / dx;
-            A[i,j].y += (chi[i,j+1]-chi[i,j]) / dy;
-            A[i,j].z += chi_z;
-        }
-    }
-    //Recompute Magnetic
-    MagneticArray2D B(nx,ny,ng);
-    CT::computeFaceFields(A, B, dx, dy);
-    //Make sure it's the same result
-    for(int i = -ng; i < nx+ng; i++){
-        for(int j = -ng; j < ny+ng; j++){
-            expect_close(B[i,j], B0[i,j]);
-        }
-    }
-}
-
 //MARK: Stationary Field
 void DRAGON_Test::verify_ct_stationary_2D(){
     return;
@@ -68,11 +26,12 @@ void DRAGON_Test::verify_ct_stationary_2D(){
     Grid2D grid(10,10,dx,dx, 2), expected(10,10,dx,dx, 2);
     double p0 = 5.0;
     PrimitiveState W = make_state(1.0, 0.0, 0.0, 0.0, p0);
+    W.B = {0.2, -0.3, 0.4};
 
     for (int i = 0; i <= grid.getSizeX(); i++){
         for (int j = 0; j <= grid.getSizeY(); j++){
             grid[i,j] = W;
-            grid._A()[i,j] = vec3{0,0,-cos(i*dx)-cos(j*dx)};
+            grid._B()[i,j] = W.B;
         }
     }
     grid.boundary = Boundary::Periodic();
@@ -85,7 +44,7 @@ void DRAGON_Test::verify_ct_stationary_2D(){
             expected[i,j] = grid[i,j];
         }
     }
-    assert_divergenceless(grid._A(),dx,dx);
+    assert_divergenceless(grid._B(),dx,dx);
 
     
     grid.advance(1.0);
@@ -95,7 +54,7 @@ void DRAGON_Test::verify_ct_stationary_2D(){
             expect_close(grid[i,j].B, expected[i,j].B);
         }
     }
-    assert_divergenceless(grid._A(),dx,dx);
+    assert_divergenceless(grid._B(),dx,dx);
 }
 
 void DRAGON_Test::verify_ct_stationary_3D(){

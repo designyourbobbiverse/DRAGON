@@ -13,9 +13,6 @@
 
 using namespace DRAGON_Test;
 using namespace Boundary;
-#ifdef MHD
-using namespace MagneticGrid;
-#endif
 
 
 void DRAGON_Test::verify_boundary_outflow(bool output){
@@ -89,16 +86,10 @@ void DRAGON_Test::verify_boundary_outflow_2D() {
         expect_close(grid[-1, j], grid[0, j]);
         expect_close(grid[3, j],  grid[2, j]);
         #ifdef MHD //Check Transverse Magnetic Fields
-        assert(magneticY(grid, -1,j) == magneticY(grid, 0,j));
-        assert(magneticY(grid, 4,j) == magneticY(grid, 3,j));
+        assert((grid._B()[-1,j].y == grid._B()[0,j].y));
+        assert((grid._B()[4,j].y == grid._B()[3,j].y));
         #endif
     }
-    #ifdef MHD //A field Corners
-    int ng = grid.getGhosts(), nx = grid.getSizeX(), ny = grid.getSizeY();
-    vec3 expected = 2*grid._A()[nx+ng-1,ny+ng] - grid._A()[nx+ng-2,ny+ng];
-    expected.x = grid._A()[nx+ng-1,ny+ng].x;
-    expect_close(grid._A()[nx+ng,ny+ng], expected);
-    #endif
     //Y
     fill_2D(grid);
     Outflow(Y,false).apply(grid);
@@ -106,8 +97,8 @@ void DRAGON_Test::verify_boundary_outflow_2D() {
         expect_close(grid[i,-1], grid[i,0]);
         expect_close(grid[i,4],  grid[i,3]);
         #ifdef MHD //Check Transverse Magnetic Fields
-        assert(magneticX(grid, i,-1) == magneticX(grid, i,0));
-        assert(magneticX(grid, i,5) == magneticX(grid, i,4));
+        assert((grid._B()[i,-1].x == grid._B()[i,0].x));
+        assert((grid._B()[i,5].x == grid._B()[i,4].x));
         #endif
     }
     //No corners = no corners

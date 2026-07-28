@@ -88,16 +88,17 @@ void DRAGON_Test::verify_god_uniform_moving_1D_MHD(){
 
 void DRAGON_Test::verify_god_uniform_stationary_2D_MHD(){
     Grid2D grid(10,10,1.0, 1.0, 2);
+    grid.boundary = Outflow();
+
     PrimitiveState W = make_state(1.0, 0.0, 0.0, 0.0, 5.0);
-    //W.B.z = 1.0;
+    W.B = {0.2, 0.125, 0.3};
+
     for (int i = 0; i <= grid.getSizeX(); i++){
         for (int j = 0; j <= grid.getSizeY(); j++){
             grid[i,j] = W;
-            grid._A()[i,j] = vec3{0,0,0.1*i};
+            grid._B()[i,j] = W.B;
         }
     }
-    grid.boundary = Outflow();
-    grid.boundary.apply(grid);
     grid.initialize_B_fields();
     W = grid[1,1];
     
@@ -114,16 +115,17 @@ void DRAGON_Test::verify_god_uniform_stationary_2D_MHD(){
 }
 void DRAGON_Test::verify_god_uniform_moving_2D_MHD(){
     Grid2D grid(10,10,1.0, 1.0, 2);
+    grid.boundary = Outflow();
+    
     PrimitiveState W = make_state(1.0, 1.0, 2.0, 3.0, 5.0);
+    W.B = {0.2, 0.125, 0.3};
 
     for (int i = 0; i <= grid.getSizeX(); i++){
         for (int j = 0; j <= grid.getSizeY(); j++){
             grid[i,j] = W;
-            grid._A()[i,j] = vec3{0,0.2*j,0.2*i};
+            grid._B()[i,j] = W.B;
         }
     }
-    grid.boundary = Outflow();
-    grid.boundary.apply(grid);
     grid.initialize_B_fields();
     W = grid[1,1];
     
@@ -218,9 +220,7 @@ void DRAGON_Test::verify_god_periodic_conservation_2D_MHD(){
     for (int i = 0; i <= grid.getSizeX(); i++){
         for (int j = 0; j <= grid.getSizeY(); j++){
             grid[i,j] = make_state(1.0+0.1*i+0.1*j, 1.0+0.1*i, 1.0-0.1*j, 0.1*i*j, 10.0-0.1*i+0.1*j);
-            grid[i,j].B = vec3{0.1*i, -0.2*j, -0.3*i};
-            grid._A()[i,j] = vec3{0.1*i, -0.02*i, 0.01*j};
-            
+            grid._B()[i,j] = {sin(2*M_PI*i/grid.getSizeX()), cos(2*M_PI*j/grid.getSizeY()), 0.1};
         }
     }
     grid.initialize_B_fields();

@@ -230,11 +230,6 @@ void verify_ctu_blast_3D();
 
 #ifdef MHD
 //MARK: Godunov Scheme (MHD)
-//Helpers
-namespace MagneticGrid{
-double magneticX(Grid2D& grid, int i, int j);
-double magneticY(Grid2D& grid, int i, int j);
-}
 //1D
 void verify_godunov_1D_MHD(bool output = true);
 void verify_god_uniform_stationary_1D_MHD();
@@ -245,6 +240,7 @@ void verify_godunov_2D_MHD(bool output = true);
 void verify_god_uniform_stationary_2D_MHD();
 void verify_god_uniform_moving_2D_MHD();
 void verify_god_periodic_conservation_2D_MHD();
+void verify_ct_stationary_2D();
 void verify_god_dist_grid_2D_MHD();
 void verify_2D_X_match_1D_MHD();
 void verify_2D_Y_match_1D_MHD();
@@ -254,6 +250,7 @@ void verify_godunov_3D_MHD(bool output = true);
 void verify_god_uniform_stationary_3D_MHD();
 void verify_god_uniform_moving_3D_MHD();
 void verify_god_periodic_conservation_3D_MHD();
+void verify_ct_stationary_3D();
 void verify_god_dist_grid_3D_MHD();
 void verify_3D_X_match_1D_MHD();
 void verify_3D_Y_match_1D_MHD();
@@ -263,18 +260,14 @@ void verify_3D_Z_match_1D_MHD();
 //MARK: Constrained Transport
 //2D
 void verify_ct_2D(bool output = true);
-//2D Fundamental properties
+//Faraday Update
 void assert_divergenceless(const ExtendedArray2D<vec3>& B, double dx, double dy);
 void verify_ct_divergence_2D();
-void verify_ct_gauge_2D();
-//Faraday Pipeline
-void verify_ct_E_updates_A_2D();
-void verify_ct_compute_faces_2D();
+void verify_ct_stokes_theorem_2D();
+void verify_ct_uniform_E_2D();
+//Face and Body Field Machinery
 void verify_ct_body_fields_2D();
 void verify_ct_copy_face_fields_2D();
-//Other 2D tests
-void verify_ct_uniform_E_2D();
-void verify_ct_stationary_2D();
 //3D
 void verify_ct_3D(bool output = true);
 //Faraday Update
@@ -285,8 +278,6 @@ void verify_ct_uniform_E_3D();
 //Face and Body Field Machinery
 void verify_ct_body_fields_3D();
 void verify_ct_copy_face_fields_3D();
-//Other 3D tests
-void verify_ct_stationary_3D();
 
 
 #endif

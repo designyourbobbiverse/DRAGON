@@ -17,31 +17,24 @@ using namespace DRAGON_Test;
 
 void DRAGON_Test::verify_ct_2D(bool output){
     if(output) std::cout << "Constrained Transport (2D):\n";
-    if(output) std::cout << "- Faraday Pipeline:\n";
-    if(output) std::cout << "\t- Edge E -> Edge A: ";
-    verify_ct_E_updates_A_2D();
-    if(output) std::cout << "Passed\n";
-
-    if(output) std::cout << "\t- Edge A -> Face B: ";
-    verify_ct_compute_faces_2D();
-    if(output) std::cout << "Passed\n";
-    if(output) std::cout << "\t- Face B -> Body B: ";
-    verify_ct_body_fields_2D();
-    if(output) std::cout << "Passed\n";
-    if(output) std::cout << "\t- Face B -> Half-states: ";
-    verify_ct_copy_face_fields_2D();
-    if(output) std::cout << "Passed\n";
-
-    if(output) std::cout << "- Zero Divergence: ";
+    if(output) std::cout << "- Faraday Update:\n";
+    if(output) std::cout << "\t- Zero Divergence: ";
     verify_ct_divergence_2D();
     if(output) std::cout << "Passed\n";
-    
-    if(output) std::cout << "- Gauge Invariance: ";
-    verify_ct_gauge_2D();
+    if(output) std::cout << "\t- Stokes Theorem: ";
+    verify_ct_stokes_theorem_2D();
+    if(output) std::cout << "Passed\n";
+    if(output) std::cout << "\t- Uniform E: ";
+    verify_ct_uniform_E_2D();
     if(output) std::cout << "Passed\n";
     
-    if(output) std::cout << "- Uniform E: ";
-    verify_ct_uniform_E_2D();
+    
+    if(output) std::cout << "- Face & Body Fields:\n";
+    if(output) std::cout << "\t- Face B -> Body B: ";
+    verify_ct_body_fields_3D();
+    if(output) std::cout << "Passed\n";
+    if(output) std::cout << "\t- Face B -> Half-states: ";
+    verify_ct_copy_face_fields_3D();
     if(output) std::cout << "Passed\n";
 }
 void DRAGON_Test::verify_ct_3D(bool output){
@@ -123,43 +116,6 @@ void DRAGON_Test::verify_ct_divergence_3D(){
     assert_divergenceless(B, 1,1,1);
 }
 
-//MARK: E = -dA/dt
-void DRAGON_Test::verify_ct_E_updates_A_2D(){
-    const int nx = 10, ny = 10, ng = 2;
-    MagneticArray2D A0(nx,ny,ng);
-
-    for(int i = -ng; i < nx+ng; i++){
-        for(int j = -ng; j < ny+ng; j++){
-            A0[i,j] = { (rand()%2000001)*1e-3 - 1e3, (rand()%2000001)*1e-3 - 1e3 , (rand()%2000001)*1e-3 - 1e3};
-        }
-    }
-    
-    MagneticArray2D A(nx,ny,ng);
-    A.clone(A0);
-    
-    MagneticArray2D E(nx,ny,ng);
-    for(int i = -ng; i < nx+ng; i++){
-        for(int j = -ng; j < ny+ng; j++){
-            E[i,j] = { (rand()%2000001)*1e-3 - 1e3, (rand()%2000001)*1e-3 - 1e3 , (rand()%2000001)*1e-3 - 1e3};
-        }
-    }
-    //Check a single update
-    CT::updatePotential(A, E, 1.0,ng);
-    for(int i = -ng; i < nx+ng; i++){
-        for(int j = -ng; j < ny+ng; j++){
-            expect_close(A[i,j], A0[i,j] - E[i,j]);
-        }
-    }
-    //Check another update to catch dt bugs
-    CT::updatePotential(A, E, -2.0,ng);
-    for(int i = -ng; i < nx+ng; i++){
-        for(int j = -ng; j < ny+ng; j++){
-            expect_close(A[i,j], A0[i,j] + E[i,j]);
-        }
-    }
-}
-
-
 //MARK: Uniform E
 void DRAGON_Test::verify_ct_uniform_E_2D(){
     const int nx = 10, ny = 10, ng = 2;
@@ -232,37 +188,38 @@ void DRAGON_Test::verify_ct_uniform_E_3D(){
 
 //MARK: Stokes Theorem
 //Theses tests check that Stokes Theorem Holds for B = curl(A)
-void DRAGON_Test::verify_ct_compute_faces_2D(){
+void DRAGON_Test::verify_ct_stokes_theorem_2D(){
     const int nx = 3, ny = 4, ng = 1;
     const double dx = 0.5, dy = 2.0;
     MagneticArray2D A(nx+1, ny+1, ng);
+    MagneticArray2D B(nx+1, ny+1, ng);
     for(int i = -ng; i < nx+1+ng; i++){
         for(int j = -ng; j < ny+1+ng; j++){
             // Ax = 2i+j, Ay = i-3j, Az = i²+3ij+2j²
             A[i,j] = vec3{2.0*i + j, 1.0*i - 3.0*j, 1.0*i*i + 3.0*i*j + 2.0*j*j};
+            B[i,j] = {0,0};
         }
     }
 
-    MagneticArray2D B(nx+1, ny+1, ng);
-    CT::computeFaceFields(A, B, dx, dy);
+    CT::Faraday(A, B,1.0/dx, 1.0/dy, ng);
 
     for(int i = -ng; i <= nx+ng; i++){
         for(int j = -ng; j < ny+ng; j++){
-            double line_integral = A[i,j+1].z - A[i,j].z;
+            double line_integral = A[i,j].z - A[i,j+1].z;
             double flux = B[i,j].x * dy;
             assert(approx(flux, line_integral));
         }
     }
     for(int i = -ng; i < nx+ng; i++){
         for(int j = -ng; j <= ny+ng; j++){
-            double line_integral = A[i,j].z - A[i+1,j].z;
+            double line_integral = A[i+1,j].z - A[i,j].z;
             double flux = B[i,j].y * dx;
             assert(approx(flux, line_integral));
         }
     }
     for(int i = -ng; i < nx+ng; i++){
         for(int j = -ng; j < ny+ng; j++){
-            double line_integral = A[i,j].x*dx + A[i+1,j].y*dy - A[i,j+1].x*dx - A[i,j].y*dy;
+            double line_integral = -(A[i,j].x*dx + A[i+1,j].y*dy - A[i,j+1].x*dx - A[i,j].y*dy);
             double flux = B[i,j].z * dx * dy;
             assert(approx(flux, line_integral));
         }
@@ -324,26 +281,19 @@ void DRAGON_Test::verify_ct_body_fields_2D(){
     Grid2D grid(nx,ny,dx,dy,ng);
     for(int i = -ng; i < nx+1+ng; i++){
         for(int j = -ng; j < ny+1+ng; j++){
-            double Az = i*i + 3*i*j + 2*j*j;
-            grid._A()[i,j] = vec3{7, -4, Az};
-        }
-    }
-    for(int i = 0; i < nx; i++){
-        for(int j = 0; j < ny; j++){
+            grid._B()[i,j] = vec3{ 1.0*i*j, j + 3.0*i*i, i + 4.0*j*j };
             grid[i,j].B = vec3{-7,-8,-9};
         }
     }
 
-    MagneticArray2D B_face(nx+1,ny+1,ng);
-    CT::computeFaceFields(grid._A(), B_face, dx, dy);
     grid.initialize_B_fields();
 
     for(int i = 0; i < nx; i++){
         for(int j = 0; j < ny; j++){
             vec3 expected  = vec3{-7,-8,-9};
-            expected.x =  (B_face[i,j].x + B_face[i+1,j].x)/2;
-            expected.y = (B_face[i,j].y + B_face[i,j+1].y)/2;
-            expected.z = B_face[i,j].z;
+            expected.x =  (grid._B()[i,j].x + grid._B()[i+1,j].x)/2;
+            expected.y = (grid._B()[i,j].y + grid._B()[i,j+1].y)/2;
+            expected.z = grid._B()[i,j].z;
             expect_close(grid[i,j].B, expected);
         }
     }

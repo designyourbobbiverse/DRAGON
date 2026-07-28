@@ -13,9 +13,6 @@
 
 using namespace DRAGON_Test;
 using namespace Boundary;
-#ifdef MHD
-using namespace MagneticGrid;
-#endif
 
 void DRAGON_Test::verify_boundary_reflective(bool output){
     if(output) std::cout<<"- 1D: ";
@@ -104,16 +101,16 @@ void DRAGON_Test::verify_boundary_reflective_2D(){
     for (int j = 0; j < grid.getSizeY(); j++) {
         PrimitiveState w = grid[0,j]; reflectX2D(w);
         expect_close(grid[-1, j], w);
-        #ifdef MHD //Transverse Magnetic Fields
-        assert(magneticX(grid, -1, j) == magneticX(grid, 0, j));
-        assert(magneticY(grid, -1, j) == -magneticY(grid, 0, j));
+        #ifdef MHD
+        assert((grid._B()[-1,j].x == grid._B()[1,j].x));
+        assert((grid._B()[-1,j].y == -grid._B()[0,j].y));
         #endif
        
         w = grid[2,j]; reflectX2D(w);
         expect_close(grid[3, j], w);
-        #ifdef MHD //Transverse Magnetic Fields
-        assert(magneticX(grid, 3, j) == magneticX(grid, 2, j));
-        assert(magneticY(grid, 3, j) == -magneticY(grid, 2, j));
+        #ifdef MHD
+        assert((grid._B()[4,j].x == grid._B()[2,j].x));
+        assert((grid._B()[3,j].y == -grid._B()[2,j].y));
         #endif
     }
     //No corners = no corners
@@ -125,16 +122,16 @@ void DRAGON_Test::verify_boundary_reflective_2D(){
     for (int i = 0; i < grid.getSizeX(); i++) {
         PrimitiveState w = grid[i,0]; reflectY2D(w);
         expect_close(grid[i,-1], w);
-        #ifdef MHD //Magnetic Fields via A fields
-        assert(magneticX(grid, i,-1) == -magneticX(grid, i,0));
-        assert(magneticY(grid, i,-1) == magneticY(grid, i,0));
+        #ifdef MHD
+        assert((grid._B()[i,-1].x == -grid._B()[i,0].x));
+        assert((grid._B()[i,-1].y == grid._B()[i,1].y));
         #endif
        
         w = grid[i,3]; reflectY2D(w);
         expect_close(grid[i,4], w);
-        #ifdef MHD //Transverse Magnetic Fields
-        assert(magneticX(grid, i,4) == -magneticX(grid, i,3));
-        assert(magneticY(grid, i,4) == magneticY(grid, i,3));
+        #ifdef MHD
+        assert((grid._B()[i,4].x == -grid._B()[i,3].x));
+        assert((grid._B()[i,5].y == grid._B()[i,3].y));
         #endif
     }
     //Corner
@@ -200,7 +197,7 @@ void DRAGON_Test::verify_boundary_reflective_3D(){
         for (int k = 0; k < grid.getSizeZ(); k++) {
             PrimitiveState w = grid[i,0,k]; reflectY3D(w);
             expect_close(grid[i,-1,k], w);
-            #ifdef MHD //Transverse Magnetic Fields
+            #ifdef MHD
             assert((grid._B()[i,-1,k].x == -grid._B()[i,0,k].x));
             assert((grid._B()[i,-1,k].y == grid._B()[i,1,k].y));
             assert((grid._B()[i,-1,k].z == -grid._B()[i,0,k].z));
@@ -208,7 +205,7 @@ void DRAGON_Test::verify_boundary_reflective_3D(){
             
             w = grid[i,3,k]; reflectY3D(w);
             expect_close(grid[i,4,k], w);
-            #ifdef MHD //Transverse Magnetic Fields
+            #ifdef MHD
             assert((grid._B()[i,4,k].x == -grid._B()[i,3,k].x));
             assert((grid._B()[i,5,k].y == grid._B()[i,3,k].y));
             assert((grid._B()[i,4,k].z == -grid._B()[i,3,k].z));
@@ -222,7 +219,7 @@ void DRAGON_Test::verify_boundary_reflective_3D(){
         for (int j = 0; j < grid.getSizeY(); j++) {
             PrimitiveState w = grid[i,j,0]; reflectZ3D(w);
             expect_close(grid[i,j,-1], w);
-            #ifdef MHD //Transverse Magnetic Fields
+            #ifdef MHD
             assert((grid._B()[i,j,-1].x == -grid._B()[i,j,0].x));
             assert((grid._B()[i,j,-1].y == -grid._B()[i,j,0].y));
             assert((grid._B()[i,j,-1].z == grid._B()[i,j,1].z));
@@ -230,7 +227,7 @@ void DRAGON_Test::verify_boundary_reflective_3D(){
             
             w = grid[i,j,4]; reflectZ3D(w);
             expect_close(grid[i,j,5], w);
-            #ifdef MHD //Transverse Magnetic Fields
+            #ifdef MHD
             assert((grid._B()[i,j,5].x == -grid._B()[i,j,4].x));
             assert((grid._B()[i,j,5].y == -grid._B()[i,j,4].y));
             assert((grid._B()[i,j,6].z == grid._B()[i,j,4].z));

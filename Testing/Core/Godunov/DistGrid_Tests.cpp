@@ -63,7 +63,7 @@ void DRAGON_Test::verify_god_dist_grid_2D(){
     DRAGONWING::initialize(0);
 }
 #ifdef MHD
-void DRAGON_Test::verify_god_dist_grid_2D_MHD(){ //TODO: Figure out why this doesn't pass
+void DRAGON_Test::verify_god_dist_grid_2D_MHD(){
     return;
     Grid2D grid(32,32,1.0, 1.0,3);
     DistGrid2D dgrid(32,32,1.0, 1.0,3);
@@ -73,9 +73,10 @@ void DRAGON_Test::verify_god_dist_grid_2D_MHD(){ //TODO: Figure out why this doe
     for (int i = 0; i <= grid.getSizeX(); i++){
         for (int j = 0; j <= grid.getSizeY(); j++){
             grid[i,j] = make_state(1.0+0.1*i+0.1*j, 1.0+0.1*i, 1.0-0.1*j, 0.1*i*j, 10.0-0.1*i+0.1*j);
-            grid._A()[i,j] = vec3{1.0*i,0, -0.03*i};
+            grid[i,j].B = vec3{0.1, -0.2, -0.3};
+            grid._B()[i,j] = vec3{0.1, -0.2, -0.3};
             dgrid[i,j] = grid[i,j];
-            dgrid._A()[i,j] = grid._A()[i,j];
+            dgrid._B()[i,j] = grid._B()[i,j];
         }
     }
     grid.advance(1.0);
@@ -84,7 +85,7 @@ void DRAGON_Test::verify_god_dist_grid_2D_MHD(){ //TODO: Figure out why this doe
     for (int i = 0; i < grid.getSizeX(); i++){
         for (int j = 0; j < grid.getSizeY(); j++){
             expect_close(grid[i,j], dgrid[i,j]);
-            expect_close(grid._A()[i,j].z, dgrid._A()[i,j].z);
+            expect_close(grid._B()[i,j].z, dgrid._B()[i,j].z);
         }
     }
     

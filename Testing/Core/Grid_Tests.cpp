@@ -88,13 +88,3 @@ void DRAGON_Test::verify_grid3D(){
         }
     }
 }
-//MARK: MHD Helpers
-#ifdef MHD
-double MagneticGrid::magneticX(Grid2D& grid, int i, int j) {
-    return (grid._A()[i, j + 1].z - grid._A()[i, j].z) / grid.dy;
-}
-
-double MagneticGrid::magneticY(Grid2D& grid, int i, int j) {
-    return (grid._A()[i, j].z - grid._A()[i + 1, j].z) / grid.dx;
-}
-#endif
