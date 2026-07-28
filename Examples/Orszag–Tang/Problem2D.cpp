@@ -28,28 +28,28 @@ Grid& Problem::makeProblem(){
     return *grid;
 }
 
-void Problem::initializeProblem(Grid& problem){
+PrimitiveState Problem::initialFluidState(double x, double y, double z){
+    //Initialize the fluid state w at point (x,y,z).
+        //dx/2, dy/2 corresponds to the [0,0] cell. z will always be zero.
+    PrimitiveState w;
+    w.rho =  rho0;
+    w.p = p_amb;
+    w.v = {-sin(y),sin(x),0};
+    return w;
+}
+vec3 Problem::initialMagneticPotential(double x, double y, double z){
+    //Initialize the vector potential at point (x,y,z)
+        // (0,0,0) corresponds to the [0,0,0] cell. z will always be zero in 2D
+    //Magnetic Fields will be initialized from this potential to ensure div B = 0
+    double Az = B0 * (cos(y) + 0.25*cos(2*x));
+    return {0,0,Az};
+}
+
+
+void Problem::completeProblemInit(Grid& problem){
     MyGrid& grid = *dynamic_cast<MyGrid*>(&problem);
-
-
-    //Set up the ambient grid and calculate the size of the blast
-    for(int i=0; i<=grid.getSizeX();i++){
-        for(int j=0; j<=grid.getSizeY(); j++){
-            double x = (i+0.5) * dx;
-            double y = (j+0.5) * dx;
-
-            grid[i,j].rho = rho0;
-            grid[i,j].v = {-sin(y),sin(x),0};
-            grid[i,j].p = p_amb;
-            
-            x -= 0.5 * dx;
-            y -= 0.5 * dx;
-            
-            double Az = cos(y) + 0.25*cos(2*x);
-            grid._A()[i,j] = {0,0, B0*Az};
-        }
-    }
-    grid.initialize_B_fields();
+    //Here you can do any initialization not covered by initialFluidState and initialMagneticPotential
+    
 }
 
 

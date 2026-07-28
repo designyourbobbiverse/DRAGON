@@ -8,7 +8,7 @@
 #include "Problem.hpp"
 #include "DistGrid.hpp"
 
-typedef DistGrid1D MyGrid;//Choose the dimension of your grid here
+typedef DistGrid1D MyGrid;
 
 constexpr double rho_L = 0.445;
 constexpr double rho_R = 0.5;
@@ -23,16 +23,26 @@ Grid& Problem::makeProblem(){
     return *grid;
 }
 
-void Problem::initializeProblem(Grid& problem){
-    MyGrid& grid = *dynamic_cast<MyGrid*>(&problem);
-    
-    for(int i = 0; i<nx; i++){
-        grid[i].rho = i < nx/2 ? rho_L : rho_R;
-        grid[i].p = i < nx/2 ? p_L : p_R;
-        grid[i].v = i < nx/2 ? vec3{vxL,0,0} : vec3{0,0,0};
-    }
+PrimitiveState Problem::initialFluidState(double x, double y, double z){
+    //Initialize the fluid state w at point (x,y,z).
+        //dx/2 corresponds to the [0] cell. y and z will always be zero.
+    PrimitiveState w;
+    w.rho = x < 0.5 ? rho_L : rho_R;
+    w.p = x < 0.5 ? p_L : p_R;
+    w.v = x < 0.5 ? vec3{vxL,0,0} : vec3{0,0,0};
+    return w;
+}
+vec3 Problem::initialMagneticPotential(double x, double y, double z){
+    //This function is ignored in Pure Hydro
+    return {0,0,0};
 }
 
+
+void Problem::completeProblemInit(Grid& problem){
+    MyGrid& grid = *dynamic_cast<MyGrid*>(&problem);
+    //Here you can do any initialization not covered by initialFluidState and initialMagneticPotential
+
+}
 
 void Problem::beforeCycle(Grid &problem, int cycle, double t){
     MyGrid& grid = *dynamic_cast<MyGrid*>(&problem);
