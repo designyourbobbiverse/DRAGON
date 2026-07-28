@@ -1,6 +1,6 @@
 # DRAGON
 
-**Divergence-Regulation by A-field Grid Operations & Numerics**
+**Divergence-Regulation for Adaptive Godunov-Oriented Numerics**
 
 DRAGON is a modern C++ Eulerian hydrodynamics and magnetohydrodynamics code implementing finite-volume Godunov methods. The code features configurable Riemann solvers, CFL timestep calculation, MUSCL reconstruction, and boundary-condition handling for 1D, 2D, and 3D grids.  Currenlty, DRAGON is written in C++23.
 
@@ -8,7 +8,7 @@ DRAGON is a modern C++ Eulerian hydrodynamics and magnetohydrodynamics code impl
 ## Current Features
 
 - Dimensionally split hydrodynamics and unsplit multidimensional hydrodynamic/MHD schemes, with optional CTU support for unsplit mode.
-- Constrained transport MHD, implemented using edge-centered vector potentials
+- Constrained transport MHD
 - Hydrodynamic Riemann solvers: exact, HLL, HLLC, HLLE, and Roe.
 - MHD Riemann solvers: HLL, HLLD, and HLLE.
 - Riemann safety checks and fallback behaviour for non-physical approximate fluxes.
