@@ -62,10 +62,8 @@ void DRAGON_Test::verify_ct_3D(bool output){
 
 
 //MARK: Div B = 0
-void DRAGON_Test::assert_divergenceless(const MagneticArray2D& A, double dx, double dy){
-    const int nx = A.getSizeX(), ny = A.getSizeY(), ng = A.getGhosts();
-    MagneticArray2D B(nx,ny,ng);
-    CT::computeFaceFields(A, B, dx,dy);
+void DRAGON_Test::assert_divergenceless(const MagneticArray2D& B, double dx, double dy){
+    const int nx = B.getSizeX(), ny = B.getSizeY(), ng = B.getGhosts();
     for(int i = -ng; i < nx+ng - 1 ; i++){
         for(int j = -ng; j < ny+ng - 1; j++){
             double dBx = (B[i+1,j].x - B[i,j].x)/dx;
@@ -91,13 +89,14 @@ void DRAGON_Test::assert_divergenceless(const MagneticArray3D& B, double dx, dou
 
 void DRAGON_Test::verify_ct_divergence_2D(){
     const int nx = 10, ny = 10, ng = 2;
-    MagneticArray2D A(nx,ny,ng);
+    MagneticArray2D A(nx,ny,ng), B(nx,ny,ng);
     for(int i = -ng; i < nx+ng; i++){
         for(int j = -ng; j < ny+ng; j++){
             A[i,j] = { (rand()%2000001)*1e-3 - 1e3, (rand()%2000001)*1e-3 - 1e3 , (rand()%2000001)*1e-3 - 1e3};
         }
     }
-    assert_divergenceless(A, 1, 2);
+    CT::Faraday(A, B, 1,1, 2);
+    assert_divergenceless(B, 1, 1);
 }
 
 
@@ -119,16 +118,13 @@ void DRAGON_Test::verify_ct_divergence_3D(){
 //MARK: Uniform E
 void DRAGON_Test::verify_ct_uniform_E_2D(){
     const int nx = 10, ny = 10, ng = 2;
-    MagneticArray2D A(nx,ny,ng);
+    MagneticArray2D B(nx,ny,ng);
 
     for(int i = -ng; i < nx+ng; i++){
         for(int j = -ng; j < ny+ng; j++){
-            A[i,j] = { (rand()%2000001)*1e-3 - 1e3, (rand()%2000001)*1e-3 - 1e3 , (rand()%2000001)*1e-3 - 1e3};
+            B[i,j] = { (rand()%2000001)*1e-3 - 1e3, (rand()%2000001)*1e-3 - 1e3 , (rand()%2000001)*1e-3 - 1e3};
         }
-    }
-    MagneticArray2D B(nx,ny,ng);
-    CT::computeFaceFields(A, B, 1, 1);
-    
+    }    
     
     MagneticArray2D expected(nx,ny,ng);
     expected.clone(B);
@@ -139,8 +135,7 @@ void DRAGON_Test::verify_ct_uniform_E_2D(){
             E[i,j] = {1,2,3};
         }
     }
-    CT::updatePotential(A, E, 1.0,ng);
-    CT::computeFaceFields(A, B, 1, 1);
+    CT::Faraday(E, B, 1, 1);
     for(int i = -ng; i < nx+ng; i++){
         for(int j = -ng; j < ny+ng; j++){
             expect_close(B[i,j], expected[i,j]);

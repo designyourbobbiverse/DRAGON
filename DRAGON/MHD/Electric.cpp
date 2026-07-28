@@ -22,30 +22,6 @@
 
 
 
-//MARK: Vector Potential Update
-void CT::updatePotential(MagneticArray2D& _A, const MagneticArray2D& E, double dt, int g){
-    const int nx = _A.getSizeX()-1, ny = _A.getSizeY()-1;
-    
-    for(int i=-g; i<=nx+g; i++){
-        for(int j=-g; j<=ny+g; j++){
-            _A[i,j] -= E[i,j] * dt;
-        }
-    }
-}
-void CT::updatePotential(MagneticArray3D& _A, const MagneticArray3D& E, double dt, int g){
-    const int nx = _A.getSizeX()-1, ny = _A.getSizeY()-1, nz = _A.getSizeZ()-1;
-    
-    for(int i=-g; i<=nx+g; i++){
-        for(int j=-g; j<=ny+g; j++){
-            for(int k=-g; k<=nz+g; k++){
-                _A[i,j,k] -= E[i,j,k] * dt;
-            }
-        }
-    }
-}
-
-
-
 //MARK: E field from Fluxes
 void CT::computeElectric(MagneticArray2D& E, const FluxArray2D& F_X,const FluxArray2D& F_Y,  const int g){
     const int nx = E.getSizeX()-1, ny = E.getSizeY()-1;

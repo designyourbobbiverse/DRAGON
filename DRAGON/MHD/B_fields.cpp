@@ -16,55 +16,7 @@
 
 #ifdef MHD
 
-//MARK: Face Fields
-void CT::computeFaceFields(const MagneticArray2D& _A, MagneticArray2D& _B, double dx, double dy){
-    const int nx = _A.getSizeX()-1, ny = _A.getSizeY()-1, g = _B.getGhosts();
-    const double _dx = 1/dx, _dy = 1/dy; //One division + n^2 multiplications > n^2 divisions
-    
-    for(int i=-g; i<=nx+g; i++){
-        for(int j=-g; j<ny+g; j++){
-            _B[i,j].x = (_A[i,j+1].z - _A[i,j].z) * _dy;
-        }
-    }
-    for(int i=-g; i<nx+g; i++){
-        for(int j=-g; j<=ny+g; j++){
-            _B[i,j].y = (_A[i,j].z - _A[i+1,j].z) * _dx;
-        }
-    }
-    for(int i=-g; i<nx+g; i++){
-        for(int j=-g; j<ny+g; j++){
-            _B[i,j].z = (_A[i+1,j].y - _A[i,j].y) * _dx - (_A[i,j+1].x - _A[i,j].x) * _dy;
-        }
-    }
-}
-void CT::computeFaceFields(const MagneticArray3D& _A, MagneticArray3D& _B, double dx, double dy, double dz){
-    const int nx = _A.getSizeX()-1, ny = _A.getSizeY()-1, nz = _A.getSizeZ()-1, g = _B.getGhosts();
-    const double _dx = 1/dx, _dy = 1/dy, _dz = 1/dz; //One division + n^3 multiplications > n^3 divisions
-    
-    for(int i=-g; i<=nx+g; i++){
-        for(int j=-g; j<ny+g; j++){
-            for(int k=-g; k<nz+g; k++){
-                _B[i,j,k].x = (_A[i,j+1,k].z - _A[i,j,k].z)*_dy - (_A[i,j,k+1].y - _A[i,j,k].y) * _dz;
-            }
-        }
-    }
-    for(int i=-g; i<nx+g; i++){
-        for(int j=-g; j<=ny+g; j++){
-            for(int k=-g; k<nz+g; k++){
-                _B[i,j,k].y = (_A[i,j,k+1].x - _A[i,j,k].x)*_dz - (_A[i+1,j,k].z - _A[i,j,k].z) * _dx;
-            }
-        }
-    }
-    for(int i=-g; i<nx+g; i++){
-        for(int j=-g; j<ny+g; j++){
-            for(int k=-g; k<=nz+g; k++){
-                _B[i,j,k].z = (_A[i+1,j,k].y - _A[i,j,k].y)*_dx -  (_A[i,j+1,k].x - _A[i,j,k].x) * _dy;
-            }
-        }
-    }
-}
-
-
+//MARK: Faraday's Law
 void CT::Faraday(const MagneticArray2D& E, MagneticArray2D& _B, double dt_dx, double dt_dy, int g){
     
     const int nx = _B.getSizeX()-1, ny = _B.getSizeY()-1;
