@@ -117,29 +117,29 @@ void DRAGON_Test::verify_riemann_flux_dispatch(){
     int prev = CONFIG::riemann_choice;
     
     CONFIG::riemann_choice = RIEMANN_EXACT;
-    expect_close(Riemann(L,R).flux(), Riemann(L,R).exact().flux(), 1e-10, 1e-10);
+    expect_close(Riemann(L,R).flux(), Riemann(L,R).exact().flux());
 
     CONFIG::riemann_choice = RIEMANN_HLL;
-    expect_close(Riemann(L,R).flux(), Riemann(L,R).HLL(), 1e-10, 1e-10);
+    expect_close(Riemann(L,R).flux(), Riemann(L,R).HLL());
 
     CONFIG::riemann_choice = RIEMANN_HLLE;
-    expect_close(Riemann(L,R).flux(), Riemann(L,R).HLLE(), 1e-10, 1e-10);
+    expect_close(Riemann(L,R).flux(), Riemann(L,R).HLLE());
 
     CONFIG::riemann_choice = RIEMANN_HLLC;
-    expect_close(Riemann(L,R).flux(), Riemann(L,R).HLLC(), 1e-10, 1e-10);
+    expect_close(Riemann(L,R).flux(), Riemann(L,R).HLLC());
 
     CONFIG::riemann_choice = RIEMANN_ROE;
-    expect_close(Riemann(L,R).flux(), Riemann(L,R).Roe(), 1e-10, 1e-10);
+    expect_close(Riemann(L,R).flux(), Riemann(L,R).Roe());
 
 #ifdef MHD
     CONFIG::riemann_choice = RIEMANN_HLLD;
-    expect_close(Riemann(L,R).flux(), Riemann(L,R).HLLD(), 1e-10, 1e-10);
+    expect_close(Riemann(L,R).flux(), Riemann(L,R).HLLD());
 
     CONFIG::riemann_choice = RIEMANN_HLLX;
-    expect_close(Riemann(L,R).flux(), Riemann(L,R).HLLD(), 1e-10, 1e-10);
+    expect_close(Riemann(L,R).flux(), Riemann(L,R).HLLD());
 #else
     CONFIG::riemann_choice = RIEMANN_HLLX;
-    expect_close(Riemann(L,R).flux(), Riemann(L,R).HLLC(), 1e-10, 1e-10);
+    expect_close(Riemann(L,R).flux(), Riemann(L,R).HLLC());
 #endif
 
     CONFIG::riemann_choice = prev;
@@ -153,7 +153,7 @@ void DRAGON_Test::verify_riemann_flux_safety_check(){
     ConservativeState unchecked = Riemann(W,W).flux(0.0);
     ConservativeState checked = Riemann(W,W).flux(0.01);
 
-    expect_close(checked, unchecked, 1e-10, 1e-10);
+    expect_close(checked, unchecked);
     assert((ConservativeState(W) - checked*0.01).isPhysical());
     assert((ConservativeState(W) + checked*0.01).isPhysical());
 
@@ -186,19 +186,19 @@ void DRAGON_Test::verify_riemann_flux_dimension_wrappers(){
     CONFIG::riemann_choice = RIEMANN_HLL;
 
     Riemann xProblem(L, R);
-    expect_close(xProblem.flux_X(), Riemann(L,R).flux(), 1e-10, 1e-10);
+    expect_close(xProblem.flux_X(), Riemann(L,R).flux());
     expect_close(xProblem.L, L);
     expect_close(xProblem.R, R);
 
     Riemann yProblem(L, R);
     ConservativeState expectedY = Riemann(L.swappedXY(), R.swappedXY()).flux().swappedXY();
-    expect_close(yProblem.flux_Y(), expectedY, 1e-10, 1e-10);
+    expect_close(yProblem.flux_Y(), expectedY);
     expect_close(yProblem.L, L);
     expect_close(yProblem.R, R);
 
     Riemann zProblem(L, R);
     ConservativeState expectedZ = Riemann(L.swappedXZ(), R.swappedXZ()).flux().swappedXZ();
-    expect_close(zProblem.flux_Z(), expectedZ, 1e-10, 1e-10);
+    expect_close(zProblem.flux_Z(), expectedZ);
     expect_close(zProblem.L, L);
     expect_close(zProblem.R, R);
 
@@ -217,19 +217,19 @@ void DRAGON_Test::verify_riemann_flux_dimension_wrappers_mhd(){
         CONFIG::riemann_choice = choice;
 
         Riemann xProblem(L, R);
-        expect_close(xProblem.flux_X(), Riemann(L,R).flux(), 1e-10, 1e-10);
+        expect_close(xProblem.flux_X(), Riemann(L,R).flux());
         expect_close(xProblem.L, L);
         expect_close(xProblem.R, R);
 
         Riemann yProblem(L, R);
         ConservativeState expectedY = Riemann(L.swappedXY(), R.swappedXY()).flux().swappedXY();
-        expect_close(yProblem.flux_Y(), expectedY, 1e-10, 1e-10);
+        expect_close(yProblem.flux_Y(), expectedY);
         expect_close(yProblem.L, L);
         expect_close(yProblem.R, R);
 
         Riemann zProblem(L, R);
         ConservativeState expectedZ = Riemann(L.swappedXZ(), R.swappedXZ()).flux().swappedXZ();
-        expect_close(zProblem.flux_Z(), expectedZ, 1e-10, 1e-10);
+        expect_close(zProblem.flux_Z(), expectedZ);
         expect_close(zProblem.L, L);
         expect_close(zProblem.R, R);
     }

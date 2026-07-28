@@ -133,7 +133,7 @@ void DRAGON_Test::verify_god_periodic_conservation_1D(){
     ConservativeState got = ConservativeState();
     for (int i = 0; i < grid.getSize(); i++) got += ConservativeState(grid[i]);
     
-    expect_close(expected, got);
+    expect_close(expected, got, 1e-14);
 
 }
 
@@ -163,7 +163,7 @@ void DRAGON_Test::verify_god_periodic_conservation_2D(bool split){
             assert((grid[i,j].rho > 0));
         }
     }
-    expect_close(expected, got);
+    expect_close(expected, got, 1e-14);
 }
 void DRAGON_Test::verify_god_periodic_conservation_3D(bool split){
     Grid3D grid(10,10,10,1.0, 1.0,1.0, 2);
@@ -197,7 +197,7 @@ void DRAGON_Test::verify_god_periodic_conservation_3D(bool split){
             }
         }
     }
-    expect_close(expected, got);
+    expect_close(expected, got, 1e-13);
 }
 //MARK: dt=0 Tests
 void DRAGON_Test::verify_god_dt0_1D(){

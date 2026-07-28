@@ -16,11 +16,12 @@
 namespace DRAGON_Test{
 
 
+
 //MARK: Numerical Close-ness
-bool approx(double a, double b, double rel = 1e-12, double abs = 1e-12);
-void expect_close(const vec3& a, const vec3& b,  double rel = 1e-12, double abs = 1e-12);
-void expect_close(const ConservativeState& a, const ConservativeState& b,  double rel = 1e-12, double abs = 1e-12);
-void expect_close(const PrimitiveState& a, const PrimitiveState& b, double rel = 1e-12, double abs = 1e-12);
+bool approx(double a, double b, double rel = 1e-15, double abs = 1e-18);
+void expect_close(const vec3& a, const vec3& b,  double rel = 1e-15, double abs = 1e-18);
+void expect_close(const ConservativeState& a, const ConservativeState& b,  double rel = 1e-15, double abs = 1e-18);
+void expect_close(const PrimitiveState& a, const PrimitiveState& b, double rel = 1e-15, double abs = 1e-18);
 void expect_finite(const ConservativeState& U);
 void expect_finite(const PrimitiveState& W);
 

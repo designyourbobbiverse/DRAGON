@@ -567,9 +567,9 @@ void DRAGON_Test::verify_flux_add() {
     ConservativeState U1(W);
     ConservativeState expected = U0 + dU;
 
-    assert(approx(U1.rho, expected.rho, 1e-12, 1e-12));
-    assert(approx(U1.mom.x,  expected.mom.x,  1e-12, 1e-12));
-    assert(approx(U1.mom.y,  expected.mom.y,  1e-12, 1e-12));
-    assert(approx(U1.mom.z,  expected.mom.z,  1e-12, 1e-12));
-    assert(approx(U1.E,   expected.E,   1e-12, 1e-12));
+    assert(approx(U1.rho, expected.rho));
+    assert(approx(U1.mom.x,  expected.mom.x));
+    assert(approx(U1.mom.y,  expected.mom.y));
+    assert(approx(U1.mom.z,  expected.mom.z));
+    assert(approx(U1.E,   expected.E));
 }

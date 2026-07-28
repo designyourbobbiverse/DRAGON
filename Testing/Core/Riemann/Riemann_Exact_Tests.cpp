@@ -64,8 +64,8 @@ void DRAGON_Test::verify_sample_mirror_restores_state() {
     PrimitiveState C = S.sample( 0.5);
     PrimitiveState D = S.sample( 0.5);
 
-    expect_close(A, B, 1e-10, 1e-10);
-    expect_close(C, D, 1e-10, 1e-10);
+    expect_close(A, B);
+    expect_close(C, D);
 
     expect_close(S.wL, L);
     expect_close(S.wR, R);
@@ -79,9 +79,9 @@ void DRAGON_Test::verify_exact_equal_state() {
     RiemannSolution S = Riemann(W, W).exact();
     expect_close(S.wL, W);
     expect_close(S.wR, W);
-    expect_close(S.sL, W, 1e-10, 1e-10);
-    expect_close(S.sR, W, 1e-10, 1e-10);
-    expect_close(S.flux(), expected, 1e-10, 1e-10);
+    expect_close(S.sL, W);
+    expect_close(S.sR, W);
+    expect_close(S.flux(), expected);
 }
 void DRAGON_Test::verify_exact_stationary_contact() {
     PrimitiveState L = make_state(1.0, 0.0, 0.0, 0.0, 1.0);
@@ -93,7 +93,7 @@ void DRAGON_Test::verify_exact_stationary_contact() {
     expected.mom.z  = 0.0;
     expected.E   = 0.0;
 
-    expect_close(Riemann(L,R).exact().flux(), expected, 1e-10, 1e-10);
+    expect_close(Riemann(L,R).exact().flux(), expected, 1e-14, 1e-14);
 }
 
 void DRAGON_Test::verify_exact_supersonic_upwind() {
@@ -101,13 +101,13 @@ void DRAGON_Test::verify_exact_supersonic_upwind() {
         PrimitiveState L = make_state(1.0,   10.0, 0.0, 0.0, 1.0);
         PrimitiveState R = make_state(0.125, 10.0, 0.0, 0.0, 0.1);
         ConservativeState expected = ConservativeState(L).flux(L.v);
-        expect_close(Riemann(L,R).exact().flux(), expected, 1e-10, 1e-10);
+        expect_close(Riemann(L,R).exact().flux(), expected);
     }
     {
         PrimitiveState L = make_state(1.0,   -10.0, 0.0, 0.0, 1.0);
         PrimitiveState R = make_state(0.125, -10.0, 0.0, 0.0, 0.1);
         ConservativeState expected = ConservativeState(R).flux(R.v);
-        expect_close(Riemann(L,R).exact().flux(), expected, 1e-10, 1e-10);
+        expect_close(Riemann(L,R).exact().flux(), expected);
     }
 }
 
@@ -117,12 +117,12 @@ void DRAGON_Test::verify_exact_sod() {
 
     RiemannSolution S = Riemann(L, R).exact();
 
-    assert(approx(S.sL.p,   0.29394518766601785, 1e-10, 1e-10));
-    assert(approx(S.sR.p,   0.29394518766601785, 1e-10, 1e-10));
-    assert(approx(S.sL.v.x,  0.8411948521688083, 1e-10, 1e-10));
-    assert(approx(S.sR.v.x,  0.8411948521688083, 1e-10, 1e-10));
-    assert(approx(S.sL.rho, 0.4796890587209175, 1e-10, 1e-10));
-    assert(approx(S.sR.rho, 0.22980574931194703, 1e-10, 1e-10));
+    assert(approx(S.sL.p,   0.29394518766601785));
+    assert(approx(S.sR.p,   0.29394518766601785));
+    assert(approx(S.sL.v.x,  0.8411948521688083));
+    assert(approx(S.sR.v.x,  0.8411948521688083));
+    assert(approx(S.sL.rho, 0.4796890587209175));
+    assert(approx(S.sR.rho, 0.22980574931194703));
     
 
     assert(approx(S.sL.v.y, L.v.y));
@@ -132,12 +132,12 @@ void DRAGON_Test::verify_exact_sod() {
     
     PrimitiveState W0 = S.sample(0.0);
 
-    assert(approx(W0.rho, S.sL.rho, 1e-10, 1e-10));
-    assert(approx(W0.v.x,  S.sL.v.x,  1e-10, 1e-10));
-    assert(approx(W0.p,   S.sL.p,   1e-10, 1e-10));
+    assert(approx(W0.rho, S.sL.rho));
+    assert(approx(W0.v.x,  S.sL.v.x));
+    assert(approx(W0.p,   S.sL.p));
 
-    expect_close(S.sample(-100.0), L, 1e-10, 1e-10);
-    expect_close(S.sample( 100.0), R, 1e-10, 1e-10);
+    expect_close(S.sample(-100.0), L);
+    expect_close(S.sample( 100.0), R);
 
     PrimitiveState fan = S.sample(-0.5);
     assert(fan.rho < L.rho && fan.rho > S.sL.rho);
@@ -151,14 +151,14 @@ void DRAGON_Test::verify_exact_supersonic_upwind_transverse() {
         PrimitiveState L = make_state(1.0, 10.0, 2.0, -3.0, 1.0);
         PrimitiveState R = make_state(0.125, 10.0, -8.0, 9.0, 0.1);
         ConservativeState expected = ConservativeState(L).flux(L.v);
-        expect_close(Riemann(L,R).exact().flux(), expected, 1e-10, 1e-10);
+        expect_close(Riemann(L,R).exact().flux(), expected);
     }
 
     {
         PrimitiveState L = make_state(1.0, -10.0, 2.0, -3.0, 1.0);
         PrimitiveState R = make_state(0.125, -10.0, -8.0, 9.0, 0.1);
         ConservativeState expected = ConservativeState(R).flux(R.v);
-        expect_close(Riemann(L,R).exact().flux(), expected, 1e-10, 1e-10);
+        expect_close(Riemann(L,R).exact().flux(), expected);
     }
 }
 

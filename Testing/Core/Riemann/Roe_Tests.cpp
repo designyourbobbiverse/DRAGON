@@ -25,7 +25,7 @@ void DRAGON_Test::verify_roe_equal_state() {
     Riemann problem(W, W);
     ConservativeState expected = ConservativeState(W).flux(W.v);
 
-    expect_close(problem.Roe(), expected, 1e-10, 1e-10);
+    expect_close(problem.Roe(), expected);
 }
 void DRAGON_Test::verify_roe_stationary_contact() {
     PrimitiveState L = make_state(1.0, 0.0, 0.0, 0.0, 1.0);
@@ -37,7 +37,7 @@ void DRAGON_Test::verify_roe_stationary_contact() {
     expected.mom.z  = 0.0;
     expected.E   = 0.0;
     
-    expect_close(Riemann(L,R).Roe(), expected, 1e-10, 1e-10);
+    expect_close(Riemann(L,R).Roe(), expected);
 }
 
 void DRAGON_Test::verify_roe_supersonic_upwind() {
@@ -45,13 +45,13 @@ void DRAGON_Test::verify_roe_supersonic_upwind() {
         PrimitiveState L = make_state(1.0,   10.0, 0.0, 0.0, 1.0);
         PrimitiveState R = make_state(0.125, 10.0, 0.0, 0.0, 0.1);
         ConservativeState expected = ConservativeState(L).flux(L.v);
-        expect_close(Riemann(L,R).Roe(), expected, 1e-10, 1e-10);
+        expect_close(Riemann(L,R).Roe(), expected);
     }
     {
         PrimitiveState L = make_state(1.0,   -10.0, 0.0, 0.0, 1.0);
         PrimitiveState R = make_state(0.125, -10.0, 0.0, 0.0, 0.1);
         ConservativeState expected = ConservativeState(R).flux(R.v);
-        expect_close(Riemann(L,R).Roe(), expected, 1e-10, 1e-10);
+        expect_close(Riemann(L,R).Roe(), expected);
     }
 }
 void DRAGON_Test::verify_roe_supersonic_upwind_transverse() {
@@ -59,13 +59,13 @@ void DRAGON_Test::verify_roe_supersonic_upwind_transverse() {
         PrimitiveState L = make_state(1.0, 10.0, 2.0, -3.0, 1.0);
         PrimitiveState R = make_state(0.125, 10.0, -8.0, 9.0, 0.1);
         ConservativeState expected = ConservativeState(L).flux(L.v);
-        expect_close(Riemann(L,R).Roe(),          expected, 1e-10, 1e-10);
+        expect_close(Riemann(L,R).Roe(),          expected);
     }
     {
         PrimitiveState L = make_state(1.0, -10.0, 2.0, -3.0, 1.0);
         PrimitiveState R = make_state(0.125, -10.0, -8.0, 9.0, 0.1);
         ConservativeState expected = ConservativeState(R).flux(R.v);
-        expect_close(Riemann(L,R).Roe(),          expected, 1e-10, 1e-10);
+        expect_close(Riemann(L,R).Roe(),          expected);
     }
 }
 void DRAGON_Test::verify_roe_symmetry() {
