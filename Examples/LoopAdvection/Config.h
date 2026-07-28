@@ -28,6 +28,12 @@
 //MARK: Top level Options
 
 #define MHD //Determines whether the simulation is run using MHD or Pure Hydrodynamics
+        #define CT_CONSV_TOTAL_E 0 //Enforces total energy conservation, but more prone to numerical issues
+        #define CT_CONSV_THERMAL 1 //Keeps thermal pressure unchanged by CT update. Violates strict energy conservation in exchange for being less prone to numerical issues
+        #define CT_CONSV_BETA_GATED 2 //CT_CONSV_THERMAL if beta<CT_Energy_Beta, otherwise CT_CONSV_TOTAL_E
+            constexpr double CT_Energy_Beta = 0.1;
+    #define CT_ENERGY_CONSV CT_CONSV_BETA_GATED
+
 
 #define DIMENSION_UNSPLIT //Use an Unsplit advancement scheme for multidimensional flows
     #define CTU //Corner Transport Upwind.  Colella (1990). https://doi.org/10.1016/0021-9991(90)90233-Q

@@ -7,6 +7,7 @@
 
 #include "Problem.hpp"
 #include "DistGrid.hpp"
+#include "CT.hpp"
 #include <cmath>
 #include <iostream>
 
@@ -21,9 +22,9 @@ constexpr double vy = 1.0;
 constexpr double vz = 1.0;
 constexpr double r0 = gaussian ? 0.1 : 0.2;
 constexpr double B0 = 1e-6;
+const double epsilon = 1e-9;
 
-
-constexpr int n = 256;
+constexpr int n = 128;
 constexpr double dx = 2.0/n;
 
 
@@ -38,24 +39,27 @@ Grid& Problem::makeProblem(){
 void Problem::initializeProblem(Grid& problem){
     MyGrid& grid = *dynamic_cast<MyGrid*>(&problem);
 
-
-    //Set up the ambient grid and calculate the size of the blast
     for(int i=0; i<=grid.getSizeX();i++){
         for(int j=0; j<=grid.getSizeY(); j++){
             for(int k=0; k<=grid.getSizeZ(); k++){
-                double x = (i) * dx - 1.0;
-                double y = (j) * dx - 0.5;
-                double r = sqrt(x*x + y*y);
-                
                 grid[i,j,k].rho = rho0;
-                grid[i,j,k].v = {vx,vy,vz};
-                grid[i,j,k].p = p_amb;
-                
-                double dist = gaussian ? exp(-0.5*pow(r/r0,2)) : fmax(r0-r,0);
-                grid._A()[i,j,k] = {0,0, B0 *  dist};
+                grid[i,j,k].v   = {vx,vy,vz};
+                grid[i,j,k].p   = p_amb;
             }
         }
     }
+
+    MagneticArray3D A(n+1, n/2+1, n/2+1, 3);
+    for(int i=0; i<=grid.getSizeX();i++){
+        for(int j=0; j<=grid.getSizeY(); j++){
+            const double x = (i - 0.5)*dx - 1.0;
+            const double y = (j - 0.5)*dx - 0.5;
+            const double r = sqrt(x*x + y*y);
+            double dist = gaussian ? exp(-0.5*pow(r/r0,2)) : fmax(r0-r,0);
+                for(int k=0; k<=grid.getSizeZ(); k++) A[i,j,k] = {0,0, B0 *  dist};
+        }
+    }
+    CT::computeFaceFields(A, grid._B(), dx, dx, dx);
     grid.initialize_B_fields();
 }
 
