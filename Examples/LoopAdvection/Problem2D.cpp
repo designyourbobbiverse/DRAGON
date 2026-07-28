@@ -7,6 +7,7 @@
 
 #include "Problem.hpp"
 #include "DistGrid.hpp"
+#include "DragonHoard.hpp"
 #include <cmath>
 #include <iostream>
 
@@ -66,7 +67,6 @@ void Problem::beforeCycle(Grid &problem, int cycle, double t){
     
     //Do any processing you need to do between cycles
     //This is called before the Godunov scheme. It isn't called for the initial frame
-    problemComplete(problem, t);
 }
 
 
@@ -80,6 +80,10 @@ void Problem::afterCycle(Grid &problem, int cycle, double t){
 
 void Problem::problemComplete(Grid& problem, double t){
     MyGrid& grid = *dynamic_cast<MyGrid*>(&problem);
+    
+    MyGrid& expected =  *dynamic_cast<MyGrid*>(&makeProblem());
+        int zero;
+    DRAGONHOARD::loadFromFile(expected, t, zero, DRAGONHOARD::output_base_name + "_" + DRAGONHOARD::cycle_string(0));
 
     //This is called only after the final time is reached.
     double L1 = 0;
@@ -92,12 +96,9 @@ void Problem::problemComplete(Grid& problem, double t){
     
     for(int i=0; i<n;i++){
         for(int j=0; j<n/2; j++){
-            double x = (i+0.5) * dx - cx;
-            double y = (j+0.5) * dx - cy;
-            double r = sqrt(x*x + y*y);
-            double B2_exact = r <= r0 ? B0*B0 : 0;
+            double B2_expect = expected[i,j].B * expected[i,j].B;
 
-            double err = fabs(grid[i,j].B*grid[i,j].B - B2_exact) / (B0*B0);
+            double err = fabs(grid[i,j].B*grid[i,j].B - B2_expect) / (B0*B0);
             if(err > Linf) Linf = err;
             L1 += err ;
             L2 += err*err;
