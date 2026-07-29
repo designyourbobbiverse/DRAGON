@@ -216,7 +216,7 @@ void DRAGON_Test::verify_god_periodic_conservation_1D_MHD(){
     ConservativeState got = ConservativeState();
     for (int i = 0; i < grid.getSize(); i++) got += ConservativeState(grid[i]);
     
-    expect_close(expected, got);
+    expect_close(expected, got, 1e-14);
 
 }
 
@@ -250,7 +250,7 @@ void DRAGON_Test::verify_god_periodic_conservation_2D_MHD(){
     }
     got.B = {0,0,0};//B isn't a conserved quanitty
     
-    expect_close(expected, got);
+    expect_close(expected, got, 1e-14);
 }
 void DRAGON_Test::verify_god_periodic_conservation_3D_MHD(){
     Grid3D grid(10,10,10,1.0, 1.0,1.0, 2);
@@ -291,6 +291,6 @@ void DRAGON_Test::verify_god_periodic_conservation_3D_MHD(){
     got.B = {0,0,0};//B isn't a conserved quanitty
 
     
-    expect_close(expected, got, 1e-10, 1e-10);
+    expect_close(expected, got, 1e-14);
 }
 #endif

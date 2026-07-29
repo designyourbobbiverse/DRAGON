@@ -34,7 +34,7 @@ void DRAGON_Test::verify_hll_manual_wave_speeds() {
 
     ConservativeState expected = (SR * FL - SL * FR + SL * SR * (UR - UL)) / (SR - SL);
 
-    expect_close(problem.HLL(SL, SR), expected, 1e-12, 1e-12);
+    expect_close(problem.HLL(SL, SR), expected);
 
     expect_close(problem.HLL( 0.1, 2.0), FL);
     expect_close(problem.HLL(-2.0,-0.1), FR);
@@ -60,12 +60,12 @@ void DRAGON_Test::verify_hll_equal_state() {
     PrimitiveState W = make_state(1.0, 0.75, 0.2, -0.1, 1.0);
     ConservativeState expected = ConservativeState(W).flux(W.v);
 
-    expect_close(Riemann(W,W).HLL(), expected, 1e-10, 1e-10);
-    expect_close(Riemann(W,W).HLLC(), expected, 1e-10, 1e-10);
+    expect_close(Riemann(W,W).HLL(), expected);
+    expect_close(Riemann(W,W).HLLC(), expected);
 #ifdef MHD
-    expect_close(Riemann(W,W).HLLD(), expected, 1e-10, 1e-10);
+    expect_close(Riemann(W,W).HLLD(), expected);
 #endif
-    expect_close(Riemann(W,W).HLLE(), expected, 1e-10, 1e-10);
+    expect_close(Riemann(W,W).HLLE(), expected);
 }
 void DRAGON_Test::verify_hll_stationary_contact() {
     PrimitiveState L = make_state(1.0, 0.0, 0.0, 0.0, 1.0);
@@ -77,9 +77,9 @@ void DRAGON_Test::verify_hll_stationary_contact() {
     expected.mom.z  = 0.0;
     expected.E   = 0.0;
 
-    expect_close(Riemann(L,R).HLLC(),expected, 1e-10, 1e-10);
+    expect_close(Riemann(L,R).HLLC(),expected);
 #ifdef MHD
-    expect_close(Riemann(L,R).HLLD(), expected, 1e-10, 1e-10);
+    expect_close(Riemann(L,R).HLLD(), expected);
 #endif
     // 2-wave HLL may diffuse contacts in evolution, but this exact stationary case should still be finite.
     expect_finite(Riemann(L,R).HLL());
@@ -91,23 +91,23 @@ void DRAGON_Test::verify_hll_supersonic_upwind() {
         PrimitiveState L = make_state(1.0,   10.0, 0.0, 0.0, 1.0);
         PrimitiveState R = make_state(0.125, 10.0, 0.0, 0.0, 0.1);
         ConservativeState expected = ConservativeState(L).flux(L.v);
-        expect_close(Riemann(L,R).HLL(), expected, 1e-10, 1e-10);
-        expect_close(Riemann(L,R).HLLC(), expected, 1e-10, 1e-10);
+        expect_close(Riemann(L,R).HLL(), expected);
+        expect_close(Riemann(L,R).HLLC(), expected);
     #ifdef MHD
-        expect_close(Riemann(L,R).HLLD(), expected, 1e-10, 1e-10);
+        expect_close(Riemann(L,R).HLLD(), expected);
     #endif
-        expect_close(Riemann(L,R).HLLE(), expected, 1e-10, 1e-10);
+        expect_close(Riemann(L,R).HLLE(), expected);
     }
     {
         PrimitiveState L = make_state(1.0,   -10.0, 0.0, 0.0, 1.0);
         PrimitiveState R = make_state(0.125, -10.0, 0.0, 0.0, 0.1);
         ConservativeState expected = ConservativeState(R).flux(R.v);
-        expect_close(Riemann(L,R).HLL(), expected, 1e-10, 1e-10);
-        expect_close(Riemann(L,R).HLLC(), expected, 1e-10, 1e-10);
+        expect_close(Riemann(L,R).HLL(), expected);
+        expect_close(Riemann(L,R).HLLC(), expected);
     #ifdef MHD
-        expect_close(Riemann(L,R).HLLD(), expected, 1e-10, 1e-10);
+        expect_close(Riemann(L,R).HLLD(), expected);
     #endif
-        expect_close(Riemann(L,R).HLLE(), expected, 1e-10, 1e-10);
+        expect_close(Riemann(L,R).HLLE(), expected);
     }
 }
 void DRAGON_Test::verify_hll_supersonic_upwind_transverse() {
@@ -117,13 +117,13 @@ void DRAGON_Test::verify_hll_supersonic_upwind_transverse() {
 
         ConservativeState expected = ConservativeState(L).flux(L.v);
 
-        expect_close(Riemann(L,R).exact().flux(), expected, 1e-10, 1e-10);
-        expect_close(Riemann(L,R).HLL(),          expected, 1e-10, 1e-10);
-        expect_close(Riemann(L,R).HLLC(),         expected, 1e-10, 1e-10);
+        expect_close(Riemann(L,R).exact().flux(), expected);
+        expect_close(Riemann(L,R).HLL(),          expected);
+        expect_close(Riemann(L,R).HLLC(),         expected);
     #ifdef MHD
-        expect_close(Riemann(L,R).HLLD(), expected, 1e-10, 1e-10);
+        expect_close(Riemann(L,R).HLLD(), expected);
     #endif
-        expect_close(Riemann(L,R).HLLE(), expected, 1e-10, 1e-10);
+        expect_close(Riemann(L,R).HLLE(), expected);
     }
 
     {
@@ -132,13 +132,13 @@ void DRAGON_Test::verify_hll_supersonic_upwind_transverse() {
 
         ConservativeState expected = ConservativeState(R).flux(R.v);
 
-        expect_close(Riemann(L,R).exact().flux(), expected, 1e-10, 1e-10);
-        expect_close(Riemann(L,R).HLL(),          expected, 1e-10, 1e-10);
-        expect_close(Riemann(L,R).HLLC(),         expected, 1e-10, 1e-10);
+        expect_close(Riemann(L,R).exact().flux(), expected);
+        expect_close(Riemann(L,R).HLL(),          expected);
+        expect_close(Riemann(L,R).HLLC(),         expected);
     #ifdef MHD
-        expect_close(Riemann(L,R).HLLD(), expected, 1e-10, 1e-10);
+        expect_close(Riemann(L,R).HLLD(), expected);
     #endif
-        expect_close(Riemann(L,R).HLLE(), expected, 1e-10, 1e-10);
+        expect_close(Riemann(L,R).HLLE(), expected);
     }
 }
 void DRAGON_Test::verify_hll_symmetry() {
@@ -187,7 +187,7 @@ void DRAGON_Test::verify_hlld_equal_state_nonzero_b() {
     Riemann problem(W, W);
     ConservativeState F = problem.HLLD();
 
-    expect_close(F, expected, 1e-10, 1e-10);
+    expect_close(F, expected);
     expect_close(problem.L, W);
     expect_close(problem.R, W);
     expect_finite(F);
@@ -199,14 +199,14 @@ void DRAGON_Test::verify_hlld_supersonic_exterior_regions() {
         PrimitiveState R = make_mhd_state(0.125, 10.0, -0.2, 0.4, 0.1, 0.4, 0.1, -0.5);
         ConservativeState expected = ConservativeState(L).flux(L.v);
 
-        expect_close(Riemann(L,R).HLLD(), expected, 1e-10, 1e-10);
+        expect_close(Riemann(L,R).HLLD(), expected);
     }
     {
         PrimitiveState L = make_mhd_state(1.0,   -10.0, 0.5, -0.3, 1.0, 0.4, -0.3, 0.2);
         PrimitiveState R = make_mhd_state(0.125, -10.0, -0.2, 0.4, 0.1, 0.4, 0.1, -0.5);
         ConservativeState expected = ConservativeState(R).flux(R.v);
 
-        expect_close(Riemann(L,R).HLLD(), expected, 1e-10, 1e-10);
+        expect_close(Riemann(L,R).HLLD(), expected);
     }
 }
 

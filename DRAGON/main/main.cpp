@@ -5,19 +5,66 @@
 #include "Problem.hpp"
 #include "Config.h"
 #include "DragonHoard.hpp"
+#include "CT.hpp"
 #include <iostream>
 #include <chrono>
 
 #ifndef TESTMODE
 
 
-static void verify_dir(){
-    try{
-        DRAGONHOARD::verifyOutputDirectory();
-    } catch (std::exception& e){
-        std::cout<<e.what()<<std::endl;
-        throw e;
+
+//MARK: Problem initialization
+static void init1D(Grid1D& grid){
+    const int nx = grid.getSize();
+    const double dx = grid.dx;
+    for(int i=0; i<nx; i++){
+        grid[i] = Problem::initialFluidState((i+0.5)*dx, 0, 0);
     }
+    //1D MHD includes B on the cells, no need for special CT array
+}
+static void init2D(Grid2D& grid){
+    const int nx = grid.getSizeX(), ny = grid.getSizeY();
+    const double dx = grid.dx, dy = grid.dy;
+    for(int i=0; i<nx; i++){
+        for(int j=0; j<ny; j++){
+            grid[i,j] = Problem::initialFluidState((i+0.5)*dx, (j+0.5)*dy, 0);
+        }
+    }
+    #ifdef MHD
+    ExtendedArray2D<vec3> A(nx+1, ny+1, 0);
+    for(int i=0; i<=nx; i++){
+        for(int j=0; j<=ny; j++){
+            grid._B()[i,j] = {0,0,0};
+            A[i,j] = Problem::initialMagneticPotential(i*dx, j*dy, 0);
+        }
+    }
+    CT::Faraday(A, grid._B(), -1/dx, -1/dy, 0);
+    grid.initialize_B_fields();
+    #endif
+}
+static void init3D(Grid3D& grid){
+    const int nx = grid.getSizeX(), ny = grid.getSizeY(), nz = grid.getSizeZ();
+    const double dx = grid.dx, dy = grid.dy, dz = grid.dz;
+    for(int i=0; i<nx; i++){
+        for(int j=0; j<ny; j++){
+            for(int k=0; k<nz; k++){
+                grid[i,j,k] = Problem::initialFluidState((i+0.5)*dx, (j+0.5)*dy, (k+0.5)*dz);
+            }
+        }
+    }
+    #ifdef MHD
+    ExtendedArray3D<vec3> A(nx+1, ny+1, nz+1, 0);
+    for(int i=0; i<=nx; i++){
+        for(int j=0; j<=ny; j++){
+            for(int k=0; k<=nz; k++){
+                grid._B()[i,j,k] = {0,0,0};
+                A[i,j,k] = Problem::initialMagneticPotential(i*dx, j*dy, k*dz);
+            }
+        }
+    }
+    CT::Faraday(A, grid._B(), -1/dx, -1/dy, -1/dz, 0);
+    grid.initialize_B_fields();
+    #endif
 }
 static void load(Grid& problem, double& time, int& cycle){
     #ifdef RESTART_FROM_FILE
@@ -31,12 +78,31 @@ static void load(Grid& problem, double& time, int& cycle){
         }
     }
     #endif
-    Problem::initializeProblem(problem);
+    Grid1D* grid1D = dynamic_cast<Grid1D*>(&problem);
+    Grid2D* grid2D = dynamic_cast<Grid2D*>(&problem);
+    Grid3D* grid3D = dynamic_cast<Grid3D*>(&problem);
+    if(grid1D) init1D(*grid1D);
+    else if(grid2D) init2D(*grid2D);
+    else if(grid3D) init3D(*grid3D);
+    Problem::completeProblemInit(problem);
+
     DRAGONHOARD::writeToFile(problem, 0, 0, DRAGONHOARD::output_base_name + "_" + DRAGONHOARD::cycle_string(0));
 
 }
- 
 
+
+
+//MARK: File I/O
+static void verify_dir(){
+    try{
+        DRAGONHOARD::verifyOutputDirectory();
+    } catch (std::exception& e){
+        std::cout<<e.what()<<std::endl;
+        throw e;
+    }
+}
+ 
+//MARK: Cycle output
 static void cycle_output(std::string cycleStr, double clock_time){
     //Cycle Number
     std::cout<<"Frame "<<cycleStr<<" computed, ";
@@ -47,6 +113,7 @@ static void cycle_output(std::string cycleStr, double clock_time){
 }
 
 
+//MARK: main
 int main(int argc, const char * argv[]) {
     verify_dir();
     

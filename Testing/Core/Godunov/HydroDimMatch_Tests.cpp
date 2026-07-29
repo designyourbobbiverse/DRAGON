@@ -51,7 +51,7 @@ void DRAGON_Test::verify_2D_X_match_1D(bool split){
         
     for (int i = 0; i < grid.getSizeX(); i++){
         for (int j = 0; j < grid.getSizeY(); j++){
-            expect_close(grid[i,j], expected[i], 1e-8);
+            expect_close(grid[i,j], expected[i]);
         }
     }
 
@@ -94,7 +94,7 @@ void DRAGON_Test::verify_2D_Y_match_1D(bool split){
         
     for (int j = 0; j < grid.getSizeY(); j++){
         for (int i = 0; i < grid.getSizeX(); i++){
-            expect_close(grid[i,j], expected[j].swappedXY(), 1e-8);
+            expect_close(grid[i,j], expected[j].swappedXY());
         }
     }
 
@@ -153,7 +153,7 @@ void DRAGON_Test::verify_3D_X_match_1D(bool split){
     for (int i = 0; i < grid.getSizeX(); i++){
         for (int j = 0; j < grid.getSizeY(); j++){
             for (int k = 0; k < grid.getSizeZ(); k++){
-                expect_close(grid[i,j,k], expected[i], 1e-8);
+                expect_close(grid[i,j,k], expected[i]);
             }
         }
     }
@@ -211,7 +211,7 @@ void DRAGON_Test::verify_3D_Y_match_1D(bool split){
     for (int i = 0; i < grid.getSizeX(); i++){
         for (int j = 0; j < grid.getSizeY(); j++){
             for (int k = 0; k < grid.getSizeZ(); k++){
-                expect_close(grid[i,j,k], expected[j].swappedXY(), 1e-8);
+                expect_close(grid[i,j,k], expected[j].swappedXY(), 1e-14);
             }
         }
     }
@@ -269,7 +269,7 @@ void DRAGON_Test::verify_3D_Z_match_1D(bool split){
     for (int i = 0; i < grid.getSizeX(); i++){
         for (int j = 0; j < grid.getSizeY(); j++){
             for (int k = 0; k < grid.getSizeZ(); k++){
-                expect_close(grid[i,j,k], expected[k].swappedXZ(),1e-8);
+                expect_close(grid[i,j,k], expected[k].swappedXZ(), 1e-14);
             }
         }
     }

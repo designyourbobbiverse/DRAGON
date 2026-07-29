@@ -1,7 +1,7 @@
 //
 //
 //  Config.h
-//  DRAGON/Examples
+//  DRAGON/Examples/SphericalBlast
 //
 //  Created by Bobbie Markwick on 7/07/2026.
 //
@@ -24,20 +24,19 @@
         //This constant is used only in the execution of the RIEMANN_VERIFY_FALLBACK procedure
     //Indented and below generally priority over Indented and above (e.g. ExactRiemann_MaxIters is a parameter for RIEMANN_EXACT, not one of the options for RIEMANN_HLL [which doesn't even have options])
 
-
 namespace CONFIG{
 //MARK: Top level Options
-//These are hydro simulations, so no MHD
-//#define MHD //Determines whether the simulation is run using MHD or Pure Hydrodynamics
+#define MHD //Determines whether the simulation is run using MHD or Pure Hydrodynamics
         #define CT_CONSV_TOTAL_E 0 //Enforces total energy conservation, but more prone to numerical issues
         #define CT_CONSV_THERMAL 1 //Keeps thermal pressure unchanged by CT update. Violates strict energy conservation in exchange for being less prone to numerical issues
         #define CT_CONSV_BETA_GATED 2 //CT_CONSV_THERMAL if beta<CT_Energy_Beta, otherwise CT_CONSV_TOTAL_E
             constexpr double CT_Energy_Beta = 0.1;
-    #define CT_ENERGY_CONSV CT_CONSV_TOTAL_E
+    #define CT_ENERGY_CONSV CT_CONSV_BETA_GATED
 
 #define DIMENSION_UNSPLIT //Use an Unsplit advancement scheme for multidimensional flows
     #define CTU //Corner Transport Upwind.  Colella (1990). https://doi.org/10.1016/0021-9991(90)90233-Q
 
+namespace CONFIG{
 //MARK: Riemann Solver
 //DRAGON offers several different choices of Riemann Solver in Hydrodynamic mode, and choice of HLL/D/E in MHD
     #define RIEMANN_EXACT 0 //Produces an exact solution to the Hydrodynamic Euler Equations using an iterative procedure
@@ -52,7 +51,7 @@ namespace CONFIG{
     #define RIEMANN_HLLX 5 //HLLC for Pure Hydro, HLLD for MHD
     #define RIEMANN_ROE 6 // Roe (1981). https://doi.org/10.1016/0021-9991(81)90128-5
         #define Harten_Hyman //Entropy Fix: Harten and Hyman (1983). https://doi.org/10.1016/0021-9991(83)90066-9
-#define RIEMANN_DEFAULT RIEMANN_HLLX
+#define RIEMANN_DEFAULT RIEMANN_HLLD
 
 //When using an approximate solver, verify that L-F*dt/dx and R+F*dt/dx are physical
 //Check if physical. If not, recalculate tries Exact (Hydro only). Failing that, forces a restart
@@ -64,8 +63,8 @@ namespace CONFIG{
 
 //MARK: Time Control
 
-constexpr double final_time = 0.1;
-constexpr double dt = 0.1;
+constexpr double final_time = 1.0;
+constexpr double dt = 0.05;
 
 constexpr double CFL_coeff = 0.3; //The Coefficient used together with the above to determine the maximum timestep size
 constexpr double Timestep_Tolerance = 1e-14; //Timesteps smaller than this are treated as zero
@@ -86,9 +85,9 @@ constexpr double Timestep_Tolerance = 1e-14; //Timesteps smaller than this are t
         #define LIMITER_VANLEER 2 //Smooth, less diffusive than minmod with gentle behavior across smooth gradients
         #define LIMITER_SUPERBEE 3 //Very compressive, sharply preserves discontinuities but can be aggressive
         #define LIMITER_VANALBADA 4 //Smooth, reduces clipping near smooth extrema while remaining shock-safe
-    #define MUSCL_DEFAULT_LIMITER LIMITER_MC
+    #define MUSCL_DEFAULT_LIMITER LIMITER_MINMOD
 
-//MARK: Performance
+//MARK: Grid Operation
 
 constexpr int core_count = 16; //Helps the Root level grid decide how many children to split into
 

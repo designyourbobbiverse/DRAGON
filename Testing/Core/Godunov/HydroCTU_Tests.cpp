@@ -58,9 +58,9 @@ void DRAGON_Test::verify_ctu_diagonal_contact_2D() {
     // d/dt(x-y) = v.x - v.y = 0
     for (int i = 0; i < nx; ++i) {
         for (int j = 0; j < ny; ++j) {
-            assert(approx(grid[i,j].v.x, vx, 1e-10, 1e-10));
-            assert(approx(grid[i,j].v.y, vy, 1e-10, 1e-10));
-            assert(approx(grid[i,j].p,  p,  1e-10, 1e-10));
+            assert(approx(grid[i,j].v.x, vx, 1e-14));
+            assert(approx(grid[i,j].v.y, vy, 1e-14));
+            assert(approx(grid[i,j].p,  p,  1e-14));
         }
     }
 }
@@ -113,7 +113,7 @@ void DRAGON_Test::verify_ctu_diagonal_contact_3D() {
     }
 }
 //MARK: Blast Helpers
-constexpr double blast_sym_tol = 1e-6;
+constexpr double blast_sym_tol = 1e-14;
 static void expect_blast_mirror_x(const PrimitiveState& L, const PrimitiveState& R, double rel = blast_sym_tol, double abs = blast_sym_tol) {
     assert(approx(L.rho, R.rho, rel, abs));
     assert(approx(L.p, R.p, rel, abs));

@@ -18,46 +18,53 @@ constexpr double E_blast = 1.0;
 constexpr int n = 512;
 constexpr double r0 = 12.0/n;
 
+double p_blast = (_gamma - 1.0) * E_blast;
+
 
 Grid& Problem::makeProblem(){
     //Construct your grid object. Don't worry about initial setup, you'll do that later
     auto grid = new MyGrid(n,n, 1.0/n,1.0/n);
     grid->boundary = Boundary::Outflow();
+    
+    //Compute blast area
+    int blast_cells = 0;
+    for(int i=0; i<n;i++){
+        for(int j=0; j<n; j++){
+            double x = (i + 0.5)/n  - 0.5;
+            double y = (j + 0.5)/n - 0.5;
+            double r = sqrt(x*x + y*y);
+            if(r < r0) blast_cells++;
+        }
+    }
+    p_blast *= (n*n) / blast_cells;
+    
     return *grid;
 }
 
-void Problem::initializeProblem(Grid& problem){
-    MyGrid& grid = *dynamic_cast<MyGrid*>(&problem);
 
+PrimitiveState Problem::initialFluidState(double x, double y, double z){
+    PrimitiveState w;
+    //Initialize the fluid state w at point (x,y,z).
+        //(dx/2,dy/2) corresponds to the [0,0] cell. z will always be zero
 
-    //Set up the ambient grid and calculate the size of the blast
-    double blast_area = 0;
-    for(int i=0; i<n;i++){
-        for(int j=0; j<n; j++){
-            double x = (i + 0.5)/n  - 0.5;
-            double y = (j + 0.5)/n - 0.5;
-            double r = sqrt(x*x + y*y);
-
-            grid[i,j].rho = rho;
-            grid[i,j].v = {0,0,0};
-            grid[i,j].p = p_amb;
-            
-            if(r < r0) blast_area += 1.0/(n*n);
-        }
-    }
-    //Inject the blast
-    const double p_blast = (_gamma - 1.0) * E_blast / blast_area;
-
-    for(int i=0; i<n;i++){
-        for(int j=0; j<n; j++){
-            double x = (i + 0.5)/n  - 0.5;
-            double y = (j + 0.5)/n - 0.5;
-            double r = sqrt(x*x + y*y);
-
-            if(r < r0) grid[i,j].p += p_blast ;
-        }
-    }
+    w.rho = rho;
+    w.p = p_amb;
     
+    double r = sqrt(x*x + y*y);
+    if(r < r0) w.p += p_blast;
+    
+    return w;
+}
+vec3 Problem::initialMagneticPotential(double x, double y, double z){
+    vec3 A;
+    //This function is ignored in pure Hydro
+    return A;
+}
+
+
+void Problem::completeProblemInit(Grid& problem){
+    MyGrid& grid = *dynamic_cast<MyGrid*>(&problem);
+    //Here you can do any initialization not covered by initialFluidState and initialMagneticPotential
     
 }
 

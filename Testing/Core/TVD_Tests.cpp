@@ -203,8 +203,8 @@ void DRAGON_Test::verify_tvd_muscl_nonzero_dt_predictor() {
     PrimitiveState expectedL = UL - correction;
     PrimitiveState expectedR = UR - correction;
 
-    expect_close(L, expectedL, 1e-12, 1e-12);
-    expect_close(R, expectedR, 1e-12, 1e-12);
+    expect_close(L, expectedL);
+    expect_close(R, expectedR);
     
     CONFIG::limiter_choice = prev; //Be a good citizen
 }

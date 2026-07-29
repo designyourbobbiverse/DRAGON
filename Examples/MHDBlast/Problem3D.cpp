@@ -1,51 +1,66 @@
 //
-//  Problem2D.cpp
-//  DRAGON/Examples/Diagonal
+//  Problem3D.cpp
+//  DRAGON/Examples/MHDBlast
 //
-//  Created by Bobbie Markwick on 09/07/2026.
+//  Created by Bobbie Markwick on 8/07/2026.
 //
 
 #include "Problem.hpp"
 #include "DistGrid.hpp"
 #include <cmath>
-#include <iostream>
+#include "Constants.h"
 
-typedef DistGrid2D MyGrid;//Choose the dimension of your grid here
+typedef DistGrid3D MyGrid;//Choose the dimension of your grid here
 
-constexpr double rho0 = 1.0;
-constexpr double rho1 = 0.1;
-constexpr double p_amb = 1.0;
-constexpr int n = 512;
+constexpr double rho = 1.0;
+
+constexpr double p_amb = 1;
+constexpr double p_blast = 100;
+constexpr double r0 = 0.125;
+
+const double B0 = 10 * sq4pi;
+
+constexpr bool diagonal = true;
+
+constexpr int n = 256;
+
 
 
 Grid& Problem::makeProblem(){
     //Construct your grid object. Don't worry about initial setup, you'll do that later
-    auto grid = new MyGrid(n,n, 1.0/n,1.0/n);
-    grid->boundary = Boundary::Periodic();
+    auto grid = new MyGrid(n,n,n, 1.0/n,1.0/n,1.0/n);
+    grid->boundary = Boundary::Outflow();
+    
     return *grid;
 }
 
+
 PrimitiveState Problem::initialFluidState(double x, double y, double z){
     //Initialize the fluid state w at point (x,y,z).
-        //dx/2, dy/2 corresponds to the [0,0] cell. z will always be zero.
+        //(dx/2,dy/2,dz/2) corresponds to the [0,0,0] cell. As such, we need to convert
+    x -= 0.5; y-=0.5; z-=0.5;
+    double r = sqrt(x*x + y*y + z*z);
+
     PrimitiveState w;
-    w.rho =  rho0 + rho1 * sin(2*M_PI*(x+y));
-    w.p = p_amb;
-    w.v = {1,1,0};
+    w.rho = rho;
+    w.v = {0,0,0};
+    w.p = r < r0 ? p_blast : p_amb;
     return w;
 }
 vec3 Problem::initialMagneticPotential(double x, double y, double z){
-    //This function is ignored in Pure Hydro
-    return {0,0,0};
+    //Initialize the vector potential at point (x,y,z)
+        // (0,0,0)corresponds to the [0,0,0] cell. As such, we need to convert
+        x -= 0.5; y-=0.5; z-=0.5;
+    //Magnetic Fields will be initialized from this potential to ensure div B = 0
+    return  diagonal ? vec3{0, B0 * (x-z)/sqrt(2) ,0} : vec3{0, B0 * x, 0 };
 }
 
 
 void Problem::completeProblemInit(Grid& problem){
     MyGrid& grid = *dynamic_cast<MyGrid*>(&problem);
     //Here you can do any initialization not covered by initialFluidState and initialMagneticPotential
-
+    
 }
-
 
 void Problem::beforeCycle(Grid &problem, int cycle, double t){
     MyGrid& grid = *dynamic_cast<MyGrid*>(&problem);
@@ -68,27 +83,4 @@ void Problem::problemComplete(Grid& problem, double t){
     MyGrid& grid = *dynamic_cast<MyGrid*>(&problem);
 
     //This is called only after the final time is reached.
-    double L1 = 0;
-    double L2 = 0;
-    double Linf = 0;
-    
-    for(int i=0; i<n;i++){
-        for(int j=0; j<n; j++){
-            double x = (i + 0.5)/n;
-            double y = (j + 0.5)/n;
-            double rho_exact = rho0 + rho1 * sin(2.0 * M_PI * (x + y - 2 * t));
-
-            double err = fabs(grid[i,j].rho - rho_exact);
-            if(err > Linf) Linf = err;
-            L1 += err ;
-            L2 += err*err;
-            
-        }
-    }
-    L2 = sqrt(L2 / (n*n));
-    
-    std::cout<<"L1 error: "<<L1 / (n*n)<<"\n";
-    std::cout<<"L2 error: "<<L2<<"\n";
-    std::cout<<"Max error: "<<Linf<<"\n";
-
 }

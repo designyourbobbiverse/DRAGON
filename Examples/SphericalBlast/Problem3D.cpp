@@ -21,52 +21,51 @@ constexpr double r0 = 12.0/n;
 
 Grid& Problem::makeProblem(){
     //Construct your grid object. Don't worry about initial setup, you'll do that later
-    auto grid = new MyGrid(n,n,n, 1.0/n, 1.0/n,1.0/n);
+    auto grid = new MyGrid(n,n, 1.0/n,1.0/n);
     grid->boundary = Boundary::Outflow();
+    
+    //Compute blast area
+    int blast_cells = 0;
+    for(int i=0; i<n;i++){
+        for(int j=0; j<n; j++){
+            double x = (i + 0.5)/n  - 0.5;
+            double y = (j + 0.5)/n - 0.5;
+            double z = (k + 0.5)/n - 0.5;
+            double r = sqrt(x*x + y*y + z*z);
+            if(r < r0) blast_cells++;
+        }
+    }
+    p_blast *= (n*n*n) / blast_cells;
+    
     return *grid;
 }
 
-void Problem::initializeProblem(Grid& problem){
-    MyGrid& grid = *dynamic_cast<MyGrid*>(&problem);
 
+PrimitiveState Problem::initialFluidState(double x, double y, double z){
+    PrimitiveState w;
+    //Initialize the fluid state w at point (x,y,z).
+        //(dx/2,dy/2,dz/2) corresponds to the [0,0,0] cell
 
-    //Set up the ambient grid and calculate the size of the blast
-    double blast_vol = 0;
-    for(int i=0; i<n;i++){
-        for(int j=0; j<n; j++){
-            for(int k=0; k<n; k++){
-                double x = (i + 0.5)/n  - 0.5;
-                double y = (j + 0.5)/n - 0.5;
-                double z = (k + 0.5)/n - 0.5;
-                double r = sqrt(x*x + y*y + z*z);
-                
-                grid[i,j,k].rho = rho;
-                grid[i,j,k].v = {0,0,0};
-                grid[i,j,k].p = p_amb;
-                
-                if(r < r0) blast_vol += 1.0/(n*n*n);
-            }
-        }
-    }
-    //Inject the blast
-    const double p_blast = (_gamma - 1.0) * E_blast / blast_vol;
-
-    for(int i=0; i<n;i++){
-        for(int j=0; j<n; j++){
-            for(int k=0; k<n; k++){
-                double x = (i + 0.5)/n  - 0.5;
-                double y = (j + 0.5)/n - 0.5;
-                double z = (k + 0.5)/n - 0.5;
-                double r = sqrt(x*x + y*y + z*z);
-                
-                if(r < r0) grid[i,j,k].p += p_blast ;
-            }
-        }
-    }
+    w.rho = rho;
+    w.p = p_amb;
     
+    double r = sqrt(x*x + y*y + z*z);
+    if(r < r0) w.p += p_blast;
     
+    return w;
+}
+vec3 Problem::initialMagneticPotential(double x, double y, double z){
+    vec3 A;
+    //This function is ignored in pure Hydro
+    return A;
 }
 
+
+void Problem::completeProblemInit(Grid& problem){
+    MyGrid& grid = *dynamic_cast<MyGrid*>(&problem);
+    //Here you can do any initialization not covered by initialFluidState and initialMagneticPotential
+    
+}
 
 void Problem::beforeCycle(Grid &problem, int cycle, double t){
     MyGrid& grid = *dynamic_cast<MyGrid*>(&problem);

@@ -9,6 +9,7 @@
 #include "Grid.hpp"
 #include "CFL.hpp"
 #include <iostream>
+#ifdef MHD
 
 using namespace DRAGON_Test;
 using namespace Boundary;
@@ -28,7 +29,6 @@ constexpr double p_R = 1.0;
 constexpr int nx = 32;
 constexpr int ny = 8;
 constexpr double dx = 1.0/nx;
-
 
 void DRAGON_Test::verify_godunov_2D_MHD_Match(bool output){
     int prev = CONFIG::riemann_choice;
@@ -250,3 +250,4 @@ void DRAGON_Test::verify_3D_Z_match_1D_MHD(){
         }
     }
 }
+#endif

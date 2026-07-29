@@ -25,26 +25,25 @@ Grid& Problem::makeProblem(){
     return *grid;
 }
 
-void Problem::initializeProblem(Grid& problem){
+PrimitiveState Problem::initialFluidState(double x, double y, double z){
+    //Initialize the fluid state w at point (x,y,z).
+        //(dx/2, dy/2, dz/2) corresponds to the [0,0,0] cell
+    PrimitiveState w;
+    w.rho =  rho0 + rho1 * sin(2*M_PI*(x+y+z));
+    w.p = p_amb;
+    w.v = {1,1,1};
+    return w;
+}
+vec3 Problem::initialMagneticPotential(double x, double y, double z){
+    //This function is ignored in Pure Hydro
+    return {0,0,0};
+}
+
+
+void Problem::completeProblemInit(Grid& problem){
     MyGrid& grid = *dynamic_cast<MyGrid*>(&problem);
+    //Here you can do any initialization not covered by initialFluidState and initialMagneticPotential
 
-
-    //Set up the ambient grid and calculate the size of the blast
-    for(int i=0; i<n;i++){
-        for(int j=0; j<n; j++){
-            for(int k=0; k<n; k++){
-                double x = (i + 0.5)/n;
-                double y = (j + 0.5)/n;
-                double z = (k + 0.5)/n;
-
-                grid[i,j,k].rho = rho0 + rho1 * sin(2*M_PI*(x+y+z));
-                grid[i,j,k].v = {1,1,1};
-                grid[i,j,k].p = p_amb;
-            }
-        }
-    }
-    
-    
 }
 
 
