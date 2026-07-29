@@ -1,8 +1,8 @@
 //
 //  Problem2D.cpp
-//  DRAGON/Examples/SphericalBlast
+//  DRAGON/Examples/MHDBlast
 //
-//  Created by Bobbie Markwick on 7/07/2026.
+//  Created by Bobbie Markwick on 8/07/2026.
 //
 
 #include "Problem.hpp"
@@ -13,12 +13,17 @@
 typedef DistGrid2D MyGrid;//Choose the dimension of your grid here
 
 constexpr double rho = 1.0;
-constexpr double p_amb = 1e-5;
-constexpr double E_blast = 1.0;
-constexpr int n = 512;
-constexpr double r0 = 12.0/n;
 
-double p_blast = (_gamma - 1.0) * E_blast;
+constexpr double p_amb = 1;
+constexpr double p_blast = 100;
+constexpr double r0 = 0.125;
+
+const double B0 = 10 * sq4pi;
+
+constexpr bool diagonal = false;
+
+constexpr int n = 256;
+
 
 
 Grid& Problem::makeProblem(){
@@ -26,39 +31,28 @@ Grid& Problem::makeProblem(){
     auto grid = new MyGrid(n,n, 1.0/n,1.0/n);
     grid->boundary = Boundary::Outflow();
     
-    //Compute blast area
-    int blast_cells = 0;
-    for(int i=0; i<n;i++){
-        for(int j=0; j<n; j++){
-            double x = (i + 0.5)/n  - 0.5;
-            double y = (j + 0.5)/n - 0.5;
-            double r = sqrt(x*x + y*y);
-            if(r < r0) blast_cells++;
-        }
-    }
-    p_blast *= (n*n) / blast_cells;
-    
     return *grid;
 }
 
 
 PrimitiveState Problem::initialFluidState(double x, double y, double z){
-    PrimitiveState w;
     //Initialize the fluid state w at point (x,y,z).
-        //(dx/2,dy/2) corresponds to the [0,0] cell. z will always be zero
-
-    w.rho = rho;
-    w.p = p_amb;
-    
+        //(dx/2,dy/2) corresponds to the [0,0] cell. As such, we need to convert
+    x -= 0.5; y-=0.5;
     double r = sqrt(x*x + y*y);
-    if(r < r0) w.p += p_blast;
-    
+
+    PrimitiveState w;
+    w.rho = rho;
+    w.v = {0,0,0};
+    w.p = r < r0 ? p_blast : p_amb;
     return w;
 }
 vec3 Problem::initialMagneticPotential(double x, double y, double z){
-    vec3 A;
-    //This function is ignored in pure Hydro
-    return A;
+    //Initialize the vector potential at point (x,y,z)
+        // (0,0) corresponds to the [0,0] corner. As such, we need to convert
+        x -= 0.5; y-=0.5;
+    //Magnetic Fields will be initialized from this potential to ensure div B = 0
+    return  diagonal ? vec3{0,0,B0 * (y-x)/sqrt(2)} : vec3{0, 0, -B0 * x};
 }
 
 
@@ -67,7 +61,6 @@ void Problem::completeProblemInit(Grid& problem){
     //Here you can do any initialization not covered by initialFluidState and initialMagneticPotential
     
 }
-
 
 void Problem::beforeCycle(Grid &problem, int cycle, double t){
     MyGrid& grid = *dynamic_cast<MyGrid*>(&problem);
