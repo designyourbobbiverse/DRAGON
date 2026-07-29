@@ -20,9 +20,9 @@ constexpr double r0 = 0.125;
 
 const double B0 = 10 * sq4pi;
 
-constexpr bool diagonal = false;
+constexpr bool diagonal = true;
 
-constexpr int n = 256;
+constexpr int n = 512;
 
 
 
