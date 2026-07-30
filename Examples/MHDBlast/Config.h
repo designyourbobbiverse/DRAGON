@@ -36,7 +36,6 @@ namespace CONFIG{
 #define DIMENSION_UNSPLIT //Use an Unsplit advancement scheme for multidimensional flows
     #define CTU //Corner Transport Upwind.  Colella (1990). https://doi.org/10.1016/0021-9991(90)90233-Q
 
-namespace CONFIG{
 //MARK: Riemann Solver
 //DRAGON offers several different choices of Riemann Solver in Hydrodynamic mode, and choice of HLL/D/E in MHD
     #define RIEMANN_EXACT 0 //Produces an exact solution to the Hydrodynamic Euler Equations using an iterative procedure
