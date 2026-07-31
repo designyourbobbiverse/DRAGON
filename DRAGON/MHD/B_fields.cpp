@@ -10,6 +10,8 @@
 
 
 #include "CT.hpp"
+
+#include "Grid.hpp"
 #include "Config.h"
 #include "DragonWing.hpp"
 #include <cmath>

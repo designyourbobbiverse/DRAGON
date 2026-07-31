@@ -7,16 +7,8 @@
 #ifndef __CT_hpp__
 #define __CT_hpp__
 
-#include "Grid.hpp"
+#include "ArrayTypes.hpp"
 #include "Config.h"
-
-typedef ExtendedArray2D<PrimitiveState> FluidArray2D;
-typedef ExtendedArray2D<ConservativeState> FluxArray2D;
-typedef ExtendedArray3D<PrimitiveState> FluidArray3D;
-typedef ExtendedArray3D<ConservativeState> FluxArray3D;
-
-typedef ExtendedArray2D<vec3> MagneticArray2D;
-typedef ExtendedArray3D<vec3> MagneticArray3D;
 
 #ifdef MHD
 namespace CT {
