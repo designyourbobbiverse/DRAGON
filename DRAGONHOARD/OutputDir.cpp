@@ -48,7 +48,9 @@ static int extractNumber(const std::string& s) {
 
 std::string DRAGONHOARD::restartFileName(){
     std::string filename = "";
+    #if RESTART_FRAME < 0
     int max_frame_num = -1;
+    #endif
     
     const std::filesystem::path& dir = DRAGONHOARD::output_dir;
     for (const auto& entry : std::filesystem::directory_iterator(dir)) {
