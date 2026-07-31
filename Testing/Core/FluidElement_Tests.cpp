@@ -6,9 +6,12 @@
 //
 
 #include "Testing.hpp"
-#include "Constants.h"
-#include <math.h>
-#include <iostream>
+#include "FluidElement.hpp"
+
+#include <cmath>        //For std::abs, sqrt, pow
+#include <algorithm>    //For std::max
+#include "Constants.h"  //For gamma
+#include <iostream>     //For std::cout
 
 using namespace DRAGON_Test;
 
@@ -78,7 +81,7 @@ PrimitiveState DRAGON_Test::make_mhd_state(double rho, double vx,double vy,doubl
 
 //MARK: Close enough
 bool DRAGON_Test::approx(double a, double b, double rel, double abs) {
-    return fabs(a - b) <= abs + rel * fmax(fabs(a), fabs(b));
+    return std::abs(a - b) <= abs + rel * std::max(std::abs(a), std::abs(b));
 }
 void DRAGON_Test::expect_close(const vec3& a, const vec3& b, double rel, double abs) {
     assert(approx(a.x,  b.x,  rel, abs));
@@ -204,12 +207,12 @@ void DRAGON_Test::verify_enthalpy(){
 void DRAGON_Test::verify_wavespeeds(){
     PrimitiveState W = make_state(2.0, 3.0, 4.0, 0.0, 10.0);
     
-    assert(approx(W.cs(), sqrt(_gamma * 5.0)));
+    assert(approx(W.cs(), std::sqrt(_gamma * 5.0)));
 #ifdef MHD
     W.B = {1,2,3};
-    assert(approx(W.c_alfven(), sqrt(14/(8*M_PI)) ));
+    assert(approx(W.c_alfven(), std::sqrt(14/(8*M_PI)) ));
     double c2 = _gamma * 5.0, a2 = 14/(8*M_PI), ax2 = 1/(8*M_PI) ;
-    assert(approx(W.c_fast_max(), sqrt((c2+a2)/2 + sqrt(pow(c2+a2,2)/4 - ax2*c2))  ));
+    assert(approx(W.c_fast_max(), std::sqrt((c2+a2)/2 + std::sqrt(std::pow(c2+a2,2)/4 - ax2*c2))  ));
 
 #endif
     

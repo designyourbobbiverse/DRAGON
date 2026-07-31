@@ -6,15 +6,19 @@
 //
 
 #include "DragonWing.hpp"
-#include "DRAGONWING_Config.hpp"
-#include "Grid.hpp"
 
+#include "DRAGONWING_Config.hpp"
 #ifndef MULTITHREAD_UNAVAILABLE
-#include <thread>
-#include <mutex>
-#include <condition_variable>
-#include <iostream>
-#include <deque>
+
+#include <pthread.h>          //Execute tasks in parallel
+#include <mutex>              //For synchronisation
+#include <condition_variable> //For synchronisation
+
+#include "Grid.hpp" //For Grid.advance()
+#include <deque>    //For thread tracking
+#include <iostream> //For std::cerr
+#include <string>   //For error messages
+
 
 namespace {
     struct ThreadArgs{
@@ -149,6 +153,8 @@ bool DRAGONWING::waitForCheckpoint2(){
 
 #else
 //MARK: Single Thread Alternatives
+#include "Grid.hpp" //For Grid.advance()
+#include <string> //For error messages
 
 void* DRAGONWING::launchParallel(Grid* grid, double dt){
     grid->advance(dt,false);

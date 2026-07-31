@@ -9,11 +9,12 @@
 #ifndef Godunov_hpp
 #define Godunov_hpp
 
-#include "FluidElement.hpp"
 #include "ExtendedArray.hpp"
+#include "FluidElement.hpp"
 #include "Boundary.hpp"
+
 #include "Config.h"
-#include <stdexcept>
+#include <exception> //For on_step_fail
 
 class Grid{
 public:

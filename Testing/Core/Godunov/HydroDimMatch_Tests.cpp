@@ -7,8 +7,8 @@
 
 #include "Testing.hpp"
 #include "Grid.hpp"
-#include "CFL.hpp"
-#include <iostream>
+
+#include <iostream> //For std::cout
 
 using namespace DRAGON_Test;
 using namespace Boundary;

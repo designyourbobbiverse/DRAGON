@@ -6,13 +6,13 @@
 //
 
 #include "DragonHoard.hpp"
-#include "DRAGONHOARD_Config.h"
-#include "HDF5_Attrs.hpp"
+
 #include <filesystem>
-#include <vector>
-#include <cctype>
 
-
+#include "DRAGONHOARD_Config.h" //For output_dir, RESTART_FRAME
+#include "HDF5_Attrs.hpp" //For file_ext
+#include <string> //For std::stoi
+#include <cctype> //For std::isdigit
 
 //MARK: Verify the output directory exists
 void DRAGONHOARD::verifyOutputDirectory(){

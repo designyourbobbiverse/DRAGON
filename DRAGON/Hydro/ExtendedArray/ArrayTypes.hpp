@@ -1,6 +1,6 @@
 //
 //  ArrayTypes.hpp
-//  DRAGON/Hydro/Godunov
+//  DRAGON/Hydro/ExtendedArray
 //
 //  Created by Bobbie Markwick on 31/07/2026.
 //

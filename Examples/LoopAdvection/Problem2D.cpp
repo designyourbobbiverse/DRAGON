@@ -7,9 +7,10 @@
 
 #include "Problem.hpp"
 #include "DistGrid.hpp"
-#include "DragonHoard.hpp"
-#include <cmath>
-#include <iostream>
+
+#include <cmath>            //For std::sqrt
+#include "DragonHoard.hpp" //For loading initial data to compare to final
+#include <iostream>        //For error output
 
 typedef DistGrid2D MyGrid;//Choose the dimension of your grid here
 
@@ -46,11 +47,10 @@ vec3 Problem::initialMagneticPotential(double x, double y, double z){
     //Initialize the vector potential at point (x,y,z)
         // (0,0,0) corresponds to the [0,0,0] cell. z will always be zero in 2D
     //As such, we need to adjust them to be center-relative
-    x -= 1.0;
-    y -= 0.5;
+    x -= 1.0; y -= 0.5;
     //Magnetic Fields will be initialized from this potential to ensure div B = 0
-    double r = sqrt(x*x + y*y);
-    double Az = gaussian ? B0*exp(-0.5*pow(r/r0,2)) : B0*fmax(r0-r,0);
+    double r = std::sqrt(x*x + y*y);
+    double Az = gaussian ? B0*exp(-0.5*std::pow(r/r0,2)) : B0*std::max(r0-r,0);
     return {0,0,Az};
 }
 
@@ -98,14 +98,14 @@ void Problem::problemComplete(Grid& problem, double t){
         for(int j=0; j<n/2; j++){
             double B2_expect = expected[i,j].B * expected[i,j].B;
 
-            double err = fabs(grid[i,j].B*grid[i,j].B - B2_expect) / (B0*B0);
+            double err = std::abs(grid[i,j].B*grid[i,j].B - B2_expect) / (B0*B0);
             if(err > Linf) Linf = err;
             L1 += err ;
             L2 += err*err;
             
         }
     }
-    L2 = sqrt(L2 / (n*n));
+    L2 = std::sqrt(L2 / (n*n));
     
     std::cout<<"L1 error: "<<L1 / (n*n)<<"\n";
     std::cout<<"L2 error: "<<L2<<"\n";

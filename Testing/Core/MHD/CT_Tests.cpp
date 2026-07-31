@@ -7,10 +7,10 @@
 
 #include "Testing.hpp"
 #include "CT.hpp"
+
 #include "DistGrid.hpp"
-#include "DragonWing.hpp"
-#include "Constants.h"
-#include "CFL.hpp"
+#include "DragonWing.hpp"   //For resetting after parallelized tests
+#include "Constants.h"      //For M_PI, _1_8pi
 #include <iostream>
 
 #ifdef MHD

@@ -7,7 +7,6 @@
 
 #include "Problem.hpp"
 #include "DistGrid.hpp"
-#include <cmath>
 
 typedef DistGrid1D MyGrid;//Choose the dimension of your grid here
 
@@ -35,7 +34,7 @@ PrimitiveState Problem::initialFluidState(double x, double y, double z){
     return w;
 }
 vec3 Problem::initialMagneticPotential(double x, double y, double z){
-    //This function is ignored in 1D MHD
+    //This function is ignored in pure hydro
     return {0,0,0};
 }
 

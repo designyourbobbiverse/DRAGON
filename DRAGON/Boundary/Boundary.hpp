@@ -10,8 +10,11 @@
 #define Boundary_hpp
 
 #include "GhostFill.hpp"
-#include "FluidElement.hpp"
-#include <memory>
+
+#include <concepts> //For BoundaryElement template
+#include <type_traits> //For BoundaryElement template
+#include <string> //For face initialization
+#include "FluidElement.hpp" //For Boundary::fixed
 
 
 namespace Boundary{
@@ -128,7 +131,8 @@ public:
 
 }
 
-
+//Keep the implmentation of BoundaryList in a separate file
+#define BOUNDARY_LIST_HPP
 #include "BoundaryList.hpp"
 
 

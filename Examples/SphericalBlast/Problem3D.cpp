@@ -7,8 +7,9 @@
 
 #include "Problem.hpp"
 #include "DistGrid.hpp"
-#include <cmath>
-#include "Constants.h"
+
+#include <cmath>        //For std::sqrt
+#include "Constants.h"  //For gamma
 
 typedef DistGrid3D MyGrid;//Choose the dimension of your grid here
 
@@ -31,7 +32,7 @@ Grid& Problem::makeProblem(){
             double x = (i + 0.5)/n  - 0.5;
             double y = (j + 0.5)/n - 0.5;
             double z = (k + 0.5)/n - 0.5;
-            double r = sqrt(x*x + y*y + z*z);
+            double r = std::sqrt(x*x + y*y + z*z);
             if(r < r0) blast_cells++;
         }
     }
@@ -49,7 +50,7 @@ PrimitiveState Problem::initialFluidState(double x, double y, double z){
     w.rho = rho;
     w.p = p_amb;
     
-    double r = sqrt(x*x + y*y + z*z);
+    double r = std::sqrt(x*x + y*y + z*z);
     if(r < r0) w.p += p_blast;
     
     return w;

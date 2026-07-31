@@ -7,9 +7,8 @@
 
 #include "Problem.hpp"
 #include "DistGrid.hpp"
-#include "Constants.h"
-#include <cmath>
-#include <iostream>
+
+#include <cmath> //For std::sin, cos
 
 typedef DistGrid2D MyGrid;//Choose the dimension of your grid here
 
@@ -34,14 +33,14 @@ PrimitiveState Problem::initialFluidState(double x, double y, double z){
     PrimitiveState w;
     w.rho =  rho0;
     w.p = p_amb;
-    w.v = {-sin(y),sin(x),0};
+    w.v = {-std::sin(y), std::sin(x),0};
     return w;
 }
 vec3 Problem::initialMagneticPotential(double x, double y, double z){
     //Initialize the vector potential at point (x,y,z)
         // (0,0,0) corresponds to the [0,0,0] cell. z will always be zero in 2D
     //Magnetic Fields will be initialized from this potential to ensure div B = 0
-    double Az = B0 * (cos(y) + 0.25*cos(2*x));
+    double Az = B0 * (std::cos(y) + 0.25*std::cos(2*x));
     return {0,0,Az};
 }
 

@@ -5,6 +5,9 @@
 //  Created by Bobbie Markwick on 24/06/2026.
 //
 
+#ifndef Problem_hpp
+#define Problem_hpp
+
 #include "Grid.hpp"
 
 namespace Problem{
@@ -19,3 +22,5 @@ namespace Problem{
     void beforeCycle(Grid& problem, int cycle, double t);
     void problemComplete(Grid& problem, double t);
 }
+
+#endif

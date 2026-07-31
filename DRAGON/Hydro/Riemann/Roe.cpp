@@ -10,9 +10,9 @@
 //
 
 #include "Riemann.hpp"
-#include <math.h>
-#include "Constants.h"
-#include "Config.h"
+
+#include <cmath> //For std::sqrt, abs
+#include "Constants.h" //For gamma
 
 #ifdef HYDRO_AVAILABLE
 //MARK: Eigenvectors
@@ -52,13 +52,13 @@ inline ConservativeState _K5(vec3 _v, double _H, double _a){
 
 //MARK: Solver
 ConservativeState Riemann::Roe(){
-    double sql = sqrt(L.rho), sqr = sqrt(R.rho);
+    double sql = std::sqrt(L.rho), sqr = std::sqrt(R.rho);
     double _sql = sql / (sql + sqr), _sqr = sqr / (sql + sqr);
     //weighted averages
     double _rho = sql * sqr;
     vec3 _v = _sql * L.v + _sqr * R.v;
     double _H = _sql*L.enthalpy() + _sqr*R.enthalpy();
-    double _a = sqrt((_gamma-1) * (_H - (_v*_v)/2));
+    double _a = std::sqrt((_gamma-1) * (_H - (_v*_v)/2));
     //eigenvalues + eigenvectors
     double lambda[5] = { _v.x - _a, _v.x, _v.x, _v.x,  _v.x + _a };
     ConservativeState K[5] = {
@@ -75,14 +75,14 @@ ConservativeState Riemann::Roe(){
     };
 #ifdef Harten_Hyman
     ConservativeState SL = UL + alpha[0]*K[0];
-    double aL = sqrt(_gamma * L.p/L.rho), aSL = sqrt(_gamma*SL.pressure()/SL.rho);
+    double aL = std::sqrt(_gamma * L.p/L.rho), aSL = std::sqrt(_gamma*SL.pressure()/SL.rho);
     double lambdaL = L.v.x-aL, lambdaLS = SL.mom.x/SL.rho - aSL;
     if(lambdaL < 0 &&  lambdaLS > 0 ) {//Left Rarefaction
         double _lambda = lambdaL * (lambda[0] - lambdaLS)/(lambdaL - lambdaLS);
         return UL.flux(L.v) + _lambda*alpha[0]*K[0];
     }
     ConservativeState SR = UR - alpha[4]*K[4];
-    double aR = sqrt(_gamma * R.p/R.rho), aSR = sqrt(_gamma*SR.pressure()/SR.rho);
+    double aR = std::sqrt(_gamma * R.p/R.rho), aSR = std::sqrt(_gamma*SR.pressure()/SR.rho);
     double lambdaR = R.v.x+aR, lambdaRS = SR.mom.x/SR.rho + aSR;
     if(lambdaR > 0 &&  lambdaRS  < 0) {//Right Rarefaction
         double _lambda = lambdaR * (lambda[4] - lambdaRS)/(lambdaR - lambdaRS);
@@ -91,7 +91,7 @@ ConservativeState Riemann::Roe(){
 #endif
     //Combine the waves
     ConservativeState F = (UL.flux(L.v) + UR.flux(R.v));
-    for(int i = 0; i < 5; i++) F -= alpha[i]*fabs(lambda[i])*K[i];
+    for(int i = 0; i < 5; i++) F -= alpha[i]*std::abs(lambda[i])*K[i];
     return F/2;
 }
 

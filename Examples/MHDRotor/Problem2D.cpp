@@ -7,8 +7,8 @@
 
 #include "Problem.hpp"
 #include "DistGrid.hpp"
-#include <cmath>
-#include "Constants.h"
+
+#include <cmath>        //For std::sqrt
 
 typedef DistGrid2D MyGrid;//Choose the dimension of your grid here
 
@@ -38,7 +38,7 @@ PrimitiveState Problem::initialFluidState(double x, double y, double z){
     //Initialize the fluid state w at point (x,y,z).
         //(dx/2,dy/2) corresponds to the [0,0] cell. As such, we need to convert
     x -= 0.5; y-=0.5;
-    double r = sqrt(x*x + y*y);
+    double r = std::sqrt(x*x + y*y);
     
     PrimitiveState w;
     w.p = p_amb;

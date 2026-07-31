@@ -8,8 +8,11 @@
 
 #include "Testing.hpp"
 #include "CT.hpp"
-#include "Constants.h"
-#include <iostream>
+
+#include "Grid.hpp"
+#include <cmath>    //For std::abs
+#include <cstdlib>  //For rand()
+#include <iostream> //For std::cout
 
 #ifdef MHD
 using namespace DRAGON_Test;
@@ -68,7 +71,7 @@ void DRAGON_Test::assert_divergenceless(const MagneticArray2D& B, double dx, dou
         for(int j = -ng; j < ny+ng - 1; j++){
             double dBx = (B[i+1,j].x - B[i,j].x)/dx;
             double dBy = (B[i,j+1].y - B[i,j].y)/dy;
-            assert(fabs(dBx + dBy) < 1e-12);
+            assert(std::abs(dBx + dBy) < 1e-12);
         }
     }
 }
@@ -81,7 +84,7 @@ void DRAGON_Test::assert_divergenceless(const MagneticArray3D& B, double dx, dou
                 double dBx = (B[i+1,j,k].x - B[i,j,k].x)/dx;
                 double dBy = (B[i,j+1,k].y - B[i,j,k].y)/dy;
                 double dBz = (B[i,j,k+1].z - B[i,j,k].z)/dz;
-                assert(fabs(dBx + dBy + dBz) < 1e-12);
+                assert(std::abs(dBx + dBy + dBz) < 1e-12);
             }
         }
     }

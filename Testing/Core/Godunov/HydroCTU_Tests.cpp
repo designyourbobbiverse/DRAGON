@@ -6,10 +6,12 @@
 //
 
 #include "Testing.hpp"
-#include "DistGrid.hpp"
-#include "CFL.hpp"
-#include "DragonWing.hpp"
-#include <iostream>
+#include "Grid.hpp"
+
+#include "DistGrid.hpp"   //Do Blast tests in parallel
+#include "DragonWing.hpp" //For cleanup after blast tests
+#include <iostream>       //For std::cout
+
 
 using namespace DRAGON_Test;
 using namespace Boundary;
@@ -21,10 +23,8 @@ void DRAGON_Test::verify_ctu_diagonal_contact_2D() {
     const double dy = 1.0 / ny;
 
     Grid2D grid(nx, ny, dx, dy, ghosts);
-    Grid2D initial(nx, ny, dx, dy, ghosts);
 
     grid.boundary = Periodic("XY");
-    initial.boundary = Periodic("XY");
 
     const double rhoL = 2.0;
     const double rhoR = 1.0;
@@ -38,11 +38,10 @@ void DRAGON_Test::verify_ctu_diagonal_contact_2D() {
             double y = (j + 0.5) * dy;
             double rho = ((x - y) > 0.0) ? rhoL : rhoR;
             grid[i,j] = make_state(rho, vx, vy, 0.0, p);
-            initial[i,j] = grid[i,j];
         }
     }
 
-    double dt = 0.4 * CFL::cfl_time(grid);
+    double dt = 0.004;
     for (int n = 0; n < 20; ++n) {
         grid.advance_unsplit(dt);
         for (int i = 0; i < nx; ++i) {
@@ -72,10 +71,8 @@ void DRAGON_Test::verify_ctu_diagonal_contact_3D() {
     const double dz = 1.0 / nz;
 
     Grid3D grid(nx, ny, nz, dx, dy, dz, ghosts);
-    Grid3D initial(nx, ny, nz, dx, dy, dz, ghosts);
 
     grid.boundary = Periodic(X|Y|Z);
-    initial.boundary = Periodic(X|Y|Z);
 
     const double rhoL = 2.0;
     const double rhoR = 1.0;
@@ -94,12 +91,11 @@ void DRAGON_Test::verify_ctu_diagonal_contact_3D() {
                 double rho = ((x - y + 0.5*z) > 0.25) ? rhoL : rhoR;
 
                 grid[i,j,k] = make_state(rho, vx, vy, vz, p);
-                initial[i,j,k] = grid[i,j,k];
             }
         }
     }
 
-    double dt = 0.15 * CFL::cfl_time(grid);
+    double dt = 0.0015;
 
     for (int n = 0; n < 20; ++n) {
         grid.advance_unsplit(dt);
@@ -172,7 +168,7 @@ void DRAGON_Test::verify_ctu_blast_2D() {
         for (int j = 0; j < ny; ++j) {
             double x = (i + 0.5) * dx - 0.5;
             double y = (j + 0.5) * dy - 0.5;
-            double r = sqrt(x*x + y*y);
+            double r = std::sqrt(x*x + y*y);
 
             double p = (r < r0) ? p_blast : p_ambient;
 
@@ -234,7 +230,7 @@ void DRAGON_Test::verify_ctu_blast_3D() {
                 double x = (i + 0.5) * dx - 0.5;
                 double y = (j + 0.5) * dy - 0.5;
                 double z = (k + 0.5) * dz - 0.5;
-                double r = sqrt(x*x + y*y + z*z);
+                double r = std::sqrt(x*x + y*y + z*z);
                 
                 double p = (r < r0) ? p_blast : p_ambient;
                 

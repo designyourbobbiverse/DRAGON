@@ -6,8 +6,10 @@
 //
 
 #pragma once
-#include <concepts>
-#include <type_traits>
+#include <vector>
+
+#include <concepts>     //for ValidGridType template
+#include <type_traits>  //for ValidGridType template
 
 
 struct PrimitiveState;
@@ -44,6 +46,8 @@ void releaseArray(ExtendedArray3D<vec3>* arr);
 namespace DRAGONWING {
 template <ValidGridType T>
 class ArrayGuard{
+private:
+    std::vector<T*> arrays;
 public:
     ArrayGuard(std::vector<T*> arrs): arrays(arrs) {}
     ArrayGuard(const ArrayGuard&) = delete;
@@ -60,7 +64,5 @@ public:
         }
     }
     ~ArrayGuard(){ release(); }
-private:
-    std::vector<T*> arrays;
 };
 }

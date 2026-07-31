@@ -3,13 +3,12 @@
 //  DRAGON/Hydro/Riemann
 //
 //  Created by Bobbie Markwick on 12/05/2026.
-//  Solution sampling based mostly on Toro (2009). https://doi.org/10.1007/b79761
 //
 
 #include "Riemann.hpp"
-
 #include "Config.h"
-#include <string>
+
+#include <stdexcept> //For error messages
 
 
 //MARK: Selected Flux algorithm

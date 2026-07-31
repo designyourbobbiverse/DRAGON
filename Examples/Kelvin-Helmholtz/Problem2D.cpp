@@ -7,8 +7,8 @@
 
 #include "Problem.hpp"
 #include "DistGrid.hpp"
-#include <cmath>
-#include "Constants.h"
+
+#include <cmath> //For std::sin etc
 
 typedef DistGrid2D MyGrid;//Choose the dimension of your grid here
 
