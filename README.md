@@ -234,7 +234,8 @@ Currently, 3D only supports plotting midplane slices.
 DRAGON is an actively developed research code. The current version is suitable for demonstrating the numerical framework, solver implementations, boundary-condition infrastructure, and unit-test coverage. Basic plotting tools are also included. 
 
 Todo before v1.0:
-- Add more Example/validation problems
+- Add Alfven wave Example/validation problem
+- Figure out why MHD parallelization tests only pass for one time-step in MHD but many in Hydro
 - Write Documentation
 - Code Cleanup + Pre-Release Audit
 
