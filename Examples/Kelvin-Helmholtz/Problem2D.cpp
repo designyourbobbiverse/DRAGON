@@ -12,18 +12,21 @@
 
 typedef DistGrid2D MyGrid;//Choose the dimension of your grid here
 
-constexpr double width = 0.1;
-    constexpr double y_lower = 0.5 - width/2;
-    constexpr double y_upper = 0.5 + width/2;
 
-constexpr double rho1   = 2.0;     // density, layer between y=0.25 and 0.75
+constexpr double width   = 0.1;
+constexpr double y_lower = 0.5 - width/2;
+constexpr double y_upper = 0.5 + width/2;
+constexpr double a       = 0.05;    // tanh smoothing width (interface)
+
+constexpr double rho1   = 2.0;     // density, layer y_lower and y_upper
 constexpr double rho2   = 1.0;     // density, outer layer
-constexpr double V0  = 0.5;     // +-vflow gives shear of dU across layer
-constexpr double a      = 0.05;    // tanh smoothing width (interface)
+constexpr double V0     = 0.5;         // Veloicty of the outer layer (= - velocity of inner layer
+constexpr double p0     = 2.5;     // uniform initial pressure
+
+
 constexpr double sigma  = 0.2;     // Gaussian localization width for vy seed
 constexpr double amp    = 0.01;    // vy perturbation amplitude
 constexpr int    kmode  = 2;       // wavenumber (integer, box-periodic in x)
-constexpr double p0     = 2.5;     // uniform initial pressure
 
 constexpr int n = 512;
 
