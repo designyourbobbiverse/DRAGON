@@ -7,15 +7,17 @@
 //
 
 #include "Grid.hpp"
-#include "Boundary.hpp"
-#include "CFL.hpp"
-#include "DragonWing.hpp"
-#include "Riemann.hpp"
-#include "TVD.hpp"
-#include <math.h>
-#include <cassert>
-#include <stdexcept>
-#include <format>
+
+#include "Riemann.hpp"  //For Riemann Solvers
+#include "TVD.hpp"      //For MUSCL reconstruction
+#include "Boundary.hpp" //For boundary.apply
+
+#include "Config.h"
+#include <algorithm>      //For std::max
+#include "DragonWing.hpp" //For memory management & synchornization
+#include <utility>        //For std::move
+#include <stdexcept>      //For exception throwing
+#include <format>         //For formatting exception messages
 
 
 static int validGhosts(int g){

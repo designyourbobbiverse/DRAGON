@@ -6,11 +6,16 @@
 //
 
 #include "DistGrid.hpp"
-#include "DragonWing.hpp"
-#include <math.h>
-#include <cassert>
-#include <iostream>
 
+#include "DragonWing.hpp" //For parallelization
+
+#include "Config.h"
+#include <cmath>        //For std::sqrt, pow
+#include <algorithm>    //For std::max
+#include "Boundary.hpp" //For Boundary.Ignore
+#include <utility>      //For std::move
+
+ 
 //MARK: Bin Setup
 //Compute the size of the ith children, given that we have nx cells spread across ncx bins
 static int computeChildSize(int nx, int ncx, int i){
@@ -55,8 +60,8 @@ DistGrid2D::DistGrid2D(int nx, int ny, double dx_, double dy_, int g, bool root)
     if(!root){ ncx = 1; ncy = 1; return;}
     
     //Goal: nx/ncx = ny/ncy,  ncx*ncy = core_count
-    ncx = ceil(sqrt( CONFIG::core_count * double(nx)/double(ny)) ); //ncx = core_count / ncy =  core_count * (nx/ny)/ ncx
-    ncy = ceil(sqrt( CONFIG::core_count * double(ny)/double(nx)) ); //ncy = core_count / ncx =  core_count * (ny/nx)/ ncy
+    ncx = std::ceil(std::sqrt( CONFIG::core_count * double(nx)/double(ny)) ); //ncx = core_count / ncy =  core_count * (nx/ny)/ ncx
+    ncy = std::ceil(std::sqrt( CONFIG::core_count * double(ny)/double(nx)) ); //ncy = core_count / ncx =  core_count * (ny/nx)/ ncy
 
     
     if (ncx > 1 || ncy > 1){ //Children
@@ -82,9 +87,9 @@ DistGrid3D::DistGrid3D(int nx, int ny, int nz, double dx_, double dy_, double dz
         
     //Goal: nx/ncx = ny/ncy = nz/ncz,  ncx*ncy*ncz = core_count
     double rxy = double(nx)/double(ny), rxz = double(nx)/double(nz), ryz = double(ny)/double(nz);
-    ncx = ceil(pow( CONFIG::core_count * rxy*rxz, 0.3333) ); //ncx = core_count / (ncy*ncz) =  core_count * (nx/ny) * (nx/nz)/ ncx^2
-    ncy = ceil(pow( CONFIG::core_count * ryz/rxy, 0.3333) ); //ncy = core_count / (ncx*ncz) =  core_count * (ny/nx) * (ny/nz)/ ncy^2
-    ncz = ceil(pow( CONFIG::core_count / (rxz*ryz), 0.3333) ); //ncz = core_count / (ncy*ncz) =  core_count * (nz/nx) * (nz/ny)/ ncz^2
+    ncx = std::ceil(std::pow( CONFIG::core_count * rxy*rxz, 0.3333) ); //ncx = core_count / (ncy*ncz) =  core_count * (nx/ny) * (nx/nz)/ ncx^2
+    ncy = std::ceil(std::pow( CONFIG::core_count * ryz/rxy, 0.3333) ); //ncy = core_count / (ncx*ncz) =  core_count * (ny/nx) * (ny/nz)/ ncy^2
+    ncz = std::ceil(std::pow( CONFIG::core_count / (rxz*ryz), 0.3333) ); //ncz = core_count / (ncy*ncz) =  core_count * (nz/nx) * (nz/ny)/ ncz^2
 
     if (ncx > 1 || ncy > 1 || ncz > 1){ //Children
         children.reserve(ncx * ncy * ncz);
@@ -141,9 +146,9 @@ void DistGrid2D::pushToChildren(){
                     (*child)[i,j] = w[i+x_offset, j+y_offset];
                 }
             }
-            #ifdef MHD//Copy parent magnetic potential to child
+            #ifdef MHD//Copy parent magnetic fields to child
             for(int i = -ng; i <= _nx + ng; i++){
-                for(int j = -ng; j <= _ny +ng; j++){
+                for(int j = -ng; j <= _ny + ng; j++){
                     child->B[i,j] = B[i+x_offset, j+y_offset];
                 }
             }
@@ -178,7 +183,7 @@ void DistGrid3D::pushToChildren(){
                         }
                     }
                 }
-                #ifdef MHD//Copy parent magnetic potential to child
+                #ifdef MHD//Copy parent magnetic fields to child
                 for(int i = -ng; i <= _nx + ng; i++){
                     for(int j = -ng; j <= _ny + ng; j++){
                         for(int k = -ng; k <= _nz + ng; k++){
@@ -230,7 +235,7 @@ void DistGrid2D::loadFromChildren(){
                     w[i+x_offset, j+y_offset] = (*child)[i,j];
                 }
             }
-            #ifdef MHD//Copy child magnetic potential to parent
+            #ifdef MHD//Copy child magnetic fields to parent
             for(int i = 0; i <= _nx; i++){
                 for(int j=0; j <= _ny; j++){
                     B[i+x_offset, j+y_offset] = child->B[i,j];
@@ -265,7 +270,7 @@ void DistGrid3D::loadFromChildren(){
                         }
                     }
                 }
-                #ifdef MHD //Copy child magnetic potential to parent
+                #ifdef MHD //Copy child magnetic fields to parent
                 for(int i = 0; i <= _nx; i++){
                     for(int j=0; j <= _ny; j++){
                         for(int k=0; k <= _nz; k++){

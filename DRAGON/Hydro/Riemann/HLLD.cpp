@@ -10,8 +10,10 @@
 
 
 #include "Riemann.hpp"
-#include "Constants.h"
-#include <cassert>
+
+#include <cmath> //For std::abs, sqrt
+#include <algorithm> //For std::min/max
+#include "Constants.h" //For pi-coefficients
 
 #ifdef MHD
 namespace HLL{ PrimitiveState roeAvg(PrimitiveState L, PrimitiveState R); }
@@ -21,10 +23,10 @@ void compute_outer_star(ConservativeState& usK, const PrimitiveState& K, double 
     double denom = _xK*(SK - SM) - Bx2_4pi; //Denominator of B and v scaling factors
     //Set transverse components via vector arithmatic, then override x component
     //Magnetic Field
-    usK.B = (fabs(denom)<1e-12) ? K.B : K.B * (_xK*(SK-K.v.x)-Bx2_4pi)/denom;
+    usK.B = (std::abs(denom)<1e-12) ? K.B : K.B * (_xK*(SK-K.v.x)-Bx2_4pi)/denom;
     usK.B.x = Bx;
     //Velocities
-    auto vsK = K.v - (fabs(denom)<1e-12 ? vec3{0,0,0} :  K.B * Bx*(SM-K.v.x)/denom * _1_4pi );
+    auto vsK = K.v - (std::abs(denom)<1e-12 ? vec3{0,0,0} :  K.B * Bx*(SM-K.v.x)/denom * _1_4pi );
     vsK.x = SM;
     usK.mom = usK.rho * vsK;
     //Energy
@@ -39,13 +41,13 @@ ConservativeState Riemann::HLLD(){
     L.B.x = Bx; R.B.x = Bx;
     //Calculate Outer Wave speeds
     double cl = L.c_fast(), cr = R.c_fast();
-    double SL = fmin(L.v.x - cl, R.v.x - cr);
+    double SL = std::min(L.v.x - cl, R.v.x - cr);
     if(SL >= 0) return L.flux(); //Left intial region
-    double SR = fmax(L.v.x + cl, R.v.x + cr);
+    double SR = std::max(L.v.x + cl, R.v.x + cr);
     if(SR <= 0) return R.flux(); //Right intial region
     
     //Check for zero-normal case
-    auto cutoff = fmax(L.B*L.B+ R.B*R.B,1e-100);
+    auto cutoff = std::max(L.B*L.B+ R.B*R.B,1e-100);
     if(Bx*Bx < 1e-12 * cutoff) return HLLD_zero_B(SL, SR);
             
     //Calculate the Contact Wave Speed
@@ -56,9 +58,9 @@ ConservativeState Riemann::HLLD(){
     //Calculate the Alvfen Wave Speeds
     ConservativeState usL, usR;
     usL.rho = _xL / (SL - SM);
-    double SsL = SM - fabs(Bx) / (sq4pi * sqrt(usL.rho));
+    double SsL = SM - std::abs(Bx) / (sq4pi * std::sqrt(usL.rho));
     usR.rho = _xR / (SR - SM);
-    double SsR = SM + fabs(Bx) / (sq4pi * sqrt(usR.rho));
+    double SsR = SM + std::abs(Bx) / (sq4pi * std::sqrt(usR.rho));
    
     
     //Calculate the regions between fast/alfven
@@ -99,7 +101,7 @@ ConservativeState Riemann::HLLD(){
     auto ws = SM >= 0 ? wsL : wsR;
 
     //Calculate the regions between Alfven/Contact
-    double sqL = sqrt(wsL.rho), sqR = sqrt(wsR.rho);
+    double sqL = std::sqrt(wsL.rho), sqR = std::sqrt(wsR.rho);
     double _sqL = sqL / (sqL + sqR), _sqR = sqR / (sqL + sqR);
     double sbx = Bx > 0 ? sq4pi : (Bx < 0 ? -sq4pi : 0);
     ConservativeState uss;
@@ -114,7 +116,7 @@ ConservativeState Riemann::HLLD(){
     wss.B.x = Bx;
     uss.B = wss.B;
     //Energy
-    auto dE = sbx * (ws.v*ws.B - wss.v*wss.B) * _1_4pi * sqrt(wss.rho);
+    auto dE = sbx * (ws.v*ws.B - wss.v*wss.B) * _1_4pi * std::sqrt(wss.rho);
     uss.E = SM >= 0 ? usL.E - dE : usR.E + dE;
     
     #ifdef HLLD_PHYSICAL_SAFETY
@@ -135,7 +137,7 @@ ConservativeState Riemann::HLLD(){
 void compute_outer_star_zero_B(ConservativeState& usK, const PrimitiveState& K, double _xK, double SK, double SM, double pT){
     //Set transverse components via vector arithmatic, then override x component
     //Magnetic Field
-    usK.B = (fabs(SK - SM)<1e-12) ? K.B : K.B * (SK-K.v.x)/(SK - SM);
+    usK.B = (std::abs(SK - SM)<1e-12) ? K.B : K.B * (SK-K.v.x)/(SK - SM);
     usK.B.x = 0;
     //Velocities
     auto vsK = K.v;
@@ -197,7 +199,7 @@ ConservativeState Riemann::HLLD_zero_B(double SL, double SR){
     
     //Special case: right on the contact wave (down to the bit)
     //Average the two outputs to help preserve symmetry
-    double sql = sqrt(wsL.rho), sqr = sqrt(wsR.rho);
+    double sql = std::sqrt(wsL.rho), sqr = std::sqrt(wsR.rho);
     double _sql = sql / (sql + sqr), _sqr = sqr / (sql + sqr);
     return _sql * FsL + _sqr * FsR;
 }

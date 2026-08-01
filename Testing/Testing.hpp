@@ -9,9 +9,11 @@
 #define Testing_hpp
 
 #include <cassert>
-#include "FluidElement.hpp"
-#include "Grid.hpp"
+
 #include "Config.h"
+#include "FluidElement.hpp"
+#include "ExtendedArray.hpp"
+
 
 namespace DRAGON_Test{
 

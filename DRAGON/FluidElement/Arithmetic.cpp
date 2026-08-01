@@ -6,7 +6,7 @@
 //
 
 #include "FluidElement.hpp"
-#include <math.h>
+#include <cmath>
 
 
 
@@ -131,26 +131,26 @@ vec3& operator/=(vec3 &v, double a){
 //MARK: (==) Equality
 //Each of these checks to within a 1e-12 tolerance to allow for floating point errors
 bool operator==(const PrimitiveState &X, const PrimitiveState &Y){
-    if(fabs(X.rho - Y.rho) >= 1e-12) return false;
+    if(std::abs(X.rho - Y.rho) >= 1e-12) return false;
     if(X.v != Y.v) return false;
-    if(fabs(X.p - Y.p) >= 1e-12) return false;
+    if(std::abs(X.p - Y.p) >= 1e-12) return false;
 #ifdef MHD
     if(X.B != Y.B) return false;
 #endif
     return true;
 }
 bool operator==(const ConservativeState &X, const ConservativeState &Y){
-    if(fabs(X.rho - Y.rho) >= 1e-12) return false;
+    if(std::abs(X.rho - Y.rho) >= 1e-12) return false;
     if(X.mom != Y.mom) return false;
-    if(fabs(X.E - Y.E) >= 1e-12) return false;
+    if(std::abs(X.E - Y.E) >= 1e-12) return false;
 #ifdef MHD
     if(X.B != Y.B) return false;
 #endif
     return true;
 }
 bool operator==(const vec3 &X, const vec3 &Y){
-    if(fabs(X.x - Y.x) >= 1e-12) return false;
-    if(fabs(X.y - Y.y) >= 1e-12) return false;
-    if(fabs(X.z - Y.z) >= 1e-12) return false;
+    if(std::abs(X.x - Y.x) >= 1e-12) return false;
+    if(std::abs(X.y - Y.y) >= 1e-12) return false;
+    if(std::abs(X.z - Y.z) >= 1e-12) return false;
     return true;
 }

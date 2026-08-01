@@ -6,13 +6,17 @@
 //
 
 #include "DragonHoard.hpp"
-#include "HDF5_Attrs.hpp"
-#include "Config.h"
-#include "DRAGONHOARD_Config.h"
+
 #include <H5Cpp.h>
+
 #include <vector>
-#include <format>
-#include <stdexcept>
+#include <string>
+#include "HDF5_Attrs.hpp"   //For Key definitions
+
+#include "DRAGONHOARD_Config.h"
+#include "Config.h"     //For #ifdef MHD
+#include <stdexcept>    //For file read errors
+#include <format>       //For error formatting
 
 //MARK: Helpers
 namespace{

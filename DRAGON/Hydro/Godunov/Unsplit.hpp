@@ -9,8 +9,7 @@
 #define Unsplit_h
 
 #include "Grid.hpp"
-#include "CT.hpp"
-
+#include "ArrayTypes.hpp"
 
 //2D
 void computeFlux_X(const FluidArray2D& _L, const FluidArray2D& _R, FluxArray2D& F, int xL, int xR, int yL, int yR, double dt_dx);

@@ -7,6 +7,7 @@
 
 #include "Problem.hpp"
 #include "DistGrid.hpp"
+
 #include <cmath>
 #include <iostream>
 
@@ -29,7 +30,7 @@ PrimitiveState Problem::initialFluidState(double x, double y, double z){
     //Initialize the fluid state w at point (x,y,z).
         //(dx/2, dy/2, dz/2) corresponds to the [0,0,0] cell
     PrimitiveState w;
-    w.rho =  rho0 + rho1 * sin(2*M_PI*(x+y+z));
+    w.rho =  rho0 + rho1 * std::sin(2*M_PI*(x+y+z));
     w.p = p_amb;
     w.v = {1,1,1};
     return w;
@@ -79,16 +80,16 @@ void Problem::problemComplete(Grid& problem, double t){
                 double x = (i + 0.5)/n;
                 double y = (j + 0.5)/n;
                 double z = (k + 0.5)/n;
-                double rho_exact = rho0 + rho1 * sin(2.0 * M_PI * (x + y + z - 3 * t));
+                double rho_exact = rho0 + rho1 * std::sin(2.0 * M_PI * (x + y + z - 3 * t));
                 
-                double err = fabs(grid[i,j,k].rho - rho_exact);
+                double err = std::abs(grid[i,j,k].rho - rho_exact);
                 if(err > Linf) Linf = err;
                 L1 += err ;
                 L2 += err*err;
             }
         }
     }
-    L2 = sqrt(L2 / (n*n*n));
+    L2 = std::sqrt(L2 / (n*n*n));
     
     std::cout<<"L1 error: "<<L1 / (n*n*n)<<"\n";
     std::cout<<"L2 error: "<<L2<<"\n";

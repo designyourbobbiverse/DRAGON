@@ -10,7 +10,7 @@
 #define Riemann_hpp
 
 #include "FluidElement.hpp"
-#include <cmath>
+
 #include "Config.h"
 //Macro which tells hydro only solvers to not compile if using MHD, except for unit testing where both modes are needed.
 #if !defined(MHD) || defined(TESTMODE)

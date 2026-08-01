@@ -10,9 +10,10 @@
 
 
 #include "CT.hpp"
+#include "Grid.hpp" //Implements Grid::initialize_B_fields()
+
 #include "Config.h"
-#include "DragonWing.hpp"
-#include <cmath>
+#include "Constants.h" //For _1_8pi
 
 #ifdef MHD
 
@@ -95,7 +96,7 @@ bool shouldProtectThermal(const PrimitiveState& w){
         case CT_CONSV_BETA_GATED: {
             double B2 = (w.B * w.B);
             if(B2 == 0) return false;
-            double beta = 8*M_PI*w.p / (w.B*w.B);
+            double beta = w.p / (_1_8pi * w.B*w.B);
             return beta <= CONFIG::CT_Energy_Beta;
         }
         default: return false;

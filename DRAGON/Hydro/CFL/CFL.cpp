@@ -8,11 +8,19 @@
 //
 
 #include "CFL.hpp"
+
 #include "Config.h"
-#include "Constants.h"
-#include "GhostFill.hpp"
-#include <math.h>
-#include <iostream>
+#include <cmath> //For std::abs, sqrt, pow
+#include <algorithm> //For std::min/max
+
+#include "GhostFill.hpp" //For boundary.apply
+
+#include <stdexcept> //For std::runtime_error (CFL timestep fails to compute)
+#include <exception> //For handling step restarts
+#include <iostream>  //For printing step-restart messages
+#include <cstdlib>   //For exit() if the timestep gets too small
+
+
 using namespace CONFIG;
 
 //MARK: Individual Speeds
@@ -24,9 +32,9 @@ double CFL::cfl_max_speed(const PrimitiveState& W, double dx, double dy, double 
     double a = W.cs();
 #endif
     double speed = 0;
-    if (dx > 1e-14) speed = (fabs(W.v.x) + a)/dx;
-    if (dy > 1e-14)  speed = std::max(speed, (fabs(W.v.y) + a)/dy);
-    if (dz > 1e-14) speed = std::max(speed, (fabs(W.v.z) + a)/dz);
+    if (dx > 1e-14) speed = (std::abs(W.v.x) + a)/dx;
+    if (dy > 1e-14)  speed = std::max(speed, (std::abs(W.v.y) + a)/dy);
+    if (dz > 1e-14) speed = std::max(speed, (std::abs(W.v.z) + a)/dz);
     return speed;
 }
 
@@ -38,9 +46,9 @@ double CFL::cfl_add_speed(const PrimitiveState& W, double dx, double dy, double 
     double a = W.cs();
 #endif
     double speed = 0;
-    if (dx > 1e-14) speed = (fabs(W.v.x) + a)/dx;
-    if (dy > 1e-14) speed +=  (fabs(W.v.y) + a)/dy;
-    if (dz > 1e-14) speed += (fabs(W.v.z) + a)/dz;
+    if (dx > 1e-14) speed = (std::abs(W.v.x) + a)/dx;
+    if (dy > 1e-14) speed +=  (std::abs(W.v.y) + a)/dy;
+    if (dz > 1e-14) speed += (std::abs(W.v.z) + a)/dz;
     return speed;
 }
 
@@ -52,10 +60,10 @@ double CFL::cfl_pow_speed(const PrimitiveState& W, double p, double dx, double d
     double a = W.cs();
 #endif
     double speed = 0;
-    if (dx > 1e-14) speed = pow((fabs(W.v.x) + a)/dx, p);
-    if (dy > 1e-14) speed +=  pow((fabs(W.v.y) + a)/dy,p);
-    if (dz > 1e-14) speed += pow((fabs(W.v.z) + a)/dz,p);
-    return pow(speed, 1.0/p);
+    if (dx > 1e-14) speed = std::pow((std::abs(W.v.x) + a)/dx, p);
+    if (dy > 1e-14) speed +=  std::pow((std::abs(W.v.y) + a)/dy,p);
+    if (dz > 1e-14) speed += std::pow((std::abs(W.v.z) + a)/dz,p);
+    return std::pow(speed, 1.0/p);
 }
 
 //MARK: Configuration-Control
@@ -88,8 +96,8 @@ double CFL::cfl_time(const Grid1D& g){
         #else //Use sound speed for Hydro
         double a = W.cs();
         #endif
-      double speed = fabs(W.v.x) + a;
-      max_speed = fmax(max_speed, speed);
+      double speed = std::abs(W.v.x) + a;
+      max_speed = std::max(max_speed, speed);
     }
     if(max_speed <= 0) throw std::runtime_error("CFL timestep failed: max signal speed is zero");
     //Then convert to time and apply the coefficient
@@ -103,7 +111,7 @@ double CFL::cfl_time(const Grid2D& g){
     for(int i = -ng; i<g.getSizeX()+ng; i++){
         for(int j = -ng; j<g.getSizeY()+ng; j++){
             double speed = cfl_speed(g[i,j], g.dx, g.dy);
-            max_speed = fmax(max_speed, speed);
+            max_speed = std::max(max_speed, speed);
         }
     }
     if(max_speed <= 0) throw std::runtime_error("CFL timestep failed: max signal speed is zero");
@@ -119,7 +127,7 @@ double CFL::cfl_time(const Grid3D& g){
         for(int j = -ng; j<g.getSizeY()+ng; j++){
             for(int k = -ng; k<g.getSizeZ()+ng; k++){
                 double speed = cfl_speed(g[i,j,k], g.dx, g.dy, g.dz);
-                max_speed = fmax(max_speed, speed);
+                max_speed = std::max(max_speed, speed);
             }
         }
     }
@@ -139,6 +147,7 @@ double CFL::cfl_time(const Grid& grid){
 
 //MARK: Grid Advance
 
+
 void Grid::advance(double dt, bool check_cfl){
 #ifdef DIMENSION_UNSPLIT
     advance_unsplit(dt,check_cfl);
@@ -149,9 +158,6 @@ void Grid::advance(double dt, bool check_cfl){
 
 
 void Grid::advance_split(double dt, bool check_cfl){
-    #ifdef MHD //Ensure B is initialised
-    initialize_B_fields();
-    #endif
     while(dt > CONFIG::Timestep_Tolerance){
         boundary.apply(*this);
         //CFL Time Constraint
@@ -180,9 +186,6 @@ void Grid::advance_split(double dt, bool check_cfl){
 
 
 void Grid::advance_unsplit(double dt, bool check_cfl){
-    #ifdef MHD //Ensure B is initialised
-    initialize_B_fields();
-    #endif
     while(dt > CONFIG::Timestep_Tolerance){
         boundary.apply(*this);
         //CFL Time Constraint

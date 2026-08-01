@@ -7,8 +7,10 @@
 
 #include "Testing.hpp"
 #include "Grid.hpp"
-#include "CFL.hpp"
-#include <iostream>
+
+#include <iostream> //For std::cout
+#include "CFL.hpp"  //These tests only work on a single timestep
+
 #ifdef MHD
 
 using namespace DRAGON_Test;
@@ -83,8 +85,9 @@ void DRAGON_Test::verify_2D_X_match_1D_MHD(){
             grid._B()[i,j] = i < nx/2 ? vec3{Bx,ByL,Bz} : vec3{Bx,ByR,Bz};
         }
     }
+    grid.initialize_B_fields();
     
-    const double dt = fmin(CFL::cfl_time(grid), CFL::cfl_time(expected));
+    const double dt = std::min(CFL::cfl_time(grid), CFL::cfl_time(expected));
     grid.advance(dt);
     expected.advance(dt);
     
@@ -118,8 +121,9 @@ void DRAGON_Test::verify_2D_Y_match_1D_MHD(){
             grid._B()[i,j] = j < nx/2 ? vec3{ByL,Bx,Bz} : vec3{ByR,Bx,Bz};
         }
     }
+    grid.initialize_B_fields();
     
-    const double dt = fmin(CFL::cfl_time(grid), CFL::cfl_time(expected));
+    const double dt = std::min(CFL::cfl_time(grid), CFL::cfl_time(expected));
     grid.advance(dt);
     expected.advance(dt);
     
@@ -155,8 +159,9 @@ void DRAGON_Test::verify_3D_X_match_1D_MHD(){
             }
         }
     }
+    grid.initialize_B_fields();
     
-    const double dt = fmin(CFL::cfl_time(grid), CFL::cfl_time(expected));
+    const double dt = std::min(CFL::cfl_time(grid), CFL::cfl_time(expected));
     grid.advance(dt);
     expected.advance(dt);
     
@@ -194,8 +199,9 @@ void DRAGON_Test::verify_3D_Y_match_1D_MHD(){
             }
         }
     }
+    grid.initialize_B_fields();
     
-    const double dt = fmin(CFL::cfl_time(grid), CFL::cfl_time(expected));
+    const double dt = std::min(CFL::cfl_time(grid), CFL::cfl_time(expected));
     grid.advance(dt);
     expected.advance(dt);
     
@@ -233,8 +239,9 @@ void DRAGON_Test::verify_3D_Z_match_1D_MHD(){
             }
         }
     }
+    grid.initialize_B_fields();
     
-    const double dt = fmin(CFL::cfl_time(grid), CFL::cfl_time(expected));
+    const double dt = std::min(CFL::cfl_time(grid), CFL::cfl_time(expected));
     grid.advance(dt);
     expected.advance(dt);
     

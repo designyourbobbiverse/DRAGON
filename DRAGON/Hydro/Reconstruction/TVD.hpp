@@ -4,6 +4,9 @@
 //
 //  Created by Bobbie Markwick on 10/06/2026.
 //
+#ifndef TVD_hpp
+#define TVD_hpp
+
 #include "FluidElement.hpp"
 
 const vec3 zero = {0,0,0};
@@ -37,3 +40,5 @@ void MUSCL(const PrimitiveState& wL, PrimitiveState& _L, const PrimitiveState& w
     PrimitiveState vanAlbada(const PrimitiveState& a, const PrimitiveState& b);
 
 }
+
+#endif

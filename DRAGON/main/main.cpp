@@ -2,12 +2,13 @@
 //  Created by Bobbie Markwick
 //
 
-#include "Problem.hpp"
+#include "Problem.hpp" //The user's problem
+
 #include "Config.h"
-#include "DragonHoard.hpp"
-#include "CT.hpp"
-#include <iostream>
-#include <chrono>
+#include "DragonHoard.hpp"  //File output
+#include <iostream>         //Console messages
+#include <chrono>           //Runtime measurement
+#include "CT.hpp"           //Magnetic Field initialization
 
 #ifndef TESTMODE
 

@@ -6,13 +6,13 @@
 //
 
 #include "DragonHoard.hpp"
-#include "DRAGONHOARD_Config.h"
-#include "HDF5_Attrs.hpp"
+
 #include <filesystem>
-#include <vector>
-#include <cctype>
 
-
+#include "DRAGONHOARD_Config.h" //For output_dir, RESTART_FRAME
+#include "HDF5_Attrs.hpp" //For file_ext
+#include <string> //For std::stoi
+#include <cctype> //For std::isdigit
 
 //MARK: Verify the output directory exists
 void DRAGONHOARD::verifyOutputDirectory(){
@@ -48,7 +48,9 @@ static int extractNumber(const std::string& s) {
 
 std::string DRAGONHOARD::restartFileName(){
     std::string filename = "";
+    #if RESTART_FRAME < 0
     int max_frame_num = -1;
+    #endif
     
     const std::filesystem::path& dir = DRAGONHOARD::output_dir;
     for (const auto& entry : std::filesystem::directory_iterator(dir)) {

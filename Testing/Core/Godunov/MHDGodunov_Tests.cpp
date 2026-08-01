@@ -6,10 +6,9 @@
 //
 
 #include "Testing.hpp"
-#include "Boundary.hpp"
 #include "Grid.hpp"
-#include "CFL.hpp"
-#include <iostream>
+
+#include <iostream> //For std::cout
 
 using namespace DRAGON_Test;
 using namespace Boundary;
@@ -110,8 +109,6 @@ void DRAGON_Test::verify_god_uniform_stationary_2D_MHD(){
     
     
     grid.advance(1.0);
-    
-    grid.initialize_B_fields();
 
     for (int i = 0; i < grid.getSizeX(); i++){
         for (int j = 0; j < grid.getSizeY(); j++){

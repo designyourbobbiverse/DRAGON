@@ -5,18 +5,23 @@
 //  Created by Bobbie Markwick on 29/05/2026.
 //
 
+#ifdef BOUNDARY_LIST_HPP //Guard against accidental include
+
 #pragma once
 
 #include <vector>
-#include <memory>
-#include <concepts>
-#include <type_traits>
-#include <utility>
+
+#include <memory> //std::unique_ptr
+#include <utility> //std::forward
+#include <concepts> //std::derived_from
+#include <type_traits> //std::decay_t
 
 namespace Boundary {
 
 
 class BoundaryList : public GhostFill {
+private:
+    std::vector<std::unique_ptr<GhostFill>>  boundaries;
 public:
     using GhostFill::apply;
 
@@ -88,7 +93,6 @@ public:
     }
     
 private:
-    std::vector<std::unique_ptr<GhostFill>>  boundaries;
 //MARK: Implied Outflow
     Outflow implicits;
     bool stale = true;//If true, needs to recalculate implicit outflow before applying boundary
@@ -125,3 +129,7 @@ private:
     
     
 }
+
+#else
+#warning BoundaryList.hpp appears to have been included accidentally. Typically, you want to include Boundary.h instead.
+#endif

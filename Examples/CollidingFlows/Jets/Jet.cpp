@@ -45,8 +45,8 @@ void Jet::apply(Grid2D& grid) {
     //Calculate the bounds ahead of time
     double dx = grid.dx, dy = grid.dy;
     int ng = grid.getGhosts(), nx = grid.getSizeX(), ny = grid.getSizeY();
-    int i0 = fmax(0,floor(nx*0.5 - rj/dx)), in = fmin(nx,ceil(nx*0.5 + rj/dx));
-    int j0 = fmax(0,floor(ny*0.5 - rj/dy)), jn = fmin(ny,ceil(ny*0.5 + rj/dy));
+    int i0 = std::max(0,floor(nx*0.5 - rj/dx)), in = std::min(nx,ceil(nx*0.5 + rj/dx));
+    int j0 = std::max(0,floor(ny*0.5 - rj/dy)), jn = std::min(ny,ceil(ny*0.5 + rj/dy));
 
     PrimitiveState state;
     state.rho = rho;
@@ -91,9 +91,9 @@ void Jet::apply(Grid3D& grid) {
     //Calculate the bounds ahead of time
     double dx = grid.dx, dy = grid.dy, dz = grid.dz;
     int ng = grid.getGhosts(), nx = grid.getSizeX(), ny = grid.getSizeY(), nz = grid.getSizeZ();
-    int i0 = fmax(0,floor(nx*0.5 - rj/dx)), in = fmin(nx,ceil(nx*0.5 + rj/dx));
-    int j0 = fmax(0,floor(ny*0.5 - rj/dy)), jn = fmin(ny,ceil(ny*0.5 + rj/dy));
-    int k0 = fmax(0,floor(nz*0.5 - rj/dz)), kn = fmin(nz,ceil(nz*0.5 + rj/dz));
+    int i0 = std::max(0,floor(nx*0.5 - rj/dx)), in = std::min(nx,ceil(nx*0.5 + rj/dx));
+    int j0 = std::max(0,floor(ny*0.5 - rj/dy)), jn = std::min(ny,ceil(ny*0.5 + rj/dy));
+    int k0 = std::max(0,floor(nz*0.5 - rj/dz)), kn = std::min(nz,ceil(nz*0.5 + rj/dz));
 
     PrimitiveState state;
     state.rho = rho;
@@ -104,7 +104,7 @@ void Jet::apply(Grid3D& grid) {
         for(int j = j0; j < jn; j++){
             for(int k = k0; k < kn; k++){
                 double y = (j+0.5-ny*0.5)*dy, z = (k+0.5-nz*0.5)*dz;
-                if(sqrt(y*y+z*z)>rj) continue;
+                if(std::sqrt(y*y+z*z)>rj) continue;
                 
                 for(int g = 1; g <= ng; g++){
                     grid[-g,j,k] = state;
@@ -117,7 +117,7 @@ void Jet::apply(Grid3D& grid) {
         for(int j = j0; j < jn; j++){
             for(int k = k0; k < kn; k++){
                 double y = (j+0.5-ny*0.5)*dy, z = (k+0.5-nz*0.5)*dz;
-                if(sqrt(y*y+z*z)>rj) continue;
+                if(std::sqrt(y*y+z*z)>rj) continue;
 
                 for(int g = 1; g <= ng; g++){
                     grid[nx-1+g,j,k] = state;
@@ -130,7 +130,7 @@ void Jet::apply(Grid3D& grid) {
         for(int i = i0; i < in; i++){
             for(int k = k0; k < kn; k++){
                 double x = (i+0.5-nx*0.5)*dx, z = (k+0.5-nz*0.5)*dz;
-                if(sqrt(x*x+z*z)>rj) continue;
+                if(std::sqrt(x*x+z*z)>rj) continue;
                 for(int g = 1; g <= ng; g++){
                     grid[i,-g,k] = state;
                 }
@@ -142,7 +142,7 @@ void Jet::apply(Grid3D& grid) {
         for(int i = i0; i < in; i++){
             for(int k = k0; k < kn; k++){
                 double x = (i+0.5-nx*0.5)*dx, z = (k+0.5-nz*0.5)*dz;
-                if(sqrt(x*x+z*z)>rj) continue;
+                if(std::sqrt(x*x+z*z)>rj) continue;
                 
                 for(int g = 1; g <= ng; g++){
                     grid[i,ny-1+g,k] = state;
@@ -155,7 +155,7 @@ void Jet::apply(Grid3D& grid) {
         for(int i = i0; i < in; i++){
             for(int j = j0; j < jn; j++){
                 double x = (i+0.5-nx*0.5)*dx, y = (j+0.5-ny*0.5)*dy;
-                if(sqrt(x*x+y*y)>rj) continue;
+                if(std::sqrt(x*x+y*y)>rj) continue;
                 
                 for(int g = 1; g <= ng; g++){
                     grid[i,j,-g] = state;
@@ -168,7 +168,7 @@ void Jet::apply(Grid3D& grid) {
         for(int i = i0; i < in; i++){
             for(int j = j0; j < jn; j++){
                 double x = (i+0.5-nx*0.5)*dx, y = (j+0.5-ny*0.5)*dy;
-                if(sqrt(x*x+y*y)>rj) continue;
+                if(std::sqrt(x*x+y*y)>rj) continue;
 
                 for(int g = 1; g <= ng; g++){
                     grid[i,j,nz-1+g] = state;

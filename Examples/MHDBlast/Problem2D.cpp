@@ -7,8 +7,9 @@
 
 #include "Problem.hpp"
 #include "DistGrid.hpp"
-#include <cmath>
-#include "Constants.h"
+
+#include <cmath>        //For std::sqrt
+#include "Constants.h"  //For sq4pi
 
 typedef DistGrid2D MyGrid;//Choose the dimension of your grid here
 
@@ -39,7 +40,7 @@ PrimitiveState Problem::initialFluidState(double x, double y, double z){
     //Initialize the fluid state w at point (x,y,z).
         //(dx/2,dy/2) corresponds to the [0,0] cell. As such, we need to convert
     x -= 0.5; y-=0.5;
-    double r = sqrt(x*x + y*y);
+    double r = std::sqrt(x*x + y*y);
 
     PrimitiveState w;
     w.rho = rho;
@@ -52,7 +53,7 @@ vec3 Problem::initialMagneticPotential(double x, double y, double z){
         // (0,0) corresponds to the [0,0] corner. As such, we need to convert
         x -= 0.5; y-=0.5;
     //Magnetic Fields will be initialized from this potential to ensure div B = 0
-    return  diagonal ? vec3{0,0,B0 * (y-x)/sqrt(2)} : vec3{0, 0, -B0 * x};
+    return  diagonal ? vec3{0,0,B0 * (y-x)/std::sqrt(2)} : vec3{0, 0, -B0 * x};
 }
 
 

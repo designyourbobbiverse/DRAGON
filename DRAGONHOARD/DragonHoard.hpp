@@ -8,12 +8,12 @@
 #ifndef HDF5Output_hpp
 #define HDF5Output_hpp
 
+#include "DRAGONHOARD_Config.h" //To give users of this module access to the output_base_name and output_dir settings
+
 #include "Grid.hpp"
-#include "DRAGONHOARD_Config.h"
 #include <string>
 
 namespace DRAGONHOARD{
-    
 
 void writeToFile(Grid& grid, double t, int cycle, const std::string& filename);
 void writeToFile(Grid1D& grid, double t, int cycle, const std::string& filename);

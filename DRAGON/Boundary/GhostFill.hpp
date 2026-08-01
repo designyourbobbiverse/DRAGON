@@ -29,8 +29,4 @@ protected:
     explicit GhostFill(int faces_, bool corner_ghosts) : faces(faces_), corners(corner_ghosts) {}
 };
 
-
-
-
-
 #endif

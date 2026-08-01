@@ -7,8 +7,9 @@
 
 #include "Problem.hpp"
 #include "DistGrid.hpp"
-#include <cmath>
-#include <iostream>
+
+#include <cmath> //For std::sin
+#include <iostream> //For std::cout at completion
 
 typedef DistGrid2D MyGrid;//Choose the dimension of your grid here
 
@@ -29,7 +30,7 @@ PrimitiveState Problem::initialFluidState(double x, double y, double z){
     //Initialize the fluid state w at point (x,y,z).
         //dx/2, dy/2 corresponds to the [0,0] cell. z will always be zero.
     PrimitiveState w;
-    w.rho =  rho0 + rho1 * sin(2*M_PI*(x+y));
+    w.rho =  rho0 + rho1 * std::sin(2*M_PI*(x+y));
     w.p = p_amb;
     w.v = {1,1,0};
     return w;
@@ -76,16 +77,16 @@ void Problem::problemComplete(Grid& problem, double t){
         for(int j=0; j<n; j++){
             double x = (i + 0.5)/n;
             double y = (j + 0.5)/n;
-            double rho_exact = rho0 + rho1 * sin(2.0 * M_PI * (x + y - 2 * t));
+            double rho_exact = rho0 + rho1 * std::sin(2.0 * M_PI * (x + y - 2 * t));
 
-            double err = fabs(grid[i,j].rho - rho_exact);
+            double err = std::abs(grid[i,j].rho - rho_exact);
             if(err > Linf) Linf = err;
             L1 += err ;
             L2 += err*err;
             
         }
     }
-    L2 = sqrt(L2 / (n*n));
+    L2 = std::sqrt(L2 / (n*n));
     
     std::cout<<"L1 error: "<<L1 / (n*n)<<"\n";
     std::cout<<"L2 error: "<<L2<<"\n";

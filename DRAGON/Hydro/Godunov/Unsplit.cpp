@@ -8,15 +8,15 @@
 
 #include "Grid.hpp"
 #include "Unsplit.hpp"
-#include "Riemann.hpp"
+
 #include "Config.h"
-#include "CFL.hpp"
-#include "TVD.hpp"
-#include "CT.hpp"
-#include <cassert>
-#include <iostream>
-#include <stdexcept>
-#include "DragonWing.hpp"
+#include "Riemann.hpp" //For Riemann Solvers
+#include "TVD.hpp"     //For MUSCL Reconstruction
+#include "CT.hpp"      //For MHD
+
+#include "DragonWing.hpp" //For memory management & synchronization
+#include <stdexcept>      //For error handling
+#include <format>         //For error message formatting
 
 bool Grid::on_step_fail(const std::exception &e){
     return !DRAGONWING::requestRestart(e.what());

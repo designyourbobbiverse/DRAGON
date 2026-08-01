@@ -19,13 +19,13 @@ MHDJet::MHDJet(double rho, double v, double p, double beta, double rm, double rj
 //MARK: 1D
 void MHDJet::apply(Grid1D& grid) {
     //Construct a jet with reduced thermal pressure
-    double pj = p * fabs(beta)/(1.0+ fabs(beta));
+    double pj = p * std::abs(beta)/(1.0+ std::abs(beta));
     std::swap(pj,p);
     Jet::apply(grid);
     std::swap(pj,p);
     
     int ng = grid.getGhosts();
-    double B = sqrt(pj / fabs(beta)) * (beta/fabs(beta)) * sq8pi;
+    double B = std::sqrt(pj / std::abs(beta)) * (beta/std::abs(beta)) * sq8pi;
 
     if (jetface & X_negative){
         for(int g = 1; g <= ng; g++){
@@ -44,7 +44,7 @@ void MHDJet::apply(Grid1D& grid) {
 //All applicable ghost cells are set to equal this->state
 void MHDJet::apply(Grid2D& grid) {
     //Construct a jet with reduced thermal pressure
-    double pj = p * fabs(beta)/(1.0+ fabs(beta));
+    double pj = p * std::abs(beta)/(1.0+ std::abs(beta));
     std::swap(pj,p);
     Jet::apply(grid);
     std::swap(pj,p);
@@ -52,11 +52,11 @@ void MHDJet::apply(Grid2D& grid) {
     
     double dx = grid.dx, dy = grid.dy;
     int ng = grid.getGhosts(), nx = grid.getSizeX(), ny = grid.getSizeY();
-    int i0 = std::max(0.0,floor(nx*0.5 - rj/dx)), in = fmin(nx,ceil(nx*0.5 + rj/dx));
-    int j0 = std::max(0.0,floor(ny*0.5 - rj/dy)), jn = fmin(ny,ceil(ny*0.5 + rj/dy));
+    int i0 = std::max(0.0,floor(nx*0.5 - rj/dx)), in = std::min(nx,ceil(nx*0.5 + rj/dx));
+    int j0 = std::max(0.0,floor(ny*0.5 - rj/dy)), jn = std::min(ny,ceil(ny*0.5 + rj/dy));
 
 
-    double B = sqrt(pj / fabs(beta)) * (beta/fabs(beta)) * sq8pi;
+    double B = std::sqrt(pj / std::abs(beta)) * (beta/std::abs(beta)) * sq8pi;
 
     if (jetface & X_negative){
         for(int j = j0; j < jn; j++){
@@ -94,7 +94,7 @@ void MHDJet::apply(Grid2D& grid) {
 //All applicable ghost cells are set to equal this->state
 void MHDJet::apply(Grid3D& grid) {
     //Reuse existing logic to set rho, v, and p
-    double pj = p / (1.0 + (rm*rm)/(fabs(beta)*rj*rj)); //Lower thermal pressure to account for B
+    double pj = p / (1.0 + (rm*rm)/(std::abs(beta)*rj*rj)); //Lower thermal pressure to account for B
     std::swap(pj,p);
     Jet::apply(grid);
     std::swap(pj,p); //Restore ambient pressure
@@ -109,8 +109,8 @@ void MHDJet::apply(Grid3D& grid) {
     
     auto& A = grid._A();
     
-    double pmag = (pj/fabs(beta));
-    double Bm = sqrt(pmag) * (beta < 0 ? -1 : 1) * sq8pi;
+    double pmag = (pj/std::abs(beta));
+    double Bm = std::sqrt(pmag) * (beta < 0 ? -1 : 1) * sq8pi;
     double _rm = 1/rm;
     double _rm2 = _rm*_rm;
     double Am = Bm*rm*log(rj/rm);
@@ -124,7 +124,7 @@ void MHDJet::apply(Grid3D& grid) {
             for(int k = k0; k < kn; k++){
                 //Pressure on Body-centered cells
                 double y = (j+0.5-ny*0.5)*dy, z = (k+0.5-nz*0.5)*dz;
-                double r = sqrt(y*y+z*z);
+                double r = std::sqrt(y*y+z*z);
                 if (r <= rj){
                     double Bscale = toroidalScale(r);
                     for(int g = 1; g <= ng; g++){
@@ -134,7 +134,7 @@ void MHDJet::apply(Grid3D& grid) {
                 }
                 //A field is edge-centered
                 y -= 0.5*dy; z -= 0.5*dz;
-                r = sqrt(y*y+z*z);
+                r = std::sqrt(y*y+z*z);
                 //Start by copying existing data
                 for(int g = 1; g <= ng; g++) A[-g,j,k] = A[0,j,k];
                 //Compute the A field
@@ -155,7 +155,7 @@ void MHDJet::apply(Grid3D& grid) {
             for(int k = k0; k < kn; k++){
                 //Pressure on Body-centered cells
                 double y = (j+0.5-ny*0.5)*dy, z = (k+0.5-nz*0.5)*dz;
-                double r = sqrt(y*y+z*z);
+                double r = std::sqrt(y*y+z*z);
                 if (r <= rj){
                     double Bscale = toroidalScale(r);
                     for(int g = 1; g <= ng; g++){
@@ -165,7 +165,7 @@ void MHDJet::apply(Grid3D& grid) {
                 }
                 //A field is edge-centered
                 y -= 0.5*dy; z -= 0.5*dz;
-                r = sqrt(y*y+z*z);
+                r = std::sqrt(y*y+z*z);
                 //Start by copying existing data
                 for(int g = 1; g <= ng; g++) A[nx+g,j,k] = A[nx,j,k];
                 //Compute the A field
@@ -186,7 +186,7 @@ void MHDJet::apply(Grid3D& grid) {
             for(int k = k0; k < kn; k++){
                 //Pressure on Body-centered cells
                 double x = (i+0.5-nx*0.5)*dx, z = (k+0.5-nz*0.5)*dz;
-                double r = sqrt(x*x+z*z);
+                double r = std::sqrt(x*x+z*z);
                 if (r <= rj){
                     double Bscale = toroidalScale(r);
                     for(int g = 1; g <= ng; g++){
@@ -196,7 +196,7 @@ void MHDJet::apply(Grid3D& grid) {
                 }
                 //A field is edge-centered
                 x -= 0.5*dx; z -= 0.5*dz;
-                r = sqrt(x*x+z*z);
+                r = std::sqrt(x*x+z*z);
                 //Start by copying existing data
                 for(int g = 1; g <= ng; g++) A[i,-g,k] = A[i,0,k];
                 //Compute the A field
@@ -217,7 +217,7 @@ void MHDJet::apply(Grid3D& grid) {
             for(int k = k0; k < kn; k++){
                 //Pressure on Body-centered cells
                 double x = (i+0.5-nx*0.5)*dx, z = (k+0.5-nz*0.5)*dz;
-                double r = sqrt(x*x+z*z);
+                double r = std::sqrt(x*x+z*z);
                 if (r <= rj){
                     double Bscale = toroidalScale(r);
                     for(int g = 1; g <= ng; g++){
@@ -227,7 +227,7 @@ void MHDJet::apply(Grid3D& grid) {
                 }
                 //A field is edge-centered
                 x -= 0.5*dx; z -= 0.5*dz;
-                r = sqrt(x*x+z*z);
+                r = std::sqrt(x*x+z*z);
                 //Start by copying existing data
                 for(int g = 1; g <= ng; g++) A[i,ny+g,k] = A[i,ny,k];
                 //Compute the A field
@@ -248,7 +248,7 @@ void MHDJet::apply(Grid3D& grid) {
             for(int j = j0; j < jn; j++){
                 //Pressure on Body-centered cells
                 double x = (i+0.5-nx*0.5)*dx, y = (j+0.5-ny*0.5)*dy;
-                double r = sqrt(x*x+y*y);
+                double r = std::sqrt(x*x+y*y);
                 if (r <= rj){
                     double Bscale = toroidalScale(r);
                     for(int g = 1; g <= ng; g++){
@@ -258,7 +258,7 @@ void MHDJet::apply(Grid3D& grid) {
                 }
                 //A field is edge-centered
                 x -= 0.5*dx; y -= 0.5*dy;
-                r = sqrt(x*x+y*y);
+                r = std::sqrt(x*x+y*y);
                 //Start by copying existing data
                 for(int g = 1; g <= ng; g++) A[i,j,-g] = A[i,j,0];
                 //Compute the A field
@@ -280,7 +280,7 @@ void MHDJet::apply(Grid3D& grid) {
             for(int j = j0; j < jn; j++){
                 //Pressure on Body-centered cells
                 double x = (i+0.5-nx*0.5)*dx, y = (j+0.5-ny*0.5)*dy;
-                double r = sqrt(x*x+y*y);
+                double r = std::sqrt(x*x+y*y);
                 if (r <= rj){
                     double Bscale = toroidalScale(r);
                     for(int g = 1; g <= ng; g++){
@@ -290,7 +290,7 @@ void MHDJet::apply(Grid3D& grid) {
                 }
                 //A field is edge-centered
                 x -= 0.5*dx; y -= 0.5*dy;
-                r = sqrt(x*x+y*y);
+                r = std::sqrt(x*x+y*y);
                 //Start by copying existing data
                 for(int g = 1; g <= ng; g++) A[i,j,nz+g] = A[i,j,nz];
                 //Compute the A field

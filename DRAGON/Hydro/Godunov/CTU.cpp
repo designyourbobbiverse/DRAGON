@@ -10,14 +10,18 @@
 
 #include "Grid.hpp"
 #include "Unsplit.hpp"
-#include "Riemann.hpp"
-#include "Config.h"
-#include "Constants.h"
-#include "TVD.hpp"
-#include "CT.hpp"
-#include "DragonWing.hpp"
 
-#include <iostream>
+
+
+#include "Riemann.hpp" //For Riemann Solvers
+#include "CT.hpp"      //For MHD
+
+
+#include "Config.h"
+#include "DragonWing.hpp" //For Memory Management
+#include "TVD.hpp"        //For MINMOD
+#include "Constants.h"    //For _1_8pi
+
 
 #ifdef CTU
 #ifndef MUSCL_Hancock

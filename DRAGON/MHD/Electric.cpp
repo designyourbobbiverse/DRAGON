@@ -10,10 +10,8 @@
 
 
 #include "CT.hpp"
-#include "Config.h"
-#include "DragonWing.hpp"
-#include <cmath>
 
+#include "Config.h"
 
 #ifdef MHD
 #ifndef DIMENSION_UNSPLIT

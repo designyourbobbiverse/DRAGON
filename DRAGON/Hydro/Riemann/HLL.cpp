@@ -12,12 +12,14 @@
 
 
 #include "Riemann.hpp"
-#include <math.h>
-#include "Constants.h"
+
+#include <cmath> //For std::sqrt
+#include <algorithm> //For std::max/min
+#include "Constants.h" //For gamma
 
 namespace HLL{
 PrimitiveState roeAvg(PrimitiveState L, PrimitiveState R){
-    double sql = sqrt(L.rho), sqr = sqrt(R.rho);
+    double sql = std::sqrt(L.rho), sqr = std::sqrt(R.rho);
     double _sql = sql / (sql + sqr), _sqr = sqr / (sql + sqr);
     
     PrimitiveState w;
@@ -51,13 +53,13 @@ ConservativeState Riemann::HLL(){
     double aL = L.cs(), aR = R.cs(), aM = M.cs();
 #endif
     //Compare to v +- a
-    double SL = fmin(L.v.x - aL, M.v.x-aM);
-    double SR = fmax(R.v.x + aR, M.v.x+aM);
+    double SL = std::min(L.v.x - aL, M.v.x-aM);
+    double SR = std::max(R.v.x + aR, M.v.x+aM);
     
     return HLL(SL, SR);
 }
 ConservativeState Riemann::HLLE(){
-    double sql = sqrt(L.rho), sqr = sqrt(R.rho);
+    double sql = std::sqrt(L.rho), sqr = std::sqrt(R.rho);
     double _sql = sql / (sql + sqr), _sqr = sqr / (sql + sqr);
 #ifdef MHD
     //Set Normal Magnetic Fields
@@ -71,12 +73,12 @@ ConservativeState Riemann::HLLE(){
 #endif
     double _v = (R.v.x-L.v.x) / (sql + sqr);
     double d = (_sql*aL*aL + _sqr*aR*aR)  +  0.5 * (sql * sqr) * _v * _v;
-    d = sqrt(d);
+    d = std::sqrt(d);
     double u = _sql*L.v.x + _sqr*R.v.x;
     
     //Compare to v +- a
-    double SL = fmin(L.v.x - aL, u-d);
-    double SR = fmax(R.v.x + aR, u+d);
+    double SL = std::min(L.v.x - aL, u-d);
+    double SR = std::max(R.v.x + aR, u+d);
     
     return HLL(SL, SR);
 }
@@ -104,8 +106,8 @@ ConservativeState Riemann::HLLC(){
     //Compute Sound Speed
     double aL = L.cs(), aR = R.cs(), aM = M.cs();
     //Compare to v +- a
-    double SL = fmin(L.v.x - aL, M.v.x-aM);
-    double SR = fmax(R.v.x + aR, M.v.x+aM);
+    double SL = std::min(L.v.x - aL, M.v.x-aM);
+    double SR = std::max(R.v.x + aR, M.v.x+aM);
     
     return HLLC(SL, SR);
 }

@@ -1,13 +1,15 @@
 //
 //  ExtendedArray.hpp
-//  DRAGON/Hydro/Godunov
+//  DRAGON/Hydro/ExtendedArray
 //
 //  Created by Bobbie Markwick on 16/06/2026.
 //
 
 #ifndef Storage_hpp
 #define Storage_hpp
+#ifdef TESTMODE
 #include <cassert>
+#endif
 
 #pragma once
 

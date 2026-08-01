@@ -32,7 +32,7 @@ PrimitiveState Problem::initialFluidState(double x, double y, double z){
     return w;
 }
 vec3 Problem::initialMagneticPotential(double x, double y, double z){
-    //This function is ignored in Pure Hydro
+    //This function is ignored in pure hydro
     return {0,0,0};
 }
 

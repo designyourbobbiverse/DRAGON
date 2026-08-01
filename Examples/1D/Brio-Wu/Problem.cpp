@@ -7,7 +7,7 @@
 
 #include "Problem.hpp"
 #include "DistGrid.hpp"
-#include "Constants.h"
+#include "Constants.h" //For sq4pi
 
 typedef DistGrid1D MyGrid;
 

@@ -3,15 +3,12 @@
 //  DRAGON/Hydro/Riemann
 //
 //  Created by Bobbie Markwick on 12/05/2026.
-//  Solution sampling based mostly on Toro (2009). https://doi.org/10.1007/b79761
 //
 
 #include "Riemann.hpp"
-#include <math.h>
-#include "Constants.h"
 #include "Config.h"
-#include <utility>
-#include <string>
+
+#include <stdexcept> //For error messages
 
 
 //MARK: Selected Flux algorithm
@@ -118,72 +115,3 @@ ConservativeState Riemann::flux_Z(double dt_dz){
 }
 
 
-//MARK: Solution Sampling
-//Convenience methods to sample the solution then get the flux
-ConservativeState RiemannSolution::flux(){ return flux(0); }
-ConservativeState RiemannSolution::flux(double x_t){
-    PrimitiveState w = sample(x_t);
-    return ConservativeState(w).flux(w.v);
-}
-
-//Get the state along any given x/t line
-PrimitiveState RiemannSolution::sample(double x_t){
-    PrimitiveState state;
-    //Edge case: Right on the contact wave, do this to help ensure symmetry
-    if(fabs(sR.v.x - x_t) < 1e-12){
-        double sql = sqrt(sL.rho), sqr = sqrt(sR.rho);
-        return (sql*sL + sqr*sR)/(sql+sqr);
-    }
-    
-    //Handle left vs Right side
-    bool isLeft = x_t < sR.v.x;
-    if(isLeft){ mirror(); x_t=-x_t; }
-    
-    //Calculate Hydro Sound Speed
-    double a = wR.cs();
-    //Determine Zone
-    int zone = 0; // 1 = outside, 2 = fan, 3 = star
-    if (sR.p > wR.p){ //shock
-        double scale = sqrt(_Gp1_2G*sR.p/wR.p + _Gm1_2G );
-        zone = ( (x_t-wR.v.x)  > scale * a ) ? 1 : 3;
-    } else{ //Rarefraction
-        if ( (x_t-wR.v.x) > a ) zone = 1;
-        else if ( (x_t-sR.v.x) > a ) zone = 2;
-        else if ( (x_t-sR.v.x) > a * pow(sR.p/wR.p, _Gm1_2G) ) zone = 2;
-        else zone = 3;
-    }
-    //Calculate the State at x/t
-    switch(zone){
-        case 1: state=wR; break; //Outer Region
-        case 3: state=sR;break; //Star Region
-        case 2://Fan
-            state = wR;
-            double scale = _2_Gp1 - _Gm1_Gp1 * (wR.v.x-x_t)/a;
-            state.rho *= pow(scale, _2_Gm1);
-            state.p *= pow(scale,_2G_Gm1);
-            state.v.x = _2_Gp1 * (x_t-a + wR.v.x * _Gm1_2);
-            break;
-    }
-    //Be a good citizen, restore original state if we mirrored
-    if(isLeft){ mirror(); state.v.x *= -1;}
-
-    return state;
-}
-
-void RiemannSolution::mirror(){
-    //Swap corresponding Left and Right States
-    std::swap(wL,wR);
-    std::swap(sL,sR);
-    //Multiply all x components by -1
-    wL.v.x *= -1;
-    wR.v.x *= -1;
-    sL.v.x *= -1;
-    sR.v.x *= -1;
-#ifdef MHD
-    wL.B.x *= -1;
-    wR.B.x *= -1;
-    sL.B.x *= -1;
-    sR.B.x *= -1;
-#endif
-    
-}

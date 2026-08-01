@@ -7,8 +7,10 @@
 
 #include "Testing.hpp"
 #include "Boundary.hpp"
+
 #include "Grid.hpp"
-#include <iostream>
+#include <algorithm> //For std::max
+#include <iostream>  //For std::cout
 
 using namespace DRAGON_Test;
 using namespace Boundary;
@@ -59,7 +61,7 @@ void fill_1D(Grid1D& grid) {
     }
 }
 void fill_2D(Grid2D& grid) {
-    double s = 1.0 / fmax(grid.getSizeX(), grid.getSizeY());
+    double s = 1.0 / std::max(grid.getSizeX(), grid.getSizeY());
     for (int i = -grid.getGhosts(); i < grid.getSizeX()+grid.getGhosts(); i++) {
         for (int j = -grid.getGhosts(); j < grid.getSizeY()+grid.getGhosts(); j++) {
             grid[i, j] = G;
@@ -80,7 +82,7 @@ void fill_2D(Grid2D& grid) {
     
 }
 void fill_3D(Grid3D& grid) {
-    double s = 1.0 / fmax(fmax(grid.getSizeX(), grid.getSizeY()), grid.getSizeZ());
+    double s = 1.0 / std::max(std::max(grid.getSizeX(), grid.getSizeY()), grid.getSizeZ());
     for (int i = -grid.getGhosts(); i < grid.getSizeX()+grid.getGhosts(); i++) {
         for (int j = -grid.getGhosts(); j < grid.getSizeY()+grid.getGhosts(); j++) {
             for (int k = -grid.getGhosts(); k < grid.getSizeZ()+grid.getGhosts(); k++) {

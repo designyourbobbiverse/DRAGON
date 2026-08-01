@@ -7,7 +7,9 @@
 
 #include "Testing.hpp"
 #include "Riemann.hpp"
-#include <iostream>
+
+#include <cmath>    //For std::isfinite
+#include <iostream> //For std::cout
 
 using namespace DRAGON_Test;
 

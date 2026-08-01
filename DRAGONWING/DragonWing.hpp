@@ -7,9 +7,11 @@
 
 #ifndef DRAGON_WING_hpp
 #define DRAGON_WING_hpp
-#include <string>
-#include <vector>
+
 #include "ArrayGuard.hpp"
+#include <string> //For restart error messages
+
+
 class Grid;
 
 
@@ -40,10 +42,6 @@ ArrayGuard<ExtendedArray2D<vec3>> requestVec3Arrays(int N, int nx, int ny, int g
 ArrayGuard<ExtendedArray3D<PrimitiveState>> requestPrimitiveArrays(int N, int nx, int ny, int nz, int g);
 ArrayGuard<ExtendedArray3D<ConservativeState>> requestFluxArrays(int N, int nx, int ny, int nz, int g);
 ArrayGuard<ExtendedArray3D<vec3>> requestVec3Arrays(int N, int nx, int ny, int nz, int g);
-
-
-
-
 
 void purgeAllBuffers();
 

@@ -6,9 +6,11 @@
 //
 
 #include "FluidElement.hpp"
-#include "Constants.h"
-#include <math.h>
-#include <utility>
+
+#include "Constants.h" //For gamma & pi-related values
+#include <cmath> //For std::sqrt, std::pow, etc
+#include <algorithm> //For std::max
+#include <utility> //For std::swap
 
 //MARK: Empty Constructors
 PrimitiveState::PrimitiveState(){
@@ -73,17 +75,21 @@ double PrimitiveState::enthalpy() const {
 }
 
 //MARK: Physical validity
+bool isfinite(const vec3& v){
+    return std::isfinite(v.x) && std::isfinite(v.y) && std::isfinite(v.z);
+}
+
 bool PrimitiveState::isPhysical() const {
 #ifdef MHD
-    if( !isfinite(B.x) || !isfinite(B.y) || !isfinite(B.z)) return false;
+    if(!isfinite(B)) return false;
 #endif
-    return isfinite(rho) && isfinite(v.x)  && isfinite(v.y)  && isfinite(v.z)  && isfinite(p)   && rho > 0.0 && p > 0.0;
+    return std::isfinite(rho) && isfinite(v) && std::isfinite(p)   && rho > 0.0 && p > 0.0;
 }
 bool ConservativeState::isFinite()  const {
 #ifdef MHD
-    if( !isfinite(B.x) || !isfinite(B.y) || !isfinite(B.z)) return false;
+    if(!isfinite(B)) return false;
 #endif
-    return isfinite(rho) && isfinite(mom.x)  && isfinite(mom.y)  && isfinite(mom.z)  && isfinite(E);
+    return std::isfinite(rho) && isfinite(mom) && std::isfinite(E);
 }
 bool ConservativeState::isPhysical()  const {
     return isFinite() && rho > 0.0 && pressure() > 0.0;
@@ -91,20 +97,20 @@ bool ConservativeState::isPhysical()  const {
 
 //MARK: Wave Speeds
 double PrimitiveState::cs() const {
-    return sqrt(_gamma * p / rho); //Speed of sound waves in a pure hydro fluid
+    return std::sqrt(_gamma * p / rho); //Speed of sound waves in a pure hydro fluid
 }
 #ifdef MHD
 double PrimitiveState::c_alfven() const {
-    return sqrt( (B*B) / rho ) / sq4pi; //Alfven speed, given in gaussian units
+    return std::sqrt( (B*B) / rho ) / sq4pi; //Alfven speed, given in gaussian units
 }
 double PrimitiveState::c_fast() const { return c_fast(B.x); }
 double PrimitiveState::c_fast(double Bk) const {
     //Precompute the sound and alvfen speeds
-    double c = cs(), a = c_alfven(), c2 = pow(c,2), a2 = pow(a,2), ak2 = (Bk * Bk / rho) * _1_4pi;
-    // fmax(0,__) to protect against numerical issues
-    double disc = fmax(0, pow(c2+a2,2)*0.25 - ak2*c2);
+    double c = cs(), a = c_alfven(), c2 = std::pow(c,2), a2 = std::pow(a,2), ak2 = (Bk * Bk / rho) * _1_4pi;
+    // std::max(0,__) to protect against numerical issues
+    double disc = std::max(0.0, std::pow(c2+a2,2)*0.25 - ak2*c2);
     //Compute fast speed
-    return sqrt( (c2 + a2)*0.5 + sqrt(disc) );
+    return std::sqrt( (c2 + a2)*0.5 + std::sqrt(disc) );
 }
 double PrimitiveState::c_fast_max() const {
     double Bk;

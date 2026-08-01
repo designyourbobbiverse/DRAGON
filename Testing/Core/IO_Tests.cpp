@@ -6,11 +6,12 @@
 //
 
 #include "Testing.hpp"
-#include "Boundary.hpp"
-#include "DRAGONHOARD.hpp"
+#include "DragonHoard.hpp"
+
 #include "Config.h"
-#include <fstream>
-#include <iostream>
+#include <iostream> //For std::cout
+#include <limits>   //For float vs double comparison
+#include <cstdio>   //For removing test files
 
 using namespace DRAGON_Test;
 using namespace Boundary;

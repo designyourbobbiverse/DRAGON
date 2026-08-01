@@ -10,9 +10,9 @@
 #define AMRGrid_hpp
 
 #include "Grid.hpp"
-#include "Config.h"
+
 #include <vector>
-#include <memory>
+#include <memory> //For std::unique_ptr
 
 template <typename T>
 struct DistGrid{
