@@ -158,9 +158,6 @@ void Grid::advance(double dt, bool check_cfl){
 
 
 void Grid::advance_split(double dt, bool check_cfl){
-    #ifdef MHD //Ensure B is initialised
-    initialize_B_fields();
-    #endif
     while(dt > CONFIG::Timestep_Tolerance){
         boundary.apply(*this);
         //CFL Time Constraint
@@ -189,9 +186,6 @@ void Grid::advance_split(double dt, bool check_cfl){
 
 
 void Grid::advance_unsplit(double dt, bool check_cfl){
-    #ifdef MHD //Ensure B is initialised
-    initialize_B_fields();
-    #endif
     while(dt > CONFIG::Timestep_Tolerance){
         boundary.apply(*this);
         //CFL Time Constraint

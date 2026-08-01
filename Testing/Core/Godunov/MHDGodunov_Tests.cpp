@@ -109,8 +109,6 @@ void DRAGON_Test::verify_god_uniform_stationary_2D_MHD(){
     
     
     grid.advance(1.0);
-    
-    grid.initialize_B_fields();
 
     for (int i = 0; i < grid.getSizeX(); i++){
         for (int j = 0; j < grid.getSizeY(); j++){

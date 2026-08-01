@@ -85,6 +85,7 @@ void DRAGON_Test::verify_2D_X_match_1D_MHD(){
             grid._B()[i,j] = i < nx/2 ? vec3{Bx,ByL,Bz} : vec3{Bx,ByR,Bz};
         }
     }
+    grid.initialize_B_fields();
     
     const double dt = std::min(CFL::cfl_time(grid), CFL::cfl_time(expected));
     grid.advance(dt);
@@ -120,6 +121,7 @@ void DRAGON_Test::verify_2D_Y_match_1D_MHD(){
             grid._B()[i,j] = j < nx/2 ? vec3{ByL,Bx,Bz} : vec3{ByR,Bx,Bz};
         }
     }
+    grid.initialize_B_fields();
     
     const double dt = std::min(CFL::cfl_time(grid), CFL::cfl_time(expected));
     grid.advance(dt);
@@ -157,6 +159,7 @@ void DRAGON_Test::verify_3D_X_match_1D_MHD(){
             }
         }
     }
+    grid.initialize_B_fields();
     
     const double dt = std::min(CFL::cfl_time(grid), CFL::cfl_time(expected));
     grid.advance(dt);
@@ -196,6 +199,7 @@ void DRAGON_Test::verify_3D_Y_match_1D_MHD(){
             }
         }
     }
+    grid.initialize_B_fields();
     
     const double dt = std::min(CFL::cfl_time(grid), CFL::cfl_time(expected));
     grid.advance(dt);
@@ -235,6 +239,7 @@ void DRAGON_Test::verify_3D_Z_match_1D_MHD(){
             }
         }
     }
+    grid.initialize_B_fields();
     
     const double dt = std::min(CFL::cfl_time(grid), CFL::cfl_time(expected));
     grid.advance(dt);
