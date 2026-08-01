@@ -64,6 +64,7 @@ void* DRAGONWING::ThreadPool::launchParallel(Grid* grid, double dt){
 void* DRAGONWING::ThreadPool::launchParallel(Grid* grid, double dt){
     current_thread_pool = this;
     grid->advance(dt, false);
+    current_thread_pool = nullptr;
     return nullptr;
 }
 #endif
