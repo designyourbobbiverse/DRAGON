@@ -1,6 +1,6 @@
 //
-//  ForwardDecls.h
-//  DRAGON
+//  ArrayGuard.hpp
+//  DRAGONWING/Memory_Management
 //
 //  Created by Bobbie Markwick on 10/07/2026.
 //

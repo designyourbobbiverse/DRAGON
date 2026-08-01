@@ -9,6 +9,7 @@
 #define DRAGON_WING_hpp
 
 #include "ArrayGuard.hpp"
+#include "ThreadPool.hpp"
 #include <string> //For restart error messages
 
 
@@ -18,14 +19,17 @@ class Grid;
 namespace DRAGONWING{
 
 //MARK: Multithreading
-void* launchParallel(Grid* grid, double dt);
+//Multithreading is done via the ThreadPool class. Important functions:
+    //ThreadPool(int n); //Creates a pool with n threads
+    //void* launchParallel(Grid* grid, double dt); //Creates a thread which calls grid->advance(dt, false);
+    //std::string restartMsg(); //returns (+clears) the error message if something requested a restart.
+    //bool waitForCompletion(); //Waits for all threads to finish. Returns false iff anyone requested a restart
 
-void initialize(int nthreads);
+//Everything below automatically invokes the ThreadPool associated with the current thread. No need to pass it around yourself.
 bool requestRestart(std::string msg = ""); //Returns true if genuinely in multithread mode
-std::string restartMsg();
 void reportCheckpoint1();
 void reportCheckpoint2();
-bool waitForRelease();
+bool waitForRelease(); //Returns false iff someone requested a restart
 bool waitForCheckpoint1(); //Returns false iff someone requested a restart
 bool waitForCheckpoint2(); //Returns false iff someone requested a restart
 

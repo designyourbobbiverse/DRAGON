@@ -9,7 +9,6 @@
 #include "Grid.hpp"
 
 #include "DistGrid.hpp"   //Do Blast tests in parallel
-#include "DragonWing.hpp" //For cleanup after blast tests
 #include <iostream>       //For std::cout
 
 
@@ -204,9 +203,6 @@ void DRAGON_Test::verify_ctu_blast_2D() {
             expect_blast_mirror_y(grid[i,j], grid[i,ny-1-j]);
         }
     }
-    
-    DRAGONWING::initialize(0);
-
 }
 
 void DRAGON_Test::verify_ctu_blast_3D() {
@@ -273,7 +269,5 @@ void DRAGON_Test::verify_ctu_blast_3D() {
             }
         }
     }
-    
-    DRAGONWING::initialize(0);
     
 }

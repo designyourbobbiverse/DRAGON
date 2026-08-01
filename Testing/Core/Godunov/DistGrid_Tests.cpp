@@ -8,9 +8,7 @@
 #include "Testing.hpp"
 #include "DistGrid.hpp"
 
-#include "DragonWing.hpp" //For cleanup
 #include <iostream>       //For std::cout
-#include "CFL.hpp"
 
 using namespace DRAGON_Test;
 using namespace Boundary;
@@ -35,8 +33,6 @@ void DRAGON_Test::verify_god_dist_grid_1D(){
     for (int i = 0; i < grid.getSize(); i++){
         expect_close(grid[i], dgrid[i], 1e-26);
     }
-    
-    DRAGONWING::initialize(0);
 }
 
 
@@ -61,8 +57,6 @@ void DRAGON_Test::verify_god_dist_grid_2D(){
             expect_close(grid[i,j], dgrid[i,j], 1e-26);
         }
     }
-    
-    DRAGONWING::initialize(0);
 }
 #ifdef MHD
 void DRAGON_Test::verify_god_dist_grid_2D_MHD(){
@@ -90,8 +84,6 @@ void DRAGON_Test::verify_god_dist_grid_2D_MHD(){
             expect_close(grid._B()[i,j], dgrid._B()[i,j], 1e-26);
         }
     }
-    
-    DRAGONWING::initialize(0);
 }
 #endif
 
@@ -120,8 +112,6 @@ void DRAGON_Test::verify_god_dist_grid_3D(){
             }
         }
     }
-    
-    DRAGONWING::initialize(0);
 }
 
 #ifdef MHD
@@ -154,7 +144,5 @@ void DRAGON_Test::verify_god_dist_grid_3D_MHD(){
             }
         }
     }
-    
-    DRAGONWING::initialize(0);
 }
 #endif

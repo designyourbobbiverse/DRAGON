@@ -48,7 +48,7 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Memory_Management/AuxGrids.cpp,
-				Multithreading/pthread_parallel.cpp,
+				Multithreading/ThreadPool.cpp,
 			);
 			target = F77A715B2FB415A5006C2776 /* DRAGON_TESTS */;
 		};

@@ -291,13 +291,11 @@ void DistGrid3D::loadFromChildren(){
 //MARK: Advance
 template <typename T> void DistGrid<T>::step(double dt){
     pushToChildren();
-    DRAGONWING::initialize(static_cast<int>(children.size()));
-    for(auto& child : children){
-        DRAGONWING::launchParallel(child.get(), dt);
-    }
-    bool success = DRAGONWING::waitForCheckpoint2(); //Wait for children to finish
+    DRAGONWING::ThreadPool pool(static_cast<int>(children.size()));
+    for(auto& child : children) pool.launchParallel(child.get(), dt);
+    bool success = pool.waitForCompletion(); //Wait for children to finish
     if(!success) { //If we failed, try again with half time step
-        throw std::runtime_error(DRAGONWING::restartMsg());
+        throw std::runtime_error(pool.restartMsg());
     }
     //Copy Back
     loadFromChildren();

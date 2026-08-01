@@ -9,7 +9,6 @@
 #include "CT.hpp"
 
 #include "DistGrid.hpp"
-#include "DragonWing.hpp"   //For resetting after parallelized tests
 #include "Constants.h"      //For M_PI, _1_8pi
 #include <iostream>
 
@@ -96,8 +95,6 @@ void DRAGON_Test::verify_ct_stationary_3D(){
         }
     }
     assert_divergenceless(grid._B(),dx,dx,dx);
-    
-    DRAGONWING::initialize(0);
 }
 
 
