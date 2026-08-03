@@ -10,11 +10,6 @@
 
 #include "ArrayGuard.hpp"
 #include "ThreadPool.hpp"
-#include <string> //For restart error messages
-
-
-class Grid;
-
 
 namespace DRAGONWING{
 
@@ -25,7 +20,7 @@ namespace DRAGONWING{
     //std::string restartMsg(); //returns (+clears) the error message if something requested a restart.
     //bool waitForCompletion(); //Waits for all threads to finish. Returns false iff anyone requested a restart
 
-//Everything below automatically invokes the ThreadPool associated with the current thread. No need to pass it around yourself.
+//Everything below automatically invokes the ThreadPool associated with the current thread. No need to pass the object around yourself.
 bool requestRestart(std::string msg = ""); //Returns true if genuinely in multithread mode
 void reportCheckpoint1();
 void reportCheckpoint2();
@@ -34,9 +29,11 @@ bool waitForCheckpoint1(); //Returns false iff someone requested a restart
 bool waitForCheckpoint2(); //Returns false iff someone requested a restart
 
 //MARK: Memory Management
+//Parameters: N is the number of arrays to return
+    //nx/ny/nz/g are the size parameters for the arrays themselves
 //Return Type: ArrayGuard
-//Automatically releases the arrays when it goes out of scope. Can release early by calling guard.release()
-//guard[i] or guard.get(i) returns a pointer to the ith array
+    //Automatically releases the arrays when it goes out of scope. Can release early by calling guard.release()
+    //guard[i] or guard.get(i) returns a pointer to the ith array
 ArrayGuard<ExtendedArray1D<PrimitiveState>> requestPrimitiveArrays(int N, int nx, int g);
 ArrayGuard<ExtendedArray1D<ConservativeState>> requestFluxArrays(int N, int nx, int g);
 ArrayGuard<ExtendedArray1D<vec3>> requestVec3Arrays(int N, int nx, int g);
