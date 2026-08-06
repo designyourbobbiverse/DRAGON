@@ -6,8 +6,11 @@
 //  Created by Bobbie Markwick on 12/06/2026.
 //
 
-#ifndef AMRGrid_hpp
-#define AMRGrid_hpp
+//Although the folder is called "Refinement", DRAGON does not yet support AMR.
+//However, the current domain-decomposition process is a first step towards AMR, so we use that name now to keep git clean later.
+
+#ifndef DistGrid_hpp
+#define DistGrid_hpp
 
 #include "Grid.hpp"
 

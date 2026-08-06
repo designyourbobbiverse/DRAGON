@@ -3,9 +3,8 @@
 //  DRAGON/Hydro/Godunov
 //
 //  Created by Bobbie Markwick on 10/06/2026.
-//  Implementation based in part on  Toro (2009). https://doi.org/10.1007/b79761
-//      Colella (1990). https://doi.org/10.1016/0021-9991(90)90233-Q
-//      Gardiner and Stone (2005). https://doi.org/10.1016/j.jcp.2004.11.016
+//  Implementation based on  Gardiner and Stone (2008) https://arxiv.org/abs/0712.2634
+//
 
 
 #include "Grid.hpp"
@@ -74,34 +73,34 @@ void Godunov::ctu_sweep_MHD(FluidArray3D& _xL, FluidArray3D& _xR, FluidArray3D& 
                 
                 auto& W = w[i,j,k];
                 
-                //Fluxes
+                //Fluxes for the hydro components
                 auto corr =  0.5 * ((F_Y[i,j,k] - F_Y[i,j+1,k]) * dt_dy + (F_Z[i,j,k] - F_Z[i,j,k+1]) * dt_dz);
                 corr.B = {0,0,0};
-                //MHD Source Terms
+                //MHD Source Terms (see GS08 eqs 51-59)
                 double lim_y = TVD::minmod(-dBz, dBx);
                 double lim_z = TVD::minmod(-dBy, dBx);
-                //corr.mom += _1_8pi * dBx * W.B;
-                corr.E += _1_8pi * (W.B.y * W.v.y * lim_y + W.B.z * W.v.z * lim_z);
+                //corr.mom += _1_8pi * dBx * W.B; //Our MUSCL implemenation makes the momentum correction (GS08-51) unnecessary (& wrong)
+                corr.E += _1_8pi * (W.B.y * W.v.y * lim_y + W.B.z * W.v.z * lim_z); //But we do need the energy correction (GS08-52)
                 corr.B.y = -0.25 * dt_dz * (E0[i,j,k+1].x - E0[i,j,k].x + E0[i,j+1,k+1].x - E0[i,j+1,k].x) + 0.5 * W.v.y * lim_y;
                 corr.B.z = 0.25 * dt_dy * (E0[i,j+1,k].x - E0[i,j,k].x + E0[i,j+1,k+1].x - E0[i,j,k+1].x) + 0.5 * W.v.z * lim_z;
-                //Apply Fluxes and Faces
+                //Apply fluxes, copy normal B's at Faces
                 uL = _xL[i,j,k] + corr;
                 uR = _xR[i,j,k] + corr;
                 uL.B.x = _B[i,j,k].x;
                 uR.B.x = _B[i+1,j,k].x;
                 _xL[i,j,k] = uL; _xR[i,j,k] = uR;
 
-                //Fluxes
+                //Fluxes for the hydro components
                 corr =  0.5 * ((F_X[i,j,k] - F_X[i+1,j,k]) * dt_dx + (F_Z[i,j,k] - F_Z[i,j,k+1]) * dt_dz);
                 corr.B = {0,0,0};
-                //MHD Source Terms
+                //MHD Source Terms (see GS08 eqs 51-59)
                 double lim_x = TVD::minmod(-dBz, dBy);
                 lim_z = TVD::minmod(-dBx, dBy);
-                //corr.mom += _1_8pi * dBy * W.B;
-                corr.E += _1_8pi * (W.B.x * W.v.x * lim_x + W.B.z * W.v.z * lim_z);
+                //corr.mom += _1_8pi * dBy * W.B; //Our MUSCL implemenation makes the momentum correction (GS08-51) unnecessary (& wrong)
+                corr.E += _1_8pi * (W.B.x * W.v.x * lim_x + W.B.z * W.v.z * lim_z); //But we do need the energy correction (GS08-52)
                 corr.B.x = 0.25 * dt_dz * (E0[i,j,k+1].y - E0[i,j,k].y + E0[i+1,j,k+1].y - E0[i+1,j,k].y) + 0.5 * W.v.x * lim_x;
                 corr.B.z = -0.25 * dt_dx * (E0[i+1,j,k].y - E0[i,j,k].y + E0[i+1,j,k+1].y - E0[i,j,k+1].y) + 0.5 * W.v.z * lim_z;
-                //Apply Fluxes and Faces
+                //Apply fluxes, copy normal B's at Faces
                 uL = _yL[i,j,k] + corr;
                 uR = _yR[i,j,k] + corr;
                 uL.B.y = _B[i,j,k].y;
@@ -111,14 +110,14 @@ void Godunov::ctu_sweep_MHD(FluidArray3D& _xL, FluidArray3D& _xR, FluidArray3D& 
                 //Fluxes
                 corr =  0.5 * ((F_X[i,j,k] - F_X[i+1,j,k]) * dt_dx + (F_Y[i,j,k] - F_Y[i,j+1,k]) * dt_dy);
                 corr.B = {0,0,0};
-                //MHD Source Terms
+                //MHD Source Terms (see GS08 eqs 51-59)
                 lim_x = TVD::minmod(-dBy, dBz);
                 lim_y = TVD::minmod(-dBx, dBz);
-                //corr.mom += _1_8pi * dBz * W.B;
-                corr.E += _1_8pi * (W.B.x * W.v.x * lim_x + W.B.y * W.v.y * lim_y);
+                //corr.mom += _1_8pi * dBz * W.B; //Our MUSCL implemenation makes the momentum correction (GS08-51) unnecessary (& wrong)
+                corr.E += _1_8pi * (W.B.x * W.v.x * lim_x + W.B.y * W.v.y * lim_y); //But we do need the energy correction (GS08-52)
                 corr.B.x =  -0.25 * dt_dy * (E0[i,j+1,k].z - E0[i,j,k].z + E0[i+1,j+1,k].z - E0[i+1,j,k].z) + 0.5 * W.v.x * lim_x;
                 corr.B.y =  0.25 * dt_dx * (E0[i+1,j,k].z - E0[i,j,k].z + E0[i+1,j+1,k].z - E0[i,j+1,k].z) + 0.5 * W.v.y * lim_y;
-                //Apply Fluxes and Faces
+                //Apply fluxes, copy normal B's at Faces
                 uL = _zL[i,j,k] + corr;
                 uR = _zR[i,j,k] + corr;
                 uL.B.z = _B[i,j,k].z;
@@ -219,6 +218,7 @@ void Godunov::ctu_sweep_hydro(FluidArray2D& _xL, FluidArray2D& _xR, FluidArray2D
 
 
 //MARK: CTU Hydro 12-Solve (3D)
+//See Gardiner and Stone (2008) section 5.1
 void Godunov::ctu_sweep_hydro(FluidArray3D& _xL, FluidArray3D& _xR, FluidArray3D& _yL, FluidArray3D& _yR, FluidArray3D& _zL, FluidArray3D& _zR, double dt_dx, double dt_dy, double dt_dz){
     const int nx = _xL.getSizeX(), ny = _xL.getSizeY(), nz = _xL.getSizeZ(), ghosts = _xL.getGhosts();
     
@@ -239,7 +239,7 @@ void Godunov::ctu_sweep_hydro(FluidArray3D& _xL, FluidArray3D& _xR, FluidArray3D
 
     FluxArray3D& F_Xy = F_Z; //F_Z isn't used again before it gets recomputed, so we can resue it here
     computeCTUFlux_X(_xL, _xR, F_Y, F_Xy, dt_dx, (dt_dy/3.0), 1);
-    FluxArray3D& F_Zy = F_Y;  //In computeCTUFlux, the last read of [i,j,k] happens before [i,j,k] gets written, so we can likewise repurpose F_Y here
+    FluxArray3D& F_Zy = F_Y;  //In computeCTUFlux, the last [i,j,k] read is before the [i,j,k] write, so we can likewise reuse F_Y here
     computeCTUFlux_Z(_zL, _zR, F_Y, F_Zy, dt_dz, (dt_dy/3.0),1);
 
     //Update the X half states based on the YZ corner fluxes
@@ -262,7 +262,7 @@ void Godunov::ctu_sweep_hydro(FluidArray3D& _xL, FluidArray3D& _xR, FluidArray3D
 
 //MARK: CTU Corrections
 void Godunov::correctState(FluidArray2D& _L, FluidArray2D& _R, const FluxArray2D& F, double dt_dL, int dim){
-    //Extract direction encoding
+    //Extract direction encoding: 0 -> x, 1 -> y
     const int isX = dim%2 == 0 ? 1 : 0;
     const int isY = dim%2 == 1 ? 1 : 0;
     const int xL = -isY, xR = F.getSizeX()+isY, yL = -isX, yR = F.getSizeY()+isX;
@@ -278,7 +278,7 @@ void Godunov::correctState(FluidArray2D& _L, FluidArray2D& _R, const FluxArray2D
 }
 
 void Godunov::correctState(FluidArray3D& _L, FluidArray3D& _R, const FluxArray3D& F, double dt_dL, int state_dim, int flux_dim){
-    //Extract direction encoding
+    //Extract direction encoding: 0 -> x, 1 -> y, 2 -> z
     const int isX = flux_dim%3 == 0 ? 1 : 0;
     const int isY = flux_dim%3 == 1 ? 1 : 0;
     const int isZ = flux_dim%3 == 2 ? 1 : 0;
@@ -301,7 +301,7 @@ void Godunov::correctState(FluidArray3D& _L, FluidArray3D& _R, const FluxArray3D
 }
     
 //MARK: 12-Solve Correction -> Flux
-//Compute X fluxes between Right(_R) and Left (_L) half-states, as corrected by transverse fluxes FYZ
+//Compute X fluxes between _R[i-1] and _L[i] half-states, as corrected by transverse fluxes FYZ
 //Equivalent to correctState (with wider bounds) -> computeFlux_X but without needing intermediate arrays
 void Godunov::computeCTUFlux_X(const FluidArray3D& _L, const FluidArray3D& _R, const FluxArray3D& FYZ, FluxArray3D& F,  double dt_dx, double dt_dy, int dim){
     //Extract direction encoding
@@ -324,7 +324,7 @@ void Godunov::computeCTUFlux_X(const FluidArray3D& _L, const FluidArray3D& _R, c
         }
     }
 }
-//Compute Y fluxes between Right(_R) and Left (_L) half-states, as corrected by transverse fluxes FXZ
+//Compute Y fluxes between _R[j-1] and L[j] half-states, as corrected by transverse fluxes FXZ
 //Equivalent to correctState (with wider bounds) -> computeFlux_Y but without needing intermediate arrays
 void Godunov::computeCTUFlux_Y(const FluidArray3D& _L, const FluidArray3D& _R, const FluxArray3D& FXZ, FluxArray3D& F, double dt_dy, double dt_dz, int dim){
     //Extract direction encoding
@@ -347,7 +347,7 @@ void Godunov::computeCTUFlux_Y(const FluidArray3D& _L, const FluidArray3D& _R, c
         }
     }
 }
-//Compute Z fluxes between Right(_R) and Left (_L) half-states, as corrected by transverse fluxes FXY
+//Compute Z fluxes between _R[k-1] and _L[k] half-states, as corrected by transverse fluxes FXY
 //Equivalent to correctState (with wider bounds) -> computeFlux_Z but without needing intermediate arrays
 void Godunov::computeCTUFlux_Z(const FluidArray3D& _L, const FluidArray3D& _R, const FluxArray3D& FXY, FluxArray3D& F, double dt_dz, double dt_dy, int dim){
     //Extract direction encoding

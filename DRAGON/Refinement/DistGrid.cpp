@@ -50,7 +50,7 @@ DistGrid1D::DistGrid1D(int nx, double dx_, int g, bool root): Grid1D(nx, dx_,val
             int _nx = computeChildSize(nx, ncx, i);
         
             auto child = std::make_unique<DistGrid1D>(_nx, dx, getGhosts(), false);
-            child->boundary = Boundary::Ignore();
+            child->boundary = Boundary::Ignore(); //Child ghosts are filled by parent, not by boundary API
             children.push_back(std::move(child));
         }
     }
@@ -73,7 +73,7 @@ DistGrid2D::DistGrid2D(int nx, int ny, double dx_, double dy_, int g, bool root)
                 int _ny = computeChildSize(ny, ncy, j);
 
                 auto child = std::make_unique<DistGrid2D>(_nx, _ny, dx, dy, getGhosts(), false);
-                child->boundary = Boundary::Ignore();
+                child->boundary = Boundary::Ignore(); //Child ghosts are filled by parent, not by boundary API
                 children.push_back(std::move(child));
             }
         }
@@ -102,7 +102,7 @@ DistGrid3D::DistGrid3D(int nx, int ny, int nz, double dx_, double dy_, double dz
                     int _nz = computeChildSize(nz, ncz, k);
                     
                     auto child = std::make_unique<DistGrid3D>(_nx, _ny, _nz, dx, dy, dz, getGhosts(), false);
-                    child->boundary = Boundary::Ignore();
+                    child->boundary = Boundary::Ignore(); //Child ghosts are filled by parent, not by boundary API
                     children.push_back(std::move(child));
                 }
             }
@@ -124,7 +124,6 @@ void DistGrid1D::pushToChildren(){
             (*child)[i] = w[i+x_offset];
             
         }
-        child->boundary = Boundary::Ignore(); //Don't let the boundary API overwrite this
         child->pushToChildren(); //If children have children, make them sync too
            
         x_offset += child->getSize();
@@ -154,7 +153,6 @@ void DistGrid2D::pushToChildren(){
                 }
             }
             #endif
-            child->boundary = Boundary::Ignore();//Don't let the boundary API overwrite this
             child->pushToChildren();//If children have children, make them sync too
             
             y_offset += _ny;
@@ -193,7 +191,6 @@ void DistGrid3D::pushToChildren(){
                     }
                 }
                 #endif
-                child->boundary = Boundary::Ignore();//Don't let the boundary API overwrite this
                 child->pushToChildren();//If children have children, make them sync too
                 
                 z_offset += _nz;
@@ -295,7 +292,7 @@ template <typename T> void DistGrid<T>::step(double dt){
     DRAGONWING::ThreadPool pool(static_cast<int>(children.size()));
     for(auto& child : children) pool.launchParallel(child.get(), dt);
     bool success = pool.waitForCompletion(); //Wait for children to finish
-    if(!success) { //If we failed, try again with half time step
+    if(!success) { //If we failed, throw an exception to trigger a step restart
         throw std::runtime_error(pool.restartMsg());
     }
     //Copy Back
@@ -347,13 +344,13 @@ void DistGrid3D::unsplit_step(double dt){
 
 bool DistGrid1D::on_step_fail(const std::exception& e){
     if(children.size() <= 1 ) return Grid1D::on_step_fail(e);
-    return true;
+    return true; //This is the parent, nobody left to pass the restart responsibility to. Return true to excecute the restart
 }
 bool DistGrid2D::on_step_fail(const std::exception& e){
     if(children.size() <= 1 ) return Grid2D::on_step_fail(e);
-    return true;
+    return true; //This is the parent,nobody left to pass the restart responsibility to. Return true to excecute the restart
 }
 bool DistGrid3D::on_step_fail(const std::exception& e){
     if(children.size() <= 1 ) return Grid3D::on_step_fail(e);
-    return true;
+    return true; //This is the parent, nobody left to pass the restart responsibility to. Return true to excecute the restart
 }

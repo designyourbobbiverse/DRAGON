@@ -56,7 +56,7 @@ void Godunov::sweep(FluidArray1D& w, double dt_dx){
 //MARK: 1D Advance
 void Grid1D::split_step(double dt){ Grid1D::unsplit_step(dt); }
 void Grid1D::unsplit_step(double dt){
-    //Copy steps to a clone
+    //Do everything on a clone in case we need to restart the step
         auto __w = DRAGONWING::requestPrimitiveArrays(1, w.getSize(), w.getGhosts());
     FluidArray1D& _w = *__w[0];
     _w.clone(w);
@@ -66,8 +66,9 @@ void Grid1D::unsplit_step(double dt){
     for(int i=0; i<w.getSize(); i++){
         if(!_w[i].isPhysical()) throw std::runtime_error(std::format("Unphysical state would be produced at ({})",i));
     }
+    //If in a domain-composed group, wait for the other grids to finish before committing
     DRAGONWING::reportCheckpoint1();
-    if(!DRAGONWING::waitForCheckpoint1()) return;
+    if(!DRAGONWING::waitForCheckpoint1()) return; //Only proceed once everyone is done and if nobody had an error
     //Commit updates
     w.clone(_w);
 }
@@ -80,7 +81,7 @@ void Grid2D::split_step(double dt){
     _w.boundary = std::move(boundary);
     _w.sweep_step = sweep_step;
     
-    try{//Advance (Strang Split), alternating which step comes first
+    try{//Advance (Strang Split), alternating which step comes first to reduce directional bias
         if (_w.sweep_step++ % 2 == 0) {
             _w.advanceX(dt/2);
             _w.advanceY(dt);
@@ -94,10 +95,11 @@ void Grid2D::split_step(double dt){
         boundary = std::move(_w.boundary);
         throw;
     }
+    //If in a domain-composed group, wait for the other grids to finish before committing
     DRAGONWING::reportCheckpoint1();
     if(!DRAGONWING::waitForCheckpoint1()){
         boundary = std::move(_w.boundary);
-        return;
+        return; //Somebody had an error, have to restart
     }
     w.clone(_w.w);
     sweep_step = _w.sweep_step;
@@ -111,7 +113,7 @@ void Grid3D::split_step(double dt){
     _w.boundary = std::move(boundary);
     _w.sweep_step = sweep_step;
 
-    try{//Advance (Strang Split), rotating step orders
+    try{//Advance (Strang Split), rotating step orders to reduce directional bias
         switch (_w.sweep_step++ % 6) {
         case 0: //Cyclic XYZ
             _w.advanceX(dt/2);
@@ -160,10 +162,11 @@ void Grid3D::split_step(double dt){
         boundary = std::move(_w.boundary);
         throw;
     }
+    //If in a domain-composed group, wait for the other grids to finish before committing
     DRAGONWING::reportCheckpoint1();
     if(!DRAGONWING::waitForCheckpoint1()){
         boundary = std::move(_w.boundary);
-        return;
+        return; //Somebody had an error, have to restart
     }
     //Commit updates
     w.clone(_w.w);

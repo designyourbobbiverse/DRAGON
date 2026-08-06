@@ -26,6 +26,7 @@ void Godunov::applyFluxes(const FluidArray2D& w, FluidArray2D& _w, const FluxArr
     
     for(int i=-g; i<nx+g; i++){
         for(int j=-g; j<ny+g; j++){
+            //Convert to conservative, add all the fluxes, then convert back to primitive
             ConservativeState U(w[i,j]);
             U += dt_dx * (F_X[i,j] - F_X[i+1,j]);
             U += dt_dy * (F_Y[i,j] - F_Y[i,j+1]);
@@ -42,6 +43,7 @@ void Godunov::applyFluxes(const FluidArray3D& w, FluidArray3D& _w, const FluxArr
     for(int i=-g; i<nx+g; i++){
         for(int j=-g; j<ny+g; j++){
             for(int k=-g; k<nz+g; k++){
+                //Convert to conservative, add all the fluxes, then convert back to primitive
                 ConservativeState U(w[i,j,k]);
                 U += dt_dx * (F_X[i,j,k] - F_X[i+1,j,k]);
                 U += dt_dy * (F_Y[i,j,k] - F_Y[i,j+1,k]);
@@ -57,6 +59,9 @@ void Godunov::applyFluxes(const FluidArray3D& w, FluidArray3D& _w, const FluxArr
 
 //MARK: Riemann Solver loops
 //Compute X fluxes between Right(_R) and Left (_L) half-states over the entire grid
+//_L[i,j] is the state at [i-1/2,j] based on the cell w[i,j]
+//_R[i,j] is the state at [i+1/2,j] based on the cell w[i,j]
+//F[i,j] is the flux to be computed through face [i-1/2,j] based on Reimann(_R[i-1/2,j], _L[i-1/2,j])
 void Godunov::computeFlux_X(const FluidArray2D& _L, const FluidArray2D& _R, FluxArray2D& F, int xL, int xR, int yL, int yR, double dt_dx ){
     for(int i=xL; i<=xR; i++){
         for(int j=yL; j<yR; j++){
@@ -65,6 +70,9 @@ void Godunov::computeFlux_X(const FluidArray2D& _L, const FluidArray2D& _R, Flux
     }
 }
 //Compute Y fluxes between Right(_R) and Left (_L) half-states over the entire grid
+//_L[i,j] is the state at [i,j-1/2] based on the cell w[i,j]
+//_R[i,j] is the state at [i,j+1/2] based on the cell w[i,j]
+//F[i,j] is the flux to be computed through face [i,j-1/2] based on Reimann(_R[i,j-1/2], _L[i,j-1/2])
 void Godunov::computeFlux_Y(const FluidArray2D& _L, const FluidArray2D& _R, FluxArray2D& F, int xL, int xR, int yL, int yR, double dt_dy){
     for(int i=xL; i<xR; i++){
         for(int j=yL; j<=yR; j++){
@@ -73,6 +81,9 @@ void Godunov::computeFlux_Y(const FluidArray2D& _L, const FluidArray2D& _R, Flux
     }
 }
 //Compute X fluxes between Right(_R) and Left (_L) half-states over the entire grid
+//_L[i,j,k] is the state at [i-1/2,j,k] based on the cell w[i,j,k]
+//_R[i,j,k] is the state at [i+1/2,j,k] based on the cell w[i,j,k]
+//F[i,j,k] is the flux to be computed through face [i-1/2,j,k] based on Reimann(_R[i-1/2,j,k], _L[i-1/2,j,k])
 void Godunov::computeFlux_X(const FluidArray3D& _L, const FluidArray3D& _R, FluxArray3D& F, int xL, int xR, int yL, int yR, int zL, int zR, double dt_dx){
     for(int i=xL; i<=xR; i++){
         for(int j=yL; j<yR; j++){
@@ -83,6 +94,9 @@ void Godunov::computeFlux_X(const FluidArray3D& _L, const FluidArray3D& _R, Flux
     }
 }
 //Compute Y fluxes between Right(_R) and Left (_L) half-states over the entire grid
+//_L[i,j,k] is the state at [i,j-1/2,k] based on the cell w[i,j,k]
+//_R[i,j,k] is the state at [i,j+1/2,k] based on the cell w[i,j,k]
+//F[i,j,k] is the flux to be computed through face [i,j-1/2,k] based on Reimann(_R[i,j-1/2,k], _L[i,j-1/2,k])
 void Godunov::computeFlux_Y(const FluidArray3D& _L, const FluidArray3D& _R, FluxArray3D& F, int xL, int xR, int yL, int yR, int zL, int zR, double dt_dy){
     for(int i=xL; i<xR; i++){
         for(int j=yL; j<=yR; j++){
@@ -93,6 +107,9 @@ void Godunov::computeFlux_Y(const FluidArray3D& _L, const FluidArray3D& _R, Flux
     }
 }
 //Compute Z fluxes between Right(_R) and Left (_L) half-states over the entire grid
+//_L[i,j,k] is the state at [i,j,k-1/2] based on the cell w[i,j,k]
+//_R[i,j,k] is the state at [i,j,k+1/2] based on the cell w[i,j,k]
+//F[i,j,k] is the flux to be computed through face [i,j,k-1/2] based on Reimann(_R[i,j,k-1/2], _L[i,j,k-1/2])
 void Godunov::computeFlux_Z(const FluidArray3D& _L, const FluidArray3D& _R, FluxArray3D& F, int xL, int xR, int yL, int yR, int zL, int zR, double dt_dz){
     for(int i=xL; i<xR; i++){
         for(int j=yL; j<yR; j++){
@@ -105,14 +122,17 @@ void Godunov::computeFlux_Z(const FluidArray3D& _L, const FluidArray3D& _R, Flux
 
 //MARK: MUSCL Loops
 //Apply MUSCL over the entire grid
-void Godunov::computeHalfStates_X(FluidArray2D& _L, const Grid2D& _W, FluidArray2D& _R, const MagneticArray2D& B,  double dt){
+void Godunov::computeHalfStates_X(FluidArray2D& _L, const Grid2D& _W,  FluidArray2D& _R, double dt){
     const double dt_dx = dt/_W.dx, dt_dy = dt/_W.dy;//Compute once
     const int nx = _W.getSizeX(), ny = _W.getSizeY(), g = _W.getGhosts();
+    #ifdef MHD
+    const MagneticArray2D& B = _W._B();
+    #endif
     //MUSCL Reconstruction
     for(int i=-g+1; i<nx+g - 1; i++){
         for(int j=-g; j<ny+g; j++){
             vec3 dB = {0,0,0};
-            #ifdef MHD
+            #ifdef MHD //Calculate the dBx/dx etc needed for MUSCL's "MHD source terms"
             dB.x = (B[i+1,j].x - B[i,j].x) * dt_dx;
             dB.y = (B[i,j+1].y - B[i,j].y) * dt_dy;
             #endif
@@ -129,15 +149,17 @@ void Godunov::computeHalfStates_X(FluidArray2D& _L, const Grid2D& _W, FluidArray
     CT::copyFaceFields_X(_L, B, _R);
     #endif
 }
-void Godunov::computeHalfStates_Y(FluidArray2D& _L, const Grid2D& _W, FluidArray2D& _R, const MagneticArray2D& B, double dt){
+void Godunov::computeHalfStates_Y(FluidArray2D& _L, const Grid2D& _W,  FluidArray2D& _R, double dt){
     const double dt_dx = dt/_W.dx, dt_dy = dt/_W.dy;//Compute once
     const int nx = _W.getSizeX(), ny = _W.getSizeY(), g = _W.getGhosts();
-
+    #ifdef MHD
+    const MagneticArray2D& B = _W._B();
+    #endif
     //MUSCL Reconstruction
     for(int i=-g; i<nx+g; i++){
         for(int j=-g + 1; j<ny+g - 1; j++){
             vec3 dB = {0,0,0};
-            #ifdef MHD //Calculate with swapped XY
+            #ifdef MHD //Calculate with swapped XY because MUSCL API always needs to see the current axis as "X"
             dB.y = (B[i+1,j].x - B[i,j].x) * dt_dx;
             dB.x = (B[i,j+1].y - B[i,j].y) * dt_dy;
             #endif
@@ -147,7 +169,7 @@ void Godunov::computeHalfStates_Y(FluidArray2D& _L, const Grid2D& _W, FluidArray
             _L[i,j].swapXY(); _R[i,j].swapXY();
         }
     }
-    //Leftmost and rightmost ghosts
+    //Copy Outermost ghosts since MUSCL doesn't work without a neighbour on both sides
     for(int i=-g; i<nx+g; i++){
         _L[i,-g] = _W[i,-g]; _R[i,-g] = _W[i,-g];
         _L[i,ny-1+g] = _W[i,ny-1+g]; _R[i,ny-1+g] = _W[i,ny-1+g];
@@ -156,16 +178,18 @@ void Godunov::computeHalfStates_Y(FluidArray2D& _L, const Grid2D& _W, FluidArray
     CT::copyFaceFields_Y(_L, B, _R);
     #endif
 }
-void Godunov::computeHalfStates_X(FluidArray3D& _L, const Grid3D& _W, FluidArray3D& _R, const MagneticArray3D& B, double dt){
+void Godunov::computeHalfStates_X(FluidArray3D& _L, const Grid3D& _W, FluidArray3D& _R, double dt){
     const double dt_dx = dt/_W.dx, dt_dy = dt/_W.dy, dt_dz = dt/_W.dz;//Compute once
     const int nx = _W.getSizeX(), ny = _W.getSizeY(),nz = _W.getSizeZ(), g = _W.getGhosts();
-
+    #ifdef MHD
+    const MagneticArray3D& B = _W._B();
+    #endif
     //MUSCL Reconstruction
     for(int i=-g + 1; i<nx+g - 1; i++){
         for(int j=-g; j<ny+g; j++){
             for(int k=-g; k<nz+g; k++){
                 vec3 dB = {0,0,0};
-                #ifdef MHD
+                #ifdef MHD //Calculate the dBx/dx etc needed for MUSCL's "MHD source terms"
                 dB.x = (B[i+1,j,k].x - B[i,j,k].x) * dt_dx;
                 dB.y = (B[i,j+1,k].y - B[i,j,k].y) * dt_dy;
                 dB.z = (B[i,j,k+1].z - B[i,j,k].z) * dt_dz;
@@ -175,7 +199,7 @@ void Godunov::computeHalfStates_X(FluidArray3D& _L, const Grid3D& _W, FluidArray
             }
         }
     }
-    //Leftmost and rightmost ghosts
+    //Copy Outermost ghosts since MUSCL doesn't work without a neighbour on both sides
     for(int j=-g; j<ny+g; j++){
         for(int k=-g; k<nz+g; k++){
             _L[-g,j,k] = _W[-g,j,k]; _R[-g,j,k] = _W[-g,j,k];
@@ -186,16 +210,18 @@ void Godunov::computeHalfStates_X(FluidArray3D& _L, const Grid3D& _W, FluidArray
     CT::copyFaceFields_X(_L, B, _R);
     #endif
 }
-void Godunov::computeHalfStates_Y(FluidArray3D& _L, const Grid3D& _W, FluidArray3D& _R, const MagneticArray3D& B, double dt){
+void Godunov::computeHalfStates_Y(FluidArray3D& _L, const Grid3D& _W, FluidArray3D& _R, double dt){
     const double dt_dx = dt/_W.dx, dt_dy = dt/_W.dy, dt_dz = dt/_W.dz;//Compute once
     const int nx = _W.getSizeX(), ny = _W.getSizeY(),nz = _W.getSizeZ(), g = _W.getGhosts();
-    
+    #ifdef MHD
+    const MagneticArray3D& B = _W._B();
+    #endif
     //MUSCL Reconstruction
     for(int i=-g; i<nx+g; i++){
         for(int j=-g + 1; j<ny+g - 1; j++){
             for(int k=-g; k<nz+g; k++){
                 vec3 dB = {0,0,0};
-                #ifdef MHD //Calculate with swapped XY
+                #ifdef MHD //Calculate with swapped XY because MUSCL API always needs to see the current axis as "X"
                 dB.y = (B[i+1,j,k].x - B[i,j,k].x) * dt_dx;
                 dB.x = (B[i,j+1,k].y - B[i,j,k].y) * dt_dy;
                 dB.z = (B[i,j,k+1].z - B[i,j,k].z) * dt_dz;
@@ -207,7 +233,7 @@ void Godunov::computeHalfStates_Y(FluidArray3D& _L, const Grid3D& _W, FluidArray
             }
         }
     }
-    //Leftmost and rightmost ghosts
+    //Copy Outermost ghosts since MUSCL doesn't work without a neighbour on both sides
     for(int i=-g; i<nx+g; i++){
         for(int k=-g; k<nz+g; k++){
             _L[i,-g,k] = _W[i,-g,k]; _R[i,-g,k] = _W[i,-g,k];
@@ -218,16 +244,18 @@ void Godunov::computeHalfStates_Y(FluidArray3D& _L, const Grid3D& _W, FluidArray
     CT::copyFaceFields_Y(_L, B, _R);
     #endif
 }
-void Godunov::computeHalfStates_Z(FluidArray3D& _L, const Grid3D& _W, FluidArray3D& _R, const MagneticArray3D& B,  double dt){
+void Godunov::computeHalfStates_Z(FluidArray3D& _L, const Grid3D& _W, FluidArray3D& _R, double dt){
     const double dt_dx = dt/_W.dx, dt_dy = dt/_W.dy, dt_dz = dt/_W.dz;//Compute once
     const int nx = _W.getSizeX(), ny = _W.getSizeY(),nz = _W.getSizeZ(), g = _W.getGhosts();
-    
+    #ifdef MHD
+    const MagneticArray3D& B = _W._B();
+    #endif
     //MUSCL Reconstruction
     for(int i=-g; i<nx+g; i++){
         for(int j=-g; j<ny+g; j++){
             for(int k=-g + 1; k<nz+g - 1; k++){
                 vec3 dB = {0,0,0};
-                #ifdef MHD //Calculate with swapped XZ
+                #ifdef MHD //Calculate with swapped XZ because MUSCL API always needs to see the current axis as "X"
                 dB.z = (B[i+1,j,k].x - B[i,j,k].x) * dt_dx;
                 dB.y = (B[i,j+1,k].y - B[i,j,k].y) * dt_dy;
                 dB.x = (B[i,j,k+1].z - B[i,j,k].z) * dt_dz;
@@ -239,7 +267,7 @@ void Godunov::computeHalfStates_Z(FluidArray3D& _L, const Grid3D& _W, FluidArray
             }
         }
     }
-    //Leftmost and rightmost ghosts
+    //Copy Outermost ghosts since MUSCL doesn't work without a neighbour on both sides
     for(int i=-g; i<nx+g; i++){
         for(int j=-g; j<ny+g; j++){
             _L[i,j,-g] = _W[i,j,-g]; _R[i,j,-g] = _W[i,j,-g];

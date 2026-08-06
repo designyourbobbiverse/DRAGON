@@ -87,7 +87,10 @@ constexpr double Timestep_Tolerance = 1e-14; //Timesteps smaller than this are t
 
 //MARK: Performance
 
-constexpr int core_count = 16; //Helps the Root level grid decide how many children to split into
+//Helps the Root level grid decide how many children to split into.
+//The actual number of threads may exceed this number in order to keep the domains closer to cubical.
+//For systems with limited memory, you may want to make this even larger, see DRAGONWING's Config file for detials
+constexpr int core_count = 16;
 
 //******************************************************************//
 //*DO NOT TOUCH anything below this line (but feel free to read it)*//
