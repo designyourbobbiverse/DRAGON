@@ -7,6 +7,7 @@
 //
 
 #include "Grid.hpp"
+#include "Godunov.hpp"
 
 #include "Riemann.hpp"  //For Riemann Solvers
 #include "TVD.hpp"      //For MUSCL reconstruction
@@ -20,51 +21,8 @@
 #include <format>         //For formatting exception messages
 
 
-static int validGhosts(int g){
-#if defined(MHD) && defined(CTU)
-    return std::max(g, 3);
-#elif defined(MUSCL_Hancock)
-    return std::max(g, 2);
-#else
-    return std::max(g, 1);
-#endif
-}
-//MARK: Array Wrappers
-Grid1D::Grid1D(int s_, double dx_, int g_): w(s_, validGhosts(g_)), dx(dx_) { }
-PrimitiveState& Grid1D::operator[](int k) { return w[k]; }
-const PrimitiveState& Grid1D::operator[](int k) const { return w[k]; }
-int Grid1D::getSize() const { return w.getSize(); }
-int Grid1D::getGhosts() const { return w.getGhosts(); }
-
-Grid2D::Grid2D(int nx_, int ny_, double dx_, double dy_, int g_):  w(nx_, ny_,validGhosts(g_)),
-#ifdef MHD
-    B(nx_+1, ny_+1,w.getGhosts()),
-#endif
-    dx(dx_), dy(dy_) { }
-PrimitiveState& Grid2D::operator[](int i, int j) { return w[i,j]; }
-const PrimitiveState& Grid2D::operator[](int i, int j) const { return w[i,j]; }
-int Grid2D::getSizeX() const { return w.getSizeX(); }
-int Grid2D::getSizeY() const { return w.getSizeY(); }
-int Grid2D::getGhosts() const { return w.getGhosts(); }
-
-
-Grid3D::Grid3D(int nx_, int ny_, int nz_, double dx_, double dy_, double dz_, int g_): w(nx_, ny_, nz_, validGhosts(g_)) ,
-#ifdef MHD
-    B(nx_+1, ny_+1, nz_+1, w.getGhosts()),
-#endif
-    dx(dx_), dy(dy_), dz(dz_) {    }
-PrimitiveState& Grid3D::operator[](int i, int j, int k) { return w[i,j,k]; }
-const PrimitiveState& Grid3D::operator[](int i, int j, int k) const { return w[i,j,k]; }
-int Grid3D::getSizeX() const { return w.getSizeX(); }
-int Grid3D::getSizeY() const { return w.getSizeY(); }
-int Grid3D::getSizeZ() const { return w.getSizeZ(); }
-int Grid3D::getGhosts() const { return w.getGhosts(); }
-
-
-
 //MARK: Godunov Sweep
-namespace Godunov{
-void sweep(ExtendedArray1D<PrimitiveState>& w, double dt_dx){
+void Godunov::sweep(FluidArray1D& w, double dt_dx){
     const int size = w.getSize(), ghosts = w.getGhosts();
     //Compute Fluxes
     ConservativeState fL, fR;
@@ -93,14 +51,13 @@ void sweep(ExtendedArray1D<PrimitiveState>& w, double dt_dx){
     fR = Riemann(_LR, _RL).flux_X(dt_dx);
     w[size+ghosts-2] += (fL - fR) * (dt_dx); //Apply flux to cell
 }
-}
 
 //MARK: 1D Advance
 void Grid1D::split_step(double dt){ Grid1D::unsplit_step(dt); }
 void Grid1D::unsplit_step(double dt){
     //Copy steps to a clone
         auto __w = DRAGONWING::requestPrimitiveArrays(1, w.getSize(), w.getGhosts());
-    ExtendedArray1D<PrimitiveState>& _w = *__w[0];
+    FluidArray1D& _w = *__w[0];
     _w.clone(w);
     //Compute the updated states
     Godunov::sweep(_w, dt/dx);
@@ -141,7 +98,6 @@ void Grid2D::split_step(double dt){
         boundary = std::move(_w.boundary);
         return;
     }
-    //
     w.clone(_w.w);
     sweep_step = _w.sweep_step;
     boundary = std::move(_w.boundary);
@@ -220,7 +176,7 @@ void Grid2D::advanceX(double dt){
     boundary.apply(*this); //Apply Boundary Conditions before every sweep
     const int nx = w.getSizeX(), ny = w.getSizeY(), ghosts = w.getGhosts();
         auto __B = DRAGONWING::requestPrimitiveArrays(1, nx, ghosts);
-    ExtendedArray1D<PrimitiveState>& _w = *__B[0];
+    FluidArray1D& _w = *__B[0];
 
     for(int j=-ghosts; j<ny+ghosts; j++){
         for(int i=-ghosts; i<nx+ghosts; i++) _w[i] = w[i,j]; //Copy to a 1D array
@@ -234,7 +190,7 @@ void Grid2D::advanceY(double dt){
     boundary.apply(*this); //Apply Boundary Conditions before every sweep
     const int nx = w.getSizeX(), ny = w.getSizeY(), ghosts = w.getGhosts();
         auto __B = DRAGONWING::requestPrimitiveArrays(1, ny, ghosts);
-    ExtendedArray1D<PrimitiveState>& _w = *__B[0];
+    FluidArray1D& _w = *__B[0];
 
     for(int i=-ghosts; i<nx+ghosts; i++){
         for(int j=-ghosts; j<ny+ghosts; j++)  _w[j] = w[i,j].swappedXY(); //Dimension swap + copy to a 1D array
@@ -251,7 +207,7 @@ void Grid3D::advanceX(double dt){
     boundary.apply(*this); //Apply Boundary Conditions before every sweep
     const int nx = w.getSizeX(), ny = w.getSizeY(), nz = w.getSizeZ(), ghosts = w.getGhosts();
         auto __B = DRAGONWING::requestPrimitiveArrays(1, nx, ghosts);
-    ExtendedArray1D<PrimitiveState>& _w = *__B[0];
+    FluidArray1D& _w = *__B[0];
     
     for(int k=-ghosts; k<nz+ghosts; k++){
         for(int j=-ghosts; j<ny+ghosts; j++){
@@ -268,7 +224,7 @@ void Grid3D::advanceY(double dt){
     boundary.apply(*this); //Apply Boundary Conditions before every sweep
     const int nx = w.getSizeX(), ny = w.getSizeY(), nz = w.getSizeZ(), ghosts = w.getGhosts();
         auto __B = DRAGONWING::requestPrimitiveArrays(1, ny, ghosts);
-    ExtendedArray1D<PrimitiveState>& _w = *__B[0];
+    FluidArray1D& _w = *__B[0];
 
     for(int k=-ghosts; k<nz+ghosts; k++){
         for(int i=-ghosts; i<nx+ghosts; i++) {
@@ -284,7 +240,7 @@ void Grid3D::advanceZ(double dt){
     boundary.apply(*this); //Apply Boundary Conditions before every sweep
     const int nx = w.getSizeX(), ny = w.getSizeY(), nz = w.getSizeZ(), ghosts = w.getGhosts();
         auto __B = DRAGONWING::requestPrimitiveArrays(1, nz, ghosts);
-    ExtendedArray1D<PrimitiveState>& _w = *__B[0];
+    FluidArray1D& _w = *__B[0];
 
     
     for(int i=-ghosts; i<nx+ghosts; i++) {

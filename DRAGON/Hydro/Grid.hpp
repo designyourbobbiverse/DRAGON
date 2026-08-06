@@ -6,8 +6,8 @@
 //  Created by Bobbie Markwick on 12/05/2026.
 //
 
-#ifndef Godunov_hpp
-#define Godunov_hpp
+#ifndef Grid_hpp
+#define Grid_hpp
 
 #include "ExtendedArray.hpp"
 #include "FluidElement.hpp"

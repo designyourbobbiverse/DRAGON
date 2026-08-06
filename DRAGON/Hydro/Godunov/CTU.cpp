@@ -9,7 +9,7 @@
 
 
 #include "Grid.hpp"
-#include "Unsplit.hpp"
+#include "Godunov.hpp"
 
 
 
@@ -31,7 +31,7 @@
 
 #ifdef MHD
 //MARK: CTU MHD 6-Solve (3D)
-void ctu_sweep_MHD(FluidArray3D& _xL, FluidArray3D& _xR, FluidArray3D& _yL, FluidArray3D& _yR, FluidArray3D& _zL, FluidArray3D& _zR, const MagneticArray3D &B, const FluidArray3D& w, MagneticArray3D& E, double dt_dx, double dt_dy, double dt_dz){
+void Godunov::ctu_sweep_MHD(FluidArray3D& _xL, FluidArray3D& _xR, FluidArray3D& _yL, FluidArray3D& _yR, FluidArray3D& _zL, FluidArray3D& _zR, const MagneticArray3D &B, const FluidArray3D& w, MagneticArray3D& E, double dt_dx, double dt_dy, double dt_dz){
     const int nx = _xL.getSizeX(), ny = _xL.getSizeY(), nz = _xL.getSizeZ(), g = _xL.getGhosts();
 
     //Preliminary Fluxes
@@ -130,7 +130,7 @@ void ctu_sweep_MHD(FluidArray3D& _xL, FluidArray3D& _xR, FluidArray3D& _yL, Flui
 }
 
 //MARK: CTU MHD 4-Solve (2D)
-void ctu_sweep_MHD(FluidArray2D& _xL, FluidArray2D& _xR, FluidArray2D& _yL, FluidArray2D& _yR,  const MagneticArray2D &B, const FluidArray2D& w, MagneticArray2D& E, double dt_dx, double dt_dy){
+void Godunov::ctu_sweep_MHD(FluidArray2D& _xL, FluidArray2D& _xR, FluidArray2D& _yL, FluidArray2D& _yR,  const MagneticArray2D &B, const FluidArray2D& w, MagneticArray2D& E, double dt_dx, double dt_dy){
     const int nx = _xL.getSizeX(), ny = _xL.getSizeY(), g = _xL.getGhosts();
 
     //Preliminary Fluxes
@@ -203,7 +203,7 @@ void ctu_sweep_MHD(FluidArray2D& _xL, FluidArray2D& _xR, FluidArray2D& _yL, Flui
 }
 #else
 //MARK: CTU 2D Hydro
-void ctu_sweep_hydro(FluidArray2D& _xL, FluidArray2D& _xR, FluidArray2D& _yL, FluidArray2D& _yR, double dt_dx, double dt_dy){
+void Godunov::ctu_sweep_hydro(FluidArray2D& _xL, FluidArray2D& _xR, FluidArray2D& _yL, FluidArray2D& _yR, double dt_dx, double dt_dy){
     const int nx = _xL.getSizeX(), ny = _yL.getSizeY(), ghosts = _xL.getGhosts();
     //Compute preliminary Fluxes
         auto __fluxes = DRAGONWING::requestFluxArrays(2, nx, ny, ghosts);
@@ -219,7 +219,7 @@ void ctu_sweep_hydro(FluidArray2D& _xL, FluidArray2D& _xR, FluidArray2D& _yL, Fl
 
 
 //MARK: CTU Hydro 12-Solve (3D)
-void ctu_sweep_hydro(FluidArray3D& _xL, FluidArray3D& _xR, FluidArray3D& _yL, FluidArray3D& _yR, FluidArray3D& _zL, FluidArray3D& _zR, double dt_dx, double dt_dy, double dt_dz){
+void Godunov::ctu_sweep_hydro(FluidArray3D& _xL, FluidArray3D& _xR, FluidArray3D& _yL, FluidArray3D& _yR, FluidArray3D& _zL, FluidArray3D& _zR, double dt_dx, double dt_dy, double dt_dz){
     const int nx = _xL.getSizeX(), ny = _xL.getSizeY(), nz = _xL.getSizeZ(), ghosts = _xL.getGhosts();
     
         auto __fluxes = DRAGONWING::requestFluxArrays(5, nx, ny, nz, ghosts);
@@ -261,7 +261,7 @@ void ctu_sweep_hydro(FluidArray3D& _xL, FluidArray3D& _xR, FluidArray3D& _yL, Fl
 }
 
 //MARK: CTU Corrections
-void correctState(FluidArray2D& _L, FluidArray2D& _R, const FluxArray2D& F, double dt_dL, int dim){
+void Godunov::correctState(FluidArray2D& _L, FluidArray2D& _R, const FluxArray2D& F, double dt_dL, int dim){
     //Extract direction encoding
     const int isX = dim%2 == 0 ? 1 : 0;
     const int isY = dim%2 == 1 ? 1 : 0;
@@ -277,7 +277,7 @@ void correctState(FluidArray2D& _L, FluidArray2D& _R, const FluxArray2D& F, doub
     }
 }
 
-void correctState(FluidArray3D& _L, FluidArray3D& _R, const FluxArray3D& F, double dt_dL, int state_dim, int flux_dim){
+void Godunov::correctState(FluidArray3D& _L, FluidArray3D& _R, const FluxArray3D& F, double dt_dL, int state_dim, int flux_dim){
     //Extract direction encoding
     const int isX = flux_dim%3 == 0 ? 1 : 0;
     const int isY = flux_dim%3 == 1 ? 1 : 0;
@@ -303,7 +303,7 @@ void correctState(FluidArray3D& _L, FluidArray3D& _R, const FluxArray3D& F, doub
 //MARK: 12-Solve Correction -> Flux
 //Compute X fluxes between Right(_R) and Left (_L) half-states, as corrected by transverse fluxes FYZ
 //Equivalent to correctState (with wider bounds) -> computeFlux_X but without needing intermediate arrays
-void computeCTUFlux_X(const FluidArray3D& _L, const FluidArray3D& _R, const FluxArray3D& FYZ, FluxArray3D& F,  double dt_dx, double dt_dy, int dim){
+void Godunov::computeCTUFlux_X(const FluidArray3D& _L, const FluidArray3D& _R, const FluxArray3D& FYZ, FluxArray3D& F,  double dt_dx, double dt_dy, int dim){
     //Extract direction encoding
     int isY = dim%3 == 1 ? 1 : 0;
     int isZ = dim%3 == 2 ? 1 : 0;
@@ -326,7 +326,7 @@ void computeCTUFlux_X(const FluidArray3D& _L, const FluidArray3D& _R, const Flux
 }
 //Compute Y fluxes between Right(_R) and Left (_L) half-states, as corrected by transverse fluxes FXZ
 //Equivalent to correctState (with wider bounds) -> computeFlux_Y but without needing intermediate arrays
-void computeCTUFlux_Y(const FluidArray3D& _L, const FluidArray3D& _R, const FluxArray3D& FXZ, FluxArray3D& F, double dt_dy, double dt_dz, int dim){
+void Godunov::computeCTUFlux_Y(const FluidArray3D& _L, const FluidArray3D& _R, const FluxArray3D& FXZ, FluxArray3D& F, double dt_dy, double dt_dz, int dim){
     //Extract direction encoding
     const int isX = dim%3 == 0 ? 1 : 0;
     const int isZ = dim%3 == 2 ? 1 : 0;
@@ -349,7 +349,7 @@ void computeCTUFlux_Y(const FluidArray3D& _L, const FluidArray3D& _R, const Flux
 }
 //Compute Z fluxes between Right(_R) and Left (_L) half-states, as corrected by transverse fluxes FXY
 //Equivalent to correctState (with wider bounds) -> computeFlux_Z but without needing intermediate arrays
-void computeCTUFlux_Z(const FluidArray3D& _L, const FluidArray3D& _R, const FluxArray3D& FXY, FluxArray3D& F, double dt_dz, double dt_dy, int dim){
+void Godunov::computeCTUFlux_Z(const FluidArray3D& _L, const FluidArray3D& _R, const FluxArray3D& FXY, FluxArray3D& F, double dt_dz, double dt_dy, int dim){
     //Extract direction encoding
     int isX = dim%3 == 0 ? 1 : 0;
     int isY = dim%3 == 1 ? 1 : 0;
