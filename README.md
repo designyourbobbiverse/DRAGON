@@ -30,6 +30,7 @@ DRAGON/
   Hydro/            Godunov Scheme Components
     Grid.hpp        Grid structure which holds fluid elements
     CFL/            Timestep Control
+    ExtendedArray/  Multidimensional arrays + ghost access
     Godunov/        Sweep logic, split/unsplit updates
     Riemann/        Riemann solvers
     TVD/            MUSCL Reconstruction + limiter options
