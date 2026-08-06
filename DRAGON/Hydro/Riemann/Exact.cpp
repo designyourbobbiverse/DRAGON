@@ -27,6 +27,12 @@ RiemannSolution::RiemannSolution(Riemann problem){
 
 
 //MARK: Velocity Jump Function
+
+// Guide to gamma coefficients
+// Rules: _X_Y = X/Y, G = gamma, m = -, p = +
+// Example: _Gp1_2G = (gamma+1)/(2*gamma)
+// Example: _2_Gm1 = 2/(gamma - 1)
+
 double Riemann::f(double p, PrimitiveState w){
     if (p > w.p) { //Shock
         double A = _2_Gp1/w.rho, B = _Gm1_Gp1 * w.p;
@@ -77,7 +83,7 @@ double Riemann::exact_StarP(double pGuess){
     do{ //Newton's Method on the Velocity jump equation
         double fp = f(pStar, L) + f(pStar, R) + R.v.x - L.v.x;
         double dfdp = df(pStar, L) + df(pStar, R);
-        double delta = std::min(fp/dfdp, 0.8*pStar);
+        double delta = std::min(fp/dfdp, 0.8*pStar); //0.8 helps keep from going negative/diverging
         pStar -= delta;
         CHA = std::abs(delta/(pStar+delta/2));
     } while(CHA > CONFIG::ExactRiemann_Tolerance &&  --iters != 0 );
@@ -142,12 +148,12 @@ PrimitiveState RiemannSolution::sample(double x_t){
     int zone = 0; // 1 = outside, 2 = fan, 3 = star
     if (sR.p > wR.p){ //shock
         double scale = std::sqrt(_Gp1_2G*sR.p/wR.p + _Gm1_2G );
-        zone = ( (x_t-wR.v.x)  > scale * a ) ? 1 : 3;
+        zone = ( (x_t-wR.v.x)  > scale * a ) ? 1 : 3; //Shocks have no fan, just jump form outside to star
     } else{ //Rarefraction
-        if ( (x_t-wR.v.x) > a ) zone = 1;
-        else if ( (x_t-sR.v.x) > a ) zone = 2;
-        else if ( (x_t-sR.v.x) > a * std::pow(sR.p/wR.p, _Gm1_2G) ) zone = 2;
-        else zone = 3;
+        if ( (x_t-wR.v.x) > a ) zone = 1; //Outside region
+        else if ( (x_t-sR.v.x) > a ) zone = 2; //one extra compare that saves a call to pow
+        else if ( (x_t-sR.v.x) > a * std::pow(sR.p/wR.p, _Gm1_2G) ) zone = 2; //Fan
+        else zone = 3; //Inside the star region
     }
     //Calculate the State at x/t
     switch(zone){
@@ -176,10 +182,10 @@ void RiemannSolution::mirror(){
     wR.v.x *= -1;
     sL.v.x *= -1;
     sR.v.x *= -1;
-#ifdef MHD
+    #ifdef MHD
     wL.B.x *= -1;
     wR.B.x *= -1;
     sL.B.x *= -1;
     sR.B.x *= -1;
-#endif
+    #endif
 }

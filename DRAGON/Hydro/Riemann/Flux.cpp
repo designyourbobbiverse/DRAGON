@@ -16,25 +16,23 @@ using namespace DRAGON;
 
 //Make sure to set RIEMANN_DEFAULT in Config.h
 ConservativeState Riemann::flux(double dt_dx){
-#if defined(TESTMODE)
-    //Runnign unit tests, need all solvers to be available
+#if defined(TESTMODE) //Runnign unit tests, need all solvers to be available
     ConservativeState flux;
     switch (CONFIG::riemann_choice){
         case RIEMANN_EXACT: flux = exact().flux(); break;
         case RIEMANN_HLL: flux =  HLL(); break;
         case RIEMANN_HLLE: flux =  HLLE(); break;
         case RIEMANN_ROE: flux =  Roe(); break;
-#ifdef MHD
+    #ifdef MHD
         case RIEMANN_HLLX:
         case RIEMANN_HLLD: flux = HLLD(); break;
-#else
+    #else
         case RIEMANN_HLLX:
-#endif
+    #endif
         case RIEMANN_HLLC: flux =  HLLC(); break;
         default: flux = exact().flux();
     }
-#elif !defined(MHD) && RIEMANN_DEFAULT == CHOOSE_RUNTIME
-    //Hydro, user wants to choose their Riemann sovler at runtime
+#elif !defined(MHD) && RIEMANN_DEFAULT == CHOOSE_RUNTIME //Hydro, user wants to choose their Riemann sovler at runtime
     ConservativeState flux;
     switch (CONFIG::riemann_choice){
         case RIEMANN_HLLX:
@@ -45,8 +43,7 @@ ConservativeState Riemann::flux(double dt_dx){
         case RIEMANN_ROE: flux =  Roe(); break;
         default: flux = exact().flux();
     }
-#elif defined(MHD) && RIEMANN_DEFAULT == CHOOSE_RUNTIME
-    //MHD, user wants to choose their Riemann solver at runtime
+#elif defined(MHD) && RIEMANN_DEFAULT == CHOOSE_RUNTIME //MHD, user wants to choose their Riemann solver at runtime
     ConservativeState flux;
     switch (CONFIG::riemann_choice){
         case RIEMANN_HLLX:
@@ -55,22 +52,24 @@ ConservativeState Riemann::flux(double dt_dx){
         case RIEMANN_HLLE: flux =  HLLE(); break;
         default: flux =  HLLD(); break;
     }
-#elif !defined(MHD) && RIEMANN_DEFAULT == RIEMANN_EXACT //Exact Solver (Hydro Only)
+#else //User to hardwire a particular Riemann solver
+    #if !defined(MHD) && RIEMANN_DEFAULT == RIEMANN_EXACT //Exact Solver (Hydro Only)
     auto flux = exact().flux();
-#elif RIEMANN_DEFAULT == RIEMANN_HLL //HLL Solver
+    #elif RIEMANN_DEFAULT == RIEMANN_HLL //HLL Solver
     auto flux =  HLL();
-#elif !defined(MHD) && (RIEMANN_DEFAULT == RIEMANN_HLLC || RIEMANN_DEFAULT == RIEMANN_HLLX) //HLLC Solver (Hydro Only)
+    #elif !defined(MHD) && (RIEMANN_DEFAULT == RIEMANN_HLLC || RIEMANN_DEFAULT == RIEMANN_HLLX) //HLLC Solver (Hydro Only)
     auto flux =  HLLC();
-#elif defined(MHD) && (RIEMANN_DEFAULT == RIEMANN_HLLD || RIEMANN_DEFAULT == RIEMANN_HLLX) //HLLD Solver (MHD Only)
+    #elif defined(MHD) && (RIEMANN_DEFAULT == RIEMANN_HLLD || RIEMANN_DEFAULT == RIEMANN_HLLX) //HLLD Solver (MHD Only)
     auto flux =  HLLD();
-#elif RIEMANN_DEFAULT == RIEMANN_HLLE //HLLE Solver
+    #elif RIEMANN_DEFAULT == RIEMANN_HLLE //HLLE Solver
     auto flux =  HLLE();
-#elif !defined(MHD) && RIEMANN_DEFAULT == RIEMANN_ROE //Roe Solver (Hydro Only)
+    #elif !defined(MHD) && RIEMANN_DEFAULT == RIEMANN_ROE //Roe Solver (Hydro Only)
     auto flux =  Roe();
+    #endif
 #endif
-#ifdef RIEMANN_VERIFY_FALLBACK
+    #ifdef RIEMANN_VERIFY_FALLBACK
     if(dt_dx > 0) verify_and_fallback(flux, dt_dx);
-#endif
+    #endif
     return flux;
 }
 //MARK: Fallback to HLLE/Exact

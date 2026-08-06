@@ -18,7 +18,7 @@
 #include "Constants.h" //For gamma
 using namespace DRAGON;
 
-namespace HLL{
+namespace DRAGON::HLL{
 PrimitiveState roeAvg(PrimitiveState L, PrimitiveState R){
     double sql = std::sqrt(L.rho), sqr = std::sqrt(R.rho);
     double _sql = sql / (sql + sqr), _sqr = sqr / (sql + sqr);
@@ -26,9 +26,9 @@ PrimitiveState roeAvg(PrimitiveState L, PrimitiveState R){
     PrimitiveState w;
     w.rho = sql*sqr;
     w.v = _sql*L.v + _sqr*R.v;
-#ifdef MHD
+    #ifdef MHD
     w.B = _sql*L.B + _sqr*R.B;
-#endif
+    #endif
     
     double _H = _sql*L.enthalpy() + _sqr*R.enthalpy();
     double _a2 = (gamma-1) * (_H - (w.v * w.v)/2);
@@ -40,46 +40,23 @@ PrimitiveState roeAvg(PrimitiveState L, PrimitiveState R){
 
 
 //MARK: HLL/E
+// Harten, Lax, & van Leer (1983). https://doi.org/10.1137/1025002
 ConservativeState Riemann::HLL(){
     PrimitiveState M = HLL::roeAvg(L,R);
     //Compute Sound/Fast Speed
-#ifdef MHD
+    #ifdef MHD
     //Set Normal Magnetic Fields
     double Bx = (L.B.x+R.B.x)/2;
     L.B.x = Bx; R.B.x = Bx;
     //Calculate Fast Mode
     double aL = L.c_fast(), aR = R.c_fast(), aM = M.c_fast();
-#else
+    #else
     //Sound Speed
     double aL = L.cs(), aR = R.cs(), aM = M.cs();
-#endif
+    #endif
     //Compare to v +- a
     double SL = std::min(L.v.x - aL, M.v.x-aM);
     double SR = std::max(R.v.x + aR, M.v.x+aM);
-    
-    return HLL(SL, SR);
-}
-ConservativeState Riemann::HLLE(){
-    double sql = std::sqrt(L.rho), sqr = std::sqrt(R.rho);
-    double _sql = sql / (sql + sqr), _sqr = sqr / (sql + sqr);
-#ifdef MHD
-    //Set Normal Magnetic Fields
-    double Bx = (L.B.x+R.B.x)/2;
-    L.B.x = Bx; R.B.x = Bx;
-    //Calculate Fast Mode
-    double aL = L.c_fast(), aR = R.c_fast();
-#else
-    //Sound Speed
-    double aL = L.cs(), aR = R.cs();
-#endif
-    double _v = (R.v.x-L.v.x) / (sql + sqr);
-    double d = (_sql*aL*aL + _sqr*aR*aR)  +  0.5 * (sql * sqr) * _v * _v;
-    d = std::sqrt(d);
-    double u = _sql*L.v.x + _sqr*R.v.x;
-    
-    //Compare to v +- a
-    double SL = std::min(L.v.x - aL, u-d);
-    double SR = std::max(R.v.x + aR, u+d);
     
     return HLL(SL, SR);
 }
@@ -96,11 +73,37 @@ ConservativeState Riemann::HLL(double sl, double sr){
     return (sr*FL - sl*FR + sl*sr*(UR-UL))/(sr-sl);
 }
 
+//Einfeldt (1988). https://doi.org/10.1137/0725021
+ConservativeState Riemann::HLLE(){
+    double sql = std::sqrt(L.rho), sqr = std::sqrt(R.rho);
+    double _sql = sql / (sql + sqr), _sqr = sqr / (sql + sqr);
+    #ifdef MHD
+    //Set Normal Magnetic Fields
+    double Bx = (L.B.x+R.B.x)/2;
+    L.B.x = Bx; R.B.x = Bx;
+    //Calculate Fast Mode
+    double aL = L.c_fast(), aR = R.c_fast();
+    #else
+    //Sound Speed
+    double aL = L.cs(), aR = R.cs();
+    #endif
+    double _v = (R.v.x-L.v.x) / (sql + sqr);
+    double d = (_sql*aL*aL + _sqr*aR*aR)  +  0.5 * (sql * sqr) * _v * _v;
+    d = std::sqrt(d);
+    double u = _sql*L.v.x + _sqr*R.v.x;
+    
+    //Compare to v +- a
+    double SL = std::min(L.v.x - aL, u-d);
+    double SR = std::max(R.v.x + aR, u+d);
+    
+    return HLL(SL, SR);
+}
 
 
 #ifdef HYDRO_AVAILABLE
 
 //MARK: HLLC
+// Toro, Spruce, & Speares (1994). https://doi.org/10.1007/BF01414629
 ConservativeState Riemann::HLLC(){
     //Roe averages
     PrimitiveState M = HLL::roeAvg(L,R);
@@ -112,7 +115,6 @@ ConservativeState Riemann::HLLC(){
     
     return HLLC(SL, SR);
 }
-
 ConservativeState Riemann::HLLC(double sl, double sr){
     //Exterior region
     if(sl >= 0) return L.flux();
