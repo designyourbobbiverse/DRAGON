@@ -110,7 +110,8 @@ void Boundary::Reflective::apply(Grid2D& grid) {
     }
     if (faces & X_positive){
         for(int j = j0 ; j <= jn; j++){
-            _B[nx,j] = _B[nx-1,j] * -1; //Invert the Transverse B field
+            _B[nx,j].y = _B[nx-1,j].y * -1; //Invert the Transverse B field in the first ghost
+            _B[nx,j].z = _B[nx-1,j].z * -1; //Invert the Transverse B field in the first ghost
             for(int g = 1; g <= ng; g++){
                 _B[nx+g,j] = _B[nx-g-1,j] * -1; //Invert the Transverse B field
                 _B[nx+g,j].x = _B[nx-g,j].x; //Copy the Normal A field
@@ -127,7 +128,8 @@ void Boundary::Reflective::apply(Grid2D& grid) {
     }
     if (faces & Y_positive){
         for(int i = i0 ; i <= in; i++){
-            _B[i,ny] = _B[i,ny-1] * -1; //Invert the Transverse B field
+            _B[i,ny].x = _B[i,ny-1].x * -1; //Invert the Transverse B field in the first ghost
+            _B[i,ny].z = _B[i,ny-1].z * -1; //Invert the Transverse B field in the first ghost
             for(int g = 1; g <= ng; g++){
                 _B[i,ny+g] = _B[i,ny-g-1] * -1; //Invert the Transverse B field
                 _B[i,ny+g].y = _B[i,ny-g].y; //Copy the Normal B field
@@ -246,7 +248,8 @@ void Boundary::Reflective::apply(Grid3D& grid) {
     if (faces & X_positive){
         for(int j = j0 ; j <= jn; j++){
             for(int k = k0 ; k <= kn; k++){
-                _B[nx,j,k] = _B[nx-1,j,k] * -1; //Invert the Transverse B field
+                _B[nx,j,k].y = _B[nx-1,j,k].y * -1; //Invert the Transverse B field in the first ghost
+                _B[nx,j,k].z = _B[nx-1,j,k].z * -1; //Invert the Transverse B field in the first ghost
                 for(int g = 1; g <= ng; g++){
                     _B[nx+g,j,k] = _B[nx-g-1,j,k] * -1; //Invert the Transverse B field
                     _B[nx+g,j,k].x = _B[nx-g,j,k].x; //Copy the Normal A field
@@ -267,7 +270,8 @@ void Boundary::Reflective::apply(Grid3D& grid) {
     if (faces & Y_positive){
         for(int i = i0 ; i <= in; i++){
             for(int k = k0 ; k <= kn; k++){
-                _B[i,ny,k] = _B[i,ny-1,k] * -1; //Invert the Transverse B field
+                _B[i,ny,k].x = _B[i,ny-1,k].x * -1; //Invert the Transverse B field in the first ghost
+                _B[i,ny,k].z = _B[i,ny-1,k].z * -1; //Invert the Transverse B field in the first ghost
                 for(int g = 1; g <= ng; g++){
                     _B[i,ny+g,k] = _B[i,ny-g-1,k] * -1; //Invert the Transverse B field
                     _B[i,ny+g,k].y = _B[i,ny-g,k].y; //Copy the Normal B field
@@ -288,7 +292,8 @@ void Boundary::Reflective::apply(Grid3D& grid) {
     if (faces & Z_positive){
         for(int i = i0 ; i <= in; i++){
             for(int j = j0 ; j <= jn; j++){
-                _B[i,j,nz] = _B[i,j,nz-1] * -1; //Invert the Transverse B field
+                _B[i,j,nz].x = _B[i,j,nz-1].x * -1; //Invert the Transverse B field in the first ghost
+                _B[i,j,nz].y = _B[i,j,nz-1].y * -1; //Invert the Transverse B field in the first ghost
                 for(int g = 1; g <= ng; g++){
                     _B[i,j,nz+g] = _B[i,j,nz-g-1] * -1; //Invert the Transverse B field
                     _B[i,j,nz+g].z = _B[i,j,nz-g].z; //Copy the Normal B field
