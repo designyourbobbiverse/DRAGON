@@ -14,6 +14,7 @@
 #include <algorithm>    //For std::max
 #include "Boundary.hpp" //For Boundary.Ignore
 #include <utility>      //For std::move
+using namespace DRAGON;
 
  
 //MARK: Bin Setup

@@ -11,36 +11,30 @@
 #include <concepts>     //for ValidGridType template
 #include <type_traits>  //for ValidGridType template
 
-
-struct PrimitiveState;
-struct ConservativeState;
-struct vec3;
-template <class T> struct ExtendedArray1D;
-template <class T> struct ExtendedArray2D;
-template <class T> struct ExtendedArray3D;
+#include "ArrayTypes.hpp"
 
 template<typename X>
-concept GridValueType = std::same_as<X, PrimitiveState> || std::same_as<X, ConservativeState> || std::same_as<X, vec3>;
+concept GridValueType = std::same_as<X, DRAGON::PrimitiveState> || std::same_as<X, DRAGON::ConservativeState> || std::same_as<X, DRAGON::vec3>;
 
 template<typename T> struct is_allowed_grid : std::false_type {};
-template<GridValueType X> struct is_allowed_grid<ExtendedArray1D<X>> : std::true_type {};
-template<GridValueType X> struct is_allowed_grid<ExtendedArray2D<X>> : std::true_type {};
-template<GridValueType X> struct is_allowed_grid<ExtendedArray3D<X>> : std::true_type {};
+template<GridValueType X> struct is_allowed_grid<DRAGON::ExtendedArray1D<X>> : std::true_type {};
+template<GridValueType X> struct is_allowed_grid<DRAGON::ExtendedArray2D<X>> : std::true_type {};
+template<GridValueType X> struct is_allowed_grid<DRAGON::ExtendedArray3D<X>> : std::true_type {};
 
 template<typename T>
 concept ValidGridType = is_allowed_grid<std::remove_cvref_t<T>>::value;
 
 
 namespace DW_Internal{
-void releaseArray(ExtendedArray1D<PrimitiveState>* arr);
-void releaseArray(ExtendedArray2D<PrimitiveState>* arr);
-void releaseArray(ExtendedArray3D<PrimitiveState>* arr);
-void releaseArray(ExtendedArray1D<ConservativeState>* arr);
-void releaseArray(ExtendedArray2D<ConservativeState>* arr);
-void releaseArray(ExtendedArray3D<ConservativeState>* arr);
-void releaseArray(ExtendedArray1D<vec3>* arr);
-void releaseArray(ExtendedArray2D<vec3>* arr);
-void releaseArray(ExtendedArray3D<vec3>* arr);
+void releaseArray(DRAGON::ExtendedArray1D<DRAGON::PrimitiveState>* arr);
+void releaseArray(DRAGON::ExtendedArray2D<DRAGON::PrimitiveState>* arr);
+void releaseArray(DRAGON::ExtendedArray3D<DRAGON::PrimitiveState>* arr);
+void releaseArray(DRAGON::ExtendedArray1D<DRAGON::ConservativeState>* arr);
+void releaseArray(DRAGON::ExtendedArray2D<DRAGON::ConservativeState>* arr);
+void releaseArray(DRAGON::ExtendedArray3D<DRAGON::ConservativeState>* arr);
+void releaseArray(DRAGON::ExtendedArray1D<DRAGON::vec3>* arr);
+void releaseArray(DRAGON::ExtendedArray2D<DRAGON::vec3>* arr);
+void releaseArray(DRAGON::ExtendedArray3D<DRAGON::vec3>* arr);
 }
 
 namespace DRAGONWING {

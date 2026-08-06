@@ -9,7 +9,7 @@
 #define ThreadPool_hpp
 
 #include <string>   //For error messages
-class Grid;
+namespace DRAGON{ class Grid;}
 
 #include "DRAGONWING_Config.hpp"
 #ifndef MULTITHREAD_UNAVAILABLE
@@ -20,7 +20,7 @@ class Grid;
 
 namespace DRAGONWING{
 struct ThreadArgs{
-    Grid* grid;
+    DRAGON::Grid* grid;
     double dt;
 };
 }
@@ -47,7 +47,7 @@ private:
 
 public:
     ThreadPool(int nthreads): nthreads(nthreads) {}
-    void* launchParallel(Grid* grid, double dt);
+    void* launchParallel(DRAGON::Grid* grid, double dt);
     
     void requestRestart(std::string msg = "");
     std::string restartMsg();

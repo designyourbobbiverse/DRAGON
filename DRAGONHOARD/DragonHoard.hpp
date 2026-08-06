@@ -15,15 +15,15 @@
 
 namespace DRAGONHOARD{
 
-void writeToFile(Grid& grid, double t, int cycle, const std::string& filename);
-void writeToFile(Grid1D& grid, double t, int cycle, const std::string& filename);
-void writeToFile(Grid2D& grid, double t, int cycle, const std::string& filename);
-void writeToFile(Grid3D& grid, double t, int cycle, const std::string& filename);
+void writeToFile(DRAGON::Grid& grid, double t, int cycle, const std::string& filename);
+void writeToFile(DRAGON::Grid1D& grid, double t, int cycle, const std::string& filename);
+void writeToFile(DRAGON::Grid2D& grid, double t, int cycle, const std::string& filename);
+void writeToFile(DRAGON::Grid3D& grid, double t, int cycle, const std::string& filename);
 
-void loadFromFile(Grid& grid, double& t, int& cycle, const std::string& filename);
-void loadFromFile(Grid1D& grid, double& t, int& cycle, const std::string& filename);
-void loadFromFile(Grid2D& grid, double& t, int& cycle, const std::string& filename);
-void loadFromFile(Grid3D& grid, double& t, int& cycle, const std::string& filename);
+void loadFromFile(DRAGON::Grid& grid, double& t, int& cycle, const std::string& filename);
+void loadFromFile(DRAGON::Grid1D& grid, double& t, int& cycle, const std::string& filename);
+void loadFromFile(DRAGON::Grid2D& grid, double& t, int& cycle, const std::string& filename);
+void loadFromFile(DRAGON::Grid3D& grid, double& t, int& cycle, const std::string& filename);
 
 void verifyOutputDirectory();
 std::string restartFileName();

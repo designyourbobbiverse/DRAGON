@@ -8,6 +8,7 @@
 #include "Boundary.hpp"
 #include "Grid.hpp"
 
+using namespace DRAGON;
 using namespace Boundary;
 
 //MARK: Constructors

@@ -16,6 +16,7 @@
 #include "Config.h"
 #include <exception> //For on_step_fail
 
+namespace DRAGON{
 class Grid{
 public:
     void advance(double dt, bool check_cfl=true);
@@ -29,7 +30,7 @@ public:
     #ifdef MHD
     virtual void initialize_B_fields(){}
     #endif
-
+    
     
     //Boundary
     Boundary::BoundaryList boundary = Boundary::BoundaryList();
@@ -42,7 +43,7 @@ protected:
     ExtendedArray1D<PrimitiveState> w;
 public:
     double dx; //Phsyical scale of a grid unit
-
+    
     Grid1D(int size, double dx, int ghosts=1);
     Grid1D(const Grid1D&) = delete; //No copying
     Grid1D& operator=(const Grid1D&) = delete;
@@ -52,7 +53,7 @@ public:
     PrimitiveState& operator[](int k);
     const PrimitiveState& operator[](int k) const;
     int getSize() const, getGhosts() const;
-        
+    
     //Advance forward in time
     void split_step(double dt) override;
     void unsplit_step(double dt) override;
@@ -61,12 +62,12 @@ public:
 class Grid2D: public Grid{
 protected:
     ExtendedArray2D<PrimitiveState> w;
-#ifdef MHD
+    #ifdef MHD
     ExtendedArray2D<vec3> B;//B fields on the faces
-#endif
+    #endif
 public:
     double dx, dy;
-
+    
     Grid2D(int nx, int ny, double dx, double dy, int ghosts=1);
     Grid2D(const Grid2D&) = delete; //No copying
     Grid2D& operator=(const Grid2D&) = delete;
@@ -91,7 +92,7 @@ public:
     #endif
 protected:
     int sweep_step = 0;
-
+    
     void advanceX(double dt); //Advance a single split step in X
     void advanceY(double dt); //Advance a single split step in Y
     void advanceXY(double dt); //Advance a single unsplit step
@@ -103,9 +104,9 @@ protected:
 class Grid3D: public Grid{
 protected:
     ExtendedArray3D<PrimitiveState>  w;
-#ifdef MHD
+    #ifdef MHD
     ExtendedArray3D<vec3> B;//B fields on the faces
-#endif
+    #endif
 public:
     double dx, dy, dz;
     
@@ -113,7 +114,7 @@ public:
     Grid3D(const Grid3D&) = delete; //No copying
     Grid3D& operator=(const Grid3D&) = delete;
     ~Grid3D() = default;
-
+    
     //Grid Access
     //Can take inputs <0 or >= n to access ghost cells
     PrimitiveState& operator[](int i,int j,int k);
@@ -142,6 +143,6 @@ protected:
     void computeBodyAveragedFields(const ExtendedArray3D<vec3>& B);
     #endif
 };
-
+}
 
 #endif

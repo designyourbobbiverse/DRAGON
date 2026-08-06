@@ -17,6 +17,7 @@
 #include "Config.h"     //For #ifdef MHD
 #include <algorithm>    //For std::min
 #include <stdexcept>    //For file write errors
+using namespace DRAGON;
 
 #define HDF5_WRITE_ENERGY (HDF5_WRITE_PRIMITIVE_AND_ENERGY - HDF5_WRITE_PRIMITIVE)
 #define HDF5_WRITE_PRIMS (HDF5_WRITE_OPTION & HDF5_WRITE_PRIMITIVE)

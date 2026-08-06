@@ -9,6 +9,7 @@
 #include <iostream>         //Console messages
 #include <chrono>           //Runtime measurement
 #include "CT.hpp"           //Magnetic Field initialization
+using namespace DRAGON;
 
 #ifndef TESTMODE
 

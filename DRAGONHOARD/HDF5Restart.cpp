@@ -17,6 +17,7 @@
 #include "Config.h"     //For #ifdef MHD
 #include <stdexcept>    //For file read errors
 #include <format>       //For error formatting
+using namespace DRAGON;
 
 //MARK: Helpers
 namespace{

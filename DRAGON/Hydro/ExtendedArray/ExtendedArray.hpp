@@ -12,7 +12,7 @@
 #endif
 
 #pragma once
-
+namespace DRAGON{
 //MARK: 1D Array
 template <class T>
 struct ExtendedArray1D{
@@ -154,5 +154,5 @@ private:
     T* x; //The array storing all of the objects
     int ghosts, nx, ny, nz;
 };
-
+}
 #endif /* Storage_hpp */

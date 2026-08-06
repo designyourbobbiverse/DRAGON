@@ -7,8 +7,9 @@
 
 #include "Boundary.hpp"
 #include "Grid.hpp"
+using namespace DRAGON;
 
-int ::GhostFill::get_faces() const { return faces; }
+int GhostFill::get_faces() const { return faces; }
 
 //Convert a String such as "X-" or "YZ" into a bitmask
 int Boundary::face_mask(std::string s){

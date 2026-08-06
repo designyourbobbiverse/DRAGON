@@ -19,6 +19,7 @@
 #include <utility>        //For std::move
 #include <stdexcept>      //For exception throwing
 #include <format>         //For formatting exception messages
+using namespace DRAGON;
 
 
 //MARK: Godunov Sweep

@@ -13,7 +13,7 @@
 #include "Config.h"
 #include "FluidElement.hpp"
 #include "ExtendedArray.hpp"
-
+using namespace DRAGON;
 
 namespace DRAGON_Test{
 

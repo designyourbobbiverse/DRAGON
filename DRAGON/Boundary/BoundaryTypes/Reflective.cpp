@@ -8,6 +8,7 @@
 #include "Boundary.hpp"
 #include "Grid.hpp"
 
+using namespace DRAGON;
 using namespace Boundary;
 
 Boundary::Reflective::Reflective(int faces_, bool corners):  GhostFill(faces_, corners) {}

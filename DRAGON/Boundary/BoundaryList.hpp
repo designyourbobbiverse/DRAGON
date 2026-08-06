@@ -16,15 +16,13 @@
 #include <concepts> //std::derived_from
 #include <type_traits> //std::decay_t
 
-namespace Boundary {
-
-
+namespace DRAGON::Boundary {
 class BoundaryList : public GhostFill {
 private:
     std::vector<std::unique_ptr<GhostFill>>  boundaries;
 public:
     using GhostFill::apply;
-
+    
     //Can construct something like BoundaryList(Reflective(X), Periodic(Y))
     template<BoundaryElement... Bs> BoundaryList(Bs&&... bs) : GhostFill(X | Y | Z, true) {
         (append(std::forward<Bs>(bs)), ...);
@@ -38,9 +36,9 @@ public:
         append(std::forward<B>(b));
         return *this;
     }
-
     
-//MARK: Append
+    
+    //MARK: Append
     //Add an element to the end of the list
     template<BoundaryElement B> void append(B&& b) {
         static_assert(std::derived_from<std::decay_t<B>, GhostFill>);
@@ -53,10 +51,10 @@ public:
         bs.boundaries.clear();
         stale = true;//Require recalculation of implied outflow
     }
-        
-//MARK: Prepend
+    
+    //MARK: Prepend
     //Add an element to the beginning of the list (but after any implicit outflow)
-   template<BoundaryElement B> void prepend(B&& b) {
+    template<BoundaryElement B> void prepend(B&& b) {
         static_assert(std::derived_from<std::decay_t<B>, GhostFill>);
         boundaries.insert(boundaries.begin(), std::make_unique<std::decay_t<B>>(std::forward<B>(b)));
         stale = true;//Require recalculation of implied outflow
@@ -67,14 +65,14 @@ public:
         boundaries = std::move(bs.boundaries);
         stale = true;//Require recalculation of implied outflow
     }
-//MARK: Clear
+    //MARK: Clear
     //Remove all elements from the list
     void clear() {
         boundaries.clear();
         stale = true;//Require recalculation of implied outflow
     }
-
-//MARK: Apply
+    
+    //MARK: Apply
     
     void apply(Grid1D &grid) override{
         if(stale) resetImplicit();//Recalculate implicit outflow faces
@@ -93,7 +91,7 @@ public:
     }
     
 private:
-//MARK: Implied Outflow
+    //MARK: Implied Outflow
     Outflow implicits;
     bool stale = true;//If true, needs to recalculate implicit outflow before applying boundary
     void resetImplicit(){
@@ -106,28 +104,28 @@ private:
 
 
 //MARK: + Operators
-    template<BoundaryElement A, BoundaryElement B> BoundaryList operator+(A&& a, B&& b) {
-        BoundaryList result;
-        result.append(std::forward<A>(a));
-        result.append(std::forward<B>(b));
-        return result;
-    }
-    template<BoundaryElement B> BoundaryList operator+(BoundaryList lhs, B&& rhs) { lhs += rhs; return lhs; }
-    template<BoundaryElement B> BoundaryList& operator+=(BoundaryList& lhs, B&& rhs){
-        lhs.append(std::forward<B>(rhs));
-        return lhs;
-    }
-    template<BoundaryElement A> BoundaryList operator+(A&& lhs, BoundaryList rhs){
-        rhs.prepend(std::forward<A>(lhs));
-        return rhs;
-    }
-    inline BoundaryList operator+(BoundaryList lhs, BoundaryList rhs) { lhs += std::move(rhs); return lhs; }
-    inline BoundaryList& operator+=(BoundaryList& lhs, BoundaryList rhs) {
-        lhs.append(std::move(rhs));
-        return lhs;
-    }
-    
-    
+template<BoundaryElement A, BoundaryElement B> BoundaryList operator+(A&& a, B&& b) {
+    BoundaryList result;
+    result.append(std::forward<A>(a));
+    result.append(std::forward<B>(b));
+    return result;
+}
+template<BoundaryElement B> BoundaryList operator+(BoundaryList lhs, B&& rhs) { lhs += rhs; return lhs; }
+template<BoundaryElement B> BoundaryList& operator+=(BoundaryList& lhs, B&& rhs){
+    lhs.append(std::forward<B>(rhs));
+    return lhs;
+}
+template<BoundaryElement A> BoundaryList operator+(A&& lhs, BoundaryList rhs){
+    rhs.prepend(std::forward<A>(lhs));
+    return rhs;
+}
+inline BoundaryList operator+(BoundaryList lhs, BoundaryList rhs) { lhs += std::move(rhs); return lhs; }
+inline BoundaryList& operator+=(BoundaryList& lhs, BoundaryList rhs) {
+    lhs.append(std::move(rhs));
+    return lhs;
+}
+
+
 }
 
 #else

@@ -13,6 +13,7 @@
 
 #include <cmath> //For std::sqrt, abs
 #include "Constants.h" //For gamma
+using namespace DRAGON;
 
 #ifdef HYDRO_AVAILABLE
 //MARK: Eigenvectors

@@ -42,7 +42,7 @@ bool DRAGONWING::waitForCheckpoint1(){
 }
 //MARK: Thread launching
 #ifndef MULTITHREAD_UNAVAILABLE
-void* DRAGONWING::ThreadPool::launchParallel(Grid* grid, double dt){
+void* DRAGONWING::ThreadPool::launchParallel(DRAGON::Grid* grid, double dt){
     args.push_back({grid,dt});
     ThreadArgs* thread_args = &args.back();
     

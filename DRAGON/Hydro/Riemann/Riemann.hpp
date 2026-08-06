@@ -34,6 +34,7 @@
  Riemann(wL,wR).flux(dt/dx) //does a safety check, pivot to exact on failure
  */
 
+namespace DRAGON{
 struct Riemann;
 struct RiemannSolution;
 
@@ -103,10 +104,6 @@ private:
     //Swap left and right states, negate all v.x.
     void mirror();
 };
-
-
-
-
-    
+}
     
 #endif /* Solvers_hpp */

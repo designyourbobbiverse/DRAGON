@@ -8,8 +8,7 @@
 #include "DragonWing.hpp"
 
 #include "DRAGONWING_Config.hpp"
-#include "ExtendedArray.hpp"
-#include "FluidElement.hpp"
+using namespace DRAGON;
 
 #if defined(REUSE_AUX_GRIDS) && !defined(MULTITHREAD_UNAVAILABLE)
 //Keep track of all the arrays that have been allocated, and which ones are in use

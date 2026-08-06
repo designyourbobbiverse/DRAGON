@@ -7,6 +7,7 @@
 
 #include "Problem.hpp"
 #include "DistGrid.hpp"
+using namespace DRAGON;
 
 #include <cmath>        //For std::sqrt
 #include "Constants.h"  //For sq4pi

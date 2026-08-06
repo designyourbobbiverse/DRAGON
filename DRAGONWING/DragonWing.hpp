@@ -34,15 +34,15 @@ bool waitForCheckpoint2(); //Returns false iff someone requested a restart
 //Return Type: ArrayGuard
     //Automatically releases the arrays when it goes out of scope. Can release early by calling guard.release()
     //guard[i] or guard.get(i) returns a pointer to the ith array
-ArrayGuard<ExtendedArray1D<PrimitiveState>> requestPrimitiveArrays(int N, int nx, int g);
-ArrayGuard<ExtendedArray1D<ConservativeState>> requestFluxArrays(int N, int nx, int g);
-ArrayGuard<ExtendedArray1D<vec3>> requestVec3Arrays(int N, int nx, int g);
-ArrayGuard<ExtendedArray2D<PrimitiveState>> requestPrimitiveArrays(int N, int nx, int ny, int g);
-ArrayGuard<ExtendedArray2D<ConservativeState>> requestFluxArrays(int N, int nx, int ny, int g);
-ArrayGuard<ExtendedArray2D<vec3>> requestVec3Arrays(int N, int nx, int ny, int g);
-ArrayGuard<ExtendedArray3D<PrimitiveState>> requestPrimitiveArrays(int N, int nx, int ny, int nz, int g);
-ArrayGuard<ExtendedArray3D<ConservativeState>> requestFluxArrays(int N, int nx, int ny, int nz, int g);
-ArrayGuard<ExtendedArray3D<vec3>> requestVec3Arrays(int N, int nx, int ny, int nz, int g);
+ArrayGuard<DRAGON::ExtendedArray1D<DRAGON::PrimitiveState>> requestPrimitiveArrays(int N, int nx, int g);
+ArrayGuard<DRAGON::ExtendedArray1D<DRAGON::ConservativeState>> requestFluxArrays(int N, int nx, int g);
+ArrayGuard<DRAGON::ExtendedArray1D<DRAGON::vec3>> requestVec3Arrays(int N, int nx, int g);
+ArrayGuard<DRAGON::ExtendedArray2D<DRAGON::PrimitiveState>> requestPrimitiveArrays(int N, int nx, int ny, int g);
+ArrayGuard<DRAGON::ExtendedArray2D<DRAGON::ConservativeState>> requestFluxArrays(int N, int nx, int ny, int g);
+ArrayGuard<DRAGON::ExtendedArray2D<DRAGON::vec3>> requestVec3Arrays(int N, int nx, int ny, int g);
+ArrayGuard<DRAGON::ExtendedArray3D<DRAGON::PrimitiveState>> requestPrimitiveArrays(int N, int nx, int ny, int nz, int g);
+ArrayGuard<DRAGON::ExtendedArray3D<DRAGON::ConservativeState>> requestFluxArrays(int N, int nx, int ny, int nz, int g);
+ArrayGuard<DRAGON::ExtendedArray3D<DRAGON::vec3>> requestVec3Arrays(int N, int nx, int ny, int nz, int g);
 
 void purgeAllBuffers();
 

@@ -11,6 +11,7 @@
 #include <cmath> //For std::sqrt, std::pow, etc
 #include <algorithm> //For std::max
 #include <utility> //For std::swap
+using namespace DRAGON;
 
 //MARK: Empty Constructors
 PrimitiveState::PrimitiveState(){

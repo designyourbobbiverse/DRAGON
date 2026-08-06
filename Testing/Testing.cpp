@@ -8,7 +8,7 @@
 #include <iostream>
 
 using namespace DRAGON_Test;
-
+using namespace DRAGON;
 int main() {
     
     auto start = std::chrono::system_clock::now();

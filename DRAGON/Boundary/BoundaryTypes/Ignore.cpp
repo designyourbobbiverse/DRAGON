@@ -7,6 +7,7 @@
 
 #include "Boundary.hpp"
 
+using namespace DRAGON;
 using namespace Boundary;
 
 Boundary::Ignore::Ignore(int faces_, bool corners):  GhostFill(faces_, corners) {}

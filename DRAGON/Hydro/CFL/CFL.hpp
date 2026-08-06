@@ -6,7 +6,7 @@
 //
 #include "Grid.hpp"
 
-namespace CFL{
+namespace DRAGON::CFL{
 //Computes the minimum cfl time for the whole grid, with Coefficient applied
 double cfl_time(const Grid& grid);
 double cfl_time(const Grid1D& grid);

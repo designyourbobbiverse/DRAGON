@@ -7,7 +7,7 @@
 
 #include "FluidElement.hpp"
 #include <cmath>
-
+using namespace DRAGON;
 
 
 //MARK: (+): Add two states together

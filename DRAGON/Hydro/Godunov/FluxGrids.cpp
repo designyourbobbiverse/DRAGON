@@ -15,6 +15,7 @@
 
 #include <stdexcept>      //For error handling
 #include <format>         //For error message formatting
+using namespace DRAGON;
 
 
 

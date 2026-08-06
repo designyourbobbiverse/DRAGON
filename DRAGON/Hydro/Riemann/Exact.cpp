@@ -12,6 +12,7 @@
 #include <cmath> //For std::sqrt, pow, abs
 #include <algorithm> //For std::min
 #include <utility> //For std::swap
+using namespace DRAGON;
 
 
 //MARK: Setup

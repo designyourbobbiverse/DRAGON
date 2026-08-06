@@ -21,7 +21,7 @@
 #include "DragonWing.hpp" //For Memory Management
 #include "TVD.hpp"        //For MINMOD
 #include "Constants.h"    //For _1_8pi
-
+using namespace DRAGON;
 
 #ifdef CTU
 #ifndef MUSCL_Hancock

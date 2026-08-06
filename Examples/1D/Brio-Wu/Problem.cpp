@@ -7,6 +7,8 @@
 
 #include "Problem.hpp"
 #include "DistGrid.hpp"
+using namespace DRAGON;
+
 #include "Constants.h" //For sq4pi
 
 typedef DistGrid1D MyGrid;

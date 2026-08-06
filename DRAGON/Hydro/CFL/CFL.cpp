@@ -20,7 +20,7 @@
 #include <iostream>  //For printing step-restart messages
 #include <cstdlib>   //For exit() if the timestep gets too small
 
-
+using namespace DRAGON;
 using namespace CONFIG;
 
 //MARK: Individual Speeds

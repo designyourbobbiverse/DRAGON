@@ -7,6 +7,7 @@
 
 #ifndef GhostFill_hpp
 #define GhostFill_hpp
+namespace DRAGON{
 
 class Grid;
 class Grid1D;
@@ -29,4 +30,5 @@ protected:
     explicit GhostFill(int faces_, bool corner_ghosts) : faces(faces_), corners(corner_ghosts) {}
 };
 
+}
 #endif

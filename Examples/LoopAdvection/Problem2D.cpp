@@ -7,6 +7,7 @@
 
 #include "Problem.hpp"
 #include "DistGrid.hpp"
+using namespace DRAGON;
 
 #include <cmath>            //For std::sqrt
 #include "DragonHoard.hpp" //For loading initial data to compare to final

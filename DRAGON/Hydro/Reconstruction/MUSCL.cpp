@@ -11,6 +11,7 @@
 
 #include "Config.h"
 #include "Constants.h" //For _1_4pi
+using namespace DRAGON;
 
 //MARK: MUSCL-Hancock
 void TVD::MUSCL(const PrimitiveState& wL, PrimitiveState& _L, const PrimitiveState& wC, PrimitiveState& _R, const PrimitiveState& wR, double dt_dL, const vec3& dB){

@@ -10,6 +10,7 @@
 #include "Config.h"
 #include <cmath> //For std:abs
 #include <algorithm> //For std::min/max
+using namespace DRAGON;
 
 
 

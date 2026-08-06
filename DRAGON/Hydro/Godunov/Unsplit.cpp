@@ -15,7 +15,7 @@
 #include "DragonWing.hpp" //For memory management & synchronization
 #include <stdexcept>      //For error handling
 #include <format>         //For error message formatting
-
+using namespace DRAGON;
 using namespace Godunov;
 
 bool Grid::on_step_fail(const std::exception &e){

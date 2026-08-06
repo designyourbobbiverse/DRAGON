@@ -9,9 +9,9 @@
 
 #include "FluidElement.hpp"
 
-const vec3 zero = {0,0,0};
+const DRAGON::vec3 zero = {0,0,0};
 
-namespace TVD{
+namespace DRAGON::TVD{
     //MUSCL Reconstruction
 void MUSCL(const PrimitiveState& wL, PrimitiveState& _L, const PrimitiveState& wC, PrimitiveState& _R, const PrimitiveState& wR, double dt_dL, const vec3& dB = zero);
 

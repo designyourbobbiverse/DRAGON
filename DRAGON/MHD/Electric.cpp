@@ -12,6 +12,7 @@
 #include "CT.hpp"
 
 #include "Config.h"
+using namespace DRAGON;
 
 #ifdef MHD
 #ifndef DIMENSION_UNSPLIT

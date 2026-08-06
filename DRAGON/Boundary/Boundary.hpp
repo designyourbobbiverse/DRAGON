@@ -16,8 +16,7 @@
 #include <string> //For face initialization
 #include "FluidElement.hpp" //For Boundary::fixed
 
-
-namespace Boundary{
+namespace DRAGON::Boundary{
 
 //MARK: Boundary Composition
 //The conditions will be applied in order, with later conditions overriding prior conditions for overlapping cells
@@ -72,7 +71,7 @@ public:
     void apply(Grid1D& grid) override;
     void apply(Grid2D& grid) override;
     void apply(Grid3D& grid) override;
-
+    
     bool gated; //If True, overrides any inflow component of velocity to be zero
 };
 

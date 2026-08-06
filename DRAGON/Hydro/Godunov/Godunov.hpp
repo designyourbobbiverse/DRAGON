@@ -12,7 +12,7 @@
 #include "ArrayTypes.hpp"
 
 
-namespace Godunov{
+namespace DRAGON::Godunov{
 
 //1D
 void sweep(ExtendedArray1D<PrimitiveState>& w, double dt_dx);

@@ -16,6 +16,7 @@
 #include <cmath> //For std::sqrt
 #include <algorithm> //For std::max/min
 #include "Constants.h" //For gamma
+using namespace DRAGON;
 
 namespace HLL{
 PrimitiveState roeAvg(PrimitiveState L, PrimitiveState R){

@@ -7,6 +7,7 @@
 
 #include "Grid.hpp"
 #include "Config.h"
+using namespace DRAGON;
 
 static int validGhosts(int g){
 #if defined(MHD) && defined(CTU)

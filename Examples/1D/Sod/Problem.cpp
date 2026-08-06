@@ -7,6 +7,7 @@
 
 #include "Problem.hpp"
 #include "DistGrid.hpp"
+using namespace DRAGON;
 
 typedef Grid1D MyGrid;//Choose the dimension of your grid here
 

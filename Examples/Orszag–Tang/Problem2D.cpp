@@ -7,6 +7,7 @@
 
 #include "Problem.hpp"
 #include "DistGrid.hpp"
+using namespace DRAGON;
 
 #include <cmath> //For std::sin, cos
 

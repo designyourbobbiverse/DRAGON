@@ -9,6 +9,7 @@
 #include "Config.h"
 
 #include <stdexcept> //For error messages
+using namespace DRAGON;
 
 
 //MARK: Selected Flux algorithm

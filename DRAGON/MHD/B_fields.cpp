@@ -14,6 +14,7 @@
 
 #include "Config.h"
 #include "Constants.h" //For _1_8pi
+using namespace DRAGON;
 
 #ifdef MHD
 
@@ -65,8 +66,7 @@ void CT::Faraday(const MagneticArray3D& E, MagneticArray3D& _B, double dt_dx, do
     }
 }
 //MARK: Body Fields
-namespace CT{
-
+namespace DRAGON::CT{
 void computeBodyField(const MagneticArray2D& B, FluidArray2D& w, int i, int j, bool consv_E){
     const vec3 _B =  {(B[i,j].x + B[i+1,j].x)*0.5, (B[i,j].y + B[i,j+1].y)*0.5, B[i,j].z};
     if(consv_E) {

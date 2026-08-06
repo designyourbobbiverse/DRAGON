@@ -14,6 +14,7 @@
 #include <vector>
 #include <memory> //For std::unique_ptr
 
+namespace DRAGON{
 template <typename T>
 struct DistGrid{
 protected:
@@ -85,5 +86,5 @@ private:
     void pushToChildren() override;
 };
 
-
+}
 #endif /* AMRGrid_hpp */

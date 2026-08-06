@@ -14,6 +14,7 @@
 #include <cmath> //For std::abs, sqrt
 #include <algorithm> //For std::min/max
 #include "Constants.h" //For pi-coefficients
+using namespace DRAGON;
 
 #ifdef MHD
 namespace HLL{ PrimitiveState roeAvg(PrimitiveState L, PrimitiveState R); }
