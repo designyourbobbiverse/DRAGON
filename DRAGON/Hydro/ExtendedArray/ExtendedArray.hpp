@@ -5,13 +5,12 @@
 //  Created by Bobbie Markwick on 16/06/2026.
 //
 
-#ifndef Storage_hpp
-#define Storage_hpp
-#ifdef TESTMODE
+#ifndef ExtendedArray_hpp
+#define ExtendedArray_hpp
+#ifdef TESTMODE //Squawk at out of bounds access during unit tests.
 #include <cassert>
 #endif
 
-#pragma once
 namespace DRAGON{
 //MARK: 1D Array
 template <class T>

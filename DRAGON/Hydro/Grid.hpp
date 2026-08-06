@@ -19,13 +19,17 @@
 namespace DRAGON{
 class Grid{
 public:
-    void advance(double dt, bool check_cfl=true);
-    void advance_split(double dt, bool check_cfl=true);
-    void advance_unsplit(double dt, bool check_cfl=true);
-    
-    
-    virtual void split_step(double dt) = 0;
+    //Advance a single timestep
+    virtual void split_step(double dt) = 0; //Should advance all dimensnions by dt
     virtual void unsplit_step(double dt) = 0;
+    
+    //Advance the grid by time dt. If check_cfl is true, the timestep will be CFL-limited and looped if necessary
+    void advance(double dt, bool check_cfl=true); //Calls advance_split/advance_unsplit as determined in Config.h
+    void advance_split(double dt, bool check_cfl=true); //Calls split_step one or more times
+    void advance_unsplit(double dt, bool check_cfl=true); //Calls unsplit_step one or more times
+    
+    //Called if un/split_step throws an exception
+    //Return true if this grid should handle the restart, false to return from advance and let a parent handle it
     virtual bool on_step_fail(const std::exception& e);
     #ifdef MHD
     virtual void initialize_B_fields(){}
@@ -95,7 +99,6 @@ protected:
     
     void advanceX(double dt); //Advance a single split step in X
     void advanceY(double dt); //Advance a single split step in Y
-    void advanceXY(double dt); //Advance a single unsplit step
     #ifdef MHD
     void computeBodyAveragedFields(const ExtendedArray2D<vec3>& B);
     #endif
@@ -138,7 +141,6 @@ protected:
     void advanceX(double dt); //Advance a single split step in X
     void advanceY(double dt); //Advance a single split step in Y
     void advanceZ(double dt); //Advance a single split step in Z
-    void advanceXYZ(double dt); //Advance a single unsplit step
     #ifdef MHD
     void computeBodyAveragedFields(const ExtendedArray3D<vec3>& B);
     #endif

@@ -30,9 +30,9 @@ static int validGhosts(int g){ //How many ghost cells are needed to do this corr
     #if defined(MUSCL_Hancock)
     return std::max(g, 4);
     #else
-    return std::max(g, 3);
+    return std::max(g, 2);
     #endif
-#elif  defined(MHD) && defined (CTU)
+#elif  defined(MHD) && defined (CTU) //Needs a 3rd ghost to properly calculate electric fields at the boundary
     return std::max(g, 3);
 #else
     return std::max(g, 2); //Unsplit syncs afeter every advance, so unless using MHD+CTU it's safe to use 2 ghosts

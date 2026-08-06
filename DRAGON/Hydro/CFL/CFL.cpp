@@ -26,11 +26,11 @@ using namespace CONFIG;
 //MARK: Individual Speeds
 //CFL speed = highest (|v|+a)/dL of any one side
 double CFL::cfl_max_speed(const PrimitiveState& W, double dx, double dy, double dz){
-#ifdef MHD //Use Magnetosonic fast speed for MHD
+    #ifdef MHD //Use Magnetosonic fast speed for MHD
     double a = W.c_fast_max();
-#else //Use sound speed for Hydro
+    #else //Use sound speed for Hydro
     double a = W.cs();
-#endif
+    #endif
     double speed = 0;
     if (dx > 1e-14) speed = (std::abs(W.v.x) + a)/dx;
     if (dy > 1e-14)  speed = std::max(speed, (std::abs(W.v.y) + a)/dy);
@@ -40,11 +40,11 @@ double CFL::cfl_max_speed(const PrimitiveState& W, double dx, double dy, double 
 
 //CFL speed = sum of (|v|+a)/dL over all applicable sides
 double CFL::cfl_add_speed(const PrimitiveState& W, double dx, double dy, double dz){
-#ifdef MHD //Use Magnetosonic fast speed for MHD
+    #ifdef MHD //Use Magnetosonic fast speed for MHD
     double a = W.c_fast_max();
-#else //Use sound speed for Hydro
+    #else //Use sound speed for Hydro
     double a = W.cs();
-#endif
+    #endif
     double speed = 0;
     if (dx > 1e-14) speed = (std::abs(W.v.x) + a)/dx;
     if (dy > 1e-14) speed +=  (std::abs(W.v.y) + a)/dy;
@@ -54,11 +54,11 @@ double CFL::cfl_add_speed(const PrimitiveState& W, double dx, double dy, double 
 
 //CFL speed = [sum of ((|v|+a)/dL)^p]^(1/p)
 double CFL::cfl_pow_speed(const PrimitiveState& W, double p, double dx, double dy, double dz){
-#ifdef MHD //Use Magnetosonic fast speed for MHD
+    #ifdef MHD //Use Magnetosonic fast speed for MHD
     double a = W.c_fast_max();
-#else //Use sound speed for Hydro
+    #else //Use sound speed for Hydro
     double a = W.cs();
-#endif
+    #endif
     double speed = 0;
     if (dx > 1e-14) speed = std::pow((std::abs(W.v.x) + a)/dx, p);
     if (dy > 1e-14) speed +=  std::pow((std::abs(W.v.y) + a)/dy,p);
@@ -68,19 +68,19 @@ double CFL::cfl_pow_speed(const PrimitiveState& W, double p, double dx, double d
 
 //MARK: Configuration-Control
 double CFL::cfl_speed(const PrimitiveState& W, double dx, double dy, double dz){
-#if CFL_CALCULATION == CHOOSE_RUNTIME || defined(TESTMODE) //Choose at runtime (which is always the case when unit testing)
+    #if CFL_CALCULATION == CHOOSE_RUNTIME || defined(TESTMODE) //Choose at runtime (which is always the case when unit testing)
     switch(CONFIG::cfl_choice){
         case CFL_MAX: return cfl_max_speed(W, dx, dy, dz);
         case CFL_ADD: return cfl_add_speed(W, dx, dy, dz);
         default: return cfl_pow_speed(W, CONFIG::cfl_choice, dx, dy, dz);
     }
-#elif CFL_CALCULATION == CFL_MAX //Use highest individual dimension
+    #elif CFL_CALCULATION == CFL_MAX //Use highest individual dimension
     return cfl_max_speed(W, dx, dy, dz);
-#elif CFL_CALCULATION == CFL_ADD //Add the speeds together
+    #elif CFL_CALCULATION == CFL_ADD //Add the speeds together
     return cfl_add_speed(W, dx, dy, dz);
-#elif CFL_CALCULATION > 0 //Use the  (sum of []^p)^(1/p) method
+    #elif CFL_CALCULATION > 0 //Use the  (sum of []^p)^(1/p) method
     return cfl_pow_speed(W, CFL_CALCULATION, dx, dy, dz);
-#endif
+    #endif
 }
 
 //MARK: Grid Minimum
@@ -149,11 +149,11 @@ double CFL::cfl_time(const Grid& grid){
 
 
 void Grid::advance(double dt, bool check_cfl){
-#ifdef DIMENSION_UNSPLIT
+    #ifdef DIMENSION_UNSPLIT
     advance_unsplit(dt,check_cfl);
-#else
+    #else
     advance_split(dt,check_cfl);
-#endif
+    #endif
 }
 
 
@@ -166,15 +166,15 @@ void Grid::advance_split(double dt, bool check_cfl){
         do{
             try{
                 split_step(t1);
-                break; //Successful, end the loop
-            } catch(const std::exception &exc){
-                if(on_step_fail(exc)){
+                break; //Successful, end the step-attempt loop
+            } catch(const std::exception &exc){ //A restart was requested (e.g. unphysical cell update)
+                if(on_step_fail(exc)){ //on_step_fail returns true if we are supposed to handle the restart
                     std::cout<<"\t"<<exc.what()<<"\n";
-                } else { return; }
+                } else { return; } //on_step_fail returns false if we are supposed let a parent handle the restart
             }
             //We weren't successful, halve the timestep and try again
             t1 *= 0.5;
-            if(t1 < CONFIG::Timestep_Tolerance){
+            if(t1 < CONFIG::Timestep_Tolerance){ //Timestep has gotten so low that we aren't going anywhere
                 std::cout<<"Timestep has fallen below minimum. Exiting\n";
                 exit(1);
             }
@@ -194,15 +194,15 @@ void Grid::advance_unsplit(double dt, bool check_cfl){
         do{
             try{
                 unsplit_step(t1);
-                break; //Successful, end the loop
-            } catch(const std::exception &exc){
-                if(on_step_fail(exc)){
+                break; //Successful, end the step-attempt loop
+            } catch(const std::exception &exc){ //A restart was requested (e.g. unphysical cell update)
+                if(on_step_fail(exc)){ //on_step_fail returns true if we are supposed to handle the restart
                     std::cout<<"\t"<<exc.what()<<"\n";
-                } else { return; }
+                } else { return; } //on_step_fail returns false if we are supposed let a parent handle the restart
             }
             //We weren't successful, halve the timestep and try again
             t1 *= 0.5;
-            if(t1 < CONFIG::Timestep_Tolerance){
+            if(t1 < CONFIG::Timestep_Tolerance){ //Timestep has gotten so low that we aren't going anywhere
                 std::cout<<"Timestep has fallen below minimum. Exiting\n";
                 exit(1);
             }
