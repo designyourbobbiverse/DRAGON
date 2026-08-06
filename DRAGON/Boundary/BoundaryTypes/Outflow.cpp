@@ -78,7 +78,7 @@ void Boundary::Outflow::apply(Grid2D& grid) {
     }
 //MARK: 2D MHD
     #ifdef MHD //Copy Transverse Fields
-    auto& _B = grid._B();
+    auto& _B = grid._B(); // B lives on faces, which have one more physical point per dimension than w.
     if (faces & X_negative) {
         for (int j = j0; j <= jn; j++) {
             for (int g = 1; g <= ng; g++) {
@@ -187,9 +187,8 @@ void Boundary::Outflow::apply(Grid3D& grid) {
     }
     
 //MARK: 3D MHD
-#ifdef MHD //Copy Transverse Fields
-    auto& _B = grid._B();
-    // Faces have one more physical point per dimension than bodies.
+    #ifdef MHD //Copy Transverse Fields
+    auto& _B = grid._B(); // B lives on faces, which have one more physical point per dimension than w.
     if (faces & X_negative) {
         for (int j = j0; j <= jn; j++) {
             for (int k = k0; k <= kn; k++) {
@@ -256,5 +255,5 @@ void Boundary::Outflow::apply(Grid3D& grid) {
             }
         }
     }
-#endif
+    #endif
 }

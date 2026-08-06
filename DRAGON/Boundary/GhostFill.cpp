@@ -1,5 +1,5 @@
 //
-//  Facemask.cpp
+//  GhostFill.cpp
 //  DRAGON/Boundary
 //
 //  Created by Bobbie Markwick on 29/05/2026.
@@ -35,14 +35,6 @@ int Boundary::face_mask(std::string s){
             case '-': mask |= Z_negative; break;
             default: mask |= Z;
             }
-        } else if(current == 'L' || current == 'l'){
-            mask |= X_negative;
-        } else if(current == 'R' || current == 'r'){
-            mask |= X_positive;
-        } else if(current == 'U' || current == 'u'){
-            mask |= Y_positive;
-        } else if(current == 'D' || current == 'd'){
-            mask |= Y_negative;
         }
     }
     return mask;

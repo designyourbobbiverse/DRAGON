@@ -70,9 +70,8 @@ void Boundary::Fixed::apply(Grid2D& grid) {
         }
     }
 //MARK: 2D MHD
-    #ifdef MHD
+    #ifdef MHD // B lives on faces, which have one more physical point per dimension than w.
     auto& _B = grid._B();
-    // A has one more physical point per dimension than w.
     if (faces & X_negative){
         for(int j = j0 ; j <= jn; j++){
             _B[0,j].x = state.B.x;
@@ -170,7 +169,7 @@ void Boundary::Fixed::apply(Grid3D& grid) {
     }
     
 //MARK: 3D MHD
-#ifdef MHD
+    #ifdef MHD  // B lives on faces, which have one more physical point per dimension than w.
     auto& _B = grid._B();
     if (faces & X_negative){
         for(int j = j0; j <= jn; j++){
@@ -229,5 +228,5 @@ void Boundary::Fixed::apply(Grid3D& grid) {
             }
         }
     }
-#endif
+    #endif
 }

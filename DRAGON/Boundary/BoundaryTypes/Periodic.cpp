@@ -51,9 +51,8 @@ void Boundary::Periodic::apply(Grid2D& grid) {
         }
     }
 //MARK: 2D MHD
-    #ifdef MHD
+    #ifdef MHD // B lives on faces, which have one more physical point per dimension than w.
     auto& _B = grid._B();
-    // A has one more physical point per dimension than w.
     if (faces & X){
         for(int j = j0 ; j <= jn; j++){
             for(int g = 1; g <= ng; g++){
@@ -111,9 +110,8 @@ void Boundary::Periodic::apply(Grid3D& grid) {
         }
     }
 //MARK: 3D MHD
-    #ifdef MHD
+    #ifdef MHD // B lives on faces, which have one more physical point per dimension than w.
     auto& _B = grid._B();
-    // Faces have one more physical point per dimension than bodies
     if (faces & X){
         for(int j = j0 ; j <= jn; j++){
             for(int k = k0 ; k <= kn; k++){
