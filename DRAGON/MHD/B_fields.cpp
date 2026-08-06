@@ -19,6 +19,7 @@ using namespace DRAGON;
 #ifdef MHD
 
 //MARK: Faraday's Law
+//Advances B by -curl(E)*dt
 void CT::Faraday(const MagneticArray2D& E, MagneticArray2D& _B, double dt_dx, double dt_dy, int g){
     
     const int nx = _B.getSizeX()-1, ny = _B.getSizeY()-1;
@@ -30,7 +31,7 @@ void CT::Faraday(const MagneticArray2D& E, MagneticArray2D& _B, double dt_dx, do
     }
     for(int i=-g; i<nx+g; i++){
         for(int j=-g; j<=ny+g; j++){
-            _B[i,j].y -= - (E[i+1,j].z - E[i,j].z) * dt_dx;
+            _B[i,j].y -= (E[i,j].z - E[i+1,j].z) * dt_dx;
         }
     }
     for(int i=-g; i<nx+g; i++){
@@ -66,6 +67,7 @@ void CT::Faraday(const MagneticArray3D& E, MagneticArray3D& _B, double dt_dx, do
     }
 }
 //MARK: Body Fields
+//Body fields are an average of the adjacent face states
 namespace DRAGON::CT{
 void computeBodyField(const MagneticArray2D& B, FluidArray2D& w, int i, int j, bool consv_E){
     const vec3 _B =  {(B[i,j].x + B[i+1,j].x)*0.5, (B[i,j].y + B[i,j+1].y)*0.5, B[i,j].z};
@@ -73,7 +75,7 @@ void computeBodyField(const MagneticArray2D& B, FluidArray2D& w, int i, int j, b
         ConservativeState U(w[i,j]);//Update the conservative element to keep quantities conserved
         U.B = _B;
         w[i,j] = U;
-    } else {
+    } else { //Just update the magnetic field, keeps thermal energy where it was (numerically safer, but less physical)
         w[i,j].B = _B;
     }
 }
@@ -83,11 +85,14 @@ void computeBodyField(const MagneticArray3D& B, FluidArray3D& w, int i, int j, i
         ConservativeState U(w[i,j,k]);//Update the conservative element to keep quantities conserved
         U.B = _B;
         w[i,j,k] = U;
-    } else {
+    } else { //Just update the magnetic field, keeps thermal energy where it was (numerically safer, but less physical)
         w[i,j,k].B = _B;
     }
 }
 
+//Low-beta CT update has a tendancy to drive pressure below zero, which is unphysical
+//One way to avoid this is to keep thermal energy (instead of total energy) fixed during the CT update.
+//This is a numerical-stability vs physical-realism tradeoff, controlled in Config.h
 bool shouldProtectThermal(const PrimitiveState& w){
     #if CT_ENERGY_CONSV == CHOOSE_RUNTIME || defined(TESTMODE)
     switch (CONFIG::CT_energy_choice) {
@@ -116,11 +121,11 @@ bool shouldProtectThermal(const PrimitiveState& w){
 
 void Grid2D::initialize_B_fields(){
     const int nx = w.getSizeX(), ny = w.getSizeY(), ng = w.getGhosts();
-    boundary.apply(*this);
+    boundary.apply(*this); //Apply boundary conditions before initializing B
     
     for(int i=-ng; i<nx+ng; i++){
         for(int j=-ng; j<ny+ng; j++){
-            CT::computeBodyField(B,w,i,j,false);
+            CT::computeBodyField(B,w,i,j,false); //When initializing, always preserve the user's initial thermal pressure
         }
     }
 }
@@ -137,12 +142,12 @@ void CT::computeBodyFields(const MagneticArray2D& B, FluidArray2D& w){
 
 void Grid3D::initialize_B_fields(){
     const int nx = w.getSizeX(), ny = w.getSizeY(), nz = w.getSizeZ(), ng = w.getGhosts();
-    boundary.apply(*this);
+    boundary.apply(*this); //Apply boundary conditions before initializing B
     
     for(int i=-ng; i<nx+ng; i++){
         for(int j=-ng; j<ny+ng; j++){
             for(int k=-ng; k<nz+ng; k++){
-                CT::computeBodyField(B,w,i,j,k,false);
+                CT::computeBodyField(B,w,i,j,k,false); //When initializing, always preserve the user's initial thermal pressure
             }
         }
     }
