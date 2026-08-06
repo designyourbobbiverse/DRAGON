@@ -83,7 +83,7 @@ void Boundary::Outflow::apply(Grid2D& grid) {
         for (int j = j0; j <= jn; j++) {
             for (int g = 1; g <= ng; g++) {
                 _B[-g,j] = _B[0,j];
-                _B[-g,j].x = 2*_B[-g+1,j].x - _B[-g+2,j].x;//Handle divergences
+                _B[-g,j].x = 2*_B[-g+1,j].x - _B[-g+2,j].x;//Linear extrapolation of normal B to keep divB = 0
             }
         }
     }
@@ -93,7 +93,7 @@ void Boundary::Outflow::apply(Grid2D& grid) {
             _B[nx,j].z = _B[nx-1,j].z;
             for (int g = 1; g <= ng; g++) {
                 _B[nx+g,j] = _B[nx,j];
-                _B[nx+g,j].x = 2*_B[nx+g-1,j].x - _B[nx+g-2,j].x;//Handle divergences
+                _B[nx+g,j].x = 2*_B[nx+g-1,j].x - _B[nx+g-2,j].x;//Linear extrapolation of normal B to keep divB = 0
             }
         }
     }
@@ -101,7 +101,7 @@ void Boundary::Outflow::apply(Grid2D& grid) {
         for (int i = i0; i <= in; i++) {
             for (int g = 1; g <= ng; g++) {
                 _B[i,-g] = _B[i,0];
-                _B[i,-g].y = 2*_B[i,-g+1].y - _B[i,-g+2].y;//Handle divergences
+                _B[i,-g].y = 2*_B[i,-g+1].y - _B[i,-g+2].y;//Linear extrapolation of normal B to keep divB = 0
             }
         }
     }
@@ -111,7 +111,7 @@ void Boundary::Outflow::apply(Grid2D& grid) {
             _B[i,ny].z = _B[i,ny-1].z;
             for (int g = 1; g <= ng; g++) {
                 _B[i,ny+g] = _B[i,ny];
-                _B[i,ny+g].y = 2*_B[i,ny+g-1].y - _B[i,ny+g-2].y;//Handle divergences
+                _B[i,ny+g].y = 2*_B[i,ny+g-1].y - _B[i,ny+g-2].y;//Linear extrapolation of normal B to keep divB = 0
             }
         }
     }
@@ -194,7 +194,7 @@ void Boundary::Outflow::apply(Grid3D& grid) {
             for (int k = k0; k <= kn; k++) {
                 for (int g = 1; g <= ng; g++) {
                     _B[-g,j,k] = _B[0,j,k];
-                    _B[-g,j,k].x = 2*_B[-g+1,j,k].x - _B[-g+2,j,k].x;//Handle divergences
+                    _B[-g,j,k].x = 2*_B[-g+1,j,k].x - _B[-g+2,j,k].x; //Linear extrapolation of normal B to keep divB = 0
                 }
             }
         }
@@ -206,7 +206,7 @@ void Boundary::Outflow::apply(Grid3D& grid) {
                 _B[nx,j,k].z = _B[nx-1,j,k].z;
                 for (int g = 1; g <= ng; g++) {
                     _B[nx+g,j,k] = _B[nx,j,k];
-                    _B[nx+g,j,k].x = 2*_B[nx+g-1,j,k].x - _B[nx+g-2,j,k].x;//Handle divergences
+                    _B[nx+g,j,k].x = 2*_B[nx+g-1,j,k].x - _B[nx+g-2,j,k].x;//Linear extrapolation of normal B to keep divB = 0
                 }
             }
         }
@@ -216,7 +216,7 @@ void Boundary::Outflow::apply(Grid3D& grid) {
             for (int k = k0; k <= kn; k++) {
                 for (int g = 1; g <= ng; g++) {
                     _B[i,-g,k] = _B[i,0,k];
-                    _B[i,-g,k].y = 2*_B[i,-g+1,k].y - _B[i,-g+2,k].y;//Handle divergences
+                    _B[i,-g,k].y = 2*_B[i,-g+1,k].y - _B[i,-g+2,k].y;//Linear extrapolation of normal B to keep divB = 0
                 }
             }
         }
@@ -228,7 +228,7 @@ void Boundary::Outflow::apply(Grid3D& grid) {
                 _B[i,ny,k].z = _B[i,ny-1,k].z;
                 for (int g = 1; g <= ng; g++) {
                     _B[i,ny+g,k] = _B[i,ny,k];
-                    _B[i,ny+g,k].y = 2*_B[i,ny+g-1,k].y - _B[i,ny+g-2,k].y;//Handle divergences
+                    _B[i,ny+g,k].y = 2*_B[i,ny+g-1,k].y - _B[i,ny+g-2,k].y;//Linear extrapolation of normal B to keep divB = 0
                 }
             }
         }
@@ -238,7 +238,7 @@ void Boundary::Outflow::apply(Grid3D& grid) {
             for (int j = j0; j <= jn; j++) {
                 for (int g = 1; g <= ng; g++) {
                     _B[i,j,-g] = _B[i,j,0];
-                    _B[i,j,-g].z = 2*_B[i,j,-g+1].z - _B[i,j,-g+2].z;//Handle divergences
+                    _B[i,j,-g].z = 2*_B[i,j,-g+1].z - _B[i,j,-g+2].z;//Linear extrapolation of normal B to keep divB = 0
                 }
             }
         }
@@ -250,7 +250,7 @@ void Boundary::Outflow::apply(Grid3D& grid) {
                 _B[i,j,nz].y = _B[i,j,nz-1].y;
                 for (int g = 1; g <= ng; g++) {
                     _B[i,j,nz+g] = _B[i,j,nz];
-                    _B[i,j,nz+g].z = 2*_B[i,j,nz+g-1].z - _B[i,j,nz+g-2].z;//Handle divergences
+                    _B[i,j,nz+g].z = 2*_B[i,j,nz+g-1].z - _B[i,j,nz+g-2].z;//Linear extrapolation of normal B to keep divB = 0
                 }
             }
         }
