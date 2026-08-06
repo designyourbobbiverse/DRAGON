@@ -31,8 +31,8 @@ PrimitiveState roeAvg(PrimitiveState L, PrimitiveState R){
 #endif
     
     double _H = _sql*L.enthalpy() + _sqr*R.enthalpy();
-    double _a2 = (_gamma-1) * (_H - (w.v * w.v)/2);
-    w.p = _a2 * w.rho / _gamma;
+    double _a2 = (gamma-1) * (_H - (w.v * w.v)/2);
+    w.p = _a2 * w.rho / gamma;
 
     return w;
 }

@@ -14,8 +14,9 @@
 
 
 //MARK: Physical Constants
+namespace DRAGON{
 
-constexpr double _gamma = 5.0/3.0;
+constexpr double gamma = 5.0/3.0;
 
 
 //******************************************************************//
@@ -29,15 +30,16 @@ const double sq4pi = std::sqrt(4.0*M_PI);
 const double sq8pi = std::sqrt(8.0*M_PI);
 
 //MARK: Gamma-dependent constants
-constexpr double  _Gm1_2G = (_gamma - 1.0)/(2.0 * _gamma);
-constexpr double _Gp1_2G = (_gamma + 1.0)/(2.0*_gamma);
-constexpr double _2G_Gm1 = 2.0*_gamma/(_gamma - 1.0);
-constexpr double _G_Gm1 = _gamma / (_gamma - 1.0);
-constexpr double _Gm1_2 = (_gamma - 1.0)/2.0;
-constexpr double _2_Gm1 = 2.0/(_gamma - 1.0);
-constexpr double _2_Gp1 = 2.0/(_gamma + 1.0);
-constexpr double _Gm1_Gp1 = (_gamma - 1.0)/(_gamma + 1.0);
-constexpr double _Ginv = 1.0/_gamma;
+constexpr double  _Gm1_2G = (gamma - 1.0)/(2.0 * gamma);
+constexpr double _Gp1_2G = (gamma + 1.0)/(2.0*gamma);
+constexpr double _2G_Gm1 = 2.0*gamma/(gamma - 1.0);
+constexpr double _G_Gm1 = gamma / (gamma - 1.0);
+constexpr double _Gm1_2 = (gamma - 1.0)/2.0;
+constexpr double _2_Gm1 = 2.0/(gamma - 1.0);
+constexpr double _2_Gp1 = 2.0/(gamma + 1.0);
+constexpr double _Gm1_Gp1 = (gamma - 1.0)/(gamma + 1.0);
+constexpr double _Ginv = 1.0/gamma;
+}
 
 
 #endif /* Constants_h */

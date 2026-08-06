@@ -52,18 +52,18 @@ PrimitiveState::PrimitiveState(ConservativeState state){
 }
 
 double PrimitiveState::energy() const {
-    double E =  p/(_gamma - 1.0) + (rho/2)*(v*v); //Thermal + Bulk Kinetic Energy Densities
-#ifdef MHD
+    double E =  p/(gamma - 1.0) + (rho/2)*(v*v); //Thermal + Bulk Kinetic Energy Densities
+    #ifdef MHD
     E += (B*B) * _1_8pi; //Magnetic Energy Density (if applicable)
-#endif
+    #endif
     return E;
 }
 double ConservativeState::pressure() const {
     double E_thermal = this->E - (mom*mom)/(2*rho); //Remove Bulk Kinetic Energy Density
-#ifdef MHD
+    #ifdef MHD
      E_thermal -= (B*B) * _1_8pi; //Remove Magnetic Energy Density (if applicable)
-#endif
-    return  (_gamma - 1.0) * E_thermal; //Convert thermal energy density to pressure
+    #endif
+    return  (gamma - 1.0) * E_thermal; //Convert thermal energy density to pressure
 }
 
 //Enthalpy per mass
@@ -98,7 +98,7 @@ bool ConservativeState::isPhysical()  const {
 
 //MARK: Wave Speeds
 double PrimitiveState::cs() const {
-    return std::sqrt(_gamma * p / rho); //Speed of sound waves in a pure hydro fluid
+    return std::sqrt(gamma * p / rho); //Speed of sound waves in a pure hydro fluid
 }
 #ifdef MHD
 double PrimitiveState::c_alfven() const {

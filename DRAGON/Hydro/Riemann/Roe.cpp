@@ -59,7 +59,7 @@ ConservativeState Riemann::Roe(){
     double _rho = sql * sqr;
     vec3 _v = _sql * L.v + _sqr * R.v;
     double _H = _sql*L.enthalpy() + _sqr*R.enthalpy();
-    double _a = std::sqrt((_gamma-1) * (_H - (_v*_v)/2));
+    double _a = std::sqrt((gamma-1) * (_H - (_v*_v)/2));
     //eigenvalues + eigenvectors
     double lambda[5] = { _v.x - _a, _v.x, _v.x, _v.x,  _v.x + _a };
     ConservativeState K[5] = {
@@ -76,14 +76,14 @@ ConservativeState Riemann::Roe(){
     };
 #ifdef Harten_Hyman
     ConservativeState SL = UL + alpha[0]*K[0];
-    double aL = std::sqrt(_gamma * L.p/L.rho), aSL = std::sqrt(_gamma*SL.pressure()/SL.rho);
+    double aL = std::sqrt(gamma * L.p/L.rho), aSL = std::sqrt(gamma*SL.pressure()/SL.rho);
     double lambdaL = L.v.x-aL, lambdaLS = SL.mom.x/SL.rho - aSL;
     if(lambdaL < 0 &&  lambdaLS > 0 ) {//Left Rarefaction
         double _lambda = lambdaL * (lambda[0] - lambdaLS)/(lambdaL - lambdaLS);
         return UL.flux(L.v) + _lambda*alpha[0]*K[0];
     }
     ConservativeState SR = UR - alpha[4]*K[4];
-    double aR = std::sqrt(_gamma * R.p/R.rho), aSR = std::sqrt(_gamma*SR.pressure()/SR.rho);
+    double aR = std::sqrt(gamma * R.p/R.rho), aSR = std::sqrt(gamma*SR.pressure()/SR.rho);
     double lambdaR = R.v.x+aR, lambdaRS = SR.mom.x/SR.rho + aSR;
     if(lambdaR > 0 &&  lambdaRS  < 0) {//Right Rarefaction
         double _lambda = lambdaR * (lambda[4] - lambdaRS)/(lambdaR - lambdaRS);

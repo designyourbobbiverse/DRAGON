@@ -24,7 +24,7 @@
         //This constant is used only in the execution of the RIEMANN_VERIFY_FALLBACK procedure
     //Indented and below generally priority over Indented and above (e.g. ExactRiemann_MaxIters is a parameter for RIEMANN_EXACT, not one of the options for RIEMANN_HLL [which doesn't even have options])
 
-namespace CONFIG{
+namespace DRAGON::CONFIG{
 //MARK: Top level Options
 #define MHD //Determines whether the simulation is run using MHD or Pure Hydrodynamics
         #define CT_CONSV_TOTAL_E 0 //Enforces total energy conservation, but more prone to numerical issues

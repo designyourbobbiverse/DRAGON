@@ -67,7 +67,7 @@ void DRAGON_Test::verify_cfl(bool output){
 void DRAGON_Test::verify_cfl_add_speed_1D() {
     PrimitiveState W = make_state(1.0, -3.0, 0.0, 0.0, 1.0);
     double dx = 5.0;
-    double a = std::sqrt(_gamma * W.p / W.rho);
+    double a = std::sqrt(gamma * W.p / W.rho);
     
     double expected = (std::abs(W.v.x) + a) / dx;
     double got = CFL::cfl_add_speed(W, dx);
@@ -77,7 +77,7 @@ void DRAGON_Test::verify_cfl_add_speed_1D() {
 void DRAGON_Test::verify_cfl_add_speed_2D() {
     PrimitiveState W = make_state(2.0, 3.0, -4.0, 0.0, 5.0);
     double dx = 0.25, dy = 0.10;
-    double a = std::sqrt(_gamma * W.p / W.rho);
+    double a = std::sqrt(gamma * W.p / W.rho);
 
     double sx = (std::abs(W.v.x) + a) / dx;
     double sy = (std::abs(W.v.y) + a) / dy;
@@ -88,7 +88,7 @@ void DRAGON_Test::verify_cfl_add_speed_2D() {
 void DRAGON_Test::verify_cfl_add_speed_3D() {
     PrimitiveState W = make_state(2.0, 3.0, -4.0, 5.0, 5.0);
     double dx = 0.25, dy = 0.10, dz  = 0.50;
-    double a = std::sqrt(_gamma * W.p / W.rho);
+    double a = std::sqrt(gamma * W.p / W.rho);
 
     double sx = (std::abs(W.v.x) + a) / dx;
     double sy = (std::abs(W.v.y) + a) / dy;
@@ -102,7 +102,7 @@ void DRAGON_Test::verify_cfl_add_speed_3D() {
 void DRAGON_Test::verify_cfl_max_speed_1D() {
     PrimitiveState W = make_state(1.0, 3.0, 0.0, 0.0, 1.0);
     double dx = 0.25;
-    double a = std::sqrt(_gamma * W.p / W.rho);
+    double a = std::sqrt(gamma * W.p / W.rho);
     
     double expected = (std::abs(W.v.x) + a) / dx;
     double got = CFL::cfl_max_speed(W, dx);
@@ -112,7 +112,7 @@ void DRAGON_Test::verify_cfl_max_speed_1D() {
 void DRAGON_Test::verify_cfl_max_speed_2D() {
     PrimitiveState W = make_state(2.0, 3.0, -4.0, 0.0, 5.0);
     double dx = 0.25, dy = 0.10;
-    double a = std::sqrt(_gamma * W.p / W.rho);
+    double a = std::sqrt(gamma * W.p / W.rho);
 
     double sx = (std::abs(W.v.x) + a) / dx;
     double sy = (std::abs(W.v.y) + a) / dy;
@@ -123,7 +123,7 @@ void DRAGON_Test::verify_cfl_max_speed_2D() {
 void DRAGON_Test::verify_cfl_max_speed_3D() {
     PrimitiveState W = make_state(2.0, 3.0, -4.0, 5.0, 5.0);
     double dx = 0.25, dy = 0.10, dz = 0.50;
-    double a = std::sqrt(_gamma * W.p / W.rho);
+    double a = std::sqrt(gamma * W.p / W.rho);
 
     double sx = (std::abs(W.v.x) + a) / dx;
     double sy = (std::abs(W.v.y) + a) / dy;
@@ -138,7 +138,7 @@ void DRAGON_Test::verify_cfl_max_speed_3D() {
 void DRAGON_Test::verify_cfl_pow_speed_1D() {
     PrimitiveState W = make_state(1.0, -3.0, 0.0, 0.0, 1.0);
     double dx = 5.0;
-    double a = std::sqrt(_gamma * W.p / W.rho);
+    double a = std::sqrt(gamma * W.p / W.rho);
     
     double expected = (std::abs(W.v.x) + a) / dx;
     double got = CFL::cfl_pow_speed(W,2, dx);
@@ -148,7 +148,7 @@ void DRAGON_Test::verify_cfl_pow_speed_1D() {
 void DRAGON_Test::verify_cfl_pow_speed_2D() {
     PrimitiveState W = make_state(2.0, 3.0, -4.0, 0.0, 5.0);
     double dx = 0.25, dy = 0.10;
-    double a = std::sqrt(_gamma * W.p / W.rho);
+    double a = std::sqrt(gamma * W.p / W.rho);
 
     double sx = (std::abs(W.v.x) + a) / dx;
     double sy = (std::abs(W.v.y) + a) / dy;
@@ -159,7 +159,7 @@ void DRAGON_Test::verify_cfl_pow_speed_2D() {
 void DRAGON_Test::verify_cfl_pow_speed_3D() {
     PrimitiveState W = make_state(2.0, 3.0, -4.0, 5.0, 5.0);
     double dx = 0.25, dy = 0.10, dz  = 0.50;
-    double a = std::sqrt(_gamma * W.p / W.rho);
+    double a = std::sqrt(gamma * W.p / W.rho);
 
     double sx = (std::abs(W.v.x) + a) / dx;
     double sy = (std::abs(W.v.y) + a) / dy;
@@ -220,7 +220,7 @@ void DRAGON_Test::verify_cfl_time_1D_uniform() {
     PrimitiveState W = make_state(1.0, 2.0, 0.0, 0.0, 1.0);
     for(int i = -1; i < 4 + 1; i++)  g[i] = W;
 
-    double expected = CFL_coeff * g.dx / (2 + std::sqrt(_gamma));
+    double expected = CFL_coeff * g.dx / (2 + std::sqrt(gamma));
     double got = CFL::cfl_time(g);
     assert(approx(got, expected));
     CONFIG::cfl_choice = previous;
@@ -235,7 +235,7 @@ void DRAGON_Test::verify_cfl_time_1D_uses_fastest_cell() {
     for(int i = -1; i < 5 + 1; i++) g[i] = slow;
     g[3] = fast;
 
-    double expected = CFL_coeff * g.dx / (9 + std::sqrt(_gamma));
+    double expected = CFL_coeff * g.dx / (9 + std::sqrt(gamma));
     double got = CFL::cfl_time(g);
     assert(approx(got, expected));
     CONFIG::cfl_choice = previous;
@@ -250,7 +250,7 @@ void DRAGON_Test::verify_cfl_time_1D_ignores_ghost_cells() {
     g[-2] = make_state(1.0, 1000.0, 0.0, 0.0, 1.0);
     g[6] = make_state(1.0, 1000.0, 0.0, 0.0, 1.0);
 
-    double expected = CFL_coeff * g.dx / (0.1 + std::sqrt(_gamma));
+    double expected = CFL_coeff * g.dx / (0.1 + std::sqrt(gamma));
     double got = CFL::cfl_time(g);
     assert(approx(got, expected));
     CONFIG::cfl_choice = previous;
@@ -269,7 +269,7 @@ void DRAGON_Test::verify_cfl_time_2D_uniform() {
         }
     }
 
-    double expected = CFL_coeff / ( (2 + std::sqrt(_gamma)) / g.dx  + (3 + std::sqrt(_gamma)) / g.dy );
+    double expected = CFL_coeff / ( (2 + std::sqrt(gamma)) / g.dx  + (3 + std::sqrt(gamma)) / g.dy );
     double got = CFL::cfl_time(g);
     assert(approx(got, expected));
     
@@ -290,7 +290,7 @@ void DRAGON_Test::verify_cfl_time_2D_visits_last_cell() {
         }
         g[2,3] = fast;
         
-        double expected = CFL_coeff / ( (9 + std::sqrt(_gamma)) / g.dx  + (std::sqrt(_gamma)) / g.dy );
+        double expected = CFL_coeff / ( (9 + std::sqrt(gamma)) / g.dx  + (std::sqrt(gamma)) / g.dy );
         double got = CFL::cfl_time(g);
         assert(approx(got, expected));
     }
@@ -303,7 +303,7 @@ void DRAGON_Test::verify_cfl_time_2D_visits_last_cell() {
         }
         g[3,2] = fast;
         
-        double expected = CFL_coeff / ( (9 + std::sqrt(_gamma)) / g.dx  + (std::sqrt(_gamma)) / g.dy );
+        double expected = CFL_coeff / ( (9 + std::sqrt(gamma)) / g.dx  + (std::sqrt(gamma)) / g.dy );
         double got = CFL::cfl_time(g);
         assert(approx(got, expected));
     }
@@ -323,7 +323,7 @@ void DRAGON_Test::verify_cfl_time_2D_ignores_ghost_cells() {
         }
     }
 
-    double expected = CFL_coeff / ( (0.1 + std::sqrt(_gamma)) / g.dx  + (std::sqrt(_gamma)) / g.dy );
+    double expected = CFL_coeff / ( (0.1 + std::sqrt(gamma)) / g.dx  + (std::sqrt(gamma)) / g.dy );
     double got = CFL::cfl_time(g);
     assert(approx(got, expected));
     CONFIG::cfl_choice = previous;
@@ -343,7 +343,7 @@ void DRAGON_Test::verify_cfl_time_3D_uniform() {
         }
     }
 
-    double expected = CFL_coeff / ( (2 + std::sqrt(_gamma)) / g.dx  + (3 + std::sqrt(_gamma)) / g.dy + (4 + std::sqrt(_gamma)) / g.dz);
+    double expected = CFL_coeff / ( (2 + std::sqrt(gamma)) / g.dx  + (3 + std::sqrt(gamma)) / g.dy + (4 + std::sqrt(gamma)) / g.dz);
     double got = CFL::cfl_time(g);
     assert(approx(got, expected));
     CONFIG::cfl_choice = previous;
@@ -364,7 +364,7 @@ void DRAGON_Test::verify_cfl_time_3D_uses_fastest_cell() {
     }
     g[2,3,4] = fast;
 
-    double expected = CFL_coeff / ( (9 + std::sqrt(_gamma)) / g.dx  + (std::sqrt(_gamma)) / g.dy + (std::sqrt(_gamma)) / g.dz );
+    double expected = CFL_coeff / ( (9 + std::sqrt(gamma)) / g.dx  + (std::sqrt(gamma)) / g.dy + (std::sqrt(gamma)) / g.dz );
     double got = CFL::cfl_time(g);
     assert(approx(got, expected));
     CONFIG::cfl_choice = previous;
@@ -384,7 +384,7 @@ void DRAGON_Test::verify_cfl_time_3D_ignores_ghost_cells() {
         }
     }
 
-    double expected = CFL_coeff / ( (0.1 + std::sqrt(_gamma)) / g.dx  + (std::sqrt(_gamma)) / g.dy + (std::sqrt(_gamma)) / g.dz);
+    double expected = CFL_coeff / ( (0.1 + std::sqrt(gamma)) / g.dx  + (std::sqrt(gamma)) / g.dy + (std::sqrt(gamma)) / g.dz);
     double got = CFL::cfl_time(g);
     assert(approx(got, expected));
     CONFIG::cfl_choice = previous;
