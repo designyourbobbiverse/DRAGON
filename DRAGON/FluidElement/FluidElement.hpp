@@ -9,7 +9,7 @@
 #ifndef FluidElement_hpp
 #define FluidElement_hpp
 
-#include "Config.h"
+#include "Config.h" //#ifdef MHD code only compiles if MHD is defined in Config.h
 
 namespace DRAGON{
 struct vec3;
@@ -40,7 +40,7 @@ struct PrimitiveState {
     vec3 v;
     #ifdef MHD
     //Magnetic Field
-    //Stored in Gaussian units, be explicit  with 4*M_PI
+    //Stored in Gaussian units, be explicit  with 4pi
     vec3 B;
     #endif
     
@@ -86,7 +86,7 @@ struct ConservativeState {
     vec3 mom;
     #ifdef MHD
     //Magnetic Field
-    //Stored in Gaussian units, be explicit  with 4*M_PI
+    //Stored in Gaussian units, be explicit  with 4pi
     vec3 B;
     #endif
     

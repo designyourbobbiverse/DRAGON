@@ -21,9 +21,9 @@ ConservativeState& operator+=(ConservativeState &X, const ConservativeState &Y){
     X.rho += Y.rho;
     X.mom += Y.mom;
     X.E += Y.E;
-#ifdef MHD
+    #ifdef MHD
     X.B += Y.B;
-#endif
+    #endif
     return X;
 }
 vec3 operator+(vec3 v, const vec3 &w){
@@ -47,9 +47,9 @@ ConservativeState& operator-=(ConservativeState &X, const ConservativeState &Y){
     X.rho -= Y.rho;
     X.mom -= Y.mom;
     X.E -= Y.E;
-#ifdef MHD
+    #ifdef MHD
     X.B -= Y.B;
-#endif
+    #endif
     return X;
 }
 vec3 operator-(vec3 v, const vec3 &w){
@@ -72,9 +72,9 @@ ConservativeState& operator*=(ConservativeState &X, double a){
     X.rho *= a;
     X.mom *= a;
     X.E *= a;
-#ifdef MHD
+    #ifdef MHD
     X.B *= a;
-#endif
+    #endif
     return X;
 }
 vec3 operator*(const double &a, vec3 v){ return v*a; }
@@ -111,9 +111,9 @@ ConservativeState& operator/=(ConservativeState &X, double a){
     X.rho /= a;
     X.mom /= a;
     X.E /= a;
-#ifdef MHD
+    #ifdef MHD
     X.B /= a;
-#endif
+    #endif
     return X;
 }
 vec3 operator/(vec3 v, double a){
@@ -134,18 +134,18 @@ bool operator==(const PrimitiveState &X, const PrimitiveState &Y){
     if(std::abs(X.rho - Y.rho) >= 1e-12) return false;
     if(X.v != Y.v) return false;
     if(std::abs(X.p - Y.p) >= 1e-12) return false;
-#ifdef MHD
+    #ifdef MHD
     if(X.B != Y.B) return false;
-#endif
+    #endif
     return true;
 }
 bool operator==(const ConservativeState &X, const ConservativeState &Y){
     if(std::abs(X.rho - Y.rho) >= 1e-12) return false;
     if(X.mom != Y.mom) return false;
     if(std::abs(X.E - Y.E) >= 1e-12) return false;
-#ifdef MHD
+    #ifdef MHD
     if(X.B != Y.B) return false;
-#endif
+    #endif
     return true;
 }
 bool operator==(const vec3 &X, const vec3 &Y){
