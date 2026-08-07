@@ -43,7 +43,7 @@ void Godunov::ctu_sweep_MHD(FluidArray3D& _xL, FluidArray3D& _xR, FluidArray3D& 
     computeFlux_Z(_zL, _zR, F_Z, -2, nx+2, -2, ny+2, -1, nz+1, dt_dz);
     
     //Preliminary CT Update
-        auto __mags = DRAGONWING::requestVec3Arrays(3, nx+1, ny+1, nz+1, g);
+        auto __mags = DRAGONWING::requestVec3Arrays(2, nx+1, ny+1, nz+1, g);
     MagneticArray3D &_B = *__mags[0], &E0 = *__mags[1];
     //Compute E
     CT::computeElectric(E0, F_X, F_Y, F_Z,1);
@@ -140,7 +140,7 @@ void Godunov::ctu_sweep_MHD(FluidArray2D& _xL, FluidArray2D& _xR, FluidArray2D& 
     computeFlux_Y(_yL, _yR, F_Y, -2, nx+2, -1, ny+1, dt_dy);
     
     //Preliminary CT Update
-        auto __mags = DRAGONWING::requestVec3Arrays(3, nx+1, ny+1, g);
+        auto __mags = DRAGONWING::requestVec3Arrays(2, nx+1, ny+1, g);
     MagneticArray2D &_B = *__mags[0], &E0 = *__mags[1];
     //Compute E
     CT::computeElectric(E0, F_X, F_Y, 1);
