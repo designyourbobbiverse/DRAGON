@@ -44,7 +44,13 @@ static int extractNumber(const std::string& s) {
     
     return std::stoi(s.substr(pos+1, end-pos-1));
 }
-
+namespace DRAGONHOARD{
+std::string checkExtension(const std::string& filename) {
+    if (filename.size() <= file_ext.size()) return filename + file_ext; //Shorter = definitley missing
+    if (filename.substr(filename.size() - file_ext.size()) == file_ext) return filename;
+    return filename + file_ext;
+}
+}
 
 std::string DRAGONHOARD::restartFileName(){
     std::string filename = "";

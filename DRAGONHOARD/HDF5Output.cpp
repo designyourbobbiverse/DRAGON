@@ -30,7 +30,7 @@ using namespace DRAGON;
 #error Specified write option does not write a sufficient description of the fluid. Please reconfigure HDF5_WRITE_OPTION in Config.h
 #endif
 
-
+//Convert integer to 5-character string
 std::string DRAGONHOARD::cycle_string(int n){
     std::string zeroes = n<10 ? "0000" : (n<100 ? "000" : (n<1000 ? "00" : (n<10000 ? "0" : "")));
     return zeroes +  std::to_string(n);
@@ -120,6 +120,8 @@ void DRAGONHOARD::writeToFile(Grid& grid, double t, int cycle, const std::string
     
     throw std::runtime_error("IO attempted with unsupported Grid type");
 }
+namespace DRAGONHOARD{ std::string checkExtension(const std::string& filename); }
+
 
 //MARK: Writing - 1D
 
@@ -132,7 +134,7 @@ void DRAGONHOARD::writeToFile(Grid1D& grid, double t, int cycle, const std::stri
     const int i0 = 0, in = nx;
     #endif
  
-    std::string path = DRAGONHOARD::output_dir + "/" + filename + file_ext;
+    std::string path = DRAGONHOARD::output_dir + "/" + checkExtension(filename);
     H5::H5File file(path, H5F_ACC_TRUNC);
     
     //Metadata
@@ -244,7 +246,7 @@ void DRAGONHOARD::writeToFile(Grid2D& grid, double t, int cycle, const std::stri
     const int i0 = 0, in = nx, j0 = 0, jn = ny;
     #endif
 
-    std::string path = DRAGONHOARD::output_dir + "/" + filename + file_ext;
+    std::string path = DRAGONHOARD::output_dir + "/" + checkExtension(filename);
     H5::H5File file(path, H5F_ACC_TRUNC);
     
     //Metadata
@@ -294,11 +296,12 @@ void DRAGONHOARD::writeToFile(Grid2D& grid, double t, int cycle, const std::stri
     std::vector<double> Bx(size);
     std::vector<double> By(size);
     std::vector<double> Bz(size);
-    #elif HDF5_REDUNDANT_VALS_OPTION == HDF5_WRITE_FLOAT
+    #elif HDF5_REDUNDANT_VALS_OPTION == HDF5_WRITE_FLOAT//Write body B's as floats (face B will still be double to allow for restarts)
     std::vector<float> Bx(size);
     std::vector<float> By(size);
     std::vector<float> Bz(size);
     #endif
+    //Face B's
     std::vector<double> Bfx(size_B);
     std::vector<double> Bfy(size_B);
     std::vector<double> Bfz(size_B);
@@ -387,7 +390,7 @@ void DRAGONHOARD::writeToFile(Grid3D& grid, double t, int cycle, const std::stri
     const int i0 = 0, in = nx, j0 = 0, jn = ny, k0 = 0, kn = nz;
     #endif
 
-    std::string path = DRAGONHOARD::output_dir + "/" + filename + file_ext;
+    std::string path = DRAGONHOARD::output_dir + "/" + checkExtension(filename);
     H5::H5File file(path, H5F_ACC_TRUNC);
     
     //Metadata
@@ -439,11 +442,12 @@ void DRAGONHOARD::writeToFile(Grid3D& grid, double t, int cycle, const std::stri
     std::vector<double> Bx(size);
     std::vector<double> By(size);
     std::vector<double> Bz(size);
-    #elif HDF5_REDUNDANT_VALS_OPTION == HDF5_WRITE_FLOAT
+    #elif HDF5_REDUNDANT_VALS_OPTION == HDF5_WRITE_FLOAT //Write body B's as floats (face B will still be double to allow for restarts)
     std::vector<float> Bx(size);
     std::vector<float> By(size);
     std::vector<float> Bz(size);
     #endif
+    //Face B's
     std::vector<double> Bfx(size_B);
     std::vector<double> Bfy(size_B);
     std::vector<double> Bfz(size_B);

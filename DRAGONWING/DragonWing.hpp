@@ -21,16 +21,19 @@ namespace DRAGONWING{
     //bool waitForCompletion(); //Waits for all threads to finish. Returns false iff anyone requested a restart
 
 //Everything below automatically invokes the ThreadPool associated with the current thread. No need to pass the object around yourself.
-bool requestRestart(std::string msg = ""); //Returns true if genuinely in multithread mode
-void reportCheckpoint1();
-void reportCheckpoint2();
-bool waitForRelease(); //Returns false iff someone requested a restart
-bool waitForCheckpoint1(); //Returns false iff someone requested a restart
-bool waitForCheckpoint2(); //Returns false iff someone requested a restart
+bool requestRestart(std::string msg = ""); //Request that all threads restart the timestep. Returns true iff in multithread mode
+//If any thread requests (or has already requested) a step-restart, all waitFor functions will promptly return false. If on the other hand the waitFor condition is successfully reached, the waitFor functions will return true.
+bool waitForRelease(); //Call this before entering memory-heavy phase 1 to avoid too many threads fighting for memory usage.
+    //The exact number of threads permitted to be in phase 1 at a time is controlled in DRAGONWING_Config.hpp
+void reportCheckpoint1(); //Report that this thread's subgrid has completed phase 1 by successfully computing (but not committing) its update
+bool waitForCheckpoint1(); //Wait until all threads have reported checkpoint 1
+void reportCheckpoint2(); //Report that this thread's subgrid has fully completed (and committed) its update
+bool waitForCheckpoint2(); //Wait until all threads have reported checkpoint 2
 
 //MARK: Memory Management
 //Parameters: N is the number of arrays to return
     //nx/ny/nz/g are the size parameters for the arrays themselves
+    //Do not assume you will get an array of zeros: Arrays are recycled and not cleared between uses, so they may contain stale data.
 //Return Type: ArrayGuard
     //Automatically releases the arrays when it goes out of scope. Can release early by calling guard.release()
     //guard[i] or guard.get(i) returns a pointer to the ith array

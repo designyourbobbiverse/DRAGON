@@ -52,11 +52,7 @@ double readDoubleAttribute(H5::H5File& file, const std::string& name) {
 }
 
 }
-std::string checkExtension(const std::string& filename) {
-    if (filename.size() <= file_ext.size()) return filename + file_ext; //Shorter = definitley missing
-    if (filename.substr(filename.size() - file_ext.size()) == file_ext) return filename;
-    return filename + file_ext;
-}
+namespace DRAGONHOARD{ std::string checkExtension(const std::string& filename); }
 
 //MARK: Dispatch
 void DRAGONHOARD::loadFromFile(Grid& grid, double& t, int& cycle, const std::string& filename){
@@ -196,9 +192,10 @@ void DRAGONHOARD::loadFromFile(Grid2D& grid, double& t, int& cycle, const std::s
     std::vector<double> rho = readArray(file, key_rho);
     #ifdef MHD
     std::vector<double> Bx, By, Bz, Bfx, Bfy, Bfz;
-    try { Bx = readArray(file, key_Bx); } catch (...) { Bx = std::vector<double>(arraySize); }
-    try { By = readArray(file, key_By); } catch (...) { By = std::vector<double>(arraySize); }
-    try { Bz = readArray(file, key_Bz); } catch (...) { Bz = std::vector<double>(arraySize); }
+    bool recalculateBodyB = false; //Flags if body B fields need to be recalculated from faces
+    try { Bx = readArray(file, key_Bx); } catch (...) { recalculateBodyB = true; Bx = std::vector<double>(arraySize); }
+    try { By = readArray(file, key_By); } catch (...) { recalculateBodyB = true; By = std::vector<double>(arraySize); }
+    try { Bz = readArray(file, key_Bz); } catch (...) { recalculateBodyB = true; Bz = std::vector<double>(arraySize); }
     try { Bfx = readArray(file, key_Bfx); } catch (...) { Bfx = std::vector<double>(faceArraySize); }
     try { Bfy = readArray(file, key_Bfy); } catch (...) { Bfy = std::vector<double>(faceArraySize); }
     try { Bfz = readArray(file, key_Bfz); } catch (...) { Bfz = std::vector<double>(faceArraySize); }
@@ -260,6 +257,9 @@ void DRAGONHOARD::loadFromFile(Grid2D& grid, double& t, int& cycle, const std::s
             }
         }
     }
+    #if defined(MHD) //Recompute body B fields from face B fields
+    if(recalculateBodyB) grid.initialize_B_fields();
+    #endif
 }
 //MARK: 3D
 void DRAGONHOARD::loadFromFile(Grid3D& grid, double& t, int& cycle, const std::string& filename){
@@ -300,9 +300,10 @@ void DRAGONHOARD::loadFromFile(Grid3D& grid, double& t, int& cycle, const std::s
     std::vector<double> rho = readArray(file, key_rho);
     #ifdef MHD
     std::vector<double> Bx, By, Bz, Bfx, Bfy, Bfz;
-    try { Bx = readArray(file, key_Bx); } catch (...) { Bx = std::vector<double>(arraySize); }
-    try { By = readArray(file, key_By); } catch (...) { By = std::vector<double>(arraySize); }
-    try { Bz = readArray(file, key_Bz); } catch (...) { Bz = std::vector<double>(arraySize); }
+    bool recalculateBodyB = false; //Flags if body B fields need to be recalculated from faces
+    try { Bx = readArray(file, key_Bx); } catch (...) { recalculateBodyB = true; Bx = std::vector<double>(arraySize); }
+    try { By = readArray(file, key_By); } catch (...) { recalculateBodyB = true; By = std::vector<double>(arraySize); }
+    try { Bz = readArray(file, key_Bz); } catch (...) { recalculateBodyB = true; Bz = std::vector<double>(arraySize); }
     try { Bfx = readArray(file, key_Bfx); } catch (...) { Bfx = std::vector<double>(faceArraySize); }
     try { Bfy = readArray(file, key_Bfy); } catch (...) { Bfy = std::vector<double>(faceArraySize); }
     try { Bfz = readArray(file, key_Bfz); } catch (...) { Bfz = std::vector<double>(faceArraySize); }
@@ -372,6 +373,9 @@ void DRAGONHOARD::loadFromFile(Grid3D& grid, double& t, int& cycle, const std::s
             }
         }
     }
+    #if defined(MHD) //Recompute body B fields from face B fields
+    if(recalculateBodyB) grid.initialize_B_fields();
+    #endif
 }
 
 

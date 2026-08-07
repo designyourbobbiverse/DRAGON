@@ -13,12 +13,14 @@
 
 
 //MARK: Threadpool access
+//The thread pool associated with the current thread
 #ifndef MULTITHREAD_UNAVAILABLE
 thread_local DRAGONWING::ThreadPool* current_thread_pool;
 #else
 static DRAGONWING::ThreadPool* current_thread_pool;
 #endif
 
+//Call the corresponding function on this thread's threadpool, if one exists
 void DRAGONWING::reportCheckpoint1(){
     if(!current_thread_pool) return; //Single thread mode
     current_thread_pool->reportCheckpoint1();
@@ -40,24 +42,23 @@ bool DRAGONWING::waitForCheckpoint1(){
     if(!current_thread_pool) return true; //Single thread mode
     return current_thread_pool->waitForCheckpoint1();
 }
+
 //MARK: Thread launching
 #ifndef MULTITHREAD_UNAVAILABLE
 void* DRAGONWING::ThreadPool::launchParallel(DRAGON::Grid* grid, double dt){
-    args.push_back({grid,dt});
+    args.push_back({grid,dt}); //Set up the thread arguments (grid + dt)
     ThreadArgs* thread_args = &args.back();
     
-    
     try {
-        threads.emplace_back([thread_args, this]{
-            current_thread_pool = this;
-            thread_args->grid->advance(thread_args->dt, false);
+        threads.emplace_back([thread_args, this]{//Run the code on a new thread
+            current_thread_pool = this; //Give the thread access to the pool
+            thread_args->grid->advance(thread_args->dt, false); //Do the actual work
         });
     } catch (const std::system_error&) {
         std::cerr << "Failed to create thread\n";
         args.pop_back();
         return nullptr;
     }
-    
     return &threads.back();
 }
 #else
@@ -74,6 +75,7 @@ std::string DRAGONWING::ThreadPool::restartMsg(){
     #ifndef MULTITHREAD_UNAVAILABLE
     std::lock_guard lock(mutex);
     #endif
+    //Return the current message + clear the field to make room for the next error
     auto msg = restart_msg;
     restart_msg = "";
     return msg;
@@ -83,7 +85,7 @@ std::string DRAGONWING::ThreadPool::restartMsg(){
 //MARK: Checkpoint reporting
 void DRAGONWING::ThreadPool::reportCheckpoint1(){
     std::unique_lock lock(mutex);
-    active_phase_1--;
+    active_phase_1--; //Allow someone else to start doing memory-intensive work
     ++reached_checkpoint_1;
     lock.unlock();
     cv.notify_all();
@@ -105,8 +107,9 @@ void DRAGONWING::ThreadPool::requestRestart(std::string msg){
 //MARK: Synchronization
 bool DRAGONWING::ThreadPool::waitForRelease(){
     std::unique_lock lock(mutex);
+    if(CONFIG::phase_1_max_threads <= 0) return !abort_requested; //nonpositive phase_1_max_threads => no limit on threads in phase 1
     //Wait until there is room to proceed
-    cv.wait(lock, [&] { return abort_requested || (active_phase_1 < DRAGONWING::CONFIG::phase_1_max_threads); });
+    cv.wait(lock, [&] { return abort_requested || (active_phase_1 < CONFIG::phase_1_max_threads); });
     if(!abort_requested)  active_phase_1++;
     return !abort_requested;
 }
