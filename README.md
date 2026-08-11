@@ -77,7 +77,7 @@ Physical parameters meanwhile can be found in `DRAGON/Constants.h`. Currently, t
 
 ## Setting up your Problem
 
-Along with `Config.h`, `Problem.cpp` contains the information needed to set up the problem you wish to run. Until HDF5 output is implemented, this file also includes the code to write selected simulation data to CSV files. 
+Along with `Config.h`, `Problem.cpp` contains the information needed to set up the problem you wish to run. Both files are filled with comments detailing how to configure your particular problem.
 
 To run a problem, edit `Config.h` to choose the numerical options and edit `Problem.cpp` to define the initial conditions, boundary conditions, and desired output.
 
@@ -235,9 +235,7 @@ Currently, 3D only supports plotting midplane slices.
 DRAGON is an actively developed research code. The current version is suitable for demonstrating the numerical framework, solver implementations, boundary-condition infrastructure, and unit-test coverage. Basic plotting tools are also included. 
 
 Todo before v1.0:
-- Add Alfven wave Example/validation problem
 - Write Documentation
-- Code Cleanup + Pre-Release Audit
 
 Additional features planned for future versions include:
 - Adaptive Mesh Refinement
