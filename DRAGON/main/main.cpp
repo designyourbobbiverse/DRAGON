@@ -15,6 +15,8 @@ static void printCycleComplete(std::string cycleStr, double clock_time);
 
 
 int main(int argc, const char * argv[]) {
+    std::cout<<"May the power of the DRAGON guide us...\n"; //Blackwald et al. (2019)
+    
     verify_dir();
     
     auto start = std::chrono::system_clock::now();
