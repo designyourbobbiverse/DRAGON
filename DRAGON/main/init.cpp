@@ -58,7 +58,9 @@ void Problem::init(Grid2D& grid){
     for(int i=0; i<=nx; i++){
         for(int j=0; j<=ny; j++){
             grid._B()[i,j] = {0,0,0};
-            A[i,j] = Problem::initialMagneticPotential(i*dx, j*dy, 0);
+            A[i,j].x = Problem::initialMagneticPotential((i+0.5)*dx, j*dy, 0).x;
+            A[i,j].y = Problem::initialMagneticPotential(i*dx, (j+0.5)*dy, 0).y;
+            A[i,j].z = Problem::initialMagneticPotential(i*dx, j*dy, 0).z;
         }
     }
     CT::Faraday(A, grid._B(), -1/dx, -1/dy, 0);
@@ -81,7 +83,9 @@ void Problem::init(Grid3D& grid){
         for(int j=0; j<=ny; j++){
             for(int k=0; k<=nz; k++){
                 grid._B()[i,j,k] = {0,0,0};
-                A[i,j,k] = Problem::initialMagneticPotential(i*dx, j*dy, k*dz);
+                A[i,j,k].x = Problem::initialMagneticPotential((i+0.5)*dx, j*dy, k*dz).x;
+                A[i,j,k].y = Problem::initialMagneticPotential(i*dx, (j+0.5)*dy, k*dz).y;
+                A[i,j,k].z = Problem::initialMagneticPotential(i*dx, j*dy, (k+0.5)*dz).z;
             }
         }
     }
