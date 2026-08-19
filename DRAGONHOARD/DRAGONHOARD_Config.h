@@ -33,6 +33,7 @@ inline std::string output_dir = "/Users/bobbiemarkwick/DRAGON_OUT"; //Set this t
 //#define WRITE_GHOSTS_TO_FILE
 
     #define HDF5_WRITE_OMIT 0 //Omits any values which can be calculated from other values
+        //Exception: If HDF5_WRITE_OPTION is set to HDF5_WRITE_PRIMITIVE_AND_ENERGY, E will be written as a float
     #define HDF5_WRITE_FLOAT 1 //Writes calculable values as Floats
     #define HDF5_WRITE_DOUBLE 2 //Writes all desired values as Doubles whether they can be calculated or not
 #define HDF5_REDUNDANT_VALS_OPTION HDF5_WRITE_FLOAT //Output precision of certain calculable values

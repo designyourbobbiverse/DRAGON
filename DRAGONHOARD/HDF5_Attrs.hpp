@@ -42,6 +42,7 @@ inline const std::string key_Bfz = key_B_face + "/z";
 //Metadata
 inline const std::string key_fmt = "format_version";
 inline const std::string key_wrt_opt = "write_option";
+inline const std::string key_B_opt = "B_floats";
 inline const std::string key_dim = "dim";
 inline const std::string key_mhd = "MHD";
 

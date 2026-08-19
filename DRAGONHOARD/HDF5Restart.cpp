@@ -192,7 +192,7 @@ void DRAGONHOARD::loadFromFile(Grid2D& grid, double& t, int& cycle, const std::s
     std::vector<double> rho = readArray(file, key_rho);
     #ifdef MHD
     std::vector<double> Bx, By, Bz, Bfx, Bfy, Bfz;
-    bool recalculateBodyB = false; //Flags if body B fields need to be recalculated from faces
+    bool recalculateBodyB = readIntAttribute(file, key_B_opt) != HDF5_WRITE_DOUBLE; //Flags if body B fields need to be recalculated from faces
     try { Bx = readArray(file, key_Bx); } catch (...) { recalculateBodyB = true; Bx = std::vector<double>(arraySize); }
     try { By = readArray(file, key_By); } catch (...) { recalculateBodyB = true; By = std::vector<double>(arraySize); }
     try { Bz = readArray(file, key_Bz); } catch (...) { recalculateBodyB = true; Bz = std::vector<double>(arraySize); }
@@ -300,7 +300,7 @@ void DRAGONHOARD::loadFromFile(Grid3D& grid, double& t, int& cycle, const std::s
     std::vector<double> rho = readArray(file, key_rho);
     #ifdef MHD
     std::vector<double> Bx, By, Bz, Bfx, Bfy, Bfz;
-    bool recalculateBodyB = false; //Flags if body B fields need to be recalculated from faces
+    bool recalculateBodyB = readIntAttribute(file, key_B_opt) != HDF5_WRITE_DOUBLE; //Flags if body B fields need to be recalculated from faces
     try { Bx = readArray(file, key_Bx); } catch (...) { recalculateBodyB = true; Bx = std::vector<double>(arraySize); }
     try { By = readArray(file, key_By); } catch (...) { recalculateBodyB = true; By = std::vector<double>(arraySize); }
     try { Bz = readArray(file, key_Bz); } catch (...) { recalculateBodyB = true; Bz = std::vector<double>(arraySize); }

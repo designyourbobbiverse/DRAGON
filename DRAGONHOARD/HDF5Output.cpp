@@ -252,6 +252,7 @@ void DRAGONHOARD::writeToFile(Grid2D& grid, double t, int cycle, const std::stri
     //Metadata
     writeAttribute(file, key_fmt, 1);
     writeAttribute(file, key_wrt_opt, HDF5_WRITE_OPTION);
+    writeAttribute(file, key_B_opt, HDF5_REDUNDANT_VALS_OPTION);
     writeAttribute(file, key_dim, 2);
     #ifdef MHD
     writeAttribute(file, key_mhd, 1);
@@ -287,7 +288,7 @@ void DRAGONHOARD::writeToFile(Grid2D& grid, double t, int cycle, const std::stri
     std::vector<double> E(size);
     #elif HDF5_WRITE_E && HDF5_REDUNDANT_VALS_OPTION == HDF5_WRITE_DOUBLE
     std::vector<double> E(size);
-    #elif HDF5_WRITE_E && HDF5_REDUNDANT_VALS_OPTION == HDF5_WRITE_FLOAT
+    #elif HDF5_WRITE_E
     std::vector<float> E(size);
     #endif
     #ifdef MHD
@@ -296,7 +297,7 @@ void DRAGONHOARD::writeToFile(Grid2D& grid, double t, int cycle, const std::stri
     std::vector<double> Bx(size);
     std::vector<double> By(size);
     std::vector<double> Bz(size);
-    #elif HDF5_REDUNDANT_VALS_OPTION == HDF5_WRITE_FLOAT//Write body B's as floats (face B will still be double to allow for restarts)
+    #elif HDF5_REDUNDANT_VALS_OPTION == HDF5_WRITE_FLOAT //Write body B's as floats (face B will still be double to allow for restarts)
     std::vector<float> Bx(size);
     std::vector<float> By(size);
     std::vector<float> Bz(size);
@@ -396,6 +397,7 @@ void DRAGONHOARD::writeToFile(Grid3D& grid, double t, int cycle, const std::stri
     //Metadata
     writeAttribute(file, key_fmt, 1);
     writeAttribute(file, key_wrt_opt, HDF5_WRITE_OPTION);
+    writeAttribute(file, key_B_opt, HDF5_REDUNDANT_VALS_OPTION);
     writeAttribute(file, key_dim, 3);
     #ifdef MHD
     writeAttribute(file, key_mhd, 1);
@@ -433,7 +435,7 @@ void DRAGONHOARD::writeToFile(Grid3D& grid, double t, int cycle, const std::stri
     std::vector<double> E(size);
     #elif HDF5_WRITE_E && HDF5_REDUNDANT_VALS_OPTION == HDF5_WRITE_DOUBLE
     std::vector<double> E(size);
-    #elif HDF5_WRITE_E && HDF5_REDUNDANT_VALS_OPTION == HDF5_WRITE_FLOAT
+    #elif HDF5_WRITE_E
     std::vector<float> E(size);
     #endif
     #ifdef MHD
