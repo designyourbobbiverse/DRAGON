@@ -1,7 +1,7 @@
 //
 //
 //  Config.h
-//  DRAGON/Examples/Hydro/SphericalBlast
+//  DRAGON/Examples/Hydro/Blast
 //
 //  Created by Bobbie Markwick on 7/07/2026.
 //

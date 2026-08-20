@@ -1,8 +1,8 @@
 //
-//  Problem2D.cpp
-//  DRAGON/Examples/Hydro/SphericalBlast
+//  Problem3D.cpp
+//  DRAGON/Examples/Hydro/Blast
 //
-//  Created by Bobbie Markwick on 7/07/2026.
+//  Created by Bobbie Markwick on 8/07/2026.
 //
 
 #include "Problem.hpp"
@@ -12,15 +12,13 @@ using namespace DRAGON;
 #include <cmath>        //For std::sqrt
 #include "Constants.h"  //For gamma
 
-typedef DistGrid2D MyGrid;//Choose the dimension of your grid here
+typedef DistGrid3D MyGrid;//Choose the dimension of your grid here
 
 constexpr double rho = 1.0;
 constexpr double p_amb = 1e-5;
 constexpr double E_blast = 1.0;
-constexpr int n = 512;
+constexpr int n = 256;
 constexpr double r0 = 12.0/n;
-
-double p_blast = (_gamma - 1.0) * E_blast;
 
 
 Grid& Problem::makeProblem(){
@@ -34,11 +32,12 @@ Grid& Problem::makeProblem(){
         for(int j=0; j<n; j++){
             double x = (i + 0.5)/n  - 0.5;
             double y = (j + 0.5)/n - 0.5;
-            double r = std::sqrt(x*x + y*y);
+            double z = (k + 0.5)/n - 0.5;
+            double r = std::sqrt(x*x + y*y + z*z);
             if(r < r0) blast_cells++;
         }
     }
-    p_blast *= (n*n) / blast_cells;
+    p_blast *= (n*n*n) / blast_cells;
     
     return *grid;
 }
@@ -47,12 +46,12 @@ Grid& Problem::makeProblem(){
 PrimitiveState Problem::initialFluidState(double x, double y, double z){
     PrimitiveState w;
     //Initialize the fluid state w at point (x,y,z).
-        //(dx/2,dy/2) corresponds to the [0,0] cell. z will always be zero
+        //(dx/2,dy/2,dz/2) corresponds to the [0,0,0] cell
 
     w.rho = rho;
     w.p = p_amb;
     
-    double r = std::sqrt(x*x + y*y);
+    double r = std::sqrt(x*x + y*y + z*z);
     if(r < r0) w.p += p_blast;
     
     return w;
@@ -69,7 +68,6 @@ void Problem::completeProblemInit(Grid& problem){
     //Here you can do any initialization not covered by initialFluidState and initialMagneticPotential
     
 }
-
 
 void Problem::beforeCycle(Grid &problem, int cycle, double t){
     MyGrid& grid = *dynamic_cast<MyGrid*>(&problem);
