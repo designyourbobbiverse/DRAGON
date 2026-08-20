@@ -1,0 +1,1019 @@
+\documentclass[11pt]{report}
+
+% ---------- Packages ----------
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{siunitx}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{cleveref}
+\usepackage{geometry}
+\usepackage{fancyhdr}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{bm}
+
+\geometry{margin=1in}
+
+% ---------- Hyperref setup ----------
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue!60!black,
+    citecolor=green!50!black,
+    urlcolor=magenta,
+    pdftitle={DRAGON: Documentation},
+    pdfauthor={Bobbie},
+}
+
+% ---------- Header/Footer ----------
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{DRAGON LORE}
+\fancyhead[R]{\leftmark}
+\fancyfoot[C]{\thepage}
+
+% ---------- Code listing style ----------
+\lstdefinestyle{codestyle}{
+    backgroundcolor=\color{gray!10},
+    commentstyle=\color{green!50!black},
+    keywordstyle=\color{blue},
+    numberstyle=\tiny\color{gray},
+    stringstyle=\color{orange},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,
+    breaklines=true,
+    captionpos=b,
+    keepspaces=true,
+    numbers=left,
+    numbersep=5pt,
+    showspaces=false,
+    showstringspaces=false,
+    showtabs=false,
+    tabsize=2,
+    frame=single,
+}
+\lstset{style=codestyle}
+
+% ---------- Custom math commands ----------
+\renewcommand{\d}[1][ ]{\ensuremath{\operatorname{d}\!{#1}}}
+\newcommand{\pd}[2]{\frac{\partial #1}{\partial #2}}
+
+\newcommand{\cpp}[1]{\lstinline[language=C++]{#1}}
+\newcommand{\bash}[1]{\lstinline[language=bash]{#1}}
+
+% ---------- Title page info ----------
+\title{\textbf{DRAGON}\\ Divergence-Regulation for Adaptive Godunov-Oriented Numerics\\ Literary Overview \& Reference Entries (LORE) Document}
+\author{Bobbie Markwick}
+\date{19 August 2026}
+
+\begin{document}
+
+% ================= Title Page =================
+\maketitle
+
+%\begin{abstract}\end{abstract}
+
+\tableofcontents
+
+% ================= Introduction =================
+%\chapter{Introduction} \label{chap:intro}
+
+%\section{Motivation and Scope}
+% TODO: Describe the scientific motivation for DRAGON, the physical  regimes it targets, and the problems it is designed to solve.
+
+%\section{Overview of Capabilities}
+% TODO: Summarize physics modules, dimensionality, geometries,  boundary conditions, and any special features (e.g., AMR, GPU support).
+
+%\section{Document Organization}
+%This document is organized as follows....
+
+
+% ================= Physical Model =================
+\chapter{Physical Model \& Numerical Methods}
+\label{chap:physics}
+
+\section{Governing Equations}
+The ideal MHD equations solved by DRAGON are, in conservative form:
+\begin{subequations}
+\begin{equation} \pd{\rho}{t} + \nabla\cdot (\rho \mathbf{v}) = 0 \end{equation} \label{eq:continuity} 
+\begin{equation} \pd{}{t}\left(\rho \mathbf{v}\right) + \nabla\cdot \left[ \rho \mathbf{v}\mathbf{v} - \frac{1}{4\pi}\mathbf{B}\mathbf{B}  + \left(p + \frac{\mathbf{B}^2}{8\pi}\right)\mathbb{I} \right]= 0 \end{equation} \label{eq:momentum} 
+\begin{equation} \pd{E}{t} + \nabla\cdot \left[ \left(E + p + \frac{\mathbf{B}^2}{8\pi}\right)\mathbf{v}    -  (\mathbf{v} \cdot \mathbf{B}) \mathbf{B} \right]= 0 \end{equation} \label{eq:energy} 
+\begin{equation} \pd{\mathbf{B}}{t}  =  \nabla\times (\mathbf{v} \times \mathbf{B}) \end{equation} \label{eq:induction} 
+subject to the constraint
+\begin{equation} \nabla\cdot \mathbf{B} = 0. \label{eq:divb}\end{equation}
+\end{subequations}
+Here $\rho$ is mass density, $\mathbf{v}$ the fluid velocity, $\mathbf{B}$ the magnetic field, and $p$ the thermal pressure. 
+$E$ the total energy density
+\begin{equation} E = \frac{p}{\gamma - 1} + \frac{1}{2}\rho \mathbf{v}^2 + \frac{\mathbf{B}^2}{8\pi}, \end{equation}
+where $\gamma$ adiabatic index.
+DRAGON adopts Gaussian (non-rationalized) electromagnetic units, so the magnetic pressure and Lorentz force terms carry an explicit factor of $4\pi$. 
+
+\section{Initial Conditions}
+In DRAGON, problem initialisation consists of three steps:
+\begin{enumerate}
+\item Hydrodynamic Initialisation
+\item Magnetic Field Initialization
+\item (Optional) Custom Additional Initialisation
+\end{enumerate}
+
+In the first step, the user implements \cpp{Problem::initialFluidState(x,y,z)} which returns a primitive hydrodynamic state $w = (\rho, \mathbf{v}, p)$ at position $(x,y,z)$.  The cell $w_{i,j,k}$ will be initialised with the state computed by this function with input position $( (i+\frac12)\d x, (j+\frac12)\d y, (k+\frac12)\d z)$. Any value of $\mathbf{B}$ provided in this step will be overridden in the following step, though there are cases where it is useful to compute a preliminary value of $\mathbf{B}$ at this stage.
+
+In the second step, the user implements \cpp{Problem::initialMagneticPotential(x,y,z)} which returns vector potential $\mathbf A$ at position $(x,y,z)$. From this function, $\mathbf{B} = \nabla\times\mathbf{A}$ is initialised as follows:
+\begin{enumerate}
+\item $\mathbf A$ is calculated at every edge on the grid.
+\begin{subequations}
+\begin{equation} A^x_{i, j-\frac12, k-\frac12} = \mathbf{A}\left[\left(i+\frac12\right)\d x,j\d y, k\d z\right]_x\end{equation}
+\begin{equation} A^y_{i-\frac12, j, k-\frac12} = \mathbf{A}\left[i\d x,\left(j+\frac12\right)\d y, k\d z\right]_y\end{equation}
+\begin{equation} A^z_{i-\frac12, j-\frac12, k} = \mathbf{A}\left[i\d x,j\d y, \left(k+\frac12\right)\d z\right]_z\end{equation}
+\end{subequations}
+\item The normal component of $\mathbf{B}$ is calculated on each of the faces 
+\begin{subequations}
+\begin{equation} B^x_{i-\frac12, j,k} = \frac14\left(A^y_{i-\frac12, j,k-\frac12} + A^z_{i-\frac12, j+\frac12,k} - A^y_{i-\frac12, j,k+\frac12}  - A^z_{i-\frac12, j-\frac12,k}\right) \end{equation}
+\begin{equation} B^y_{i, j-\frac12,k} = \frac14\left(A^z_{i-\frac12, j-\frac12,k} + A^x_{i, j-\frac12,k+\frac12} - A^z_{i+\frac12, j-\frac12,k}  - A^x_{i, j-\frac12,k-\frac12}\right)\end{equation}
+\begin{equation} B^z_{i, j,k-\frac12}= \frac14\left(A^x_{i, j-\frac12,k-\frac12} + A^y_{i+\frac12, j,k-\frac12} - A^x_{i, j+\frac12,k-\frac12}  - A^y_{i-\frac12, j,k-\frac12}\right)\end{equation}
+\end{subequations}
+\item $\mathbf{B}_{i,j,k}$ is calculated as an average of the adjacent faces
+\begin{subequations}
+\begin{equation} B^x_{i, j,k} = \frac12\left(B^x_{i-\frac12,j,k} + B^x_{i+\frac12,j,k}\right)\end{equation}
+\begin{equation} B^y_{i, j,k} = \frac12\left(B^y_{i,j-\frac12,k} + B^y_{i,j+\frac12,k}\right)\end{equation}
+\begin{equation} B^z_{i, j,k} = \frac12\left(B^z_{i,j,k-\frac12} + B^z_{i,j,k+\frac12}\right)\end{equation}
+\end{subequations}
+\end{enumerate}
+This procedure ensures that $\mathbf{B}$ is initialised with zero divergence everywhere.
+
+In the final step, the user implements \cpp{Problem::completeProblemInit(grid)} to perform any additional initialisation steps on \cpp{grid}.
+
+\section{Boundary Conditions} \label{sec:boundary}
+DRAGON supports several types of boundary conditions, and provides capability for defining customisable boundary conditions.
+All boundary conditions are subclasses of the \cpp{GhostFill} subclass, which are responsible for filling in the ghost cells on a \cpp{Grid} object. 
+To set the boundary conditions for a problem, set the \cpp{boundary} property of the \cpp{Grid} class, for example
+\begin{lstlisting}[language=C++]
+grid.boundary = Periodic();
+\end{lstlisting}
+Every time the grid advances, it will call the \cpp{apply(Grid&)} function on its boundary object.
+
+A boundary object can be restricted to specific faces by passing a string argument to the constructor. In this string, specify any combination of X, Y, Z, optionally adding plus or minus after any or all of these to only include the respective side\footnote{Plus and minus restriction is not supported for periodic boundary conditions}. For example, \cpp{Reflective("XZ-")} uses reflective boundary conditions on the $X_-$, $X_+$, and $Z_-$ boundaries.  Any faces not explicitly specified will default to outflow. 
+
+Boundary conditions can be combined using the \cpp{+} operator. For example:
+\begin{lstlisting}[language=C++]
+grid.boundary = Reflective("XZ-") + Periodic("Y");
+\end{lstlisting}
+defines a box which is reflective in the $X_\pm$ and $Z_-$  boundaries, periodic in the $Y$ direction,  and defaults to outflow on the $Z_+$ boundary. Boundaries are applied in the order they are specified, with any implicit outflow being applied first. In the example, the reflective boundaries are applied before the periodic boundaries.
+
+In addition to passing a face-restriction string, the GhostFill constructor also takes a boolean \cpp{corner_ghosts}. This value is true by default, and you should normally leave it that way. If \cpp{corner_ghosts} is true, then all ghosts on the corresponding side of the boundary will be filled. If it is false, then only the ghosts which are out of bounds in a single dimension are filled, and ghosts in the corner regions are assumed to have already been properly filled by a previous boundary object.
+
+DRAGON includes the following built in boundary classes 
+
+\subsection{Outflow}
+The \cpp{Boundary::Outflow} class implements outflow (Neumann) boundary conditions, filing each ghost with the state of the nearest physical cell. Outflow boundaries are the default boundary if none is set.
+Negative-side and positive-side ghosts  on an X boundary are filled as 
+\begin{equation}
+\begin{pmatrix}
+\rho_{(-g,j,k)}\\
+\mathbf{v}_{(-g,j,k)}\\
+p_{(-g,j,k)}\\
+B^y_{(-g,j,k)}\\
+B^z_{(-g,j,k)}
+\end{pmatrix} = \begin{pmatrix}
+\rho_{(0,j,k)}\\
+\mathbf{v}_{(0,j,k)}\\
+p_{(0,j,k)}\\
+B^y_{(g-1,j,k)}\\
+B^z_{(g-1,j,k)}
+\end{pmatrix}
+,\qquad
+\begin{pmatrix}
+\rho_{(n_x-1+g,j,k)}\\
+\mathbf{v}_{(n_x-1+g,j,k)}\\
+p_{(n_x-1+g,j,k)}\\
+B^y_{(n_x-1+g,j,k)}\\
+B^z_{(n_x-1+g,j,k)}
+\end{pmatrix} = \begin{pmatrix}
+\rho_{(n_x-1,j,k)}\\
+\mathbf{v}_{(n_x-1,j,k)}\\
+p_{(n_x-1,j,k)}\\
+B^y_{(n_x-1,j,k)}\\
+B^z_{(n_x-1,j,k)}
+\end{pmatrix}
+\end{equation}
+Normal magnetic fields however are linearly extrapolated to preserve $\nabla\cdot\mathbf{B} = 0$:
+\begin{subequations}
+\begin{equation} B^x_{(-g,j,k)} = 2B^x_{(-g+1,j,k)} - B^x_{(-g+2,j,k)}\end{equation}
+\begin{equation} B^x_{(n_x+g,j,k)} = 2B^x_{(n_x-1+g,j,k)} - B^x_{(n_x-2+g,j,k)}\end{equation}
+\end{subequations}
+
+Calling \cpp{Boundary::Outflow::Gated} instead of the outflow constructor will return a modified outflow condition designed to inhibit accidental inflow. This variant follows all outflow criteria as normal, except that if the normal velocity is directed inwards to the physical region ($v_x >0$ on an $X_-$ boundary, $v_x<0$ on an $X_+$ boundary), that component will be set to zero in the boundary region. 
+
+\subsection{Periodic}
+The \cpp{Boundary::Periodic} class implements periodic boundary conditions, filling ghosts such that the ghost cells near the positive boundary match the physical cells near the corresponding negative boundary.
+Negative-side ghosts are filled as $w_{-g,j,k} = w_{n_x-g,j,k}$ and positive-side ghosts are filled as $w_{n_x+g,j,k} = w_{g,j,k}$.
+Face-magnetic ghosts are filled likewise for half-integer values of $g$. 
+
+Note that periodic boundary conditions require that both the plus and minus boundaries of any given dimension are used; if restriction such as \cpp{Periodic("X-")} is attempted, the object will initialise such that sides will be used (in this case, equivalent to \cpp{Periodic("X")}).
+
+\subsection{Reflective}
+The \cpp{Boundary::Reflective} class implements reflective boundary conditions, filling ghosts such that they mirror the nearby physical cells. These conditions mimic a stationary wall, which in MHD is also taken to be perfectly conductive. Negative-side and positive-side ghosts  on an X boundary are filled as 
+\begin{equation}
+\begin{pmatrix}
+\rho_{(-g,j,k)}\\
+v^x_{(-g,j,k)}\\
+v^y_{(-g,j,k)}\\
+v^z_{(-g,j,k)}\\
+p_{(-g,j,k)}\\
+B^x_{(-g,j,k)}\\
+B^y_{(-g,j,k)}\\
+B^z_{(-g,j,k)}
+\end{pmatrix} = \begin{pmatrix}
+\rho_{(g-1,j,k)}\\
+-v^x_{(g-1,j,k)}\\
+v^y_{(g-1,j,k)}\\
+v^z_{(g-1,j,k)}\\
+p_{(g-1,j,k)}\\
+B^x_{(g-1,j,k)}\\
+-B^y_{(g-1,j,k)}\\
+-B^z_{(g-1,j,k)}
+\end{pmatrix}
+,\qquad
+\begin{pmatrix}
+\rho_{(n_x-1+g,j,k)}\\
+v^x_{(n_x-1+g,j,k)}\\
+v^y_{(n_x-1+g,j,k)}\\
+v^z_{(n_x-1+g,j,k)}\\
+p_{(n_x-1+g,j,k)}\\
+B^x_{(n_x-1+g,j,k)}\\
+B^y_{(n_x-1+g,j,k)}\\
+B^z_{(n_x-1+g,j,k)}
+\end{pmatrix} = \begin{pmatrix}
+\rho_{(n_x-g,j,k)}\\
+-v^x_{(n_x-g,j,k)}\\
+v^y_{(n_x-g,j,k)}\\
+v^z_{(n_x-g,j,k)}\\
+p_{(n_x-g,j,k)}\\
+B^x_{(n_x-g,j,k)}\\
+-B^y_{(n_x-g,j,k)}\\
+-B^z_{(n_x-g,j,k)}
+\end{pmatrix}
+\end{equation}
+Face-magnetic ghosts are filled likewise for half-integer values of $g$.
+
+\subsection{Fixed}
+The \cpp{Boundary::Fixed} class implements fixed (Dirichlet) boundary conditions, filling ghosts with a constant uniform state. When constructing a fixed boundary, the primitive fluid state is the first argument. 
+
+Fixed boundaries are fine to use in hydrodynamic problems, but aren't recommended for nontrivial MHD problems since their interaction with constrained transport hasn't been tested yet.
+
+\subsection{Ignore}
+
+The \cpp{Boundary::Ignore} class is a no-op boundary. Generally you should not use this in your problems, but the it is used internally to support domain decomposition.
+
+
+ \section{Multidimensional Integration Schemes}
+ \subsection{Operator-Split (Strang) Update}\label{sec:split}
+ 
+In split mode, each timestep is built from a sequence of 1D sweeps along coordinate directions, each solved with the same 1D Godunov kernel (\cpp{Godunov::sweep}): 
+apply boundary conditions (\Cref{sec:boundary}), reconstruct interface states with MUSCL (\Cref{sec:reconstruction}), solve the Riemann problem (\Cref{sec:riemann}) at each face, and difference the resulting fluxes into every cell in a single pass down the array, reusing the right-going flux of one interface as the left-going flux of the next.
+
+A multidmensional split sweep consists of sweeps in the $x$, $y$, and (if applicable) $z$ directions. 
+A sweep along $y$ or $z$ is performed by transposing (via \cpp{swappedXY} or \cpp{swappedXZ}) each 1D line of cells so the swept direction is treated as $x$, running the same kernel as the $x$ sweep, and transposing back. 
+This approach means that only one 1D solver needs to be implemented and tested. 
+Each split step operates on a scratch copy of the grid so that, if any sub-sweep fails the physicality check, the original state is left untouched and the whole step can be retried at a smaller $\Delta t$.
+
+
+
+To avoid the directional bias a fixed sweep order would introduce, DRAGON alternates or rotates the sweep order with every step.
+In two dimensions, this is done by alternating by between $XYX$ and $YXY$, both with a $(\frac{\Delta t}{2}, \Delta t, \frac{\Delta t}{2})$ pattern. 
+In three dimensions, this is done by rotating through six orderings: the cyclic permutations $(XYZYX)$, $(ZXYXZ)$, $(YZXZY)$, and the anticyclic permutations $(ZYXYZ)$, $(XZYZX)$, and $(YXZXY)$ all with a $(\frac{\Delta t}{2}, \frac{\Delta t}{2}, \Delta t, \frac{\Delta t}{2},\frac{\Delta t}{2})$ pattern. 
+
+ 
+ 
+ \subsection{Unsplit (CTU) Update}
+\label{sec:unsplit}
+
+The unsplit driver (\cpp{Grid::unsplit_step}) advances all
+directions simultaneously in a single conservative update, following
+this sequence:
+\begin{enumerate}
+\item \textbf{MUSCL}: compute preliminary half-step interface states in every direction (\Cref{sec:reconstruction}).
+\item \textbf{CTU}: apply transverse corrections to those interface states (\Cref{sec:ctu}), assuming \cpp{CTU} is enabled in \bash{Config.h}
+\item \textbf{Final fluxes}: solve the Riemann problem at every face using the (possibly CTU-corrected) interface states (\Cref{sec:riemann}).
+\item \textbf{Update hydrodynamic states}: apply the fluxes conservatively to a scratch copy.
+\item \textbf{Constrained Transport}: extract, upwind, and integrate the electric field, then advance the face-noraml $\mathbf B$ and recompute body-centered fields (\Cref{sec:ct}).
+\item \textbf{Physicality check} -- verify every updated cell is physical; if not, throw to trigger a step restart.
+\item \textbf{Synchronization} -- in a domain-decomposed run, wait for all other subgrids to reach the same checkpoint (and confirm none of them failed) before proceeding.
+\item \textbf{Commit} -- copy the scratch states computed by steps 4 and 5 back into the live grid.
+\end{enumerate}
+
+
+For the flux application in step 4, \cpp{Godunov::applyFluxes} takes fluxes $F^X, F^Y, F^Z$ through every face of a cell and  updates the conservative
+state before converting back to primitive:
+\begin{equation}
+U_{i,j,k}^{n+1} = U_{i,j,k}^{n}
++ \frac{\Delta t}{\Delta x}\left(F^X_{i-\frac12,j,k} - F^X_{i+\frac12,j,k}\right)
++ \frac{\Delta t}{\Delta y}\left(F^Y_{i,j-\frac12,k} - F^Y_{i,j+\frac12,k}\right)
++ \frac{\Delta t}{\Delta z}\left(F^Z_{i,j,k-\frac12} - F^Z_{i,j,k+\frac12}\right),
+\end{equation}
+throwing if any updated cell is non-finite (this is a coarser, cheaper check than the full physicality test applied after the CT update).
+
+
+
+\section{Time Integration}
+
+\subsection{Per-Cell Signal Speed}
+\label{sec:cfl-speed}
+
+For a single cell with primitive state $w$, DRAGON computes a local CFL signal speed from the fast magnetosonic speed $c_f$ (sound speed $c_s$ in hydrodynamic builds), combined across the active grid directions in one of three ways, selected by \cpp{CFL_CALCULATION}
+in \bash{Config.h}:
+\begin{align}
+    \text{\cpp{CFL_MAX}:} \qquad
+        s_{\max} &= \max_{d \in \{x,y,z\}}\left(\frac{|v_d| + c}{\Delta d}\right), \label{eq:cfl-max} \\
+    \text{\cpp{CFL_ADD}:} \qquad
+        s_{\mathrm{add}} &= \sum_{d \in \{x,y,z\}} \frac{|v_d| + c}{\Delta d}, \label{eq:cfl-add} \\
+    \text{power } p: \qquad
+        s_{p} &= \left[\sum_{d \in \{x,y,z\}} \left(\frac{|v_d| + c}{\Delta d}\right)^{p} \right]^{1/p}, \label{eq:cfl-pow}
+\end{align}
+where a direction $d$ is only included if $\Delta d > 0$ (i.e.\ it is an active grid dimension). 
+Equation \ref{eq:cfl-max} is typically appropriate for dimensional splitting, while the more conservative equation \ref{eq:cfl-add} is appropriate for unsplit updates where waves can cross diagonally in a single step. 
+Equation \ref{eq:cfl-pow} interpolates between the two as $p$ is tuned, approaching equation \Cref{eq:cfl-max} as $p \to \infty$.
+
+
+\subsection{Grid-Wide Timestep}
+
+The global timestep bound is derived from the inverse of the fastest signal speed for any one cell in the physical region of the grid:
+\begin{equation} \label{eq:cfl}
+\Delta t \leq C_\mathrm{CFL} \, \min_{i,j,k} \l \left(\frac{1}{s_{i,j,k}}\right)
+\end{equation}
+where $s_{i,j,k}$ are the speeds calculated in the previous section for each individual cell and $C_\mathrm{CFL} \le 1$ is the coefficient given by \cpp{CONFIG::CFL_coeff}.
+The first layer of ghosts are also included in the calculation, but additional ghosts are ignored as they are only used to correct the states seen at the interfaces.  If the resulting timestep is nonpositive, \cpp{CFL::cfl_time} throws an exception, since no finite timestep can be justified in that case.
+
+
+The \cpp{Grid::advance(dt)} function is responsible for controlling the time advancement as follows
+\begin{enumerate}
+\item Each step begins with the application of boundary conditions.
+\item Timestep $\Delta t_1$ is taken to be the lesser of \cpp{dt} and the bound given by \ref{eq:cfl}.  
+\item Advance the problem by time $\Delta t_1$. If an exception is thrown, halve $\Delta t_1$ and try again.% If however this brings $\Delta t_1$ below \cpp{CONFIG::Timestep_Tolerance}, the program will exit.
+\item Subtract $\Delta t_1$ from \cpp{dt}.
+\item Repeat from step 1 until \cpp{dt} falls below \cpp{CONFIG::Timestep_Tolerance} ($10^{-14}$ by default)
+\end{enumerate}
+
+This retry-with-halving behaviour is what lets the physicality checks recover from an occasional bad step (e.g.\ from an overly aggressive CFL coefficient) without aborting the whole simulation, at the cost of re-doing the failed substep at a smaller $\Delta t$.
+ 
+ 
+
+
+\section{Reconstruction}\label{sec:reconstruction}
+
+DRAGON reconstructs left/right interface states using the MUSCL (Monotonic Upstream-centered Scheme for Conservation Laws) approach of van Leer, applied to the primitive variables $w = (\rho,  \mathbf{v}, p, \mathbf{B})$.
+
+\subsection{Piecewise-Linear Slopes}
+
+For each cell $i$, a limited slope $\Delta_i$ is computed from the neighbouring cell averages,
+\begin{equation} \label{eq:MUSCL_lim}
+    \Delta_i = \mathrm{limiter}\!\left( w_i - w_{i-1},\; w_{i+1} - w_i \right),
+\end{equation}
+where $w_i$ are the primitive variables in the $i$th cell, and limiter is the limiter function selected by setting \cpp{MUSCL_DEFAULT_LIMITER} in \bash{Config.h}.
+The following limiter functions are implemented:
+\begin{subequations}
+\begin{equation} \label{eq:minmod}
+    \mathrm{minmod}(a, b) =
+    \begin{cases}
+        a & |a| < |b| \text{ and } ab > 0, \\
+        b & |b| \le |a| \text{ and } ab > 0, \\
+        0 & ab \le 0.
+    \end{cases}
+\end{equation}
+\begin{equation} \label{eq:mc}
+    \mathrm{{MC}}(a, b) =
+    \begin{cases}
+        2a & |a| \le \left\{|b|, \frac14|a+b|\right\} \text{ and } ab > 0, \\
+        2b & |b| \le \left\{|a|, \frac14|a+b|\right\} \text{ and } ab > 0, \\
+        \frac12|a+b|  &  \frac14|a+b| < \left\{|a|, |b|\right\} \text{ and } ab > 0, \\
+        
+        0 & ab \le 0.
+    \end{cases}
+\end{equation}
+\begin{equation} \label{eq:mc}
+    \mathrm{superbee}(a, b) =
+    \begin{cases}
+        2a & 2|a| \le |b| \text{ and } ab > 0, \\
+        2b & 2|b| \le |a| \text{ and } ab > 0, \\
+        a  & |b| < |a| < 2|b| \text{ and } |a| > |b| \text{ and } ab > 0, \\
+        b  & |a| \le |b| < 2|a| \text{ and } |b| > |a| \text{ and } ab > 0, \\
+        0 & ab \le 0.
+    \end{cases}
+\end{equation}
+\begin{equation}
+    \mathrm{{vanLeer}}(a, b) =
+    \begin{cases}
+        \frac{2ab}{a+b} &ab > 0, \\
+        0 & ab \le 0.
+    \end{cases}
+\end{equation}
+\begin{equation}
+    \mathrm{{vanAlbada}}(a, b) =
+    \begin{cases}
+        \frac{ab(a+b)}{a^2+b^2} &ab > 0, \\
+        0 & ab \le 0.
+    \end{cases}
+\end{equation}
+\end{subequations}
+The MC limiter is selected by default, as it provides a reasonable balance between robustness and nondiffusiveness.
+
+Once $\Delta_i$ is computed, the piecewise-linear interface states are computed as
+\begin{equation}
+    w_{i+1/2}^{L} = w_i + \tfrac{1}{2}\Delta_i, \qquad
+    w_{i+1/2}^{R} = w_{i+1} - \tfrac{1}{2}\Delta_{i+1}.
+\end{equation}
+Note that in code $w_{i+1/2}^{L}$ is generally referred to as \cpp{_xR[i]} and $w_{i+1/2}^{R}$ as \cpp{_xL[i+1]}, denoting them relative to the cells from which they originate rather than the Riemann problem to which they will be passed.
+
+\subsection{Half-Step Time Predictor}
+
+To achieve second-order accuracy in time, the interface states are then advanced by a half time step using the flux difference across the cell,
+\begin{subequations}
+\begin{equation}
+ w_{i+1/2}^{L,n+1/2} = w_{i+1/2}^{L} + \frac{\Delta t}{2 \Delta x}\left[ F(w_{i-1/2}^R) - F(w_{i+1/2}^L) \right] +  \frac{\Delta t}{2}S_\mathrm{MHD},
+\end{equation}
+\begin{equation}
+ w_{i-1/2}^{R,n+1/2} = w_{i-1/2}^{R} +  \frac{\Delta t}{2 \Delta x}\left[ F(w_{i-1/2}^R) - F(w_{i+1/2}^L)\right] +  \frac{\Delta t}{2}S_\mathrm{MHD}
+\end{equation}
+\end{subequations}
+where $S_\mathrm{MHD}$ are MHD source terms (see section \ref{sec:MUSCL_MHD_src}).
+Note that $w_{i+1/2}^{LR}$ are converted from primitive to conservative variables before the above operation, and then converted back to primitive variables when assigned to  $w_{i+1/2}^{LR, n+1/2}$. DRAGON's fluid arithmetic allows this to be done implicitly, though MUSCL does the primitive-to-conservative conversion explicitly to avoid redundant conversion.
+
+If for a given cell the above procedure produces a nonphysical result for $w_{i-1/2}^{R}$ or $w_{i+1/2}^{L}$, then both of these interface states fall back to the first-order reconstruction $w_{i-1/2}^{R} = w_{i+1/2}^{L} = w_i$. The above procedure can also be disabled (in which case first-order reconstruction is always used) by disabling \cpp{MUSCL_Hancock} in \bash{Config.h}, though this isn't recommended.
+
+
+\subsection{MHD Source terms} \label{sec:MUSCL_MHD_src}
+
+When reconstructing MHD states, additional source terms $S_\mathrm{MHD}$ are needed to ensure the reconstructed state remains consistent with the solenoid constraint.
+ These terms are computed from the face-normal fields $B^x_{i+1/2,j,k}$ (see section \ref{sec:ct}) and their normal derivatives 
+ \begin{subequations}
+ \begin{equation} \pd{B_x}{x} = \frac{1}{\Delta x} \left(B^x_{i+1/2,j,k} - B^x_{i-1/2,j,k}\right) \end{equation}
+ \begin{equation} \pd{B_y}{x} = \frac{1}{\Delta y} \left(B^y_{i,j+1/2,k} - B^y_{i,j-1/2,k}\right) \end{equation}
+ \begin{equation} \pd{B_z}{x} = \frac{1}{\Delta z} \left(B^z_{i,j,k+1/2} - B^z_{i,j,k-1/2}\right) \end{equation}
+ \end{subequations}
+ Source terms are also not needed for density and momentum, as these terms do not interact with magnetic field outside of their fluxes.
+For the transverse magnetic field, the source terms are given as\footnote{Note that minmod is used regardless of which limiter is used for equation \ref{eq:MUSCL_lim}.
+}
+\begin{equation} 
+S_\mathrm{MHD}(B_y) = v_y \left[ \mathrm{minmod}\left(\pd{B_x}{x}, -\pd{B_y}{y}\right) - \frac{\Delta_i(B_x)}{\Delta x}\right]
+\end{equation}
+and similarly for $B_z$. For the normal term however  $S_\mathrm{MHD}(B_x) = 0$, as $(B_x)_{i+1/2}^{L,n+1/2}$ and $(B_x)_{i+1/2}^{R,n+1/2}$ will be set to $B^x_{i+1/2}$ after MUSCL reconstruction is complete.
+The energy source term is then given by 
+\begin{equation}
+S_\mathrm{MHD}(E) = \frac{\mathbf{B}}{4\pi} \cdot S_\mathrm{MHD}(\mathbf{B}) 
+\end{equation}
+where $\mathbf B$ are taken from $w_i$.
+
+
+
+\subsection{CTU Transverse Correction}
+\label{sec:ctu}
+
+The plain MUSCL half-states of \Cref{sec:reconstruction} account only for the wave structure normal to each interface; used directly in an unsplit update, they under-resolve genuinely multidimensional flow. 
+DRAGON corrects for this following the procedure given by Gardiner \& Stone (2008, hereafter GS08).
+
+
+\paragraph{Hydrodynamics.}
+
+ The correction (\cpp{Godunov::correctState}) is a half-step transverse flux difference applied to \emph{both} sides of each interface state,
+\begin{equation}
+w^{L,\mathrm{corr}}_{d} = w^{L}_{d} - \frac{\Delta t}{2\Delta d'} \left[F_{d'}(w_{d'+\frac12}) - F_{d'}(w_{d'-\frac12})\right],
+\qquad w^{R,\mathrm{corr}}_{d} = w^{R}_{d} - \frac{\Delta t}{2\Delta d'} \left[\cdots\right], \end{equation}
+for each transverse direction $d' \ne d$. 
+In 3D, GS08's ``12-solve'' algorithm additionally corrects each transverse flux itself with a one-third-weighted contribution from the \emph{third} direction before using it (\cpp{computeCTUFlux_X/Y/Z}), so that corner-crossing waves are not double-counted.
+
+
+\paragraph{Magnetohydrodynamics.} 
+
+In MHD, DRAGON first computes a half-step-advanced $\mathbf B$ and body-centred $\mathbf{E}$ using preliminary, uncorrected fluxes and one CT update at $\Delta t/2$.
+From here, the conservative hydrodynamic variables ($\rho, \rho\mathbf{v}, E$) are updated similarly as to the hydrodynamic case, except that corrections from both transverse dimensions are applied simultaneously instead of feeding one update into the other.
+Instead of fluxes, magnetic fields receive their corrections from the electric fields $\mathbf{E}$ computed in the preliminary CT update. For the x interface, this is given by:
+\begin{subequations} \label{eq:ctu-mag1}
+\begin{equation} 
+B^{LR, n+\frac12}_{y,i\pm\frac12 ,j,k}  = B^{LR, n}_{y,i\pm\frac12 ,j,k}   +  \frac{\Delta t}{4\Delta z} \left[  \mathbf{E}^x_{i,j-\frac12,k-\frac12}  - \mathbf{E}^x_{i,j-\frac12,k+\frac12} +  \mathbf{E}^x_{i,j+\frac12,k-\frac12} -  \mathbf{E}^x_{i,j+\frac12,k+\frac12}\right] 
+\end{equation}
+\begin{equation}
+B^{LR, n+\frac12}_{z,i\pm\frac12 ,j,k}  = B^{LR, n}_{z,i\pm\frac12 ,j,k}   +  \frac{\Delta t}{4\Delta y} \left[\mathbf{E}^x_{i,j+\frac12,k-\frac12} -  \mathbf{E}^x_{i,j-\frac12,k-\frac12} +  \mathbf{E}^x_{i,j+\frac12,k+\frac12} -  \mathbf{E}^x_{i,j-\frac12,k+\frac12} \right] 
+\end{equation}
+\end{subequations}
+and similarly for the y and z interfaces. The normal components of $\mathbf{B}$ meanwhile are set to equal to the face-normal values from the staggered grid.
+
+
+However, the MHD correction additionally needs to keep the corrected interface states consistent with the CT electric field, following GS08 eqs.\ 51--59. These additional\footnote{That is, these terms are in addition to, not in place of equations \ref{eq:ctu-mag1} and the corresponding hydrodynamic update} corrections are
+\begin{subequations}
+\begin{equation}
+\Delta B_y = \frac{\Delta t}{2}v_y\mathrm{minmod}\left(\pd{B_x}{x}, - \pd{B_z}{z}\right), \qquad
+\Delta B_z = \frac{\Delta t}{2}v_z\mathrm{minmod}\left(\pd{B_x}{x}, - \pd{B_y}{y}\right)
+\end{equation}
+\begin{equation}
+\Delta E =  \frac{\Delta t}{8\pi}  \left[B_y v_y\mathrm{minmod}\left(\pd{B_x}{x}, - \pd{B_z}{z}\right) + B_zv_z \mathrm{minmod}\left(\pd{B_x}{x}, - \pd{B_y}{y}\right)\right]
+\end{equation}
+\end{subequations}
+for x-interfaces and similarly for y and z interfaces.  The derivatives $\pd{B_i}{x_i}$ are the same as computed in section \ref{sec:MUSCL_MHD_src}.
+Note that GS08 also includes a momentum term, but our MUSCL implementation renders this term unnecessary.
+
+
+
+
+
+
+\section{Riemann Solvers}\label{sec:riemann}
+
+The Riemann problem takes as inputs the left and right states $w_L$ and $w_R$. In the context of a Godunov code, the relevant solution is the flux through the $x=0$ plane.
+In DRAGON, this can be obtained by calling \cpp{Riemann(wL,wR).flux()}. This function uses whichever Riemann solver is selected by \cpp{RIEMANN_DEFAULT} in \bash{Config.h}.  
+
+In multidimensional problems,  the Riemann problem will also need to be solved on the y and z interfaces.
+ \cpp{Riemann(wL,wR).flux_Y()} and \cpp{Riemann(wL,wR).flux_Z()} accomplish this by swapping x and y (or x and z), solving the problem as if it were an x interface, and then swapping the output back.  \cpp{Riemann(wL,wR).flux_X()} is also provided for code symmetry, though this simply calls \cpp{Riemann(wL,wR).flux()} as no swapping is necessary.
+ 
+ 
+
+
+\subsection{Exact (Hydrodynamics Only)} \label{sec:Riemann-exact}
+
+The Exact Riemann solver provides an exact solution to the Hydrodynamic Riemann problem, but as it generally requires an iterative procedure it is more costly than the other solvers. 
+This solver can be called directly as \cpp{Riemann(wL,wR).exact().flux()}\footnote{The intermediate object given by \cpp{Riemann(wL,wR).exact()} contains the star states as well as the initial problem; calling \cpp{flux(x_t)} on this object then computes the flux through the trajectory $x/t=$\cpp{x_t}, with \cpp{x_t=0} as the default.}
+
+
+
+The exact solver iterates on the velocity-jump function
+\begin{equation}
+f(p, w) =
+\begin{cases}
+(p - p_w)\sqrt{\dfrac{2/[(\gamma+1)\rho_w]}{p + \frac{\gamma-1}{\gamma+1}p_w}} & p > p_w \ (\text{shock}), \\[10pt]
+\dfrac{2 c_{s,w}}{\gamma - 1}\left[\left(\dfrac{p}{p_w}\right)^{\frac{\gamma-1}{2\gamma}} - 1\right] & p \le p_w \ (\text{rarefaction}),
+\end{cases}
+\end{equation}
+to solve $f(p^{*}, w_L) + f(p^{*}, w_R) + (v_{x,R} - v_{x,L}) = 0$ for $p^{*}$.
+
+When \cpp{Exact_Rarefactions_Check} is enabled in \bash{Config.h}, DRAGON first tests whether the wave pattern will be two rarefactions ($f(p_{\min}, w_L) + f(p_{\min}, w_R) + v_{x,R} - v_{x,L} \ge 0$ with $p_{\min} = \min(p_L, p_R)$); if so, it uses the closed-form Two-Rarefaction Riemann Solver (TRRS) instead of iterating. 
+Otherwise DRAGON starts from the initial guess $p^{*}_0 = (p_L + p_R)/2$ and uses a damped Newton step ($\delta p^{*}= \min(f/f',\, 0.8\,p^{*})$) to prevent divergence to negative pressure. The iteration terminates when the relative change in $p^{*}$ falls below \cpp{CONFIG::ExactRiemann_Tolerance} or \cpp{CONFIG::ExactRiemann_MaxIters} is exhausted.
+
+Once $p^*$ is calculated, star-region velocity and densities are given by
+\begin{subequations}
+\begin{equation} v_x^{*} = \frac{1}{2}\left[v_{x,L} + v_{x,R} + f(p^{*}, w_R) - f(p^{*}, w_L)\right], \end{equation}
+\begin{equation} \rho_K^{*} =
+\begin{cases}
+\rho_K \left(\frac{p^{*} + \frac{\gamma-1}{\gamma+1}p_K}{\frac{\gamma-1}{\gamma+1}p^{*} + p_K}\right) & p^{*} > p_K \ (\text{shock}), \\[8pt]
+\rho_K \left(p^{*}/p_K\right)^{1/\gamma} & p^{*} \le p_K \ (\text{rarefaction}),
+\end{cases}
+\qquad K \in \{L, R\}.
+\end{equation}
+\end{subequations}
+
+From here, the solution is sampled along the requested ray $x/t$ (outside the wave fan, inside a shock's jump, or inside a rarefaction fan) to produce the flux; the sampling routine handles the left side of the contact by mirroring the problem (swapping $L \leftrightarrow R$ and negating normal velocity) and solving as if it were the right side to ensure implementation symmetry.
+
+
+\subsection{HLL}
+
+The two-wave Harten--Lax--van Leer solver approximates the star region as a single uniform state bounded by a pair of waves  with speeds $S_L$ and $S_R$. This solver can be called as \cpp{Riemann(wL,wR).HLL()}, or if wave speed estimates are already known, \cpp{Riemann(wL,wR).HLL(SL,SR)}.
+
+\subsubsection{Normal Magnetic Fields}
+In MHD, it is important that both sides of the problem have the same normal component of $B$. For HLL and all other solvers that support MHD, this is done by setting both to $\frac{1}{2}\left(B^L_x+ B^R_x\right)$.
+
+
+\subsubsection{Roe-Averaged Intermediate State}
+\label{sec:roe-avg}
+
+HLL and HLLC both use a shared Roe-averaged state $M$ (\cpp{HLL::roeAvg}) to sharpen their outer wave-speed estimates:
+\begin{equation}
+\begin{pmatrix}
+\rho_M\\[12pt]
+\mathbf{v}_M\\[16pt]
+\mathbf{B}_M\\[16pt]
+H_M\\[12pt]
+p_M
+\end{pmatrix} = 
+\begin{pmatrix}
+\sqrt{\rho_L \rho_R}\\[4pt]
+\dfrac{\sqrt{\rho_L}\,\mathbf{v}_L + \sqrt{\rho_R}\,\mathbf{v}_R} {\sqrt{\rho_L} + \sqrt{\rho_R}}\\[12pt]
+\dfrac{\sqrt{\rho_L}\,\mathbf{B}_L + \sqrt{\rho_R}\,\mathbf{B}_R} {\sqrt{\rho_L} + \sqrt{\rho_R}}\\[12pt]
+\dfrac{\sqrt{\rho_L}\,H_L + \sqrt{\rho_R}\,H_R} {\sqrt{\rho_L} + \sqrt{\rho_R}}\\[12pt]
+(1 - \frac{1}{\gamma})\left(\rho_MH_M - \tfrac{1}{2}\rho_M\mathbf{v}_M^2\right)
+\end{pmatrix}
+\end{equation}
+where $H_K = \frac{1}{\rho}\left(E_K+p_K+\frac{\mathbf{B}_K^2}{8\pi}\right)$ is specific enthalpy.
+
+
+\subsubsection{HLL Wave Estimates} \label{sec:HLL_speed}
+
+Outer wave speeds combine the physical-state and Roe-averaged signal speeds,
+\begin{equation}
+    S_L = \min\left(v_{x,L} - c_L,\; v_{x,M} - c_M\right), \qquad
+    S_R = \max\left(v_{x,R} + c_R,\; v_{x,M} + c_M\right),
+\end{equation}
+where $c$  is the fast magnetosonic speed (sound speed in pure hydrodynamics) evaluated at $L$, $R$, and the Roe average $M$.
+
+\subsubsection{HLL Flux}
+Once the above speed estimates are calculated, the flux is then found via \cpp{Riemann(wL,wR).HLL(SL,SR)}\footnote{If you have your own method for calculating the wave speed estimates, you can call this method yourself instead of using the existing HLL machinery.}
+
+The standard two-state flux is given by (Harten, Lax, \& van Leer 1983)
+\begin{equation}
+F_{\mathrm{HLL}}(S_L, S_R) =
+\begin{cases}
+F_L & S_L \ge 0, \\[4pt]
+\frac{S_R F_L - S_L F_R + S_L S_R (U_R - U_L)}{S_R - S_L} & S_L < 0 < S_R, \\[8pt]
+F_R & S_R \le 0,
+\end{cases}
+\end{equation}
+where $F_L$ and $F_R$ are the fluxes computed directly from conservative states $U_L$ and $U_R$ respectively.
+
+\subsection{HLLE} \label{sec:HLLE}
+
+The HLLE solver implemented in \cpp{Riemann::HLLE()} uses the same two-state flux formula as HLL, but with the Einfeldt (1988) wave-speed bounds to additionally guarantee positivity of the intermediate density.  
+
+These speeds are given as
+\begin{equation} S_L = \min(v_{x,L} - c_L,\; v_{x,M} - d), \qquad S_R = \max(v_{x,R} + c_R,\; v_{x,M} + d),\end{equation}
+where
+\begin{equation}
+d = \sqrt{\,\bar{a}^2 + \tfrac{1}{2}\sqrt{\rho_L\rho_R}\bar{v}_x^2}, \qquad
+\bar{a^2} = \frac{\sqrt{\rho_L} c_L^2 + \sqrt{\rho_R} c_R^2}{\sqrt{\rho_L} + \sqrt{\rho_R}}, \qquad
+\bar{v}_x = \frac{v_{x,R} - v_{x,L}}{\sqrt{\rho_L} + \sqrt{\rho_R}}.
+\end{equation}
+
+
+\subsection{HLLC (Hydrodynamics Only)}
+
+HLLC (Toro, Spruce, \& Speares 1994) restores the contact discontinuity smeared out by HLL/HLLE.  
+
+ \cpp{Riemann(wL,wR).HLLC()} uses the same outer wave speeds given in section \ref{sec:HLL_speed}, or \cpp{Riemann(wL,wR).HLLC(SL,SR)} can be called directly given alternative estimates. The speed of the restored contact wave is then given by
+ \begin{equation}  S_M = \frac{p_R^{*} - p_L^{*}}{\rho_R(v_{x,R} - S_R) - \rho_L(v_{x,L} - S_L)} \end{equation}
+where $p_K^{*} = p_K + \rho_K v_{x,K}(v_{x,K} - S_K)$.
+
+Using this speed, identify the relevant side $X \in \{L, R\}$\footnote{$X=L$ if $S_M > 0$, otherwise $X=R$} and outer speed $S_X$ .  
+From there, the star-region conservative state is
+\begin{equation} U^{*} = U_X \left( \frac{S_X - v_{x,X}}{S_X - S_M}\right),\end{equation}
+except that $(\rho v_x)^{*} = \rho^{*} S_M$ and  $E^*$ is given by
+\begin{equation}
+E^* = E_K \left(\frac{S_X - v_{x,X}}{S_X - S_M}\right)+  p_X\left(\frac{S_M - v_{x,X}}{S_X-S_M}\right)  + \rho^{*}(S_M - v_{x,X})S_M 
+\end{equation}
+From here, the final star-state flux is given by 
+\begin{equation}
+F = F_X + S_X(U^{*} - U_X).
+\end{equation}
+
+\subsection{HLLD (MHD Only)} \label{sec:HLLD}
+
+HLLD (Miyoshi \& Kusano 2005) extends the contact-resolving idea of HLLC to MHD by resolving five waves: the two outer fast waves ($S_L,
+S_R$), two rotational/Alfv\'en waves ($S_L^{*}, S_R^{*}$), and the contact wave ($S_M$).
+
+\subsubsection{Wave speeds}
+Unlike other HLL solvers which use rho-averaging, HLLD's outer speeds use the fast magnetosonic speed $c_f$ directly,
+\begin{equation}
+S_L = \min(v_{x,L} - c_{f,L},\; v_{x,R} - c_{f,R}), \qquad
+S_R = \max(v_{x,L} + c_{f,L},\; v_{x,R} + c_{f,R}).
+\end{equation}
+If $S_L \ge 0$ or $S_R \le 0$, then as with other HLL solvers the flux is simply $F_L$ or $F_R$.
+
+The contact wave speed is given by 
+\begin{equation}
+S_M = \frac{(\varrho_R v_{x,R} - \varrho_L v_{x,L}) - (p_{T,R} - p_{T,L})}{\varrho_R - \varrho_L}
+\end{equation}
+where $p_{T,K} = p_K + \frac{1}{8\pi}B_K^2$ is the total pressure and $\varrho_K = \rho_K(S_K - v_{x,K})$ are the mass fluxes.
+Alfv\'en speeds and star densities are then
+\begin{equation}
+S_L^{*} = S_M - \frac{|B_x|}{\sqrt{4\pi \rho_L^{*}}}, \qquad
+S_R^{*} = S_M + \frac{|B_x|}{\sqrt{4\pi \rho_R^{*}}}, \qquad
+\rho_K^{*} = \frac{\varrho_K}{S_K - S_M}.
+\end{equation}
+
+\subsubsection{Outer Star States}
+Given total pressures 
+$p_T^{*} = \frac{\varrho_R p_{T,L} - \varrho_L p_{T,R} + \varrho_L \varrho_R (v_{x,R} - v_{x,L})}{\varrho_R - \varrho_L}.$ 
+and $p_{T,K} = p_K + \frac{\mathbf{B}_K^2}{8\pi}$,
+the outer star states are given by
+\begin{subequations}
+\begin{equation}\rho_K^{*} = \frac{\varrho_K}{S_K - S_M}\end{equation}
+\begin{equation}(v_x)_K^{*} = S_M\end{equation}
+\begin{equation}(v_y)_K^{*} =  v_y -  \frac{ B_{y,K}}{4\pi}\left[ \frac{B_x(S_M - v_{x,K})}{\varrho_K(S_K-S_M) - \frac{B_x^2}{8\pi}}\right] \end{equation}
+\begin{equation}(B_x)_K^{*} = B_x\end{equation}
+\begin{equation}(B_y)_K^{*} =B_{y,K} \left[\frac{\varrho_K(S_K - v_{x,K}) - \frac{B_x^2}{8\pi}}{\varrho_K(S_K-S_M) - \frac{B_x^2}{8\pi}}\right] \end{equation}
+\begin{equation}E_K^{*} = 
+E_K \left(\frac{S_K-v_{x,K}}{S_K-S_M}\right) +  \frac{p_T^*S_M - p_{T,K}v_{x,K}}{S_K-S_M} + \frac{Bx}{4\pi}\frac{(\mathbf{v}_K\cdot\mathbf{B}_K - \mathbf{v}^*_K\cdot\mathbf{B}^*_K )}{S_K-S_M}
+\end{equation}
+\end{subequations}
+and similarly for the $z$ components.
+If the denominators are zero (or sufficiently close to zero), then the transverse components of $\mathbf{v}$ and $\mathbf{B}$ are taken directly from $w_K$ without rescaling.
+
+Sometimes HLLD will compute a star state with nonpositive thermal pressure. If \cpp{HLLD_PHYSICAL_SAFETY} is enabled in \bash{Config.h}, then DRAGON will compute the  thermal pressure for the star states and switch to HLLE for a nonphysical result.
+
+If the zero line falls between an alfven speed $S_K^*$ and the corresponding outer speed, $S_K$, then the flux is given by 
+\begin{equation}
+F_K^{*} = F_K + S_K(U_K^{*} - U_K)
+\end{equation}
+ on the appropriate side.
+
+
+\subsubsection{Inner Star States}
+
+The inner star states are 
+
+
+
+\begin{subequations}
+\begin{equation}\rho_K^{**} = \rho_K^{*}\end{equation}
+\begin{equation}(v_x)_K^{**} = S_M\end{equation}
+\begin{equation}(v_y)_K^{**} =  \frac{\sqrt{\rho_L^{*}} v_{y,L}^{*} + \sqrt{\rho_L^{*}} v_{y,R}^{*} }{\sqrt{\rho_L^{*}} + \sqrt{\rho_R^{*}}}  
+\pm \frac{B_{y,R}- B_{y,L}}{\sqrt{4\pi\rho_L^{*}}+\sqrt{4\pi\rho_L^{*}}}
+\end{equation}
+\begin{equation}(B_x)_K^{**} = B_x\end{equation}
+\begin{equation}(B_y)_K^{**} =  \frac{\sqrt{\rho_L^{*}} B_{y,R}^{*} + \sqrt{\rho_L^{*}} B_{y,L}^{*} }{\sqrt{\rho_L^{*}} + \sqrt{\rho_R^{*}}}  
+\pm \frac{{v_{y,R}- v_{y,L}}}{\sqrt{\frac{1}{4\pi\rho_L^{*}}}+\sqrt{\frac{1}{4\pi\rho_R^{*}}}} 
+\end{equation}
+\begin{equation}
+E_K^{**} = \mp \left( \mathbf{v}^{*}_K \cdot \mathbf{B}^{*}_K - \mathbf{v}^{**}_K \cdot \mathbf{B}^{**}_K \right) \sqrt{\frac{\rho_K^{*}}{4\pi}}
+\end{equation}
+\end{subequations}
+and similarly for the $z$ components. For the transverse components, the $+$ path is taken if $B_x > 0$ and the $-$ path is taken if $B_x < 0$. For Energy, the minus path is taken upstream of $B_x$ and the plus path is taken downstream of $B_x$ (i.e. use the opposite sign to $B_x S_M$).
+
+As with the outer star states, if \cpp{HLLD_PHYSICAL_SAFETY}, is enabled in \bash{Config.h}, then DRAGON will revert to HLLE if the inner star state produces a nonphysical thermal pressure.
+
+If the zero line falls between an alfven speed $S_K^*$ and contact speed $S_M$, the flux is given by 
+\begin{equation}
+F_K^{**} = F_K^* + S_K^*(U_K^{**} - U_K^*)
+\end{equation}
+ on the appropriate side.
+
+
+\subsubsection{Zero Normal B}
+
+When the interface-normal field vanishes, the Alfv\'en waves collapse onto the contact wave and the five-wave structure collapses to three regions. DRAGON handles this with a separate code path, using the same $S_L, S_R, S_M$ as above but without the Alfv\'en-speed split.
+
+Outer star states are given by
+\begin{subequations}
+\begin{equation}\rho_K^{*} = \frac{\varrho_K}{S_K - S_M}\end{equation}
+\begin{equation}(v_x)_K^{*} = S_M\end{equation}
+\begin{equation}(v_y)_K^{*} =  v_y \end{equation}
+\begin{equation}(\mathbf{B})_K^{*} =\mathbf{B}_{K} \left[\frac{S_K - v_{x,K}}{S_K-S_M}\right] \end{equation}
+\begin{equation}E_K^{*} = 
+E_K \left(\frac{S_K-v_{x,K}}{S_K-S_M}\right) +  \frac{p_T^*S_M - p_{T,K}v_{x,K}}{S_K-S_M}
+\end{equation}
+\end{subequations}
+
+No inner state is computed since $S_L^* = S_M = S_R^*$.  In the exceptional case where $S_M = 0$ exactly, the flux is taken as the density-weighted average
+of the two one-sided fluxes $F = \frac{\sqrt{\rho_L^{*}}\,F_L^{*} + \sqrt{\rho_R^{*}}\,F_R^{*}}
+{\sqrt{\rho_L^{*}}+\sqrt{\rho_R^{*}}}$ to preserve left-right
+symmetry at that single point.
+
+
+\subsection{Roe (Hydrodynamics Only)}
+
+The Roe solver (Roe 1981; Roe \& Pike 1984) linearizes the Euler flux Jacobian about the Roe-averaged state of \Cref{sec:roe-avg}, giving the five eigenvalues
+\begin{equation}
+\lambda = \left( v_{x,M} - a_M,\; v_{x,M},\; v_{x,M},\; v_{x,M},\; v_{x,M} + a_M \right)
+\end{equation}
+which correspond to the left acoustic, entropy, two shear, and right acoustic modes.
+
+ The corresponding right eigenvectors $K_1, \dots, K_5$ and wave strengths are
+ \begin{subequations}
+\begin{equation}\alpha_1K_1 = \frac{(p_R - p_L) - \rho_M a_M (v_{x,R} - v_{x,L})} {2 a_M^2} 
+\begin{pmatrix} 1 \\ \mathbf{v}_M - \begin{pmatrix} a_M , 0, 0 \end{pmatrix}^T \\ H_M - v_{x,M}a_M\end{pmatrix}
+\end{equation} 
+\begin{equation}
+\alpha_2K_2 =  (\rho_R - \rho_L) - \frac{p_R - p_L}{a_M^2}
+\begin{pmatrix} 1 \\ \mathbf{v}_M \\ \frac{1}{2}\mathbf{v}_M^2\end{pmatrix}
+\end{equation}
+\begin{equation}
+\alpha_3K_3 =  \rho_M (v_{y,R} - v_{y,L})
+\begin{pmatrix} 0 \\ \begin{pmatrix}0 , 1, 0 \end{pmatrix}^T \\ v_{y,M}\end{pmatrix}, \qquad
+\alpha_4K_4 =  \rho_M (v_{z,R} - v_{z,L})
+\begin{pmatrix} 0 \\ \begin{pmatrix}0 , 0, 1\end{pmatrix}^T \\ v_{z,M}\end{pmatrix}
+\end{equation}
+\begin{equation} \alpha_5 = \frac{(p_R - p_L) + \rho_M a_M (v_{x,R} - v_{x,L})} {2 a_M^2}  
+\begin{pmatrix} 1 \\ \mathbf{v}_M + \begin{pmatrix} a_M , 0, 0 \end{pmatrix}^T \\ H_M + v_{x,M}a_M\end{pmatrix}
+\end{equation}
+\end{subequations}
+The flux is then computed by 
+\begin{equation}F_{\mathrm{Roe}} = \frac{1}{2}(F_L + F_R) - \frac{1}{2}\sum_{k=1}^{5} \alpha_k \, |\lambda_k| \, K_k.\end{equation}
+
+However, the Roe method requires an entropy fix. (Harten \& Hyman 1983). This is enabled by \cpp{Harten\_Hyman} in \bash{Config.h}. 
+The entropy fix checks whether the left or right acoustic wave is a transonic rarefaction. If this is the case, the offending eigenvalue is replaced by an interpolated value between the fan's bounding speeds before the flux is assembled.
+
+\subsection{Riemann Solver Fallback Behaviour}
+
+Most Riemann solvers are not guaranteed to produce physically sound results. DRAGON provides mechanisms to adaptively pivoting to a different solver should one fail.
+One such mechanism is the \cpp{HLLD_PHYSICAL_SAFETY} pathway described in \Cref{sec:HLLD}, which causes the HLLD solver to switch to HLLE in the event that a star state pressure is nonphsyical. 
+
+The other pathway is enabled via \cpp{RIEMANN_VERIFY_FALLBACK} in \bash{Config.h}.  In this method, the states $w_L - \xi\frac{\Delta t}{\Delta x} F_{i+\frac12}$ and $w_R + \xi\frac{\Delta t}{\Delta x} F_{i+\frac12}$ are calculated for $\xi=$\cpp{CONFIG::Riemann_ExactFallback_Parameter}. 
+If either of the resulting quantities is nonphysical, the following fallback procedure is used
+\begin{enumerate}
+\item Recalculate the flux using HLLE (see \Cref{sec:HLLE})
+\begin{enumerate}
+\item If this result passes the above physicality test, return it
+\item If this result fails the above physicality test, proceed to step 2
+\item This step can be skipped by disabling \cpp{RIEMANN_FALLBACK_TRY_HLLE} in \bash{Config.h}.
+\end{enumerate}
+\item In Hydrodynamic mode, recalculate the flux using the Exact solver (see \Cref{sec:Riemann-exact})
+\begin{enumerate}
+\item If this result passes the above physicality test, return it
+\item If this result fails the above physicality test, proceed to step 3
+\item In MHD mode, proceed directly to step 3.
+\end{enumerate}
+\item Throw an exception, which will typically result in the entire timestep being restarted.
+\end{enumerate}
+From our own testing we have found that \cpp{HLLD_PHYSICAL_SAFETY} is a more robust fallback pattern for the HLLD solver, and as such recommend disabling \cpp{RIEMANN_VERIFY_FALLBACK} for MHD builds.
+
+
+
+\section{Constrained Transport} \label{sec:ct}
+
+DRAGON uses constrained transport to ensure that magnetic fields remain free of divergences.
+The specific implementation is largely based on Gardiner \& Stone (2008).
+
+\subsection{Computation of Electric Fields}
+
+Because the induction equation is part of the same conservative MHD system solved by the Riemann solvers of \Cref{sec:riemann}, the resulting fluxes already contain the electric field (up to a sign) via the transverse-$B$ components.
+Specifically, the flux of $B^a$ through an $b$-face is $\mp E^c$, where the minus (plus) sign is taken when $abc$ a cyclic (anticyclic) permutation of $xyz$.
+DRAGON extracts this information directly via \cpp{CT::computeElectric},  rather than reconstructing $\mathbf{E}$ separately.
+
+In 3D, each edge-centered component of $\mathbf{E}$ touches four
+adjacent faces, and is taken as their average:
+\begin{subequations}
+\begin{equation}
+E^x_{i,j-\frac12,k-\frac12} = \frac14\left[ F^{Z, B_y}_{i,j-1,k-\frac12}+ F^{Z, B_y}_{i,j,k-\frac12} - F^{Y, B_z}_{i,j-\frac12,k-1}- F^{Y, B_z}_{i,j-\frac12,k}\right]
+\end{equation}
+\begin{equation}
+E^y_{i-\frac12,j,k-\frac12} = \frac14\left[ F^{X, B_z}_{i-\frac12, j, k-1}+ F^{X, B_z}_{i-\frac12,j,k} - F^{Z, B_x}_{i-1,j,k-\frac12}- F^{Z, B_x}_{i,j,k-\frac12}\right]
+\end{equation}
+\begin{equation}
+E^z_{i-\frac12,j-\frac12,k} = \frac14\left[ F^{Y, B_x}_{i-1,j-\frac12, j, k}+ F^{Y, B_x}_{i,j-\frac12,k} - F^{X, B_y}_{i-\frac12,j-1, k}- F^{X, B_y}_{i-\frac12,j,k}\right]
+\end{equation}
+\end{subequations}
+where $F^{X, B_y}_{i-\frac12, j,k}$ denotes the $B^y$ component of the flux returned by the $x$-direction Riemann solve at face $(i-1/2,j,k)$, and similarly for the other flux/component pairs. 
+%This is the classic Evans \& Hawley (1988) corner-averaging construction.
+
+In 2D, the $E_z$ component is likewise derived as
+\begin{equation}
+E^z_{i-\frac12,j-\frac12} = \frac14\left[ F^{Y, B_x}_{i-1,j-\frac12, j}+ F^{Y, B_x}_{i,j-\frac12} - F^{X, B_y}_{i-\frac12,j-1}- F^{X, B_y}_{i-\frac12,j}\right].
+\end{equation}
+Meanwhile, the $E_x$ and $E_y$ components only touch one face:
+\begin{equation}
+    E^x_{i,j-\frac12} = -F^{Y, B_z}_{i,j-\frac12}, \qquad E^y_{i-\frac12,j} = F^{X,B_z}_{i-\frac12,j}
+\end{equation}
+
+
+\subsubsection{CTU Upwinding}
+
+The above four-face average is only first-order accurate at the edge and can allow spurious checkerboard-like noise to grow. 
+DRAGON corrects this in \cpp{CT::upwindElectric} using the unsplit Corner Transport Upwind (CTU) scheme of Gardiner \& Stone (2008).
+
+
+Each edge-centred $\mathbf{E}$ component is upwinded once per adjacent
+face, using the sign of the mass flux through that face to choose
+which side to draw from:
+\begin{equation}
+    \mathrm{upwindCorr}(\dot m, E^{\mathrm{face}}_{-}, E^{\mathrm{face}}_{+},
+        E^{\mathrm{body}}_{-}, E^{\mathrm{body}}_{+}) =
+    \begin{cases}
+        \tfrac14\left(E^{\mathrm{face}}_{-} - E^{\mathrm{body}}_{-}\right)
+            & \dot m > \epsilon, \\[4pt]
+        \tfrac14\left(E^{\mathrm{face}}_{+} - E^{\mathrm{body}}_{+}\right)
+            & \dot m < -\epsilon, \\[4pt]
+        \tfrac18\left(E^{\mathrm{face}}_{-} + E^{\mathrm{face}}_{+}
+            - E^{\mathrm{body}}_{-} - E^{\mathrm{body}}_{+}\right)
+            & |\dot m| \le \epsilon,
+    \end{cases}
+\end{equation}
+with $\epsilon = 10^{-18}$ (\cpp{CTU\_TOL} in \bash{Electric.cpp}) guarding the near-zero-velocity case. 
+Here $\dot m$ is the mass flux\footnote{The GS08 paper uses velocity, but mass flux will almost always have the same sign and fluxes are already being passed to \cpp{CT::upwindElectric}} through the relevant face.
+$E^{\mathrm{body}}_{\pm}$ are the cell-centred reference values $\mathbf{E} = -\mathbf{v} \times \mathbf{B}$ (calculated by \cpp{CT::bodyElectric}) in the two cells adjacent to that face, and  $E^{\mathrm{face}}_{\pm}$ are the face-centred field values values (as used in \cpp{CT::computeElectric}) in the faces which 1) border both the cell and edge in question and 2) are not the face through which mass flux is taken.
+Each edge component receives one such correction per bordering face, and the corrections are summed onto the flux-averaged value from \cpp{CT::computeElectric}.
+
+
+\subsection{Faraday's Law}
+Given the finalized upwinded edge $\mathbf{E}$, the face-normal $B$-fields are advanced using
+\begin{equation} \pd{\mathbf{B}}{t} = -\nabla \times \mathbf{E}. \end{equation}
+\cpp{CT::Faraday} evaluates this curl such that each face component only involves the edge $E$ components that actually bound it. In 3D, this is 
+\begin{subequations}
+\begin{equation} \Delta B^x_{i-\frac12,j,k} = \frac{\Delta t}{\Delta z}\left[E^y_{i-\frac12,j,k+\frac12} - E^y_{i-\frac12,j,k-\frac12}\right] -\frac{\Delta t}{\Delta y} \left[E^z_{i-\frac12,j+\frac12,k} - E^z_{i-\frac12,j-\frac12,k}\right] \end{equation}
+\begin{equation} \Delta B^y_{i,j-\frac12,k} = \frac{\Delta t}{\Delta x}\left[E^z_{i+\frac12,j-\frac12,k} - E^z_{i-\frac12,j-\frac12,k}\right] -\frac{\Delta t}{\Delta z}\left[E^x_{i,j-\frac12,k+\frac12} - E^x_{i,j-\frac12,k-\frac12}\right]\end{equation}
+\begin{equation} \Delta B^z_{i,j,k-\frac12} = \frac{\Delta t}{\Delta y}\left[E^x_{i,j+\frac12,k-\frac12} - E^x_{i,j-\frac12,k-\frac12}\right] -\frac{\Delta t}{\Delta x}\left[E^y_{i+\frac12,j,k-\frac12} - E^y_{i-\frac12,j,k-\frac12}\right] \end{equation}
+\end{subequations}
+The corresponding 2D update follows the same pattern for the two in-plane face fields $B^x, B^y$ (using $E^z$ only) and the cell-centered $B^z$ (using both $E^x$ and $E^y$). 
+This update, by construction, leaves $\nabla \cdot \mathbf{B}$ unchanged from its value before the step.
+
+\subsection{Calculation of Body-Centred Fields} 
+
+Once the face-centred normal fields are calculated, the body-centred fields are calculated as follows
+\begin{subequations}
+\begin{equation} B^x_{i, j,k} = \frac12\left(B^x_{i-\frac12,j,k} + B^x_{i+\frac12,j,k}\right)\end{equation}
+\begin{equation} B^y_{i, j,k} = \frac12\left(B^y_{i,j-\frac12,k} + B^y_{i,j+\frac12,k}\right)\end{equation}
+\begin{equation} B^z_{i, j,k} = \frac12\left(B^z_{i,j,k-\frac12} + B^z_{i,j,k+\frac12}\right)\end{equation}
+\end{subequations}
+
+However, a complication arises from the magnetic contribution to energy.  Unless the updated value happens to match the previous value exactly, it isn't possible to keep both total and thermal energy constant through the CT-update. 
+DRAGON supports three different procedures for handling the energy in the CT update: 
+\begin{itemize}
+\item \textit{Always keep total energy constant} (\cpp{CT_CONSV_TOTAL_E}). This is done by converting $\mathbf{w}$ to conservative form, setting $\mathbf{B} $ on the conservative form, and then converting back to primitive form. This method ensures energy conservation, but may be prone to numerical issues where thermal pressure irrecoverably becomes nonphysical.
+\item \textit{Always keep thermal pressure constant} (\cpp{CT_CONSV_THERMAL}). This is done by simply setting $\mathbf{B}$ on the primitive state $\mathbf{w}$. This method is the most robust, but will almost always violate energy conservation. This may be justifiable in some astrophysical flows on grounds that radiation violates energy conservation anyway.
+\item \textit{Dynamically between the above options} (\cpp{CT_CONSV_BETA_GATED}). In this procedure, the local value of the plasma beta $\beta_m = \frac{8\pi p}{\mathbf{B}^2}$ is calculated and compared to \cpp{CONFIG::CT_Energy_Beta}. For cells with a plasma beta below the threshold, thermal energy is conserved to avoid numerical issues; otherwise, total energy is conserved. This option allows the simulation to remain closer to total energy conservation while still avoiding numerical issues. 
+\end{itemize}
+The desired option can be selected by setting \cpp{CT_ENERGY_CONSV} in \bash{Config.h}.
+
+
+
+
+
+% ================= DRAGONWING =================
+\chapter{DRAGONWING}
+\label{chap:wing}
+
+
+% ================= DRAGONHOARD =================
+\chapter{DRAGONHOARD}
+\label{chap:hoard}
+
+
+
+% ================= DRAGONGAZE =================
+\chapter{DRAGONGAZE}
+\label{chap:gaze}
+
+
+
+
+ 
+% ================= Code Structure =================
+\chapter{Code Structure}
+\label{chap:code}
+
+\section{Directory Layout}
+\begin{lstlisting}[language=bash, caption={Repository layout}]
+DRAGON/                    # repository root
+|-- DRAGON/                # core solver source
+|   |-- Boundary/          # boundary conditions
+|   |-- FluidElement/      # primitive/conservative state & arithmetic
+|   |-- Hydro/             # hydrodynamic solver
+|   |   |-- CFL/           # timestep control
+|   |   |-- Godunov/       # split/unsplit driver, flux application
+|   |   |-- Reconstruction/# MUSCL interface-state reconstruction
+|   |   |-- Riemann/       # Exact, HLL, HLLE, HLLC, HLLD, Roe solvers
+|   |-- MHD/               # constrained transport (E-field, Faraday, body fields)
+|   |-- Refinement/        # domain decomposition (DistGrid)
+|   |-- main/              # program entry point & problem setup
+|   |-- Config.h, Constants.h, Problem.cpp
+|-- DRAGONWING/            # memory management & multithreading
+|   |-- Memory_Management/
+|   |-- Multithreading/
+|-- DRAGONHOARD/           # HDF5 output & restart I/O
+|-- DRAGONGAZE/            # Python visualisation/analysis scripts
+|-- DRAGONLORE/            # this documentation
+|-- Examples/              # example problem setups
+|   |-- 1D/                # shock tubes
+|   |-- Hydro/             # 2D and 3D Hydro examples
+|   |   |-- Diagonal/, Kelvin-Helmholtz, SphericalBlast/
+|   |-- MHD/               # 2D and 3D MHD examples
+|   |   |-- Blast/,  LoopAdvection/, MHDRotor/, Orszag-Tang/, Waves/
+|-- Testing/               # unit tests
+|   |-- Core/
+|-- LICENSE                #Apache License
+|-- README.md
+\end{lstlisting}
+
+
+
+\section{Dependencies}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+% ================= Installation and Usage =================
+\chapter{Installation and Usage}
+\label{chap:usage}
+
+
+
+% ================= Validation =================
+\chapter{Validation and Test Cases}
+\label{chap:tests}
+
+
+% ================= Appendix =================
+\appendix
+
+\chapter{Changelog}
+% TODO: Version history.
+
+% ================= Bibliography =================
+% \bibliographystyle{plain}
+% \bibliography{references}
+
+\end{document}
