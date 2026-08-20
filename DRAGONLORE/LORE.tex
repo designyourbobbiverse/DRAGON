@@ -488,15 +488,15 @@ In 3D, GS08's ``12-solve'' algorithm additionally corrects each transverse flux 
 
 \paragraph{Magnetohydrodynamics.} 
 
-In MHD, DRAGON first computes a half-step-advanced $\mathbf B$ and body-centred $\mathbf{E}$ using preliminary, uncorrected fluxes and one CT update at $\Delta t/2$.
+In MHD, DRAGON first computes a half-step-advanced $\mathbf B$ and body-centred $\mathbf{E}$ using preliminary, uncorrected fluxes (by solving the Riemann problem at the interfaces, see Section \ref{sec:riemann}) and one CT update (see section \ref{sec:ct}) at $\Delta t/2$.
 From here, the conservative hydrodynamic variables ($\rho, \rho\mathbf{v}, E$) are updated similarly as to the hydrodynamic case, except that corrections from both transverse dimensions are applied simultaneously instead of feeding one update into the other.
 Instead of fluxes, magnetic fields receive their corrections from the electric fields $\mathbf{E}$ computed in the preliminary CT update. For the x interface, this is given by:
 \begin{subequations} \label{eq:ctu-mag1}
 \begin{equation} 
-B^{LR, n+\frac12}_{y,i\pm\frac12 ,j,k}  = B^{LR, n}_{y,i\pm\frac12 ,j,k}   +  \frac{\Delta t}{4\Delta z} \left[  \mathbf{E}^x_{i,j-\frac12,k-\frac12}  - \mathbf{E}^x_{i,j-\frac12,k+\frac12} +  \mathbf{E}^x_{i,j+\frac12,k-\frac12} -  \mathbf{E}^x_{i,j+\frac12,k+\frac12}\right] 
+B^{LR, n+\frac12}_{y,i\pm\frac12 ,j,k}  = B^{LR, n}_{y,i\pm\frac12 ,j,k}   +  \frac{\Delta t}{4\Delta z} \left[  \mathbf{E}^x_{i,j-\frac12,k-\frac12}  - \mathbf{E}^x_{i,j-\frac12,k+\frac12} +  \mathbf{E}^x_{i,j+\frac12,k-\frac12} -  \mathbf{E}^x_{i,j+\frac12,k+\frac12}\right]  + SB_y
 \end{equation}
 \begin{equation}
-B^{LR, n+\frac12}_{z,i\pm\frac12 ,j,k}  = B^{LR, n}_{z,i\pm\frac12 ,j,k}   +  \frac{\Delta t}{4\Delta y} \left[\mathbf{E}^x_{i,j+\frac12,k-\frac12} -  \mathbf{E}^x_{i,j-\frac12,k-\frac12} +  \mathbf{E}^x_{i,j+\frac12,k+\frac12} -  \mathbf{E}^x_{i,j-\frac12,k+\frac12} \right] 
+B^{LR, n+\frac12}_{z,i\pm\frac12 ,j,k}  = B^{LR, n}_{z,i\pm\frac12 ,j,k}   +  \frac{\Delta t}{4\Delta y} \left[\mathbf{E}^x_{i,j+\frac12,k-\frac12} -  \mathbf{E}^x_{i,j-\frac12,k-\frac12} +  \mathbf{E}^x_{i,j+\frac12,k+\frac12} -  \mathbf{E}^x_{i,j-\frac12,k+\frac12} \right] + SB_z
 \end{equation}
 \end{subequations}
 and similarly for the y and z interfaces. The normal components of $\mathbf{B}$ meanwhile are set to equal to the face-normal values from the staggered grid.
@@ -505,11 +505,11 @@ and similarly for the y and z interfaces. The normal components of $\mathbf{B}$ 
 However, the MHD correction additionally needs to keep the corrected interface states consistent with the CT electric field, following GS08 eqs.\ 51--59. These additional\footnote{That is, these terms are in addition to, not in place of equations \ref{eq:ctu-mag1} and the corresponding hydrodynamic update} corrections are
 \begin{subequations}
 \begin{equation}
-\Delta B_y = \frac{\Delta t}{2}v_y\mathrm{minmod}\left(\pd{B_x}{x}, - \pd{B_z}{z}\right), \qquad
-\Delta B_z = \frac{\Delta t}{2}v_z\mathrm{minmod}\left(\pd{B_x}{x}, - \pd{B_y}{y}\right)
+SB_y = \frac{\Delta t}{2}v_y\mathrm{minmod}\left(\pd{B_x}{x}, - \pd{B_z}{z}\right), \qquad
+SB_z = \frac{\Delta t}{2}v_z\mathrm{minmod}\left(\pd{B_x}{x}, - \pd{B_y}{y}\right)
 \end{equation}
 \begin{equation}
-\Delta E =  \frac{\Delta t}{8\pi}  \left[B_y v_y\mathrm{minmod}\left(\pd{B_x}{x}, - \pd{B_z}{z}\right) + B_zv_z \mathrm{minmod}\left(\pd{B_x}{x}, - \pd{B_y}{y}\right)\right]
+SE =  \frac{\Delta t}{8\pi}  \left[B_y v_y\mathrm{minmod}\left(\pd{B_x}{x}, - \pd{B_z}{z}\right) + B_zv_z \mathrm{minmod}\left(\pd{B_x}{x}, - \pd{B_y}{y}\right)\right]
 \end{equation}
 \end{subequations}
 for x-interfaces and similarly for y and z interfaces.  The derivatives $\pd{B_i}{x_i}$ are the same as computed in section \ref{sec:MUSCL_MHD_src}.
