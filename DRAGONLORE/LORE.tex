@@ -98,7 +98,7 @@
 
 \section{Governing Equations}
 The ideal MHD equations solved by DRAGON are, in conservative form:
-\begin{subequations}
+\begin{subequations} \label{eq:MHD}
 \begin{equation} \pd{\rho}{t} + \nabla\cdot (\rho \mathbf{v}) = 0 \end{equation} \label{eq:continuity} 
 \begin{equation} \pd{}{t}\left(\rho \mathbf{v}\right) + \nabla\cdot \left[ \rho \mathbf{v}\mathbf{v} - \frac{1}{4\pi}\mathbf{B}\mathbf{B}  + \left(p + \frac{\mathbf{B}^2}{8\pi}\right)\mathbb{I} \right]= 0 \end{equation} \label{eq:momentum} 
 \begin{equation} \pd{E}{t} + \nabla\cdot \left[ \left(E + p + \frac{\mathbf{B}^2}{8\pi}\right)\mathbf{v}    -  (\mathbf{v} \cdot \mathbf{B}) \mathbf{B} \right]= 0 \end{equation} \label{eq:energy} 
@@ -942,9 +942,9 @@ DRAGON/                    # repository root
 |-- Examples/              # example problem setups
 |   |-- 1D/                # shock tubes
 |   |-- Hydro/             # 2D and 3D Hydro examples
-|   |   |-- Diagonal/, Kelvin-Helmholtz, SphericalBlast/
+|   |   |-- Blast/, Diagonal/, Kelvin-Helmholtz/
 |   |-- MHD/               # 2D and 3D MHD examples
-|   |   |-- Blast/,  LoopAdvection/, MHDRotor/, Orszag-Tang/, Waves/
+|   |   |-- Blast/, LoopAdvection/, MHDRotor/, Orszag-Tang/, Waves/
 |-- Testing/               # unit tests
 |   |-- Core/
 |-- LICENSE                #Apache License
@@ -952,14 +952,78 @@ DRAGON/                    # repository root
 \end{lstlisting}
 
 \section{Data Structures}
+\label{sec:data-structures}
+
 \subsection{Fluid Elements}
+\label{sec:fluid-elements}
+
+The following data types are defined in \bash{DRAGON/FluidElement/FluidElement.h}
+
+\subsubsection{vec3}
+
+\cpp{DRAGON::vec3} is a plain structure with $x,y,z$ components.
+The following operations are supported:
+\begin{itemize}
+\item Addition (\cpp{+}, \cpp{+=}) and Subtraction  (\cpp{-}, \cpp{-=}) with another \cpp{vec3}.
+\item Multiplication (\cpp{*}, \cpp{*=}) and Division  (\cpp{/}, \cpp{/=}) by a scalar \cpp{double}.
+\item Dot (\cpp{*}) and cross (\cpp{cross(v1, v2)}) product between two \cpp{vec3}'s.
+\item Swapping two components, either in place (e.g. \cpp{swapXY()}) or on a copy (e.g. \cpp{swappedXY()}).
+\end{itemize}
+
+\subsubsection{PrimitiveState}
+
+\cpp{DRAGON::PrimitiveState} represents a single fluid element (i.e.\ one cell's state), which contains density \cpp{rho}, pressure \cpp{p}, velocity vector \cpp{v}, and (MHD only) magnetic field vector \cpp{B}. This is the form the solver reconstructs, applies boundary conditions to, and reports as output.
+
+As already noted in \Cref{chap:physics}, \cpp{B} is stored in Gaussian (non-rationalized) units, so the code is explicit about factors of $4\pi$ wherever they appear -- concretely, \bash{Constants.h} predefines \cpp{_1_4pi} ($=1/4\pi$), \cpp{_1_8pi} ($=1/8\pi$), and \cpp{sq4pi} ($=\sqrt{4\pi}$) rather than dividing by $4\pi$ inline. %and both energy density and pressure conversions add/remove a magnetic term $\mathbf{B}^2/8\pi$.
+
+\subsubsection{ConservativeState}
+
+\cpp{DRAGON::ConservativeState} represents a fluid element in conservative form: mass density \cpp{rho}, energy density \cpp{E}, momentum density vector \cpp{mom}, and (MHD only) \cpp{B}. This is the form fluxes are computed and applied in: rather than a true fluid element, a particular instance of \cpp{ConservativeState} might instead represent a flux (times one computational unit time per computational unit length).
+
+The following fluid arithmetic operations are supported by \cpp{ConservativeState}
+\begin{itemize}
+\item Addition (\cpp{+}, \cpp{+=}) and Subtraction  (\cpp{-}, \cpp{-=}) with another \cpp{ConservativeState}.
+\item Multiplication (\cpp{*}, \cpp{*=}) and Division  (\cpp{/}, \cpp{/=}) of all components by a \cpp{double}.
+\item Swapping two dimensions as with \cpp{vec3}. This swaps the corresponding components of both \cpp{mom} and \cpp{B}. \cpp{PrimitiveState} also supports this operation directly (using \cpp{v} instead of \cpp{mom}).
+\end{itemize}
+
+Both \cpp{PrimitiveState} and \cpp{ConservativeState} are constructible from the other (\cpp{ConservativeState(PrimitiveState)} and \cpp{PrimitiveState(ConservativeState)}).  This can be done explicitly via the other, and is also done implicitly whenever a \cpp{PrimitiveState} is used in fluid arithmetic. 
+If you need to directly add or subtract the components of two \cpp{PrimitiveState}'s, you will need to do this manually on each component.
+
+Both types also provide a number of other physically relevant quantities, such as various wave speeds, \cpp{energy()} or \cpp{pressure()} on a primitive or conservative state, and \cpp{flux()} to calculate the fluxes of the governing MHD equations (\ref{eq:MHD}). The \cpp{flux()} function returns the flux in the $x$-direction, and in MHD includes the electric fields from the induction equation as the \cpp{B} components (see \Cref{sec:ct}).  When called from a \cpp{ConservativeState}, \cpp{flux()} can optionally take the velocity \cpp{v} if already known; otherwise \cpp{v} is computed from \cpp{mom} and \cpp{rho}.
+
 
 \subsection{ExtendedArray}
+\label{sec:extendedarray}
+Grid storage is built on a small family of templates in \bash{DRAGON/Hydro/ExtendedArray}: \cpp{ExtendedArray1D<T>}, \cpp{ExtendedArray2D<T>}, and \cpp{ExtendedArray3D<T>}. Each owns a single flat, row-major heap array sized to include a configurable ghost margin.
+Accessing elements within an extended array is done via \cpp{array[i]}, \cpp{array[i,j]}, or \cpp{array[i,j,k]} depending on the array's dimension\footnote{It is for this reason that DRAGON requires C++23}. 
+\cpp{i}, \cpp{j}, or \cpp{k} may be negative or exceed that dimension's size by an amount up to the array's ghost margin; in this case the accessed quantity corresponds not to a physical item but to cell within the boundary layer\footnote{Or, in the case of domain decomposition (\Cref{sec:distgrid}), it might be a cell owned by another subgrid.}.
+When DRAGON is built for testing, every cell access will assert that the bounds of the ghosts are within the valid range; this check is compiled out in production builds.
+
+\cpp{ExtendedArray} objects can't be copied using normal C++ syntax, but the contents of one array can be copied to another (with identical dimension) using  \cpp{clone(ref, copyghosts)}. Ghost cells are copied only if \cpp{copyghosts} is true.
+
+\bash{ArrayTypes.hpp} defines the concrete array types used throughout the solver as typedefs over these templates and \cpp{PrimitiveState}/\cpp{ConservativeState}/\cpp{vec3} (\Cref{sec:fluid-elements}) -- e.g.\ \cpp{FluidArray2D = ExtendedArray2D<PrimitiveState>}, \cpp{FluxArray3D = ExtendedArray3D<ConservativeState>}, \cpp{MagneticArray2D = ExtendedArray2D<vec3>}. 
+
+
+\subsection{Grid}
+\label{sec:grid}
+
+Fundamentally, a \cpp{DRAGON::Grid} (\bash{DRAGON/Hydro/Grid.hpp}) is one or more extended arrays together with a boundary condition and the ability to advance the arrays in time. 
+
+The abstract \cpp{Grid} base class declares the two pure-virtual per-step advancement functions \cpp{split_step(dt)}/\cpp{unsplit_step(dt)}, the CFL-aware driver \cpp{advance(dt, check_cfl)} which wraps either \cpp{advance_split}/\cpp{advance_unsplit} (\Cref{sec:CFL}), and the virtual failure hook \cpp{on_step_fail(e)} used by the retry-with-halving loop.
+
+The dimension-specific subclasses \cpp{Grid1D}/\cpp{Grid2D}/\cpp{Grid3D} each own one \cpp{FluidArray1D/2D/3D w} (\Cref{sec:extendedarray}) as their primary state, plus a staggered \cpp{MagneticArray2D/3D B} in MHD builds (\Cref{sec:ct}).
+The magnetic field is stored on a staggered face-centred grid, with \cpp{B[i,j,k].x} corresponding to $B_{i-\frac12,j,k}^x$, \cpp{B[i,j,k].y}  to $B_{i,j-\frac12,k}^y$, and \cpp{B[i,j,k].z}  to $B_{i,j,k-\frac12}^z$.
+ External functions can access a reference to the staggered magnetic array via \cpp{grid._B()}.
+
 
 \section{Dependencies}
+\label{sec:dependencies}
 
+DRAGON's only dependency is \textbf{HDF5}, used by DRAGONHOARD (\Cref{chap:hoard})\footnote{Core DRAGON and DRAGONWING are agnostic to the file storage format, so if HDF5 is for some reason unavailable on your system, you would only need to modify DRAGONHOARD to interface with your alternative format.} for output and restart I/O.  
+No other third-party library is required to build or run DRAGON itself.
 
-
+DRAGON's in-house visualisation toolkit DRAGONGAZE (\Cref{chap:gaze}) depends separately on \textbf{h5py} (to read the HDF5 files DRAGONHOARD writes) and \textbf{Matplotlib} (to render plots from that data). These are Python-side dependencies only and do not affect the C++ build.
 
 
 
@@ -1003,7 +1067,7 @@ If instead \cpp{REUSE_AUX_GRIDS} is disabled, Requests for arrays always allocat
 \section{Multithreading}
 \label{sec:wing-threading}
 
-\cpp{DRAGONWING::ThreadPool} is used by \cpp{DistGrid} (see \Cref{sec:decomposition}) to advance sibling subgrids concurrently, each on its own thread. It is constructed with a fixed thread budget \cpp{N} (one thread per child subgrid); \cpp{launchParallel(grid, dt)} is then called once per child to start \cpp{grid->advance(dt, false)}\footnote{\cpp{grid->advance(dt, false)} bypasses the CFL checks of \Cref{sec:CFL} since these are handled by the parent.} running on a new thread. 
+\cpp{DRAGONWING::ThreadPool} is used by \cpp{DistGrid} (see \Cref{sec:distgrid}) to advance sibling subgrids concurrently, each on its own thread. It is constructed with a fixed thread budget \cpp{N} (one thread per child subgrid); \cpp{launchParallel(grid, dt)} is then called once per child to start \cpp{grid->advance(dt, false)}\footnote{\cpp{grid->advance(dt, false)} bypasses the CFL checks of \Cref{sec:CFL} since these are handled by the parent.} running on a new thread. 
 
 \subsection{Checkpoint Protocol}
 
@@ -1036,7 +1100,7 @@ This will wait until either either all threads have reported completion of phase
 
 
 \section{Domain Decomposition}
-\label{sec:decomposition}
+\label{sec:distgrid}
 
 \cpp{DRAGON::DistGrid<T>} implements domain decomposition, in which a larger gird is split into smaller subgrids which can be advanced concurrently on separate threads.
  Although this class is found in \bash{DRAGON/Refinement}\footnote{
@@ -1110,8 +1174,6 @@ Leaf grids (\cpp{children.size() <= 1}) bypass all of this: their \cpp{split\_st
 \chapter{DRAGONHOARD}
 \label{chap:hoard}
 
-
-
 % ================= DRAGONGAZE =================
 \chapter{DRAGONGAZE}
 \label{chap:gaze}
@@ -1153,7 +1215,7 @@ Leaf grids (\cpp{children.size() <= 1}) bypass all of this: their \cpp{split\_st
 \appendix
 
 \chapter{Changelog}
-% TODO: Version history.
+\textbf{26 August 2026}:  Initial documentation for DRAGON v1.0
 
 % ================= Bibliography =================
 % \bibliographystyle{plain}
