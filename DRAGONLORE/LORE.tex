@@ -320,6 +320,7 @@ throwing if any updated cell is non-finite (this is a coarser, cheaper check tha
 
 
 \section{Time Integration}
+\label{sec:CFL}
 
 \subsection{Per-Cell Signal Speed}
 \label{sec:cfl-speed}
@@ -913,28 +914,6 @@ DRAGON supports three different procedures for handling the energy in the CT upd
 The desired option can be selected by setting \cpp{CT_ENERGY_CONSV} in \bash{Config.h}.
 
 
-
-
-
-% ================= DRAGONWING =================
-\chapter{DRAGONWING}
-\label{chap:wing}
-
-
-% ================= DRAGONHOARD =================
-\chapter{DRAGONHOARD}
-\label{chap:hoard}
-
-
-
-% ================= DRAGONGAZE =================
-\chapter{DRAGONGAZE}
-\label{chap:gaze}
-
-
-
-
- 
 % ================= Code Structure =================
 \chapter{Code Structure}
 \label{chap:code}
@@ -972,11 +951,116 @@ DRAGON/                    # repository root
 |-- README.md
 \end{lstlisting}
 
+\section{Data Structures}
+\subsection{Fluid Elements}
 
+\subsection{ExtendedArray}
 
 \section{Dependencies}
 
 
+
+
+
+
+
+
+
+
+
+% ================= DRAGONWING =================
+\chapter{DRAGONWING}
+\label{chap:wing}
+
+DRAGON Wide Infrastructure Numerical Grids (DRAGONWING) is DRAGON's support library for memory management and multithreading. 
+
+\section{Memory Management}
+\label{sec:wing-memory}
+
+DRAGON requires scratch arrays to store the information computed in the Reconstruction (\Cref{sec:reconstruction}), flux calculation (\Cref{sec:riemann}), and constrained transport (\Cref{sec:ct}) stages. These scratch arrays are of the same size as the main grid, though the CT scratch arrays only hold 3-vectors instead of the full 8-component fluid states.
+Rather than have every call site \cpp{new}/\cpp{delete} these buffers, DRAGONWING centralises allocation behind three request functions, overloaded for 1D/2D/3D grids:
+\begin{itemize}
+\item \cpp{requestPrimitiveArrays(N, ...)} -- returns \cpp{N} scratch arrays of \cpp{PrimitiveState}
+\item \cpp{requestFluxArrays(N, ...)} -- returns \cpp{N} scratch arrays of \cpp{ConservativeState} (used to store fluxes)
+\item \cpp{requestVec3Arrays(N, ...)} -- returns \cpp{N} scratch arrays of \cpp{vec3} (used e.g.\ for electric fields).
+\end{itemize}
+Each of these returns a \cpp{DRAGONWING::ArrayGuard}, a small RAII wrapper templated on the underlying \cpp{ExtendedArray} type.
+\cpp{ArrayGuard} provides a collection of raw pointers to the allocated arrays, which are returned to DRAGONWING upon destruction of the \cpp{ArrayGuard}.   
+Arrays reclamation happens automatically when the guard goes out of scope (exception-safely included), or can be done early by calling \cpp{guard.release()}. Note that it is the responsibility of the caller to cease all use of any arrays allocated by the guard once \cpp{release()} is called.
+
+
+ \cpp{REUSE_AUX_GRIDS} is enabled (this is the default) in \bash{DRAGONWING\_Config.hpp}, DRAGONWING keeps a static pool of previously-allocated arrays for each combination of element type (\cpp{PrimitiveState}/\cpp{ConservativeState}/\cpp{vec3}) and dimensionality (1D/2D/3D).  Each of the three element types has its own \cpp{std::mutex} (\cpp{pm}, \cpp{cm}, \cpp{vm}), so pooling is thread-safe.
+Each request for new arrays first scans the corresponding pool for inactive arrays whose size match the request. 
+Any such arrays are then marked as active and reused as is.
+Only if the existing arrays are insufficient to meet the caller's request are new arrays allocated with \cpp{new}; these arrays are then added to the pool and marked as active.
+When an array is released (via \cpp{ArrayGuard::release()} it is marked inactive again; the memory is not freed and is instead available for reuse.
+ Because pooled arrays can carry stale data from a previous use, any code that requests scratch arrays must treat their contents as unspecified before writing to them. DRAGONWING makes no guarantee of zero-initialization.
+ Arrays are only deleted when the program terminates, or if \cpp{DRAGONWING::purgeAllBuffers()} is called. This function frees every array currently sitting inactive in the pools via \cpp{delete}, though Active arrays are left alone so as to not interfere with the currently executing process; these arrays will instead be freed individually the next time they are released back to DRAGONWING. 
+
+If instead \cpp{REUSE_AUX_GRIDS} is disabled, Requests for arrays always allocate arrays with \cpp{new}, and releasing arrays always frees the array with \cpp{delete}. No pool is kept, so there is nothing to purge and no stale-data concern, at the cost of paying full allocation/deallocation overhead on every step.
+
+
+\section{Multithreading}
+\label{sec:wing-threading}
+
+\cpp{DRAGONWING::ThreadPool} is used by \cpp{DistGrid} (see \Cref{sec:decomposition}) to advance sibling subgrids concurrently, each on its own thread. It is constructed with a fixed thread budget \cpp{N} (one thread per child subgrid); \cpp{launchParallel(grid, dt)} is then called once per child to start \cpp{grid->advance(dt, false)}\footnote{\cpp{grid->advance(dt, false)} bypasses the CFL checks of \Cref{sec:CFL} since these are handled by the parent.} running on a new thread. 
+
+\subsection{Checkpoint Protocol}
+
+From a synchronisation standpoint, each-step advancement of a subgrid is divided into two phases:
+\begin{enumerate}
+\item Each subgrid, computes all updated values and verifies that the solution is physically admissible (steps 1-6 in \Cref{sec:unsplit}). The original array remains in tact so that the step can be restarted if necessary.  In an unsplit update, this phase uses a significant amount of scratch memory.  
+\item Each subgrid commits the preliminary update to the base array (step 8 in \Cref{sec:unsplit}).
+\end{enumerate}
+All subgrids must complete phase 1 before any can enter phase 2. This requirement allows any subgrid to request that the step be restarted before the existing data is overwritten.
+
+
+Subgrids maintain these synchronisation phases as follows:
+\begin{enumerate}
+\item  \cpp{DRAGONWING::waitForRelease()} (Optional but recommended).  Since phase 1 typically uses a significant amount of scratch memory,  the user might optionally set  \cpp{DRAGONWING::CONFIG::phase_1_max_threads} in \bash{DRAGONWING_Config.hpp} to limit program's total memory usage. The \cpp{ThreadPool} will track the number of threads currently in phase 1. If the number of threads is already at its limit, the caller will be blocked until another thread either reports completion of phase 1 or requests a step restart. \cpp{waitForRelease()} returns a boolean, which is true if the caller is clear to proceed with phase 1 and false if another subgrid has requested a restart (in which case the calling function should return instead of proceeding).
+\item Do the work of phase 1.
+\begin{enumerate}
+\item If an error occurs, call \cpp{DRAGONWING::requestRestart(error_msg)} to request that all subgrids restart the current step. For the first subgrid to request a step restart, the \cpp{error_msg} string can be accessed via \cpp{ThreadPool.restartMsg()}. Calling \cpp{restartMsg()} will then clear the message.
+\end{enumerate}
+\item \cpp{DRAGONWING::reportChckpoint1()}. This informs the local \cpp{ThreadPool} that another subgrid has completed phase 1. This will wake up any threads currenlty blocked in \cpp{waitForRelease()} and will allow one to proceed, or if it is the last function to complete it will wake up all threads blocked by in  the next step
+\item \cpp{DRAGONWING::waitForCheckpoint1()}. This will block the current thread until all subgrids have completed phase 1. This function returns a boolean, which is true if the caller is clear to proceed with phase 2 and false if another subgrid has requested a restart (in which case the calling function should return instead of proceeding).
+\item Do the work of phase 2
+\item \cpp{DRAGONWING::reportChekcpoint2()}. This informs the thread pool that this subgrid has completed its work.
+\end{enumerate}
+The implementations of these functions lives in the \cpp{ThreadPool} class, but the caller need not know which \cpp{ThreadPool} is in use. DRAGONWING maintains a \cpp{thread_local} variable, allowing the \cpp{DRAGONWING::} functions to call the corresponding function on the \cpp{ThreadPool} that created the thread from which it is called.
+
+After all subgrids are launched via \cpp{launchParallel(grid, dt)}, the parent grid  should call \cpp{waitForCompletion()} on the same \cpp{ThreadPool} object.
+This will wait until either either all threads have reported completion of phase 2 or any thread has requested a step restart. \cpp{waitForCompletion()} will return true if the step was successful, or false if it needs to be restarted.
+
+%When \cpp{MULTITHREAD_UNAVAILABLE} is defined in \bash{DRAGONWING_Config.hpp}, \cpp{ThreadPool} compiles to single-threaded stub implementations: \cpp{launchParallel} runs the grid's advance synchronously on the calling thread instead of spawning one, and every checkpoint/wait function reduces to a check of the (still-cooperative) abort flag. This lets code written against the \cpp{ThreadPool}/checkpoint API run correctly, if serially, on platforms or configurations without thread support.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+% ================= DRAGONHOARD =================
+\chapter{DRAGONHOARD}
+\label{chap:hoard}
+
+
+
+% ================= DRAGONGAZE =================
+\chapter{DRAGONGAZE}
+\label{chap:gaze}
+
+
+
+
+ 
 
 
 

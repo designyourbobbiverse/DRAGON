@@ -28,7 +28,7 @@ bool waitForRelease(); //Call this before entering memory-heavy phase 1 to avoid
 void reportCheckpoint1(); //Report that this thread's subgrid has completed phase 1 by successfully computing (but not committing) its update
 bool waitForCheckpoint1(); //Wait until all threads have reported checkpoint 1
 void reportCheckpoint2(); //Report that this thread's subgrid has fully completed (and committed) its update
-bool waitForCheckpoint2(); //Wait until all threads have reported checkpoint 2
+//To wait for checkpoint 2, call ThreadPool::waitForCompletion() from a thread outside the ThreadPool.
 
 //MARK: Memory Management
 //Parameters: N is the number of arrays to return
