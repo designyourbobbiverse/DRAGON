@@ -1029,11 +1029,70 @@ Subgrids maintain these synchronisation phases as follows:
 \end{enumerate}
 The implementations of these functions lives in the \cpp{ThreadPool} class, but the caller need not know which \cpp{ThreadPool} is in use. DRAGONWING maintains a \cpp{thread_local} variable, allowing the \cpp{DRAGONWING::} functions to call the corresponding function on the \cpp{ThreadPool} that created the thread from which it is called.
 
-After all subgrids are launched via \cpp{launchParallel(grid, dt)}, the parent grid  should call \cpp{waitForCompletion()} on the same \cpp{ThreadPool} object.
+After all subgrids are launched via \cpp{launchParallel(grid, dt)}, call \cpp{waitForCompletion()} on the same \cpp{ThreadPool} object.
 This will wait until either either all threads have reported completion of phase 2 or any thread has requested a step restart. \cpp{waitForCompletion()} will return true if the step was successful, or false if it needs to be restarted.
 
 %When \cpp{MULTITHREAD_UNAVAILABLE} is defined in \bash{DRAGONWING_Config.hpp}, \cpp{ThreadPool} compiles to single-threaded stub implementations: \cpp{launchParallel} runs the grid's advance synchronously on the calling thread instead of spawning one, and every checkpoint/wait function reduces to a check of the (still-cooperative) abort flag. This lets code written against the \cpp{ThreadPool}/checkpoint API run correctly, if serially, on platforms or configurations without thread support.
 
+
+\section{Domain Decomposition}
+\label{sec:decomposition}
+
+\cpp{DRAGON::DistGrid<T>} implements domain decomposition, in which a larger gird is split into smaller subgrids which can be advanced concurrently on separate threads.
+ Although this class is found in \bash{DRAGON/Refinement}\footnote{
+ DRAGON does not yet support Adaptive Mesh Refinement (AMR), but the \bash{Refinement} directory uses this name in anticipation of future AMR implementation since Domain Decomposition is required for AMR. When such implmentation is added, this section will likely move to the AMR chapter.
+ } instead of \bash{DRAGONWING/} proper, it is documented in this chapter because it is DRAGON's only current form of parallelism and depends directly on the \cpp{ThreadPool}/checkpoint machinery of \Cref{sec:wing-threading}.
+
+
+\cpp{DistGrid<T>} is a CRTP-style base combined with \cpp{Grid1D}/\cpp{Grid2D}/\cpp{Grid3D} by multiple inheritance to form \cpp{DistGrid1D}, \cpp{DistGrid2D}, and \cpp{DistGrid3D}. Each holds a \cpp{std::vector<std::unique_ptr<T>>} of children -- subgrids of the same concrete type.
+The tree can in principle nest to arbitrary depth, but until such time that AMR is implemented  DRAGON will in practice only ever build to one level: a parent (constructed with \cpp{root=true}) and its children (constructed with \cpp{root=false}). A grid with \cpp{children.size() <= 1} is treated as a leaf and steps itself directly rather than delegating to its (nonexistent or single) children.
+
+\subsection{Load Balancing}
+
+The number of children along each axis is chosen to keep child subgrids close to square (2D) or cubic (3D), so that surface-to-volume overhead from ghost-cell synchronization is not concentrated in one direction:
+\begin{itemize}
+\item \textbf{1D:} \cpp{ncx = CONFIG::core_count} directly -- every core gets one child.
+\item \textbf{2D:} solving $n_x/n_{cx} = n_y/n_{cy}$ and $n_{cx} n_{cy} \gtrsim \mathrm{core\_count}$ gives
+\begin{equation}
+n_{cx} = \left\lceil \sqrt{\text{core\_count} \cdot \tfrac{n_x}{n_y}} \right\rceil, \qquad
+n_{cy} = \left\lceil \sqrt{\text{core\_count} \cdot \tfrac{n_y}{n_x}} \right\rceil.
+\end{equation}
+\item \textbf{3D:} the analogous cube-root balancing is used for $n_{cx}, n_{cy}, n_{cz}$, giving
+\begin{equation}
+n_{cx} = \left\lceil \left(N \cdot \frac{n_x^2}{n_yn_z}\right)^{\frac13} \right\rceil, \qquad
+n_{cy} = \left\lceil \left(N \cdot \frac{n_y^2}{n_xn_z}\right)^{\frac13} \right\rceil, \qquad
+n_{cy} = \left\lceil \left(N\cdot \frac{n_z^2}{n_xn_y}\right)^{\frac13} \right\rceil,
+\end{equation}
+where $N$ is equal to \cpp{CONFIG::core_count}.
+\end{itemize}
+Because each factor is rounded up independently, the product $n_{cx} n_{cy}(n_{cz})$ is not guaranteed to equal \cpp{core\_count} exactly -- DRAGON may use somewhat more subgrids (and hence threads) than \cpp{core\_count} when the aspect ratio does not divide evenly.
+
+Given a child count $n_c$ along an axis, \cpp{computeChildSize(nx, nc, i)} distributes the $n_x$ cells as evenly as possible: every child gets \cpp{nx / nc} cells, and the first \cpp{nx \% nc} children (by index) each get one extra cell, so no two children differ in size by more than one cell.
+
+\subsection{Ghost Cells}
+
+Child subgrids need enough ghost cells to reconstruct correctly at their boundaries without an intra-step resynchronization with their siblings. \cpp{validGhosts(g)} enforces a scheme-dependent minimum, taking the larger of the caller's requested depth \cpp{g} and the required minimum number of ghosts.
+In general, a grid needs the following number of ghosts
+\begin{itemize}
+\item If MUSCL reconstruction is disabled, only a single ghost (the boundary) is required.
+\item If MUSCL reconstruction is enabled, a second ghost is required in order to reconstruct the boundary state correctly.
+\item For unsplit (CTU) integration with MHD, a third ghost is requried. This is because constrained transport needs the first layer of transverse fluxes in the boundary, and with CTU integration these fluxes are effected transverse corrections from the third layer of ghosts from the boundary.
+\end{itemize} 
+However, for split integration, twice as many ghosts are needed as a result of each step performing two half-steps along one or more dimensions.
+
+Because a child subgrid's ghost cells are filled directly by its parent rather than through the standard boundary-condition API, every child is constructed with \cpp{boundary = Boundary::Ignore()} (\Cref{sec:boundary}).
+
+\subsection{Parallel Step \& Synchronization}
+
+\cpp{DistGrid<T>::step(dt)} is the actual parallel execution, called whenever a \cpp{split\_step}/\cpp{unsplit\_step} is invoked on a grid that has more than one child:
+\begin{enumerate}
+\item \cpp{pushToChildren()} copies the parent's fluid state (including its own ghost layer) into each child, offset appropriately for that child's position in the domain, then recurses into \cpp{child->pushToChildren()} so any grandchildren would be synchronised too. 
+\item Construct a \cpp{DRAGONWING::ThreadPool} sized to the number of children, and call \cpp{launchParallel(child, dt)} for each one, launching its \cpp{split\_step}/\cpp{unsplit\_step} on its own thread.
+\item \cpp{waitForCompletion()} blocks until every child has reported checkpoint 2 (\Cref{sec:wing-threading}) or a restart is requested.
+\item If any child failed, throw a \cpp{std::runtime\_error} carrying the pool's restart message -- this propagates up into the same retry-with-halving substep loop as any other step failure (\Cref{sec:CFL}).
+\item Otherwise, \cpp{loadFromChildren()} folds the children's updated interiors back into the parent. This function copies back only the child's interior cells (no ghosts) into the corresponding region of the parent. It also calls each child's \cpp{loadFromChildren()} prior to folding the child's data to ensure any grandchildren would be synchronised too. 
+\end{enumerate}
+Leaf grids (\cpp{children.size() <= 1}) bypass all of this: their \cpp{split\_step}/\cpp{unsplit\_step} simply calls the corresponding base \cpp{Grid1D/2D/3D} method directly and reports checkpoint 2 itself, since there are no children to launch or wait on. \cpp{on\_step\_fail()} follows the same split: a leaf delegates to the base \cpp{Grid}'s recovery logic, while a parent (with more than one child) always returns \cpp{true} -- there is no grid further up the decomposition to hand restart responsibility to, so the parent itself must trigger the retry.
 
 
 
