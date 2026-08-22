@@ -1360,9 +1360,9 @@ The first time you build DRAGON from the command line, you will need to create t
  From the project's root directory, run:
 \begin{lstlisting}[language=bash]
 mkdir -p bin
-echo "bin/" >> .gitignore
 \end{lstlisting}
-The second line ensures that your compiled executables don't get committed to the repository.
+The entire bin directory is ignored by git, so anything you put in there won't be committed to the repository. This is intended to avoid putting executables in the repository.
+
 
 \subsection{Building on macOS}
 \label{sec:usage-macos-cli}
