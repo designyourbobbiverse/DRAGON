@@ -6,9 +6,9 @@
 //
 
 #include "Testing.hpp"
-#include "Grid.hpp"
+#include "Hydro/Grid.hpp"
 
-#include "DistGrid.hpp"   //Do Blast tests in parallel
+#include "Refinement/DistGrid.hpp"   //Do Blast tests in parallel
 #include <iostream>       //For std::cout
 
 

@@ -9,8 +9,8 @@
 //      Gardiner and Stone (2005). https://doi.org/10.1016/j.jcp.2004.11.016
 
 
-#include "CT.hpp"
-#include "Grid.hpp" //Implements Grid::initialize_B_fields()
+#include "MHD/CT.hpp"
+#include "Hydro/Grid.hpp" //Implements Grid::initialize_B_fields()
 
 #include "Config.h"
 #include "Constants.h" //For _1_8pi

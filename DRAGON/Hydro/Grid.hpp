@@ -1,5 +1,5 @@
 //
-//  Grid.hpp
+//  Hydro/Grid.hpp
 //  DRAGON/Hydro
 //  User-Facing Header file
 //
@@ -9,9 +9,9 @@
 #ifndef Grid_hpp
 #define Grid_hpp
 
-#include "ExtendedArray.hpp"
-#include "FluidElement.hpp"
-#include "Boundary.hpp"
+#include "Hydro/ExtendedArray/ExtendedArray.hpp"
+#include "FluidElement/FluidElement.hpp"
+#include "Boundary/Boundary.hpp"
 
 #include "Config.h"
 #include <exception> //For on_step_fail

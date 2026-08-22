@@ -2,7 +2,7 @@
 //  Created by Bobbie Markwick
 //
 
-#include "Problem.hpp" //The user's problem
+#include "main/Problem.hpp" //The user's problem
 
 #include "DragonHoard.hpp"  //File output
 #include <iostream>         //Console messages

@@ -11,10 +11,10 @@
 #include <concepts>     //for ValidGridType template
 #include <type_traits>  //for ValidGridType template
 
-#include "ArrayTypes.hpp"
+#include "Hydro/ExtendedArray/ArrayTypes.hpp"
 
 namespace DRAGONWING {
-//ArrayGuard supports ExtendedArrays (1D, 2D, or 3D) containing any of the types defined in FluidElement.hpp
+//ArrayGuard supports ExtendedArrays (1D, 2D, or 3D) containing any of the types defined in FluidElement/FluidElement.hpp
 template<typename X> concept GridValueType =
     std::same_as<X, DRAGON::PrimitiveState> || std::same_as<X, DRAGON::ConservativeState> || std::same_as<X, DRAGON::vec3>;
 

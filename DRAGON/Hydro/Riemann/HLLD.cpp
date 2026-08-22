@@ -9,7 +9,7 @@
 
 
 
-#include "Riemann.hpp"
+#include "Hydro/Riemann/Riemann.hpp"
 
 #include <cmath> //For std::abs, sqrt
 #include <algorithm> //For std::min/max

@@ -9,7 +9,7 @@
 //      Gardiner and Stone (2008). https://arxiv.org/abs/0712.2634
 
 
-#include "CT.hpp"
+#include "MHD/CT.hpp"
 
 #include "Config.h"
 using namespace DRAGON;

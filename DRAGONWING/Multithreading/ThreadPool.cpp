@@ -9,7 +9,7 @@
 
 #include "DRAGONWING_Config.hpp"
 #include <iostream> //For std::cerr
-#include "Grid.hpp" //For grid.advance()
+#include "Hydro/Grid.hpp" //For grid.advance()
 
 
 //MARK: Threadpool access

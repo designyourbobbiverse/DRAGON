@@ -6,9 +6,9 @@
 //
 
 #include "Testing.hpp"
-#include "CT.hpp"
+#include "MHD/CT.hpp"
 
-#include "DistGrid.hpp"
+#include "Refinement/DistGrid.hpp"
 #include "Constants.h"      //For M_PI, _1_8pi
 #include <iostream>
 

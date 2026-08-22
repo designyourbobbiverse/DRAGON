@@ -1,5 +1,5 @@
 //
-//  ExtendedArray.hpp
+//  Hydro/ExtendedArray/ExtendedArray.hpp
 //  DRAGON/Hydro/ExtendedArray
 //
 //  Created by Bobbie Markwick on 16/06/2026.

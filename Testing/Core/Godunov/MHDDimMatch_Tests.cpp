@@ -6,10 +6,10 @@
 //
 
 #include "Testing.hpp"
-#include "Grid.hpp"
+#include "Hydro/Grid.hpp"
 
 #include <iostream> //For std::cout
-#include "CFL.hpp"  //These tests only work on a single timestep
+#include "Hydro/CFL/CFL.hpp"  //These tests only work on a single timestep
 
 #ifdef MHD
 

@@ -1,5 +1,5 @@
 //
-//  ArrayTypes.hpp
+//  Hydro/ExtendedArray/ArrayTypes.hpp
 //  DRAGON/Hydro/ExtendedArray
 //
 //  Created by Bobbie Markwick on 31/07/2026.
@@ -8,8 +8,8 @@
 #ifndef Array_Types_hpp
 #define Array_Types_hpp
 
-#include "ExtendedArray.hpp"
-#include "FluidElement.hpp"
+#include "Hydro/ExtendedArray/ExtendedArray.hpp"
+#include "FluidElement/FluidElement.hpp"
 
 namespace DRAGON{
 typedef ExtendedArray1D<PrimitiveState> FluidArray1D;

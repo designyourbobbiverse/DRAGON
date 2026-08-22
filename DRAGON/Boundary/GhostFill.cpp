@@ -5,8 +5,8 @@
 //  Created by Bobbie Markwick on 29/05/2026.
 //
 
-#include "Boundary.hpp"
-#include "Grid.hpp"
+#include "Boundary/Boundary.hpp"
+#include "Hydro/Grid.hpp"
 using namespace DRAGON;
 
 int GhostFill::get_faces() const { return faces; }

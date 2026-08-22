@@ -1,5 +1,5 @@
 //
-//  DistGrid.hpp
+//  Refinement/DistGrid.hpp
 //  DRAGON/Refinement
 //  User-Facing Header file
 //
@@ -12,7 +12,7 @@
 #ifndef DistGrid_hpp
 #define DistGrid_hpp
 
-#include "Grid.hpp"
+#include "Hydro/Grid.hpp"
 
 #include <vector>
 #include <memory> //For std::unique_ptr

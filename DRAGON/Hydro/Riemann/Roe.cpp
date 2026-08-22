@@ -9,7 +9,7 @@
 //      Harten and Hyman (1983). https://doi.org/10.1016/0021-9991(83)90066-9
 //
 
-#include "Riemann.hpp"
+#include "Hydro/Riemann/Riemann.hpp"
 
 #include <cmath> //For std::sqrt, abs
 #include "Constants.h" //For gamma

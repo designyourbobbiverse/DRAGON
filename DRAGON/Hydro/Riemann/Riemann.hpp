@@ -1,5 +1,5 @@
 //
-//  Riemann.hpp
+//  Hydro/Riemann/Riemann.hpp
 //  DRAGON/Hydro/Riemann
 //
 //  Created by Bobbie Markwick on 28/04/2026.
@@ -9,7 +9,7 @@
 #ifndef Riemann_hpp
 #define Riemann_hpp
 
-#include "FluidElement.hpp"
+#include "FluidElement/FluidElement.hpp"
 
 #include "Config.h"
 //Macro which tells hydro only solvers to not compile if using MHD, except for unit testing where both modes are needed.

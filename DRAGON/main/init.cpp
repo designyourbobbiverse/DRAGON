@@ -2,12 +2,12 @@
 //  Created by Bobbie Markwick
 //
 
-#include "Problem.hpp" //The user's problem
+#include "main/Problem.hpp" //The user's problem
 
 #include "Config.h"
 #include "DragonHoard.hpp"  //File restart
 #include <iostream>         //Console messages
-#include "CT.hpp"           //Magnetic Field initialization
+#include "MHD/CT.hpp"           //Magnetic Field initialization
 using namespace DRAGON;
 
 #ifndef TESTMODE

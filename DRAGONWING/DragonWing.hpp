@@ -8,8 +8,8 @@
 #ifndef DRAGON_WING_hpp
 #define DRAGON_WING_hpp
 
-#include "ArrayGuard.hpp"
-#include "ThreadPool.hpp"
+#include "Memory/ArrayGuard.hpp"
+#include "Multithreading/ThreadPool.hpp"
 
 namespace DRAGONWING{
 

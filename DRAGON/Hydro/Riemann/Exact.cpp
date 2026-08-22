@@ -6,7 +6,7 @@
 //  Implementation based mostly on Toro (2009). https://doi.org/10.1007/b79761
 //
 
-#include "Riemann.hpp"
+#include "Hydro/Riemann/Riemann.hpp"
 
 #include "Constants.h" //For gamma and related coefficients
 #include <cmath> //For std::sqrt, pow, abs

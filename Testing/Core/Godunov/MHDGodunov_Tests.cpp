@@ -6,7 +6,7 @@
 //
 
 #include "Testing.hpp"
-#include "Grid.hpp"
+#include "Hydro/Grid.hpp"
 
 #include <iostream> //For std::cout
 

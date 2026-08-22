@@ -7,18 +7,18 @@
 //
 
 
-#include "Grid.hpp"
+#include "Hydro/Grid.hpp"
 #include "Godunov.hpp"
 
 
 
-#include "Riemann.hpp" //For Riemann Solvers
-#include "CT.hpp"      //For MHD
+#include "Hydro/Riemann/Riemann.hpp"  //For Riemann Solvers
+#include "MHD/CT.hpp"           //For MHD
 
 
 #include "Config.h"
 #include "DragonWing.hpp" //For Memory Management
-#include "TVD.hpp"        //For MINMOD
+#include "Hydro/Reconstruction/TVD.hpp"        //For MINMOD
 #include "Constants.h"    //For _1_8pi
 using namespace DRAGON;
 

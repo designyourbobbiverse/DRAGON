@@ -84,33 +84,37 @@ void DRAGON_Test::verify_IO1D(){
 }
 
 void DRAGON_Test::verify_IO2D(){
-    Grid2D g(3,4, 0.1,0.2, 2);
+    Grid2D g(3,4, 0.1,0.2, 2), _g(3,4, 0.1,0.2, 2);
     
     for(int i = -2; i < 3 + 2; i++) {
         for(int j = -2; j < 4 + 2; j++) {
             g[i,j] = make_tagged_state(i*0.1 + j*0.01);
+            _g[i,j] = g[i,j];
         }
     }
     #ifdef MHD
     for(int i = -2; i <= 3 + 2; i++) {
         for(int j = -2; j <= 4 + 2; j++) {
             g._B()[i,j] = make_tagged_A(i*0.1 + j*0.01);
+            _g._B()[i,j] = g._B()[i,j];
         }
     }
+    g.initialize_B_fields();
+    _g.initialize_B_fields();
     #endif
 
     DRAGONHOARD::writeToFile(g, 0.666, 666, filename);
     //Write doesn't change grid
     for(int i = -2; i < 3 + 2; i++) {
         for(int j = -2; j < 4 + 2; j++) {
-            expect_close(g[i,j],  make_tagged_state(i*0.1 + j*0.01));
+            expect_close(g[i,j],  _g[i,j]);
             
         }
     }
     #ifdef MHD
     for(int i = -2; i <= 3 + 2; i++) {
         for(int j = -2; j <= 4 + 2; j++) {
-            expect_close(g._B()[i,j], make_tagged_A(i*0.1 + j*0.01));
+            expect_close(g._B()[i,j], _g._B()[i,j]);
         }
     }
     #endif
@@ -150,11 +154,12 @@ void DRAGON_Test::verify_IO2D(){
     #endif
 }
 void DRAGON_Test::verify_IO3D(){
-    Grid3D g(3,4,5, 0.1,0.2,0.3, 2);
+    Grid3D g(3,4,5, 0.1,0.2,0.3, 2), _g(3,4,5, 0.1,0.2,0.3, 2);
     for(int i = -2; i < 3 + 2; i++) {
         for(int j = -2; j < 4 + 2; j++) {
             for(int k = -2; k < 5 + 2; k++) {
                 g[i,j,k] = make_tagged_state(i*0.1 + j*0.01 + k*0.001);
+                _g[i,j,k] = g[i,j,k];
             }
         }
     }
@@ -163,9 +168,13 @@ void DRAGON_Test::verify_IO3D(){
         for(int j = -2; j <= 4 + 2; j++) {
             for(int k = -2; k <= 5 + 2; k++) {
                 g._B()[i,j,k] = make_tagged_A(i*0.1 + j*0.01 + k*0.001);
+                _g._B()[i,j,k] = g._B()[i,j,k];
+
             }
         }
     }
+    g.initialize_B_fields();
+    _g.initialize_B_fields();
     #endif
 
     DRAGONHOARD::writeToFile(g, 0.666, 666, filename);
@@ -173,7 +182,7 @@ void DRAGON_Test::verify_IO3D(){
     for(int i = -2; i < 3 + 2; i++) {
         for(int j = -2; j < 4 + 2; j++) {
             for(int k = -2; k < 5 + 2; k++) {
-                expect_close(g[i,j,k],  make_tagged_state(i*0.1 + j*0.01 + k*0.001));
+                expect_close(g[i,j,k],  _g[i,j,k]);
             }
         }
     }
@@ -181,7 +190,7 @@ void DRAGON_Test::verify_IO3D(){
     for(int i = -2; i <= 3 + 2; i++) {
         for(int j = -2; j <= 4 + 2; j++) {
             for(int k = -2; k <= 5 + 2; k++) {
-                expect_close(g._B()[i,j,k], make_tagged_A(i*0.1 + j*0.01 + k*0.001));
+                expect_close(g._B()[i,j,k], _g._B()[i,j,k]);
             }
         }
     }

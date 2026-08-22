@@ -6,12 +6,12 @@
 //  Implementation based mostly on Toro (2009). https://doi.org/10.1007/b79761
 //
 
-#include "Grid.hpp"
+#include "Hydro/Grid.hpp"
 #include "Godunov.hpp"
 
-#include "Riemann.hpp"  //For Riemann Solvers
-#include "TVD.hpp"      //For MUSCL reconstruction
-#include "Boundary.hpp" //For boundary.apply
+#include "Hydro/Riemann/Riemann.hpp"  //For Riemann Solvers
+#include "Hydro/Reconstruction/TVD.hpp"      //For MUSCL reconstruction
+#include "Boundary/Boundary.hpp" //For boundary.apply
 
 #include "Config.h"
 #include <algorithm>      //For std::max

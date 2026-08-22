@@ -6,7 +6,7 @@
 //
 
 #include "Testing.hpp"
-#include "DistGrid.hpp"
+#include "Refinement/DistGrid.hpp"
 
 #include <iostream>       //For std::cout
 

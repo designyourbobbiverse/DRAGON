@@ -7,9 +7,9 @@
 //
 
 #include "Testing.hpp"
-#include "Boundary.hpp"
+#include "Boundary/Boundary.hpp"
 
-#include "Grid.hpp"
+#include "Hydro/Grid.hpp"
 #include <iostream> //For std::cout
 
 using namespace DRAGON_Test;

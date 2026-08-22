@@ -10,7 +10,7 @@
 
 #include "DRAGONHOARD_Config.h" //To give users of this module access to the output_base_name and output_dir settings
 
-#include "Grid.hpp"
+#include "Hydro/Grid.hpp"
 #include <string>
 
 namespace DRAGONHOARD{

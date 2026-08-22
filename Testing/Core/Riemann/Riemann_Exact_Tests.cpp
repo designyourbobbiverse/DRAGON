@@ -6,7 +6,7 @@
 //
 
 #include "Testing.hpp"
-#include "Riemann.hpp"
+#include "Hydro/Riemann/Riemann.hpp"
 
 #include <cmath>    //For std::isfinite
 #include <iostream> //For std::cout

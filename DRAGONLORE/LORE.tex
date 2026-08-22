@@ -74,11 +74,16 @@
 \begin{document}
 
 % ================= Title Page =================
+\pagenumbering{roman}
 \maketitle
 
 %\begin{abstract}\end{abstract}
 
 \tableofcontents
+
+\clearpage
+\pagenumbering{arabic}
+\setcounter{page}{1}
 
 % ================= Introduction =================
 %\chapter{Introduction} \label{chap:intro}
@@ -113,7 +118,7 @@ $E$ the total energy density
 where $\gamma$ adiabatic index.
 DRAGON adopts Gaussian (non-rationalized) electromagnetic units, so the magnetic pressure and Lorentz force terms carry an explicit factor of $4\pi$. 
 
-\section{Initial Conditions}
+\section{Initial Conditions} \label{sec:initial}
 In DRAGON, problem initialisation consists of three steps:
 \begin{enumerate}
 \item Hydrodynamic Initialisation
@@ -935,8 +940,8 @@ DRAGON/                    # repository root
 |   |-- main/              # program entry point & problem setup
 |   |-- Config.h, Constants.h, Problem.cpp
 |-- DRAGONWING/            # memory management & multithreading
-|   |-- Memory_Management/
-|   |-- Multithreading/
+|   |-- Memory/            # RAII scratch arrrays
+|   |-- Multithreading/    # multithreading
 |-- DRAGONHOARD/           # HDF5 output & restart I/O
 |-- DRAGONGAZE/            # Python visualisation/analysis scripts
 |-- DRAGONLORE/            # this documentation
@@ -1027,10 +1032,19 @@ No other third-party library is required to build or run DRAGON itself.
 DRAGON's in-house visualisation toolkit DRAGONGAZE (\Cref{chap:gaze}) depends separately on \textbf{h5py} (to read the HDF5 files DRAGONHOARD writes) and \textbf{Matplotlib} (to render plots from that data). These are Python-side dependencies only and do not affect the C++ build.
 
 
+On macOS, HDF5 can be installed with Homebrew:
+\begin{lstlisting}[language=bash]
+brew install hdf5
+brew --prefix hdf5
+\end{lstlisting}
+The second command prints the path to the HDF5 installation on your computer. This will usually \bash{/opt/homebrew/opt/hdf5} on Apple Silicon Macs, or \bash{/usr/local/opt/hdf5} on Intel Macs.
 
 
 
-
+On Linux, install HDF5 through your system package manager -- for example, on Debian/Ubuntu:
+\begin{lstlisting}[language=bash]
+sudo apt install libhdf5-dev
+\end{lstlisting}
 
 
 % ================= DRAGONWING =================
@@ -1293,9 +1307,145 @@ Everything about how a plot looks is controlled from \py{Config.py} -- the plott
 
 
 % ================= Installation and Usage =================
-\chapter{Installation and Usage}
+\chapter{Running DRAGON}
 \label{chap:usage}
 
+This chapter covers configuring, building, and running DRAGON itself. For turning simulation output into plots once a run has completed, see \Cref{chap:gaze}.
+
+\section{Configuration}
+\label{sec:usage-config}
+
+Most numerical choices are compile-time settings in \bash{DRAGON/Config.h}. The most important switches are:
+
+\begin{itemize}
+\item \cpp{MHD} -- enables magnetohydrodynamics. Disable for pure hydrodynamics.
+\item \cpp{DIMENSION_UNSPLIT} -- selects unsplit multidimensional advancement (disable to instead use Strang splitting).
+\item \cpp{RIEMANN_DEFAULT} -- the default Riemann solver (\Cref{sec:riemann}). The default \cpp{RIEMANN_HLLX} uses HLLC for pure hydrodynamics and HLLD for MHD.
+\item \cpp{CFL_CALCULATION} -- chooses the CFL speed calculation method for multidimensional problems (\Cref{sec:CFL}).
+\item \cpp{CFL_coeff} -- the global CFL coefficient (\Cref{sec:CFL}); the default value is $0.3$.
+\item \cpp{MUSCL_DEFAULT_LIMITER} -- the TVD limiter used by MUSCL reconstruction.
+\item \cpp{core_count} -- how many child grids the root should create when using DistGrid (\Cref{sec:distgrid}).
+\end{itemize}
+
+Physical parameters are instead found in \bash{DRAGON/Constants.h}. Currently the only such value is the specific heat ratio \cpp{_gamma}, which defaults to $5/3$.
+
+\section{Setting Up a Problem}
+\label{sec:usage-problem}
+
+Along with \bash{Config.h}, \bash{Problem.cpp} contains the information needed to set up the problem you wish to run: both files are filled with comments explaining how to configure a particular problem. To run a problem, edit \bash{Config.h} to choose the numerical options (\Cref{sec:usage-config}) and edit \bash{Problem.cpp} to define the initial conditions (\Cref{sec:initial}), boundary conditions (\Cref{sec:boundary}). Lastly, configure \bash{DRAGONHOARD/DRAGONHOARD_Config.hpp} with your desired output settings (\Cref{chap:hoard}).
+
+
+The \bash{Examples/} folder includes several ready-made example problems. To run one of these problems, replace \bash{Config.h}, \bash{Problem.cpp}, and (if applicable) \bash{Constants.h} with the desired example's versions of those files. 
+
+\section{Building on macOS with Xcode}
+\label{sec:usage-xcode}
+
+In Xcode, open the project's build settings and add the following, using the path to your HDF5 installation (\Cref{sec:dependencies}) in place of \bash{<Path_To_HDF5>}:
+\begin{itemize}
+\item \bash{<Path_To_HDF5>/include} to \emph{System Header Search Paths}
+\item \bash{<Path_To_HDF5>/lib} to \emph{Library Search Paths}
+\item \bash{<Path_To_HDF5>/lib} to \emph{Runpath Search Paths}
+\item \bash{-lhdf5_cpp} to \emph{Other Linker Flags}
+\item \bash{-lhdf5} to \emph{Other Linker Flags}
+\end{itemize}
+Once this is done, you should be able to build and run the DRAGON target, or the DRAGON\_TESTS target for the unit test suite.
+
+If the project builds but fails when running, open \emph{Signing \& Capabilities} for each executable target and ensure \emph{Disable Library Validation} is enabled under \emph{Hardened Runtime}. After changing this setting, clean and rebuild before running again.
+
+\section{Building from Command Line}
+
+\subsection{Creating the bin Directory}
+
+The first time you build DRAGON from the command line, you will need to create the `bin/` directory that the build output will go into.
+ From the project's root directory, run:
+\begin{lstlisting}[language=bash]
+mkdir -p bin
+echo "bin/" >> .gitignore
+\end{lstlisting}
+The second line ensures that your compiled executables don't get committed to the repository.
+
+\subsection{Building on macOS}
+\label{sec:usage-macos-cli}
+
+From the project's root directory, run:
+\begin{lstlisting}[language=bash]
+HDF5_PATH=$(brew --prefix hdf5)
+clang++ -std=c++23 -O3 \
+    -o bin/DRAGON \
+    -I"$HDF5_PATH/include" \
+    -L"$HDF5_PATH/lib" \
+    -Wl,-rpath,"$HDF5_PATH/lib" \
+    -IDRAGON -IDRAGONWING -IDRAGONHOARD \
+    $(find DRAGON DRAGONWING DRAGONHOARD -name "*.cpp") \
+    -lhdf5_cpp -lhdf5
+\end{lstlisting}
+From here, you can run DRAGON by calling
+\begin{lstlisting}[language=bash]
+bin/DRAGON
+\end{lstlisting}
+or you can copy the executable to another directory and run it there.
+
+The test suite can be built similarly as follows:
+\begin{lstlisting}[language=bash]
+HDF5_PATH=$(brew --prefix hdf5)
+clang++ -std=c++23 -O3 \
+    -DTESTMODE \
+    -o bin/DRAGON_TESTS \
+    -I"$HDF5_PATH/include" \
+    -L"$HDF5_PATH/lib" \
+    -Wl,-rpath,"$HDF5_PATH/lib" \
+    -IDRAGON -IDRAGONWING -IDRAGONHOARD -ITesting\
+    $(find DRAGON DRAGONWING DRAGONHOARD Testing -name "*.cpp") \
+    -lhdf5_cpp -lhdf5
+\end{lstlisting}
+
+\section{Building on Linux}
+\label{sec:usage-linux}
+
+You can compile with your normal C++ compiler and manually provide the HDF5 include and library paths, along with DRAGON's own header search paths. If HDF5 is installed in a standard system location, this may be sufficient:
+\begin{lstlisting}[language=bash]
+g++ -std=c++23 -O3 \
+    -o bin/DRAGON \
+    -IDRAGON -IDRAGONWING -IDRAGONHOARD \
+    $(find DRAGON DRAGONWING DRAGONHOARD -name "*.cpp") \
+    -lhdf5_cpp -lhdf5
+\end{lstlisting}
+
+The test suite can be built similarly
+\begin{lstlisting}[language=bash]
+g++ -std=c++23 -O3 \
+    -DTESTMODE \
+    -o bin/DRAGON_TESTS \
+    -IDRAGON -IDRAGONWING -IDRAGONHOARD -ITesting \
+    $(find DRAGON DRAGONWING DRAGONHOARD Testing -name "*.cpp") \
+    -lhdf5_cpp -lhdf5
+\end{lstlisting}
+
+If your system provides the HDF5 compiler wrapper \bash{h5c++}, it can be used instead of specifying the linker flags by hand:
+\begin{lstlisting}[language=bash]
+h5c++ -std=c++23 -O3 \
+    -o bin/DRAGON \
+    -IDRAGON -IDRAGONWING -IDRAGONHOARD \
+    $(find DRAGON DRAGONWING DRAGONHOARD -name "*.cpp")
+\end{lstlisting}
+\begin{lstlisting}[language=bash]
+h5c++ -std=c++23 -O3 \
+    -DTESTMODE \
+    -o bin/DRAGON_TESTS \
+    -IDRAGON -IDRAGONWING -IDRAGONHOARD -ITesting \
+    $(find DRAGON DRAGONWING DRAGONHOARD Testing -name "*.cpp")
+\end{lstlisting}
+
+If the compiler cannot find \bash{H5Cpp.h}, add the appropriate include path with \bash{-I}. If the linker cannot find the HDF5 libraries, add the appropriate library path with \bash{-L}. 
+
+You can check whether HDF5 is available on your system with either
+\begin{lstlisting}[language=bash]
+h5c++ -show
+\end{lstlisting}
+or
+\begin{lstlisting}[language=bash]
+h5ls --version
+\end{lstlisting}
 
 
 % ================= Validation =================

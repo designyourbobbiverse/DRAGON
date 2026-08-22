@@ -1,5 +1,5 @@
 //
-//  Problem.hpp
+//  main/Problem.hpp
 //  DRAGON/main
 //
 //  Created by Bobbie Markwick on 24/06/2026.
@@ -8,7 +8,7 @@
 #ifndef Problem_hpp
 #define Problem_hpp
 
-#include "Grid.hpp"
+#include "Hydro/Grid.hpp"
 
 namespace Problem{
     //Grid object construction

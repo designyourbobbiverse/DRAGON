@@ -6,9 +6,9 @@
 //
 
 #include "Testing.hpp"
-#include "Boundary.hpp"
+#include "Boundary/Boundary.hpp"
 
-#include "Grid.hpp"
+#include "Hydro/Grid.hpp"
 #include <algorithm> //For std::max
 #include <iostream>  //For std::cout
 

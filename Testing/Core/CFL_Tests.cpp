@@ -6,7 +6,7 @@
 //
 
 #include "Testing.hpp"
-#include "CFL.hpp"
+#include "Hydro/CFL/CFL.hpp"
 
 #include "Config.h"
 #include <cmath>        //For std::abs, sqrt, pow

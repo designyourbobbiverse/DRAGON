@@ -13,7 +13,7 @@
 #include <cmath> //For std::abs, sqrt, pow
 #include <algorithm> //For std::min/max
 
-#include "GhostFill.hpp" //For boundary.apply
+#include "Boundary/GhostFill.hpp" //For boundary.apply
 
 #include <stdexcept> //For std::runtime_error (CFL timestep fails to compute)
 #include <exception> //For handling step restarts

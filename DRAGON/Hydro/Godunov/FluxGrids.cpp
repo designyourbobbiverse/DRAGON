@@ -5,13 +5,13 @@
 //  Created by Bobbie Markwick on 5/07/2026.
 
 
-#include "Grid.hpp"
+#include "Hydro/Grid.hpp"
 #include "Godunov.hpp"
 
 #include "Config.h"
-#include "Riemann.hpp" //For Riemann Solvers
-#include "TVD.hpp"     //For MUSCL Reconstruction
-#include "CT.hpp"      //For CT::copyFaceFields
+#include "Hydro/Riemann/Riemann.hpp"    //For Riemann Solvers
+#include "Hydro/Reconstruction/TVD.hpp" //For MUSCL Reconstruction
+#include "MHD/CT.hpp"                   //For CT::copyFaceFields
 
 #include <stdexcept>      //For error handling
 #include <format>         //For error message formatting

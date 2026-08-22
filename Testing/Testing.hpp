@@ -11,8 +11,8 @@
 #include <cassert>
 
 #include "Config.h"
-#include "FluidElement.hpp"
-#include "ExtendedArray.hpp"
+#include "FluidElement/FluidElement.hpp"
+#include "Hydro/ExtendedArray/ExtendedArray.hpp"
 using namespace DRAGON;
 
 namespace DRAGON_Test{

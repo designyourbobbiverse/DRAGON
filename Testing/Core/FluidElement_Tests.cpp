@@ -6,7 +6,7 @@
 //
 
 #include "Testing.hpp"
-#include "FluidElement.hpp"
+#include "FluidElement/FluidElement.hpp"
 
 #include <cmath>        //For std::abs, sqrt, pow
 #include <algorithm>    //For std::max

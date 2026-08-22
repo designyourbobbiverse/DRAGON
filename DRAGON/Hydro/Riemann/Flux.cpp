@@ -5,7 +5,7 @@
 //  Created by Bobbie Markwick on 12/05/2026.
 //
 
-#include "Riemann.hpp"
+#include "Hydro/Riemann/Riemann.hpp"
 #include "Config.h"
 
 #include <stdexcept> //For error messages

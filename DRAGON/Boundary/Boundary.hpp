@@ -1,5 +1,5 @@
 //
-//  Boundary.hpp
+//  Boundary/Boundary.hpp
 //  DRAGON/Boundary
 //  User-Facing Header file
 //
@@ -14,7 +14,7 @@
 #include <concepts> //For BoundaryElement template
 #include <type_traits> //For BoundaryElement template
 #include <string> //For face initialization
-#include "FluidElement.hpp" //For Boundary::fixed
+#include "FluidElement/FluidElement.hpp" //For Boundary::fixed
 
 namespace DRAGON::Boundary{
 

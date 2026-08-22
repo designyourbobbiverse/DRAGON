@@ -7,9 +7,9 @@
 //
 
 #include "Testing.hpp"
-#include "CT.hpp"
+#include "MHD/CT.hpp"
 
-#include "Grid.hpp"
+#include "Hydro/Grid.hpp"
 #include <cmath>    //For std::abs
 #include <cstdlib>  //For rand()
 #include <iostream> //For std::cout

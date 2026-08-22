@@ -9,11 +9,11 @@
 
 
 
-#include "Grid.hpp"
+#include "Hydro/Grid.hpp"
 #include "Godunov.hpp"
 
 #include "Config.h"
-#include "CT.hpp"      //For MHD
+#include "MHD/CT.hpp"      //For MHD
 
 #include "DragonWing.hpp" //For memory management & synchronization
 #include <stdexcept>      //For error handling

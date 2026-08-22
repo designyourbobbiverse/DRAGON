@@ -12,7 +12,7 @@
 #include "Config.h"
 #include <cmath>        //For std::sqrt, pow
 #include <algorithm>    //For std::max
-#include "Boundary.hpp" //For Boundary.Ignore
+#include "Boundary/Boundary.hpp" //For Boundary.Ignore
 #include <utility>      //For std::move
 using namespace DRAGON;
 

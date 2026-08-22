@@ -1,5 +1,5 @@
 //
-//  CT.hpp
+//  MHD/CT.hpp
 //  DRAGON/MHD
 //
 //  Created by Bobbie Markwick on 24/06/2026.
@@ -7,7 +7,7 @@
 #ifndef __CT_hpp__
 #define __CT_hpp__
 
-#include "ArrayTypes.hpp"
+#include "Hydro/ExtendedArray/ArrayTypes.hpp"
 #include "Config.h"
 
 #ifdef MHD

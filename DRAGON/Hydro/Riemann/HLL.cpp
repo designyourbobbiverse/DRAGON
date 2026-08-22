@@ -11,7 +11,7 @@
 
 
 
-#include "Riemann.hpp"
+#include "Hydro/Riemann/Riemann.hpp"
 
 #include <cmath> //For std::sqrt
 #include <algorithm> //For std::max/min

@@ -8,8 +8,8 @@
 #ifndef Godunov_hpp
 #define Godunov_hpp
 
-#include "Grid.hpp"
-#include "ArrayTypes.hpp"
+#include "Hydro/Grid.hpp"
+#include "Hydro/ExtendedArray/ArrayTypes.hpp"
 
 
 namespace DRAGON::Godunov{
