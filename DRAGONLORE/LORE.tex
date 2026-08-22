@@ -4,6 +4,7 @@
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
 \usepackage{amsmath,amssymb,amsthm}
+\usepackage{grffile}
 \usepackage{graphicx}
 \usepackage{booktabs}
 \usepackage{siunitx}
@@ -86,7 +87,7 @@
 \setcounter{page}{1}
 
 % ================= Introduction =================
-%\chapter{Introduction} \label{chap:intro}
+%\chapter{Introduction} \label{ch:intro}
 
 %\section{Motivation and Scope}
 % TODO: Describe the scientific motivation for DRAGON, the physical  regimes it targets, and the problems it is designed to solve.
@@ -101,7 +102,7 @@
 
 % ================= Code Structure =================
 \chapter{Code Structure}
-\label{chap:code}
+\label{ch:code}
 
 \section{Directory Layout}
 \begin{lstlisting}[language=bash, caption={Repository layout}]
@@ -159,7 +160,7 @@ The following operations are supported:
 
 \cpp{DRAGON::PrimitiveState} represents a single fluid element (i.e.\ one cell's state), which contains density \cpp{rho}, pressure \cpp{p}, velocity vector \cpp{v}, and (MHD only) magnetic field vector \cpp{B}. This is the form the solver reconstructs, applies boundary conditions to, and reports as output.
 
-As already noted in \Cref{chap:physics}, \cpp{B} is stored in Gaussian (non-rationalized) units, so the code is explicit about factors of $4\pi$ wherever they appear -- concretely, \bash{Constants.h} predefines \cpp{_1_4pi} ($=1/4\pi$), \cpp{_1_8pi} ($=1/8\pi$), and \cpp{sq4pi} ($=\sqrt{4\pi}$) rather than dividing by $4\pi$ inline. %and both energy density and pressure conversions add/remove a magnetic term $\mathbf{B}^2/8\pi$.
+As already noted in \Cref{ch:physics}, \cpp{B} is stored in Gaussian (non-rationalized) units, so the code is explicit about factors of $4\pi$ wherever they appear -- concretely, \bash{Constants.h} predefines \cpp{_1_4pi} ($=1/4\pi$), \cpp{_1_8pi} ($=1/8\pi$), and \cpp{sq4pi} ($=\sqrt{4\pi}$) rather than dividing by $4\pi$ inline. %and both energy density and pressure conversions add/remove a magnetic term $\mathbf{B}^2/8\pi$.
 
 \subsubsection{ConservativeState}
 
@@ -205,10 +206,10 @@ The magnetic field is stored on a staggered face-centred grid, with \cpp{B[i,j,k
 \section{Dependencies}
 \label{sec:dependencies}
 
-DRAGON's only dependency is \textbf{HDF5}, used by DRAGONHOARD (\Cref{chap:hoard})\footnote{Core DRAGON and DRAGONWING are agnostic to the file storage format, so if HDF5 is for some reason unavailable on your system, you would only need to modify DRAGONHOARD to interface with your alternative format.} for output and restart I/O.  
+DRAGON's only dependency is \textbf{HDF5}, used by DRAGONHOARD (\Cref{ch:hoard})\footnote{Core DRAGON and DRAGONWING are agnostic to the file storage format, so if HDF5 is for some reason unavailable on your system, you would only need to modify DRAGONHOARD to interface with your alternative format.} for output and restart I/O.  
 No other third-party library is required to build or run DRAGON itself.
 
-DRAGON's in-house visualisation toolkit DRAGONGAZE (\Cref{chap:gaze}) depends separately on \textbf{h5py} (to read the HDF5 files DRAGONHOARD writes) and \textbf{Matplotlib} (to render plots from that data). These are Python-side dependencies only and do not affect the C++ build.
+DRAGON's in-house visualisation toolkit DRAGONGAZE (\Cref{ch:gaze}) depends separately on \textbf{h5py} (to read the HDF5 files DRAGONHOARD writes) and \textbf{Matplotlib} (to render plots from that data). These are Python-side dependencies only and do not affect the C++ build.
 
 
 On macOS, HDF5 can be installed with Homebrew:
@@ -228,7 +229,7 @@ sudo apt install libhdf5-dev
 
 % ================= Physical Model =================
 \chapter{Physical Model \& Numerical Methods}
-\label{chap:physics}
+\label{ch:physics}
 
 \section{Governing Equations}
 The ideal MHD equations solved by DRAGON are, in conservative form:
@@ -1051,7 +1052,7 @@ The desired option can be selected by setting \cpp{CT_ENERGY_CONSV} in \bash{Con
 
 % ================= DRAGONWING =================
 \chapter{Performance: DRAGONWING}
-\label{chap:wing}
+\label{ch:wing}
 
 DRAGON Wide Infrastructure Numerical Grids (DRAGONWING) is DRAGON's support library for memory management and multithreading. 
 
@@ -1189,7 +1190,7 @@ Leaf grids (\cpp{children.size() <= 1}) bypass all of this: their \cpp{split\_st
 
 % ================= DRAGONHOARD =================
 \chapter{File Output: DRAGONHOARD}
-\label{chap:hoard}
+\label{ch:hoard}
 
 {DRAGON Hierarchical Output for Analysis, Restarts, and Diagnostics} (DRAGONHOARD) is DRAGON's I/O library: it writes simulation output, and supports loading them back in as restart-checkpoints. The public interface (\bash{DragonHoard.hpp}) exposes \cpp{writeToFile}/\cpp{loadFromFile}, each overloaded once per grid dimensionality plus a \cpp{Grid}-dispatching version that picks the right overload with a \cpp{dynamic_cast}.
 
@@ -1242,9 +1243,9 @@ When restarts are enabled, \cpp{RESTART_FRAME} selects which frame to load; if n
 
 % ================= Installation and Usage =================
 \chapter{Running DRAGON}
-\label{chap:usage}
+\label{ch:usage}
 
-This chapter covers configuring, building, and running DRAGON itself. For turning simulation output into plots once a run has completed, see \Cref{chap:gaze}.
+This chapter covers configuring, building, and running DRAGON itself. For turning simulation output into plots once a run has completed, see \Cref{ch:gaze}.
 
 \section{Configuration}
 \label{sec:usage-config}
@@ -1266,7 +1267,7 @@ Physical parameters are instead found in \bash{DRAGON/Constants.h}. Currently th
 \section{Setting Up a Problem}
 \label{sec:usage-problem}
 
-Along with \bash{Config.h}, \bash{Problem.cpp} contains the information needed to set up the problem you wish to run: both files are filled with comments explaining how to configure a particular problem. To run a problem, edit \bash{Config.h} to choose the numerical options (\Cref{sec:usage-config}) and edit \bash{Problem.cpp} to define the initial conditions (\Cref{sec:initial}), boundary conditions (\Cref{sec:boundary}). Lastly, configure \bash{DRAGONHOARD/DRAGONHOARD_Config.hpp} with your desired output settings (\Cref{chap:hoard}).
+Along with \bash{Config.h}, \bash{Problem.cpp} contains the information needed to set up the problem you wish to run: both files are filled with comments explaining how to configure a particular problem. To run a problem, edit \bash{Config.h} to choose the numerical options (\Cref{sec:usage-config}) and edit \bash{Problem.cpp} to define the initial conditions (\Cref{sec:initial}), boundary conditions (\Cref{sec:boundary}). Lastly, configure \bash{DRAGONHOARD/DRAGONHOARD_Config.hpp} with your desired output settings (\Cref{ch:hoard}).
 
 
 The \bash{Examples/} folder includes several ready-made example problems. To run one of these problems, replace \bash{Config.h}, \bash{Problem.cpp}, and (if applicable) \bash{Constants.h} with the desired example's versions of those files. 
@@ -1384,9 +1385,9 @@ h5ls --version
 
 % ================= DRAGONGAZE =================
 \chapter{Making Plots: DRAGONGAZE (Alpha)}
-\label{chap:gaze}
+\label{ch:gaze}
 
-DRAGON Graphical Analysis \& Zonal Exploration (DRAGONGAZE) is DRAGON's Python plotting toolkit: a set of standalone scripts that turn the HDF5 frames written by DRAGON (\Cref{chap:hoard}) into PNG images, using Matplotlib. Nothing here needs to be compiled or linked against DRAGON -- \bash{DRAGONGAZE/} is a Python package, so each script is run as a module from the command line, from the directory that \emph{contains} \bash{DRAGONGAZE/}, once a simulation has produced at least one output frame.
+DRAGON Graphical Analysis \& Zonal Exploration (DRAGONGAZE) is DRAGON's Python plotting toolkit: a set of standalone scripts that turn the HDF5 frames written by DRAGON (\Cref{ch:hoard}) into PNG images, using Matplotlib. Nothing here needs to be compiled or linked against DRAGON -- \bash{DRAGONGAZE/} is a Python package, so each script is run as a module from the command line, from the directory that \emph{contains} \bash{DRAGONGAZE/}, once a simulation has produced at least one output frame.
 
 \section{Setup}
 \label{sec:gaze-setup}
@@ -1454,11 +1455,550 @@ Everything about how a plot looks is controlled from \py{Config.py} -- the plott
 
 % ================= Validation =================
 \chapter{Validation and Test Cases}
-\label{chap:tests}
+\label{ch:tests}
+
+DRAGON's verification scheme consists of three components:
+\begin{enumerate}
+\item An extensive suite of unit tests  (\bash{Testing/}) that exercises individual components in isolation
+\item Additional unit tests which exercise fundamental properties (e.g. conservation laws) of the Godunov scheme on a small grid over a short duration
+\item A set of example problems (\bash{Examples/}) that exercise the whole solver against known solutions to standard benchmark problems.
+\end{enumerate}
+The first two components are typically run together via the  \bash{DRAGON\_TESTS} target described in \Cref{ch:usage}. As a rule of thumb, developers should aim to run (and pass) the unit test suite before each commit.
+
+\section{Unit Test Suite}
+\label{sec:tests-unit}
+The main function in \bash{Testing.cpp} runs each component's top-level \cpp{verify_*()} entry point, which in turn runs all of the narrower tests for that component and prints a confirmation once each group passes. A complete lists of tests is declared in \bash{Testing.hpp}.
+
+
+Individual tests are plain \cpp{assert}-based checks (via \bash{<cassert>}). In addition to declaring all tests, \bash{Testing.hpp} provides helpers comparing floating-point results: \cpp{approx(a, b, rel, abs)} for scalars, and \cpp{expect_close(...)} for \cpp{vec3}, \cpp{PrimitiveState}, and \cpp{ConservativeState} objects. These functions accept both a relative and an absolute tolerance, defaulting to \cpp{1e-15} and \cpp{1e-18} respectively. 
+
+
+\subsection{Component Tests}
+In the order of execution, the following sets of component tests can be found in \bash{Testing/Core}
+\begin{itemize}
+\item \bash{FluidElement_Tests.cpp} exercises fluid arithmetic, state conversions, and other properties of the data types described in \Cref{sec:fluid-elements}.
+\item \bash{Grid_Tests.cpp} exercises array construction and indexing described in \Cref{sec:extendedarray}.
+\item \bash{Boundary/*} exercises the filling of ghost cells by boundary objects (\Cref{sec:boundary}). The file \bash{Boundary/Boundary_Tests.cpp} exercises boundary construction, boundary composition, and the no-op \cpp{Boundary::Ignore} class. All other built-in boundary types are tested within their own respective cpp file, with an additional file to test the gated variant of the outflow boundary.
+\item \bash{IO_Tests.cpp} Exercises the output and restart capabilities of DRAGONHOARD (\Cref{ch:hoard}). The primary tests here consist of writing a grid to a file and then loading it back in; the test passes if the imported grid matches the original.  There are  also two tests which check that DRAGONHOARD throws when the dimension or size of the constructed grid  doesn't match the provided grid.
+
+\item \bash{Riemann/*} exercises the Riemann solvers (\Cref{sec:riemann}).
+\item \bash{TVD_Tests.cpp} exercises MUSCL reconstruction (\Cref{sec:reconstruction}) and all of the limiters therein.
+\item \bash{CFL_Tests.cpp} exercises the computation of the CFL timestep bound (\Cref{sec:CFL}).
+
+\item \bash{MHD/Faraday_Tests.cpp} exercises portions of the constrained transport machinery (\Cref{sec:ct}), though the computation of electric fields is not tested explicitly in this version. One of the more important tests here is \cpp{verify_ct_divergence_2D/3D()}, which checks that the constrained transport preserves $\mathbf{ \nabla\cdot B} = 0$ to machine precision.
+\end{itemize}
+
+\subsection{Godunov Tests}
+
+Rather than exercising individual components, the tests in \bash{Godunov/*} and \bash{MHD/CT_Tests.cpp} exercise the fundamental properties of the Godunov scheme. For a typical test, a small grid is initialised and advanced for some short time interval, after which a series of assertions are run on the output.  
+Notable tests include
+\begin{itemize}
+%\item \textbf{Uniform Flows}: a uniform flow (with appropriate boundary conditions) remains constant.
+ \item \textbf{Periodic Conservation}: a flow within a periodic grid will obey conservation laws for mass, energy, and momentum. This test is particularly good at catching bugs.
+ \item \textbf{Domain Decomposition}: the domain-decomposed grid (\Cref{sec:distgrid}) will produce the same result as an equivalent monolithic grid. This test also ensures that a sufficient number of ghost cells are allocated by the grid constructor, since an insufficient number of ghosts will lead to subgrids computing different fluxes at their interfaces.
+\item \textbf{Zero Time}: a timestep of zero (\cpp{grid.advance(0)}) produces no change
+ \item \textbf{1D Match}: For multidimensional flows, a 1D problem can be reproduced exactly over a single timestep.
+\end{itemize}
+
+
+\section{Example Problems}
+\label{sec:tests-examples}
+
+The example problems in \bash{Examples/} (\Cref{sec:usage-problem}) validate DRAGON at the level of complete simulations rather than individual components. This is typically done via comparison against a known solution or published reference result, or through an internal convergence study.
+
+
+For problems with a convergence study, the example is repeated at successive grid resolutions $n, 2n, 4n, \dots$. At each resolution, \cpp{Problem::problemComplete(...)} computes the error (typically found by comparing the final frame to the initial frame, or to an analytic solution) and records it in  the $L_1$, $L_2$, and $L_\infty$ (max) norms. The observed convergence rate between two successive resolutions is then
+\begin{equation} q = \log_2(E_n/E_{2n}), \end{equation}
+where $E_n$ is the error at resolution $n$; for a scheme with formally $p$th-order accuracy, $q$ should approach $p$ as $n$ grows; the MUSCL-Hancock scheme (\Cref{sec:reconstruction}) DRAGON uses by default is formally second order, so $q\to2$ is the expectation in a well-resolved smooth-flow test. In practice, edge cases in MUSCL's formal order tend to result in the observed order falling somewhere between 1.0 and 2.0.
+
+
+\subsection{Examples in One Dimension}
+
+
+\begin{figure}[htbp]
+\centering
+\begin{subfigure}[t]{0.48\textwidth}
+\centering
+\includegraphics[width=\textwidth]{../Examples/1D/Sod/Sod.png}
+\caption{Sod}
+\end{subfigure}
+\hfill
+\begin{subfigure}[t]{0.48\textwidth}
+\centering
+\includegraphics[width=\textwidth]{../Examples/1D/Lax/Lax.png}
+\caption{Lax}
+\end{subfigure}
+
+\vspace{1em}
+\begin{subfigure}[t]{0.48\textwidth}
+\centering
+\includegraphics[width=\textwidth]{../Examples/1D/Strong Shock/StrongShock.png}
+\caption{Strong Shock}
+\end{subfigure}
+\hfill
+\begin{subfigure}[t]{0.48\textwidth}
+\centering
+\includegraphics[width=\textwidth]{../Examples/1D/Shu-Osher/Shu & Osher.png}
+\caption{Shu \& Osher}
+\end{subfigure}
+\caption{Reference output for the pure-hydrodynamic 1D examples.}
+\label{fig:1d-hydro}
+\end{figure}
+
+The 1D examples (\bash{Examples/1D/}) are classic shock-tube and wave-interaction Riemann problems with well-established reference solutions: Sod, Lax, Shu \& Osher, and the Strong Shock test for pure hydrodynamics; and Brio \& Wu, Dai \& Woodward, and Ryu \& Jones for MHD. Each is a self-contained \bash{Config.h}/\bash{Problem.cpp} pair (plus, for Brio \& Wu, a \bash{Constants.h} setting $\gamma = 2$). All of these problems use outflow boundaries, HLLC (hydro) or HLLD (MHD) as the Riemann solver, and MC limiting for hydro / MINMOD for MHD -- MC was found to produce spurious oscillations near strong shocks in the MHD cases. \Cref{fig:1d-hydro} shows DRAGON's output for the hydrodynamic problems, generated with DRAGONGAZE (\Cref{ch:gaze}); the corresponding plots for the MHD problems can be found in Appendix \ref{ch:additional-figures}.
+
+
+\subsection{Hydrodynamic Examples in Two and Three dimensions}
+
+The multidimensional hydrodynamic examples (\bash{Examples/Hydro/}) move past 1D shock tubes to exercise genuinely multidimensional behaviour.%: an exactly-known advected solution, a radially symmetric explosion, and a shear instability with no closed-form solution at all. 
+For these examples it is of particular importance to exercise the CTU integration (\Cref{sec:ctu}), since the hydrodynamic 12-solve code path is distinct from MHD's 6-solve algorithm. Each example provides a \bash{Problem2D.cpp}; some tests also provide a \bash{Problem3D.cpp} so the same physical setup can be run in either dimensionality.
+
+\subsubsection{Diagonal Advection Test}
+\label{sec:diagonal-advection}
+
+Diagonal Advection is DRAGON's simplest convergence test: a smooth sinusoidal density perturbation, $\rho(x,y,0) = \rho_0 + \rho_1\sin\!\big(2\pi(x+y)\big)$, is advected at unit velocity along the grid diagonal ($\mathbf{v} = (1,1)$ in 2D, $(1,1,1)$ in 3D). 
+Because the flow is smooth, periodic, and uniform-velocity advection, we can compare the computed solution to the  exact analytic solution 
+\begin{equation}\rho_\mathrm{exact}(x,y,t) = \rho_0 + \rho_1\sin\!\big(2\pi(x+y-2t)\big)\end{equation}
+ in 2D (and analogously with a $3t$ phase shift in 3D).
+We have run this problem using HLLC (\Cref{sec:riemann}) paired with three different limiters (\Cref{sec:reconstruction}) in 2D, plus one 3D run. The results are presented in Tables \ref{tab:diag-2D-minmod}--\ref{tab:diag-3D-MC}.
+
+\begin{table}[htbp]
+\centering
+\caption{Diagonal Advection  (2D) convergence, HLLC + Minmod.}
+\label{tab:diag-2D-minmod}
+\begin{tabular}{rcccccc}
+\toprule
+$n$ & $L_1$ error & $L_1$ rate & $L_2$ error & $L_2$ rate & $L_\infty$ error & $L_\infty$ rate \\
+\midrule
+128 & $1.034\times10^{-3}$ & --   & $1.412\times10^{-3}$ & --   & $3.703\times10^{-3}$ & --   \\
+256 & $2.863\times10^{-4}$ & 1.85 & $4.494\times10^{-4}$ & 1.65 & $1.512\times10^{-3}$ & 1.29 \\
+512 & $7.834\times10^{-5}$ & 1.87 & $1.422\times10^{-4}$ & 1.66 & $6.103\times10^{-4}$ & 1.31 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\caption{Diagonal Advection  (2D) convergence, HLLC + MC.}
+\label{tab:diag-2D-MC}
+\begin{tabular}{rcccccc}
+\toprule
+$n$ & $L_1$ error & $L_1$ rate & $L_2$ error & $L_2$ rate & $L_\infty$ error & $L_\infty$ rate \\
+\midrule
+128 & $2.249\times10^{-4}$ & --   & $3.107\times10^{-4}$ & --   & $9.426\times10^{-4}$ & --   \\
+256 & $5.631\times10^{-5}$ & 2.00 & $9.315\times10^{-5}$ & 1.74 & $3.880\times10^{-4}$ & 1.28 \\
+512 & $1.407\times10^{-5}$ & 2.00 & $2.812\times10^{-5}$ & 1.73 & $1.593\times10^{-4}$ & 1.28 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\caption{Diagonal Advection  (2D) convergence,  HLLC + Superbee.}
+\label{tab:diag-2D-superbee}
+\begin{tabular}{rcccccc}
+\toprule
+$n$ & $L_1$ error & $L_1$ rate & $L_2$ error & $L_2$ rate & $L_\infty$ error & $L_\infty$ rate \\
+\midrule
+128 & $6.932\times10^{-4}$ & --   & $9.097\times10^{-4}$ & --   & $2.784\times10^{-3}$ & --   \\
+256 & $1.987\times10^{-4}$ & 1.80 & $2.922\times10^{-4}$ & 1.64 & $1.272\times10^{-3}$ & 1.13 \\
+512 & $5.302\times10^{-5}$ & 1.90 & $9.130\times10^{-5}$ & 1.68 & $5.151\times10^{-4}$ & 1.30 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\caption{Diagonal Advection  (3D) convergence,  HLLC + MC.}
+\label{tab:diag-3D-MC}
+\begin{tabular}{rcccccc}
+\toprule
+$n$ & $L_1$ error & $L_1$ rate & $L_2$ error & $L_2$ rate & $L_\infty$ error & $L_\infty$ rate \\
+\midrule
+64  & $1.168\times10^{-3}$ & --   & $1.390\times10^{-3}$ & --   & $2.910\times10^{-3}$ & --   \\
+128 & $3.215\times10^{-4}$ & 1.86 & $4.245\times10^{-4}$ & 1.71 & $1.219\times10^{-3}$ & 1.25 \\
+256 & $8.195\times10^{-5}$ & 1.97 & $1.283\times10^{-4}$ & 1.73 & $5.142\times10^{-4}$ & 1.25 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The data is broadly consistent with the second-order expectation: $L_1$ converges at $q\approx1.9$--$2.0$ for the two smoother limiters (MC, minmod), $L_2$ and $L_\infty$ converge more slowly since they weight the (still slightly under-resolved) peak of the sine wave more heavily.
+Superbee meanwhile converges somewhat worse than the other limiters. This is expected, as it is the most compressive of the three limiters, and for a smooth-flow test there is no shock to sharpen so it only adds unnecessary numerical dissipation.
+
+\subsubsection{Sedov Blast Test}
+\label{sec:sedov-blast}
+
+The Sedov Blast test deposits a fixed amount of energy $E_\mathrm{blast}$ into a small region of radius $r_0$ (a handful of cells wide) at the centre of an otherwise uniform, low-pressure ambient medium. 
+The resulting point explosion is then allowed to expand outward. 
+Concretely, this is implemented as a pressure spike: \cpp{Problem::makeProblem()} first counts how many cells actually fall within $r_0$ of the origin at the chosen resolution, then scales the per-cell blast pressure so that the total deposited energy is (to grid resolution) independent of $n$. \cpp{Problem::initialFluidState(...)} then applies that pressure only within $r_0$, leaving density uniform ($\rho=1$) and the exterior at the low ambient pressure $p_\mathrm{amb}=10^{-5}$ everywhere else. 
+%The domain uses outflow boundaries (\Cref{sec:boundary}) so the resulting shock can leave the grid without reflecting back in.
+
+\begin{figure}[htbp]
+\centering
+\begin{subfigure}[t]{0.48\textwidth}
+\centering
+\includegraphics[width=\textwidth]{../Examples/Hydro/Blast/Output - 2D/density_frame_00007.png}
+\caption{Density}
+\end{subfigure}
+\hfill
+\begin{subfigure}[t]{0.48\textwidth}
+\centering
+\includegraphics[width=\textwidth]{../Examples/Hydro/Blast/Output - 2D/pressure_frame_00007.png}
+\caption{Pressure (log scale)}
+\end{subfigure}
+\caption{Reference output for the 2D Sedov Blast test at $t=0.07$.}
+\label{fig:blast}
+\end{figure}
+
+The expected result of this problem is the self-similar Sedov--Taylor blast wave: a thin, strong spherical (circular, in 2D) shock expanding outward, enclosing a hot, nearly-uniform-pressure interior and leaving vacuum-like ambient conditions untouched ahead of the shock front. However, such a strong, grid-aligned shock is prone to the carbuncle instability, a well-known failure mode in which a contact-preserving solver like HLLC lets a spurious, grid-aligned perturbation grow along the shock front.
+To avoid this, we use the HLLE (\Cref{sec:HLLE})  Riemann solver rather than HLLC for this example. HLLE has no separate contact wave, so it is more diffusive across contacts; that extra diffusion is exactly what damps the carbuncle-forming perturbation, at the cost of a somewhat more smeared shock front.
+
+
+The results plotted in \Cref{fig:blast} are as expected:  
+the density panel shows the characteristic thin high-density shell trailing the shock front with a nearly-evacuated interior, 
+and the (log-scaled) pressure panel shows the sharp several-orders-of-magnitude jump across the shock separating the hot post-shock bubble from the undisturbed ambient medium. 
+
+
+\subsubsection{Kelvin--Helmholtz Instability}
+\label{sec:kh-instability}
+
+The Kelvin--Helmholtz example sets up a shear layer: a denser right moving band ($\rho_1=2$, $v_x = +V_0$) separated from a lighter left-moving ambient medium ($\rho_2=1, v_x = -V_0$) by two $\tanh$-smoothed interfaces. 
+A small, spatially-localized transverse velocity perturbation is seeded at both interfaces -- a $\sin(2\pi\,\mathtt{kmode}\,x)$ pattern windowed by a Gaussian centred on each interface; this gives the shear instability something to grow from rather than waiting on grid noise. 
+The perturbation itself is periodic in $x$ (integer \cpp{kmode=2}), so the seeded pattern tiles smoothly even though the outflow boundary condition doesn't enforce it.
+
+
+\begin{figure}[htbp]
+\centering
+\begin{subfigure}[t]{0.48\textwidth}
+\centering
+\includegraphics[width=\textwidth]{../Examples/Hydro/Kelvin-Helmholtz/Outputs/KH_t_1_0.png}
+\caption{$t=1.0$}
+\end{subfigure}
+\hfill
+\begin{subfigure}[t]{0.48\textwidth}
+\centering
+\includegraphics[width=\textwidth]{../Examples/Hydro/Kelvin-Helmholtz/Outputs/KH_t_2_0.png}
+\caption{$t=2.0$}
+\end{subfigure}
+\caption{Density, showing the growth of the Kelvin--Helmholtz instability.}
+\label{fig:kh}
+\end{figure}
+
+
+Unlike the other two examples in this section, Kelvin--Helmholtz has no closed-form solution to compare against -- growth of the shear instability is chaotic at late times, so this example is checked qualitatively, by confirming the characteristic vortex roll-up pattern appears and grows as expected. \Cref{fig:kh} shows this development: at $t=1$ the perturbation is still a small-amplitude wave on the shear interface, while by $t=2$ it has rolled up into the pair of vortices expected from \cpp{kmode=2} (one every half-period of the seeded perturbation), with visible secondary structure at the vortex cores from the instability continuing to cascade to smaller scales.
+
+
+
+\subsection{MHD Examples in Two and Three dimensions}
+\subsubsection{Field Loop Advection}
+\label{sec:loop-advection}
+
+The field loop advection test carries a weak magnetic field loop across a periodic domain at uniform velocity. 
+The field is deliberately weak ($B_0=10^{-6}$) in order to isolate inductive advection from the effects of magnetic pressure and tension altering the fluid.
+Any distortion, diffusion, or divergence error in the transported field can only come from the induction step itself. 
+The background velocity is oblique to all grid axes: $(v_x,v_y)=(2,0.5)$ in 2D and $(v_x,v_y,v_z)=(2,1,1)$ in 3D (with the loop uniform in the $z$ direction).
+
+The example problem supports two loop profiles. The \emph{uniform} profile sets the vector potential $A_z = B_0\max(r_0-r,0)$, a cone that is linear in $r$ and therefore gives a field of constant magnitude $|B_\phi|=B_0$ everywhere inside $r<r_0$, dropping to zero outside. The \emph{Gaussian} profile instead sets $A_z=B_0\exp\!\big(-\tfrac12(r/r_0)^2\big)$, giving a smooth field magnitude that peaks in an annulus around the loop centre and has no kink.
+
+Because the domain is periodic and the advection velocity is uniform, the chosen run time is an integer number of periods along all axes, so the field should return exactly to its initial shape.
+ \Cref{fig:loop-advection} shows this for both profiles, both at the initial and final times.
+
+\begin{figure}[htbp]
+\centering
+\begin{subfigure}[t]{0.48\textwidth}
+\centering
+\includegraphics[width=\textwidth]{../Examples/MHD/LoopAdvection/Outputs/2D_frame_0.png}
+\caption{2D, uniform $B_\phi$, $t=0$}
+\end{subfigure}
+\hfill
+\begin{subfigure}[t]{0.48\textwidth}
+\centering
+\includegraphics[width=\textwidth]{../Examples/MHD/LoopAdvection/Outputs/3D_Gaussian_0.png}
+\caption{3D, Gaussian $A_z$, $t=0$}
+\end{subfigure}
+
+\begin{subfigure}[t]{0.48\textwidth}
+\centering
+\includegraphics[width=\textwidth]{../Examples/MHD/LoopAdvection/Outputs/2D_frame_40.png}
+\caption{2D, uniform $B_\phi$, $t=4$}
+\end{subfigure}
+\hfill
+\begin{subfigure}[t]{0.48\textwidth}
+\centering
+\includegraphics[width=\textwidth]{../Examples/MHD/LoopAdvection/Outputs/3D_Gaussian_40.png}
+\caption{3D, Gaussian $A_z$, $t=4$}
+\end{subfigure}
+\caption{Magnetic field strength for the Field Loop Advection test, before and after two full advection periods.}
+\label{fig:loop-advection}
+\end{figure}
+
+As with the other periodic advection tests, \cpp{Problem::problemComplete(...)} validates the run by reloading the initial frame from disk with \cpp{DRAGONHOARD::loadFromFile(...)} and differencing it against the final state, componentwise in $\mathbf{B}$. 
+The reported $L_1$ error is $|\overline{\delta\mathbf B}|$, the magnitude of the mean absolute error vector.
+Convergence data for both profiles are given in \Cref{tab:loop-uniform}--\Cref{tab:loop-gaussian}. The $n=512$ cases were not run in 3D on account of the diminishing returns for another high-resolution simulation being insufficient to justify the multi-day runtime.
+
+\begin{table}[htbp]
+\centering
+\caption{Field Loop Advection, uniform $B_\phi$ convergence.}
+\begin{tabular}{rcccc}
+\toprule
+& \multicolumn{2}{c}{2D} & \multicolumn{2}{c}{3D} \\
+\cmidrule(lr){2-3}\cmidrule(lr){4-5}
+$n$ & $L_1$ error & $L_1$ rate & $L_1$ error & $L_1$ rate \\
+\midrule
+64  & $5.211\times10^{-8}$ & --   & $5.657\times10^{-8}$ & --   \\
+128 & $2.718\times10^{-8}$ & 0.94 & $3.040\times10^{-8}$ & 0.90 \\
+256 & $1.615\times10^{-8}$ & 0.74 & --                   & --   \\
+512 & $1.052\times10^{-8}$ & 0.62 & --                   & --   \\
+\bottomrule
+\end{tabular}
+\label{tab:loop-uniform}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\caption{Field Loop Advection, Gaussian $A_z$ convergence.}
+\begin{tabular}{rcccc}
+\toprule
+& \multicolumn{2}{c}{2D} & \multicolumn{2}{c}{3D} \\
+\cmidrule(lr){2-3}\cmidrule(lr){4-5}
+$n$ & $L_1$ error & $L_1$ rate & $L_1$ error & $L_1$ rate \\
+\midrule
+64  & $2.088\times10^{-7}$ & --   & $2.309\times10^{-7}$ & --   \\
+128 & $8.032\times10^{-8}$ & 1.38 & $9.191\times10^{-8}$ & 1.32 \\
+256 & $2.702\times10^{-8}$ & 1.57 & $3.214\times10^{-8}$ & 1.51 \\
+512 & $9.061\times10^{-9}$ & 1.57 & --                   & --   \\
+\bottomrule
+\end{tabular}
+\label{tab:loop-gaussian}
+\end{table}
+
+Unlike Diagonal Advection (\Cref{sec:diagonal-advection}), which converges at $q\approx1.9$--$2.0$, the loop advection error rates sit well below second order: $q\approx0.6$--$0.9$ for the uniform-$B_\phi$ profile and $q\approx1.3$--$1.6$ for the Gaussian profile. 
+For the uniform-$B_\phi$ profile, this is most likely the result of the discontinuities at $r=0$ and $r_0$:  a scheme built around smooth reconstruction cannot converge faster than first order through a kink like this, which caps its observed rate close to 1. 
+The Gaussian profile has no such kink and converges noticeably faster, though it is still below the $q\approx2$ seen for Diagonal Advection. %This may be a result of the loop being a genuinely two-dimensional feature  as opposed to Diagonal Advection's sine wave being separable and effectively one-dimensional along the advection direction. 
+
+\subsubsection{Linear Wave Convergence}
+\label{sec:linear-waves}
+
+The MHD linear wave test (cite: GS08) seeds a single, exactly linear eigenmode of the MHD equations on top of a uniform background state and lets it propagate. 
+The background is oriented obliquely to the grid so that the wave crosses all three axes rather than propagating along a single grid line, allowing this problem to properly test the convergence of DRAGON's CTU-CT implementation.
+
+All seven wave modes are implemented: fast, Alfv\'en, slow, and entropy, with $+$ and $-$ variants for the first three.
+ The background is perturbed by $\epsilon R\cos(2\pi x_1)$, where $R$ is the analytic eigenvector for the selected mode, $x_1$ is the rotated propagation coordinate, and $\epsilon=10^{-6}$ is small enough to stay in the linear regime.
+
+As with Field Loop Advection, validation reloads the initial frame with \cpp{DRAGONHOARD::loadFromFile(...)} and differences it against the state after the wave has propagated an integer number of wavelengths back to its starting position. Here the comparison spans every conserved field at once: the componentwise $L_1$ errors in $\rho$, $\rho\mathbf{v}$, $\mathbf{B}$, and $E$ are all computed, and then combined into a single scalar
+\begin{equation}
+L_1 = \sqrt{L_1(\rho)^2 + L_1(\rho\mathbf{v})^2 + L_1(\mathbf B)^2 + L_1(E)^2}.
+\end{equation}
+Tables \ref{tab:wave-fast}--\ref{tab:wave-entropy} give the results for both propagation directions ($+$/$-$) of the fast, Alfv\'en, and slow modes, as well as for the (direction-independent) entropy mode.
+
+\begin{table}[htbp]
+\centering
+\caption{MHD Linear Wave (3D, fast mode) convergence.}
+\begin{tabular}{rcccc}
+\toprule
+$n$ & $(+)$ $L_1$ error & $(+)$ $L_1$ rate & $(-)$ $L_1$ error & $(-)$ $L_1$ rate \\
+\midrule
+16 & $5.389\times10^{-7}$ & --   & $5.389\times10^{-7}$ & --   \\
+32 & $1.171\times10^{-7}$ & 2.20 & $1.175\times10^{-7}$ & 2.20 \\
+64 & $3.466\times10^{-8}$ & 1.76 & $3.463\times10^{-8}$ & 1.76 \\
+\bottomrule
+\end{tabular}
+\label{tab:wave-fast}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\caption{MHD Linear Wave (3D, Alfv\'en mode) convergence.}
+\begin{tabular}{rcccc}
+\toprule
+$n$ & $(+)$ $L_1$ error & $(+)$ $L_1$ rate & $(-)$ $L_1$ error & $(-)$ $L_1$ rate \\
+\midrule
+16 & $4.657\times10^{-7}$ & --   & $4.657\times10^{-7}$ & --   \\
+32 & $9.576\times10^{-8}$ & 2.28 & $9.573\times10^{-8}$ & 2.28 \\
+64 & $2.481\times10^{-8}$ & 1.95 & $2.482\times10^{-8}$ & 1.95 \\
+\bottomrule
+\end{tabular}
+\label{tab:wave-alfven}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\caption{MHD Linear Wave (3D, slow mode) convergence.}
+\begin{tabular}{rcccc}
+\toprule
+$n$ & $(+)$ $L_1$ error & $(+)$ $L_1$ rate & $(-)$ $L_1$ error & $(-)$ $L_1$ rate \\
+\midrule
+16 & $1.723\times10^{-7}$ & --   & $1.723\times10^{-7}$ & --   \\
+32 & $4.457\times10^{-8}$ & 1.95 & $4.457\times10^{-8}$ & 1.95 \\
+64 & $1.321\times10^{-8}$ & 1.75 & $1.322\times10^{-8}$ & 1.75 \\
+\bottomrule
+\end{tabular}
+\label{tab:wave-slow}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\caption{MHD Linear Wave (3D, entropy mode) convergence.}
+\begin{tabular}{rcc}
+\toprule
+$n$ & $L_1$ error & $L_1$ rate \\
+\midrule
+16 & $1.250\times10^{-7}$ & --   \\
+32 & $4.511\times10^{-8}$ & 1.47 \\
+64 & $1.381\times10^{-8}$ & 1.71 \\
+\bottomrule
+\end{tabular}
+\label{tab:wave-entropy}
+\end{table}
+
+The fast, Alfv\'en, and slow modes all converge close to second order at these resolutions, as expected for smooth linear waves on the (formally second-order) MUSCL--Hancock scheme.
+The entropy mode converges somewhat more slowly; this mode is purely advected, so its accuracy is governed entirely by the scalar advection error similar in character to the sub-second-order behaviour seen for the piecewise-linear loop profile in \Cref{sec:loop-advection}.
+For the fast, Alfv\'en, and slow modes, the  $+$ and $-$ branches agree with each other to within a few percent, as expected by symmetry.
+
+
+
+\subsubsection{MHD Blast}
+\label{sec:mhd-blast}
+
+
+\begin{figure}[htbp]
+\centering
+\begin{subfigure}[t]{0.48\textwidth}
+\centering
+\includegraphics[width=\textwidth]{../Examples/MHD/Blast/Outputs/MHD_Blast_2D_density.png}
+\caption{2D, Density}
+\end{subfigure}
+\hfill
+\begin{subfigure}[t]{0.48\textwidth}
+\centering
+\includegraphics[width=\textwidth]{../Examples/MHD/Blast/Outputs/MHD_Blast_2D_magnetic.png}
+\caption{2D, $|\mathbf{B}|$}
+\end{subfigure}
+
+\begin{subfigure}[t]{0.48\textwidth}
+\centering
+\includegraphics[width=\textwidth]{../Examples/MHD/Blast/Outputs/MHD_Blast_3D_density.png}
+\caption{3D, Density (mid-plane slice)}
+\end{subfigure}
+\hfill
+\begin{subfigure}[t]{0.48\textwidth}
+\centering
+\includegraphics[width=\textwidth]{../Examples/MHD/Blast/Outputs/MHD_Blast_3D_magnetic.png}
+\caption{3D, $|\mathbf{B}|$ (mid-plane slice)}
+\end{subfigure}
+\caption{MHD Blast test at $t=0.02$, 2D and 3D.}
+\label{fig:mhd-blast}
+\end{figure}
+
+The MHD Blast test is the magnetized counterpart to the hydrodynamic Sedov Blast (\Cref{sec:sedov-blast}): a small central region of radius $r_0$ is set to a much higher pressure ($p_\mathrm{blast}=100$) than the surrounding ambient medium ($p_\mathrm{amb}=1$), with uniform density and zero velocity everywhere. 
+Unlike the hydro version, the domain is threaded by a strong, uniform background magnetic field, with magnetic pressure comparable to or larger than the blast overpressure. 
+This field is  oriented diagonally at $45^\circ$ to the grid by default to better exercise the CTU machinery.
+
+
+\Cref{fig:mhd-blast} shows the result in both 2D and 3D. 
+As a result of magnetic tension along the field lines, the blast expansion is no longer circular as was the case in the hydrodynamic counterpart. Instead, the anisotropic blast expansion should demonstrate the shock moving faster along the field lines than in other directions. The magnetic field strength panels show evacuated cavities near the blast centre, where the explosion has pushed the field outward and compressed it into the bright rim.
+
+
+\subsubsection{MHD Rotor}
+\label{sec:mhd-rotor}
+
+The MHD Rotor test embeds a dense, rigidly rotating disk ($\rho_0=10$, angular velocity $\omega=20$, radius $r_0=0.1$) in a lighter, stationary ambient medium ($\rho_\mathrm{amb}=1$), with a linear taper in density and velocity between $r_0$ and $r_1=0.115$ so the initial condition is continuous. A uniform background field $B_x=B_0$ threads the whole domain. 
+Though the problem has no closed analytical solution, it is still useful in demonstrating expected behaviours of MHD: 
+as the disk spins up the surrounding fluid, it winds the field lines into a strong torsional structure, launching Alfv\'en waves outward and progressively braking the rotor , thus testing the coupling between the magnetic tension force and rotational flow.
+
+\begin{figure}[htbp]
+\centering
+\begin{subfigure}[t]{0.48\textwidth}
+\centering
+\includegraphics[width=\textwidth]{../Examples/MHD/MHDRotor/Outputs/MHDRotor2D-density.png}
+\caption{Density}
+\end{subfigure}
+\hfill
+\begin{subfigure}[t]{0.48\textwidth}
+\centering
+\includegraphics[width=\textwidth]{../Examples/MHD/MHDRotor/Outputs/MHDRotor2D-magnetic.png}
+\caption{$|\mathbf{B}|$}
+\end{subfigure}
+\caption{MHD Rotor test at $t=0.15$.}
+\label{fig:mhd-rotor}
+\end{figure}
+
+
+\Cref{fig:mhd-rotor} shows the expected result: the dense rotor has been drawn out into a thin, sheared ring bounded by a pair of spiral shocks, while the magnetic field strength panel shows the low-field cavity carved out at the centre of the rotor and the wound-up, compressed field trailing behind the spiral arms -- the signature of the torsional Alfv\'en waves the rotation launches into the ambient medium.
+
+\subsubsection{Orszag--Tang}
+\label{sec:orszag-tang}
+
+The Orszag--Tang vortex is a fully periodic problem on $[0,2\pi]^2$: the velocity field $\mathbf v = (-\sin y,\ \sin x, 0)$ sets up a large-scale vortical flow, while the vector potential $A_z = B_0\big(\cos y + \tfrac14\cos 2x\big)$ seeds a magnetic field with an X-point current sheet at the origin. As with the MHD Rotor, there is no closed-form solution to compare against; instead this problem is a visual benchmark of a code's ability to handle the development of MHD turbulence, evolving a smooth initial vortex into a cascade of interacting shocks and current sheets.
+
+
+\begin{figure}[htbp]
+\centering
+\begin{subfigure}[t]{0.48\textwidth}
+\centering
+\includegraphics[width=\textwidth]{../Examples/MHD/Orszag–Tang/Outputs/OT2D-1.png}
+\caption{$t=\pi/2$}
+\end{subfigure}
+\hfill
+\begin{subfigure}[t]{0.48\textwidth}
+\centering
+\includegraphics[width=\textwidth]{../Examples/MHD/Orszag–Tang/Outputs/OT2D-2.png}
+\caption{$t=\pi$}
+\end{subfigure}
+
+\begin{subfigure}[t]{0.48\textwidth}
+\centering
+\includegraphics[width=\textwidth]{../Examples/MHD/Orszag–Tang/Outputs/OT2D-3.png}
+\caption{$t=3\pi/2$}
+\end{subfigure}
+\hfill
+\begin{subfigure}[t]{0.48\textwidth}
+\centering
+\includegraphics[width=\textwidth]{../Examples/MHD/Orszag–Tang/Outputs/OT2D-4.png}
+\caption{$t=2\pi$}
+\end{subfigure}
+\caption{Density evolution of the Orszag--Tang vortex.}
+\label{fig:orszag-tang}
+\end{figure}
+
+
+
+
+\Cref{fig:orszag-tang} shows this development.
+At $t=\pi/2$, the flow is still close to the smooth initial vortex, with the first diagonal shear bands just beginning to steepen.
+By $t=\pi$, these have sharpened into well-defined oblique shocks bracketing the central current sheet.
+Finally, at $t=3\pi/2$ and $t=2\pi$ the interacting shocks have broken the flow up into a web of small-scale structure characteristic of MHD turbulence.
+
 
 
 % ================= Appendix =================
 \appendix
+
+\chapter{Additional Test Problem Plots}
+\label{ch:additional-figures}
+
+Full-page versions of the MHD 1D reference plots referenced from \Cref{sec:tests-examples}, one per figure so that all six-to-eight panels of each remain legible.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.5\textwidth]{../Examples/1D/Brio-Wu/Brio & Wu.png}
+\caption{Reference output for the Brio \& Wu shock tube.}
+\label{fig:1d-mhd-briowu}
+\end{figure}
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=0.7\textwidth]{../Examples/1D/Dai-Woodward/Dai & Woodward.png}
+\caption{Reference output for the Dai \& Woodward shock tube.}
+\label{fig:1d-mhd-daiwoodward}
+\end{figure}
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=0.7\textwidth]{../Examples/1D/Ryu-Jones/Ryu & Jones.png}
+\caption{Reference output for the Ryu \& Jones shock tube.}
+\label{fig:1d-mhd-ryujones}
+\end{figure}
 
 \chapter{Changelog}
 \textbf{26 August 2026}:  Initial documentation for DRAGON v1.0
