@@ -1,22 +1,31 @@
 '''
-GAZE1D.py
+GAZE1DMHD.py
 DRAGONGAZE
 Created by Bobbie Markwick on 07/07/2026.
+
+Fixed-layout plotting script for 1D MHD runs.
+Part of the DRAGONGAZE package -- run with no arguments as a module, from the
+directory that CONTAINS DRAGONGAZE/ (see package __init__.py for why):
+    python -m DRAGONGAZE.GAZE1DMHD
+Produces one 4x2-panel PNG per existing output frame (rho, vx, p, E, vy, By, vz, Bz).  Bx is deliberately NOT plotted: div(B) = 0 forces Bx to be spatially uniform in 1D, so a spatial plot of it would just be a flat line.
+For the pure-hydro equivalent see GAZE1D.py.
 '''
 
 import matplotlib.pyplot as plt
 import h5py
 import numpy as np
-from HDF5_keys import *
-from Config import *
-from FileUtils import *
+from .HDF5_keys import *
+from .Config import *
+from .FileUtils import *
 
 
-    
+
 def readFile(n):
+    #Reads the fields this script plots directly out of frame n's HDF5 file (bypassing FileUtils.readField, which is written for one field at a time; reading all four here in one open() call is cheaper)
+    #Note Bx is intentionally not read -- see module docstring.
     rho, vx, vy,By,p, E, dx, t = [],[],[],[],[],[], 0,0
     with h5py.File(h5FileName(n), "r") as f:
-        rho = f[key_rho][:]              # read dataset into NumPy array]
+        rho = f[key_rho][:] # read dataset into NumPy array
         p   = f[key_p][:]
         E   = f[key_E][:]
 
@@ -30,8 +39,10 @@ def readFile(n):
         dx = f.attrs[key_dx]
         t = f.attrs[key_time]
     return  rho, vx,vy,vz,By,Bz,p, E, t, dx
-    
+
 def plotFile(n, rho,vx,vy,By,p,E,t,dx, rho_rng, v_rng, p_rng, E_rng, vy_rng, By_rng, vz_rng, Bz_rng):
+    #Renders one frame's eight fields into a single 4x2 figure and saves it to img_dir.
+    #The *_rng arguments are precomputed once (see below) and shared across every frame, so a frame's panels are never rescaled relative to the run as a whole.
     x = np.arange(len(rho)) * dx
     
     if x_mode < 0: np.flip(x)
@@ -98,14 +109,15 @@ def plotFile(n, rho,vx,vy,By,p,E,t,dx, rho_rng, v_rng, p_rng, E_rng, vy_rng, By_
     plt.close(fig)
 
 
-rho_rng = range(key_rho)
-v_rng = range(key_vx)
-vy_rng = range(key_vy)
-vz_rng = range(key_vz)
-By_rng = range(key_By)
-Bz_rng = range(key_Bz)
-p_rng = range(key_p)
-E_rng = range(key_E)
+#Compute each field's global [min, max] across every existing frame up front (FileUtils.field_range/pad_range), so axis limits stay fixed for the whole run rather than jumping frame to frame.
+rho_rng = field_range(key_rho)
+v_rng = field_range(key_vx)
+vy_rng = field_range(key_vy)
+vz_rng = field_range(key_vz)
+By_rng = field_range(key_By)
+Bz_rng = field_range(key_Bz)
+p_rng = field_range(key_p)
+E_rng = field_range(key_E)
 
 pad_range(rho_rng)
 pad_range(v_rng)
@@ -116,6 +128,7 @@ pad_range(vz_rng)
 pad_range(By_rng)
 pad_range(Bz_rng)
 
+#Plot every frame that currently exists (see FileUtils.fileExists)
 n = 0
 while fileExists(n):
     rho, vx,vy,vz,By,Bz,p, E, t, dx = readFile(n)

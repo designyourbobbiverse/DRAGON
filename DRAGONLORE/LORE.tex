@@ -64,6 +64,7 @@
 
 \newcommand{\cpp}[1]{\lstinline[language=C++]{#1}}
 \newcommand{\bash}[1]{\lstinline[language=bash]{#1}}
+\newcommand{\py}[1]{\lstinline[language=Python]{#1}}
 
 % ---------- Title page info ----------
 \title{\textbf{DRAGON}\\ Divergence-Regulation for Adaptive Godunov-Oriented Numerics\\ Literary Overview \& Reference Entries (LORE) Document}
@@ -1033,7 +1034,7 @@ DRAGON's in-house visualisation toolkit DRAGONGAZE (\Cref{chap:gaze}) depends se
 
 
 % ================= DRAGONWING =================
-\chapter{DRAGONWING}
+\chapter{Performance: DRAGONWING}
 \label{chap:wing}
 
 DRAGON Wide Infrastructure Numerical Grids (DRAGONWING) is DRAGON's support library for memory management and multithreading. 
@@ -1171,7 +1172,7 @@ Leaf grids (\cpp{children.size() <= 1}) bypass all of this: their \cpp{split\_st
 
 
 % ================= DRAGONHOARD =================
-\chapter{DRAGONHOARD}
+\chapter{File Output: DRAGONHOARD}
 \label{chap:hoard}
 
 {DRAGON Hierarchical Output for Analysis, Restarts, and Diagnostics} (DRAGONHOARD) is DRAGON's I/O library: it writes simulation output, and supports loading them back in as restart-checkpoints. The public interface (\bash{DragonHoard.hpp}) exposes \cpp{writeToFile}/\cpp{loadFromFile}, each overloaded once per grid dimensionality plus a \cpp{Grid}-dispatching version that picks the right overload with a \cpp{dynamic_cast}.
@@ -1223,8 +1224,51 @@ When restarts are enabled, \cpp{RESTART_FRAME} selects which frame to load; if n
 
 
 % ================= DRAGONGAZE =================
-\chapter{DRAGONGAZE}
+\chapter{Making Plots: DRAGONGAZE (Alpha)}
 \label{chap:gaze}
+
+DRAGON Graphical Analysis \& Zonal Exploration (DRAGONGAZE) is DRAGON's Python plotting toolkit: a set of standalone scripts that turn the HDF5 frames written by DRAGON (\Cref{chap:hoard}) into PNG images, using Matplotlib. Nothing here needs to be compiled or linked against DRAGON -- \bash{DRAGONGAZE/} is a Python package, so each script is run as a module from the command line, from the directory that \emph{contains} \bash{DRAGONGAZE/}, once a simulation has produced at least one output frame.
+
+\section{Setup}
+\label{sec:gaze-setup}
+
+DRAGONGAZE needs \textbf{h5py} and \textbf{Matplotlib} installed (\Cref{sec:dependencies}). Before running any script, check two settings at the top of \py{Config.py}: \py{hdf_dir} must point to the same directory the simulation is writing output to (i.e.\ DRAGONHOARD's own \py{output_dir}, \Cref{sec:hoard-format}), and \py{img_dir} is where the generated plots will be saved. Be sure to create this directory first if it doesn't already exist.
+
+\section{Generating Plots}
+\label{sec:gaze-usage}
+
+Every command below is run from the directory that contains \bash{DRAGONGAZE/} (e.g.\ the DRAGON repository root), not from inside it -- see \Cref{sec:gaze-developers} for why.
+
+\begin{itemize}
+\item \textbf{1D runs:} run \py{python -m DRAGONGAZE.GAZE1D} for hydrodynamics, or \py{python -m DRAGONGAZE.GAZE1DMHD} for MHD. No arguments are needed -- each produces one multi-panel image per existing frame, combining density, pressure, energy, and velocity (plus, for MHD, the transverse magnetic field components) into a single figure.
+\item \textbf{2D/3D runs:} list the fields to plot on the command line, e.g.\ \py{python -m DRAGONGAZE.GAZE2D rho p Bmag} or \py{python -m DRAGONGAZE.GAZE3D rho Bmag}. Each named field gets its own image per frame. Available field names are \py{rho}, \py{vx}, \py{vy}, \py{vz}, \py{p}, \py{E}, and (MHD builds) \py{Bx}, \py{By}, \py{Bz}, plus \py{Bmag} for the field strength $|\mathbf{B}|$ -- this is computed automatically, so there's no need to request the components separately just to see it.
+\item \textbf{3D slices:} a field can optionally be suffixed with an axis pair to pick which mid-plane slice to render, e.g.\ \py{rho-xy}, \py{p-xz}, \py{Bmag-yz} (order doesn't matter -- \py{xy} and \py{yx} give the same slice). A field with no suffix produces all three mid-plane slices. A field can be listed twice to select two of the three possible slices, for example \py{rho-xy rho-xz}.
+\end{itemize}
+
+Images are written into \py{img_dir}, named by field, frame number, and (for 3D) axis pair (e.g.\ \py{density\_frame\_00003.png}, or \py{density\_xy\_frame\_00003.png} for a 3D slice).  A sequence of frames for one field sorts naturally and can be stitched directly into an animation (e.g.\ with \bash{ffmpeg} or \bash{magick}). To keep such an animation from flickering, DRAGONGAZE fixes each field's colour and axis limits once across every existing frame before it starts plotting, rather than rescaling them frame by frame.
+
+\section{Customizing Plot Appearance}
+\label{sec:gaze-appearance}
+
+Everything about how a plot looks is controlled from \py{Config.py} -- the plotting scripts themselves never need to be touched:
+\begin{itemize}
+\item \py{titles} and \py{labels} set each field's plot title and axis label -- labels support LaTeX-style math via Matplotlib's mathtext, so a density label can be written to render as $\rho$ rather than plain text.
+\item \py{cmaps} sets the colormap used for each field; any colormap name from \href{https://matplotlib.org/stable/gallery/color/colormap_reference.html}{Matplotlib's reference} can be used.
+\item \py{log_plots} switches a field between a linear and a logarithmic scale.
+\item \py{x_mode}/\py{y_mode}/\py{z_mode} choose where each axis's origin is labelled from -- centred, or at one edge. This is purely cosmetic and never changes the underlying data.
+\item \py{plot_title} sets a title shared across every plot, and \py{time_unit} appends a unit label after the timestamp shown on each plot. DRAGON is unitless by default, so this is left blank unless a specific run has been given physical units.
+\end{itemize}
+
+
+\section{Additional Information for Developers}
+\label{sec:gaze-developers}
+
+ \bash{HDF5_keys.py} maps each plottable field name to the HDF5 dataset path DRAGONHOARD wrote it under (\Cref{sec:hoard-format}). These paths are hard-copied from \bash{HDF5_Attrs.hpp} rather than shared with the C++ side in any way, so a key renamed or added there has no effect until \bash{HDF5_keys.py} is updated to match. The failure mode is a plain \py{KeyError} at plot time, not a build error.
+ 
+ 
+ 
+ \py{FileUtils.readField(n, field)} is what actually resolves a field name to an array: for every field except \py{Bmag} this is a direct lookup via \py{HDF5_keys.keys}, while \py{Bmag} is synthesized on the fly as $\sqrt{B_x^2+B_y^2+B_z^2}$ since it isn't stored directly.
+ You can use the same pattern to (checking for a special-cased name before falling back to the \py{keys} lookup) is the place to add any other derived quantity (such as kinetic energy). Be sure to also add entries for the your new field in \bash{Config.py}.
 
 
 
