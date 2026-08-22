@@ -31,7 +31,7 @@ void DRAGON_Test::verify_godunov_1D(bool output){
     #ifdef MHD
     verify_godunov_1D_MHD();
     #endif
-    if(output) std::cout<<"- Parallelization: ";
+    if(output) std::cout<<"- Domain Decomposition: ";
     verify_god_dist_grid_1D();
     if(output) std::cout<<"Passed\n";
 
@@ -55,7 +55,7 @@ void DRAGON_Test::verify_godunov_2D_Split(bool output){
     verify_god_periodic_conservation_2D(true);
     if(output) std::cout<<"Passed\n";
     #ifndef DIMENSION_UNSPLIT
-    if(output) std::cout<<"- Parallelization: ";
+    if(output) std::cout<<"- Domain Decomposition: ";
     verify_god_dist_grid_2D();
     if(output) std::cout<<"Passed\n";
     #endif
@@ -93,7 +93,7 @@ void DRAGON_Test::verify_godunov_2D_Unsplit(bool output){
     #endif
 
     #ifdef DIMENSION_UNSPLIT
-    if(output) std::cout<<"- Parallelization: ";
+    if(output) std::cout<<"- Domain Decomposition: ";
     verify_god_dist_grid_2D();
     #ifdef MHD
     verify_god_dist_grid_2D_MHD();
@@ -140,7 +140,7 @@ void DRAGON_Test::verify_godunov_3D_Split(bool output){
     verify_god_periodic_conservation_3D(true);
     if(output) std::cout<<"Passed\n";
     #ifndef DIMENSION_UNSPLIT
-    if(output) std::cout<<"- Parallelization: ";
+    if(output) std::cout<<"- Domain Decomposition: ";
     verify_god_dist_grid_3D();
     if(output) std::cout<<"Passed\n";
     #endif
@@ -179,7 +179,7 @@ void DRAGON_Test::verify_godunov_3D_Unsplit(bool output){
     #endif
 
     #ifdef DIMENSION_UNSPLIT
-    if(output) std::cout<<"- Parallelization: ";
+    if(output) std::cout<<"- Domain Decomposition: ";
     verify_god_dist_grid_3D();
     #ifdef MHD
     verify_god_dist_grid_3D_MHD();
