@@ -43,19 +43,12 @@ DRAGON/
   Problem.cpp       Example problem initialization and output handling
 
 DRAGONWING/         Multithreading & Memory Management
-  Config.h          Performance-related Settings
 DRAGONHOARD/        HDF5 output + simulation restart
-  Config.h          Output Settings
 DRAGONGAZE/         Plotting Tools
   Config.h          Visualisation Settings
 Examples/           Example Problems & Validation
 Testing/            Unit test suite
 ```
-## Acronyms
-Besides DRAGON itself, the full names of some of the other components are as follows:
-- DRAGONWING: DRAGON Wide Infrastructure for Numerical Grids
-- DRAGONGAZE: DRAGON Graphical Analysis and Zonal Exploration
-- DRAGONHOARD: DRAGON Hierarchichal Ouptut for Analysis, Restarts, and Diagnostics
 
 ## Configuration
 
@@ -187,8 +180,6 @@ h5c++ -std=c++23 -O3 \
     -IDRAGON -IDRAGONWING -IDRAGONHOARD -ITesting \
     $(find DRAGON DRAGONWING DRAGONHOARD Testing -name "*.cpp")
 ```
-
-Note that the output name is `bin/DRAGON`, not just `DRAGON` — naming the executable `DRAGON` directly would collide with the `DRAGON/` source directory of the same name sitting in the project root, and the link step would fail.
 
 If the compiler cannot find `H5Cpp.h`, add the appropriate include path with `-I`. 
 

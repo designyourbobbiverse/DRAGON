@@ -98,6 +98,134 @@
 %This document is organized as follows....
 
 
+
+% ================= Code Structure =================
+\chapter{Code Structure}
+\label{chap:code}
+
+\section{Directory Layout}
+\begin{lstlisting}[language=bash, caption={Repository layout}]
+DRAGON/                    # repository root
+|-- DRAGON/                # core solver source
+|   |-- Boundary/          # boundary conditions
+|   |-- FluidElement/      # primitive/conservative state & arithmetic
+|   |-- Hydro/             # hydrodynamic solver
+|   |   |-- CFL/           # timestep control
+|   |   |-- Godunov/       # split/unsplit driver, flux application
+|   |   |-- Reconstruction/# MUSCL interface-state reconstruction
+|   |   |-- Riemann/       # Exact, HLL, HLLE, HLLC, HLLD, Roe solvers
+|   |-- MHD/               # constrained transport (E-field, Faraday, body fields)
+|   |-- Refinement/        # domain decomposition (DistGrid)
+|   |-- main/              # program entry point & problem setup
+|   |-- Config.h, Constants.h, Problem.cpp
+|-- DRAGONWING/            # memory management & multithreading
+|   |-- Memory/            # RAII scratch arrrays
+|   |-- Multithreading/    # multithreading
+|-- DRAGONHOARD/           # HDF5 output & restart I/O
+|-- DRAGONGAZE/            # Python visualisation/analysis scripts
+|-- DRAGONLORE/            # this documentation
+|-- Examples/              # example problem setups
+|   |-- 1D/                # shock tubes
+|   |-- Hydro/             # 2D and 3D Hydro examples
+|   |   |-- Blast/, Diagonal/, Kelvin-Helmholtz/
+|   |-- MHD/               # 2D and 3D MHD examples
+|   |   |-- Blast/, LoopAdvection/, MHDRotor/, Orszag-Tang/, Waves/
+|-- Testing/               # unit tests
+|   |-- Core/
+|-- LICENSE                #Apache License
+|-- README.md
+\end{lstlisting}
+
+\section{Data Structures}
+\label{sec:data-structures}
+
+\subsection{Fluid Elements}
+\label{sec:fluid-elements}
+
+The following data types are defined in \bash{DRAGON/FluidElement/FluidElement.h}
+
+\subsubsection{vec3}
+
+\cpp{DRAGON::vec3} is a plain structure with $x,y,z$ components.
+The following operations are supported:
+\begin{itemize}
+\item Addition (\cpp{+}, \cpp{+=}) and Subtraction  (\cpp{-}, \cpp{-=}) with another \cpp{vec3}.
+\item Multiplication (\cpp{*}, \cpp{*=}) and Division  (\cpp{/}, \cpp{/=}) by a scalar \cpp{double}.
+\item Dot (\cpp{*}) and cross (\cpp{cross(v1, v2)}) product between two \cpp{vec3}'s.
+\item Swapping two components, either in place (e.g. \cpp{swapXY()}) or on a copy (e.g. \cpp{swappedXY()}).
+\end{itemize}
+
+\subsubsection{PrimitiveState}
+
+\cpp{DRAGON::PrimitiveState} represents a single fluid element (i.e.\ one cell's state), which contains density \cpp{rho}, pressure \cpp{p}, velocity vector \cpp{v}, and (MHD only) magnetic field vector \cpp{B}. This is the form the solver reconstructs, applies boundary conditions to, and reports as output.
+
+As already noted in \Cref{chap:physics}, \cpp{B} is stored in Gaussian (non-rationalized) units, so the code is explicit about factors of $4\pi$ wherever they appear -- concretely, \bash{Constants.h} predefines \cpp{_1_4pi} ($=1/4\pi$), \cpp{_1_8pi} ($=1/8\pi$), and \cpp{sq4pi} ($=\sqrt{4\pi}$) rather than dividing by $4\pi$ inline. %and both energy density and pressure conversions add/remove a magnetic term $\mathbf{B}^2/8\pi$.
+
+\subsubsection{ConservativeState}
+
+\cpp{DRAGON::ConservativeState} represents a fluid element in conservative form: mass density \cpp{rho}, energy density \cpp{E}, momentum density vector \cpp{mom}, and (MHD only) \cpp{B}. This is the form fluxes are computed and applied in: rather than a true fluid element, a particular instance of \cpp{ConservativeState} might instead represent a flux (times one computational unit time per computational unit length).
+
+The following fluid arithmetic operations are supported by \cpp{ConservativeState}
+\begin{itemize}
+\item Addition (\cpp{+}, \cpp{+=}) and Subtraction  (\cpp{-}, \cpp{-=}) with another \cpp{ConservativeState}.
+\item Multiplication (\cpp{*}, \cpp{*=}) and Division  (\cpp{/}, \cpp{/=}) of all components by a \cpp{double}.
+\item Swapping two dimensions as with \cpp{vec3}. This swaps the corresponding components of both \cpp{mom} and \cpp{B}. \cpp{PrimitiveState} also supports this operation directly (using \cpp{v} instead of \cpp{mom}).
+\end{itemize}
+
+Both \cpp{PrimitiveState} and \cpp{ConservativeState} are constructible from the other (\cpp{ConservativeState(PrimitiveState)} and \cpp{PrimitiveState(ConservativeState)}).  This can be done explicitly via the other, and is also done implicitly whenever a \cpp{PrimitiveState} is used in fluid arithmetic. 
+If you need to directly add or subtract the components of two \cpp{PrimitiveState}'s, you will need to do this manually on each component.
+
+Both types also provide a number of other physically relevant quantities, such as various wave speeds, \cpp{energy()} or \cpp{pressure()} on a primitive or conservative state, and \cpp{flux()} to calculate the fluxes of the governing MHD equations (\ref{eq:MHD}). The \cpp{flux()} function returns the flux in the $x$-direction, and in MHD includes the electric fields from the induction equation as the \cpp{B} components (see \Cref{sec:ct}).  When called from a \cpp{ConservativeState}, \cpp{flux()} can optionally take the velocity \cpp{v} if already known; otherwise \cpp{v} is computed from \cpp{mom} and \cpp{rho}.
+
+
+\subsection{ExtendedArray}
+\label{sec:extendedarray}
+Grid storage is built on a small family of templates in \bash{DRAGON/Hydro/ExtendedArray}: \cpp{ExtendedArray1D<T>}, \cpp{ExtendedArray2D<T>}, and \cpp{ExtendedArray3D<T>}. Each owns a single flat, row-major heap array sized to include a configurable ghost margin.
+Accessing elements within an extended array is done via \cpp{array[i]}, \cpp{array[i,j]}, or \cpp{array[i,j,k]} depending on the array's dimension\footnote{It is for this reason that DRAGON requires C++23}. 
+\cpp{i}, \cpp{j}, or \cpp{k} may be negative or exceed that dimension's size by an amount up to the array's ghost margin; in this case the accessed quantity corresponds not to a physical item but to cell within the boundary layer\footnote{Or, in the case of domain decomposition (\Cref{sec:distgrid}), it might be a cell owned by another subgrid.}.
+When DRAGON is built for testing, every cell access will assert that the bounds of the ghosts are within the valid range; this check is compiled out in production builds.
+
+\cpp{ExtendedArray} objects can't be copied using normal C++ syntax, but the contents of one array can be copied to another (with identical dimension) using  \cpp{clone(ref, copyghosts)}. Ghost cells are copied only if \cpp{copyghosts} is true.
+
+\bash{ArrayTypes.hpp} defines the concrete array types used throughout the solver as typedefs over these templates and \cpp{PrimitiveState}/\cpp{ConservativeState}/\cpp{vec3} (\Cref{sec:fluid-elements}) -- e.g.\ \cpp{FluidArray2D = ExtendedArray2D<PrimitiveState>}, \cpp{FluxArray3D = ExtendedArray3D<ConservativeState>}, \cpp{MagneticArray2D = ExtendedArray2D<vec3>}. 
+
+
+\subsection{Grid}
+\label{sec:grid}
+
+Fundamentally, a \cpp{DRAGON::Grid} (\bash{DRAGON/Hydro/Grid.hpp}) is one or more extended arrays together with a boundary condition and the ability to advance the arrays in time. 
+
+The abstract \cpp{Grid} base class declares the two pure-virtual per-step advancement functions \cpp{split_step(dt)}/\cpp{unsplit_step(dt)}, the CFL-aware driver \cpp{advance(dt, check_cfl)} which wraps either \cpp{advance_split}/\cpp{advance_unsplit} (\Cref{sec:CFL}), and the virtual failure hook \cpp{on_step_fail(e)} used by the retry-with-halving loop.
+
+The dimension-specific subclasses \cpp{Grid1D}/\cpp{Grid2D}/\cpp{Grid3D} each own one \cpp{FluidArray1D/2D/3D w} (\Cref{sec:extendedarray}) as their primary state, plus a staggered \cpp{MagneticArray2D/3D B} in MHD builds (\Cref{sec:ct}).
+The magnetic field is stored on a staggered face-centred grid, with \cpp{B[i,j,k].x} corresponding to $B_{i-\frac12,j,k}^x$, \cpp{B[i,j,k].y}  to $B_{i,j-\frac12,k}^y$, and \cpp{B[i,j,k].z}  to $B_{i,j,k-\frac12}^z$.
+ External functions can access a reference to the staggered magnetic array via \cpp{grid._B()}.
+
+
+\section{Dependencies}
+\label{sec:dependencies}
+
+DRAGON's only dependency is \textbf{HDF5}, used by DRAGONHOARD (\Cref{chap:hoard})\footnote{Core DRAGON and DRAGONWING are agnostic to the file storage format, so if HDF5 is for some reason unavailable on your system, you would only need to modify DRAGONHOARD to interface with your alternative format.} for output and restart I/O.  
+No other third-party library is required to build or run DRAGON itself.
+
+DRAGON's in-house visualisation toolkit DRAGONGAZE (\Cref{chap:gaze}) depends separately on \textbf{h5py} (to read the HDF5 files DRAGONHOARD writes) and \textbf{Matplotlib} (to render plots from that data). These are Python-side dependencies only and do not affect the C++ build.
+
+
+On macOS, HDF5 can be installed with Homebrew:
+\begin{lstlisting}[language=bash]
+brew install hdf5
+brew --prefix hdf5
+\end{lstlisting}
+The second command prints the path to the HDF5 installation on your computer. This will usually \bash{/opt/homebrew/opt/hdf5} on Apple Silicon Macs, or \bash{/usr/local/opt/hdf5} on Intel Macs.
+
+
+
+On Linux, install HDF5 through your system package manager -- for example, on Debian/Ubuntu:
+\begin{lstlisting}[language=bash]
+sudo apt install libhdf5-dev
+\end{lstlisting}
+
+
 % ================= Physical Model =================
 \chapter{Physical Model \& Numerical Methods}
 \label{chap:physics}
@@ -920,132 +1048,6 @@ DRAGON supports three different procedures for handling the energy in the CT upd
 The desired option can be selected by setting \cpp{CT_ENERGY_CONSV} in \bash{Config.h}.
 
 
-% ================= Code Structure =================
-\chapter{Code Structure}
-\label{chap:code}
-
-\section{Directory Layout}
-\begin{lstlisting}[language=bash, caption={Repository layout}]
-DRAGON/                    # repository root
-|-- DRAGON/                # core solver source
-|   |-- Boundary/          # boundary conditions
-|   |-- FluidElement/      # primitive/conservative state & arithmetic
-|   |-- Hydro/             # hydrodynamic solver
-|   |   |-- CFL/           # timestep control
-|   |   |-- Godunov/       # split/unsplit driver, flux application
-|   |   |-- Reconstruction/# MUSCL interface-state reconstruction
-|   |   |-- Riemann/       # Exact, HLL, HLLE, HLLC, HLLD, Roe solvers
-|   |-- MHD/               # constrained transport (E-field, Faraday, body fields)
-|   |-- Refinement/        # domain decomposition (DistGrid)
-|   |-- main/              # program entry point & problem setup
-|   |-- Config.h, Constants.h, Problem.cpp
-|-- DRAGONWING/            # memory management & multithreading
-|   |-- Memory/            # RAII scratch arrrays
-|   |-- Multithreading/    # multithreading
-|-- DRAGONHOARD/           # HDF5 output & restart I/O
-|-- DRAGONGAZE/            # Python visualisation/analysis scripts
-|-- DRAGONLORE/            # this documentation
-|-- Examples/              # example problem setups
-|   |-- 1D/                # shock tubes
-|   |-- Hydro/             # 2D and 3D Hydro examples
-|   |   |-- Blast/, Diagonal/, Kelvin-Helmholtz/
-|   |-- MHD/               # 2D and 3D MHD examples
-|   |   |-- Blast/, LoopAdvection/, MHDRotor/, Orszag-Tang/, Waves/
-|-- Testing/               # unit tests
-|   |-- Core/
-|-- LICENSE                #Apache License
-|-- README.md
-\end{lstlisting}
-
-\section{Data Structures}
-\label{sec:data-structures}
-
-\subsection{Fluid Elements}
-\label{sec:fluid-elements}
-
-The following data types are defined in \bash{DRAGON/FluidElement/FluidElement.h}
-
-\subsubsection{vec3}
-
-\cpp{DRAGON::vec3} is a plain structure with $x,y,z$ components.
-The following operations are supported:
-\begin{itemize}
-\item Addition (\cpp{+}, \cpp{+=}) and Subtraction  (\cpp{-}, \cpp{-=}) with another \cpp{vec3}.
-\item Multiplication (\cpp{*}, \cpp{*=}) and Division  (\cpp{/}, \cpp{/=}) by a scalar \cpp{double}.
-\item Dot (\cpp{*}) and cross (\cpp{cross(v1, v2)}) product between two \cpp{vec3}'s.
-\item Swapping two components, either in place (e.g. \cpp{swapXY()}) or on a copy (e.g. \cpp{swappedXY()}).
-\end{itemize}
-
-\subsubsection{PrimitiveState}
-
-\cpp{DRAGON::PrimitiveState} represents a single fluid element (i.e.\ one cell's state), which contains density \cpp{rho}, pressure \cpp{p}, velocity vector \cpp{v}, and (MHD only) magnetic field vector \cpp{B}. This is the form the solver reconstructs, applies boundary conditions to, and reports as output.
-
-As already noted in \Cref{chap:physics}, \cpp{B} is stored in Gaussian (non-rationalized) units, so the code is explicit about factors of $4\pi$ wherever they appear -- concretely, \bash{Constants.h} predefines \cpp{_1_4pi} ($=1/4\pi$), \cpp{_1_8pi} ($=1/8\pi$), and \cpp{sq4pi} ($=\sqrt{4\pi}$) rather than dividing by $4\pi$ inline. %and both energy density and pressure conversions add/remove a magnetic term $\mathbf{B}^2/8\pi$.
-
-\subsubsection{ConservativeState}
-
-\cpp{DRAGON::ConservativeState} represents a fluid element in conservative form: mass density \cpp{rho}, energy density \cpp{E}, momentum density vector \cpp{mom}, and (MHD only) \cpp{B}. This is the form fluxes are computed and applied in: rather than a true fluid element, a particular instance of \cpp{ConservativeState} might instead represent a flux (times one computational unit time per computational unit length).
-
-The following fluid arithmetic operations are supported by \cpp{ConservativeState}
-\begin{itemize}
-\item Addition (\cpp{+}, \cpp{+=}) and Subtraction  (\cpp{-}, \cpp{-=}) with another \cpp{ConservativeState}.
-\item Multiplication (\cpp{*}, \cpp{*=}) and Division  (\cpp{/}, \cpp{/=}) of all components by a \cpp{double}.
-\item Swapping two dimensions as with \cpp{vec3}. This swaps the corresponding components of both \cpp{mom} and \cpp{B}. \cpp{PrimitiveState} also supports this operation directly (using \cpp{v} instead of \cpp{mom}).
-\end{itemize}
-
-Both \cpp{PrimitiveState} and \cpp{ConservativeState} are constructible from the other (\cpp{ConservativeState(PrimitiveState)} and \cpp{PrimitiveState(ConservativeState)}).  This can be done explicitly via the other, and is also done implicitly whenever a \cpp{PrimitiveState} is used in fluid arithmetic. 
-If you need to directly add or subtract the components of two \cpp{PrimitiveState}'s, you will need to do this manually on each component.
-
-Both types also provide a number of other physically relevant quantities, such as various wave speeds, \cpp{energy()} or \cpp{pressure()} on a primitive or conservative state, and \cpp{flux()} to calculate the fluxes of the governing MHD equations (\ref{eq:MHD}). The \cpp{flux()} function returns the flux in the $x$-direction, and in MHD includes the electric fields from the induction equation as the \cpp{B} components (see \Cref{sec:ct}).  When called from a \cpp{ConservativeState}, \cpp{flux()} can optionally take the velocity \cpp{v} if already known; otherwise \cpp{v} is computed from \cpp{mom} and \cpp{rho}.
-
-
-\subsection{ExtendedArray}
-\label{sec:extendedarray}
-Grid storage is built on a small family of templates in \bash{DRAGON/Hydro/ExtendedArray}: \cpp{ExtendedArray1D<T>}, \cpp{ExtendedArray2D<T>}, and \cpp{ExtendedArray3D<T>}. Each owns a single flat, row-major heap array sized to include a configurable ghost margin.
-Accessing elements within an extended array is done via \cpp{array[i]}, \cpp{array[i,j]}, or \cpp{array[i,j,k]} depending on the array's dimension\footnote{It is for this reason that DRAGON requires C++23}. 
-\cpp{i}, \cpp{j}, or \cpp{k} may be negative or exceed that dimension's size by an amount up to the array's ghost margin; in this case the accessed quantity corresponds not to a physical item but to cell within the boundary layer\footnote{Or, in the case of domain decomposition (\Cref{sec:distgrid}), it might be a cell owned by another subgrid.}.
-When DRAGON is built for testing, every cell access will assert that the bounds of the ghosts are within the valid range; this check is compiled out in production builds.
-
-\cpp{ExtendedArray} objects can't be copied using normal C++ syntax, but the contents of one array can be copied to another (with identical dimension) using  \cpp{clone(ref, copyghosts)}. Ghost cells are copied only if \cpp{copyghosts} is true.
-
-\bash{ArrayTypes.hpp} defines the concrete array types used throughout the solver as typedefs over these templates and \cpp{PrimitiveState}/\cpp{ConservativeState}/\cpp{vec3} (\Cref{sec:fluid-elements}) -- e.g.\ \cpp{FluidArray2D = ExtendedArray2D<PrimitiveState>}, \cpp{FluxArray3D = ExtendedArray3D<ConservativeState>}, \cpp{MagneticArray2D = ExtendedArray2D<vec3>}. 
-
-
-\subsection{Grid}
-\label{sec:grid}
-
-Fundamentally, a \cpp{DRAGON::Grid} (\bash{DRAGON/Hydro/Grid.hpp}) is one or more extended arrays together with a boundary condition and the ability to advance the arrays in time. 
-
-The abstract \cpp{Grid} base class declares the two pure-virtual per-step advancement functions \cpp{split_step(dt)}/\cpp{unsplit_step(dt)}, the CFL-aware driver \cpp{advance(dt, check_cfl)} which wraps either \cpp{advance_split}/\cpp{advance_unsplit} (\Cref{sec:CFL}), and the virtual failure hook \cpp{on_step_fail(e)} used by the retry-with-halving loop.
-
-The dimension-specific subclasses \cpp{Grid1D}/\cpp{Grid2D}/\cpp{Grid3D} each own one \cpp{FluidArray1D/2D/3D w} (\Cref{sec:extendedarray}) as their primary state, plus a staggered \cpp{MagneticArray2D/3D B} in MHD builds (\Cref{sec:ct}).
-The magnetic field is stored on a staggered face-centred grid, with \cpp{B[i,j,k].x} corresponding to $B_{i-\frac12,j,k}^x$, \cpp{B[i,j,k].y}  to $B_{i,j-\frac12,k}^y$, and \cpp{B[i,j,k].z}  to $B_{i,j,k-\frac12}^z$.
- External functions can access a reference to the staggered magnetic array via \cpp{grid._B()}.
-
-
-\section{Dependencies}
-\label{sec:dependencies}
-
-DRAGON's only dependency is \textbf{HDF5}, used by DRAGONHOARD (\Cref{chap:hoard})\footnote{Core DRAGON and DRAGONWING are agnostic to the file storage format, so if HDF5 is for some reason unavailable on your system, you would only need to modify DRAGONHOARD to interface with your alternative format.} for output and restart I/O.  
-No other third-party library is required to build or run DRAGON itself.
-
-DRAGON's in-house visualisation toolkit DRAGONGAZE (\Cref{chap:gaze}) depends separately on \textbf{h5py} (to read the HDF5 files DRAGONHOARD writes) and \textbf{Matplotlib} (to render plots from that data). These are Python-side dependencies only and do not affect the C++ build.
-
-
-On macOS, HDF5 can be installed with Homebrew:
-\begin{lstlisting}[language=bash]
-brew install hdf5
-brew --prefix hdf5
-\end{lstlisting}
-The second command prints the path to the HDF5 installation on your computer. This will usually \bash{/opt/homebrew/opt/hdf5} on Apple Silicon Macs, or \bash{/usr/local/opt/hdf5} on Intel Macs.
-
-
-
-On Linux, install HDF5 through your system package manager -- for example, on Debian/Ubuntu:
-\begin{lstlisting}[language=bash]
-sudo apt install libhdf5-dev
-\end{lstlisting}
-
 
 % ================= DRAGONWING =================
 \chapter{Performance: DRAGONWING}
@@ -1237,74 +1239,6 @@ Whether a run attempts to restart at all is controlled at compile time by \cpp{R
 When restarts are enabled, \cpp{RESTART_FRAME} selects which frame to load; if negative (the default), \cpp{restartFileName()} scans \cpp{output_dir} and restarts from whichever \cpp{..._#####.h5} file has the highest cycle number. 
 
 
-% ================= DRAGONGAZE =================
-\chapter{Making Plots: DRAGONGAZE (Alpha)}
-\label{chap:gaze}
-
-DRAGON Graphical Analysis \& Zonal Exploration (DRAGONGAZE) is DRAGON's Python plotting toolkit: a set of standalone scripts that turn the HDF5 frames written by DRAGON (\Cref{chap:hoard}) into PNG images, using Matplotlib. Nothing here needs to be compiled or linked against DRAGON -- \bash{DRAGONGAZE/} is a Python package, so each script is run as a module from the command line, from the directory that \emph{contains} \bash{DRAGONGAZE/}, once a simulation has produced at least one output frame.
-
-\section{Setup}
-\label{sec:gaze-setup}
-
-DRAGONGAZE needs \textbf{h5py} and \textbf{Matplotlib} installed (\Cref{sec:dependencies}). Before running any script, check two settings at the top of \py{Config.py}: \py{hdf_dir} must point to the same directory the simulation is writing output to (i.e.\ DRAGONHOARD's own \py{output_dir}, \Cref{sec:hoard-format}), and \py{img_dir} is where the generated plots will be saved. Be sure to create this directory first if it doesn't already exist.
-
-\section{Generating Plots}
-\label{sec:gaze-usage}
-
-Every command below is run from the directory that contains \bash{DRAGONGAZE/} (e.g.\ the DRAGON repository root), not from inside it -- see \Cref{sec:gaze-developers} for why.
-
-\begin{itemize}
-\item \textbf{1D runs:} run \py{python -m DRAGONGAZE.GAZE1D} for hydrodynamics, or \py{python -m DRAGONGAZE.GAZE1DMHD} for MHD. No arguments are needed -- each produces one multi-panel image per existing frame, combining density, pressure, energy, and velocity (plus, for MHD, the transverse magnetic field components) into a single figure.
-\item \textbf{2D/3D runs:} list the fields to plot on the command line, e.g.\ \py{python -m DRAGONGAZE.GAZE2D rho p Bmag} or \py{python -m DRAGONGAZE.GAZE3D rho Bmag}. Each named field gets its own image per frame. Available field names are \py{rho}, \py{vx}, \py{vy}, \py{vz}, \py{p}, \py{E}, and (MHD builds) \py{Bx}, \py{By}, \py{Bz}, plus \py{Bmag} for the field strength $|\mathbf{B}|$ -- this is computed automatically, so there's no need to request the components separately just to see it.
-\item \textbf{3D slices:} a field can optionally be suffixed with an axis pair to pick which mid-plane slice to render, e.g.\ \py{rho-xy}, \py{p-xz}, \py{Bmag-yz} (order doesn't matter -- \py{xy} and \py{yx} give the same slice). A field with no suffix produces all three mid-plane slices. A field can be listed twice to select two of the three possible slices, for example \py{rho-xy rho-xz}.
-\end{itemize}
-
-Images are written into \py{img_dir}, named by field, frame number, and (for 3D) axis pair (e.g.\ \py{density\_frame\_00003.png}, or \py{density\_xy\_frame\_00003.png} for a 3D slice).  A sequence of frames for one field sorts naturally and can be stitched directly into an animation (e.g.\ with \bash{ffmpeg} or \bash{magick}). To keep such an animation from flickering, DRAGONGAZE fixes each field's colour and axis limits once across every existing frame before it starts plotting, rather than rescaling them frame by frame.
-
-\section{Customizing Plot Appearance}
-\label{sec:gaze-appearance}
-
-Everything about how a plot looks is controlled from \py{Config.py} -- the plotting scripts themselves never need to be touched:
-\begin{itemize}
-\item \py{titles} and \py{labels} set each field's plot title and axis label -- labels support LaTeX-style math via Matplotlib's mathtext, so a density label can be written to render as $\rho$ rather than plain text.
-\item \py{cmaps} sets the colormap used for each field; any colormap name from \href{https://matplotlib.org/stable/gallery/color/colormap_reference.html}{Matplotlib's reference} can be used.
-\item \py{log_plots} switches a field between a linear and a logarithmic scale.
-\item \py{x_mode}/\py{y_mode}/\py{z_mode} choose where each axis's origin is labelled from -- centred, or at one edge. This is purely cosmetic and never changes the underlying data.
-\item \py{plot_title} sets a title shared across every plot, and \py{time_unit} appends a unit label after the timestamp shown on each plot. DRAGON is unitless by default, so this is left blank unless a specific run has been given physical units.
-\end{itemize}
-
-
-\section{Additional Information for Developers}
-\label{sec:gaze-developers}
-
- \bash{HDF5_keys.py} maps each plottable field name to the HDF5 dataset path DRAGONHOARD wrote it under (\Cref{sec:hoard-format}). These paths are hard-copied from \bash{HDF5_Attrs.hpp} rather than shared with the C++ side in any way, so a key renamed or added there has no effect until \bash{HDF5_keys.py} is updated to match. The failure mode is a plain \py{KeyError} at plot time, not a build error.
- 
- 
- 
- \py{FileUtils.readField(n, field)} is what actually resolves a field name to an array: for every field except \py{Bmag} this is a direct lookup via \py{HDF5_keys.keys}, while \py{Bmag} is synthesized on the fly as $\sqrt{B_x^2+B_y^2+B_z^2}$ since it isn't stored directly.
- You can use the same pattern to (checking for a special-cased name before falling back to the \py{keys} lookup) is the place to add any other derived quantity (such as kinetic energy). Be sure to also add entries for the your new field in \bash{Config.py}.
-
-
-
-
- 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 % ================= Installation and Usage =================
 \chapter{Running DRAGON}
@@ -1446,6 +1380,76 @@ or
 \begin{lstlisting}[language=bash]
 h5ls --version
 \end{lstlisting}
+
+
+% ================= DRAGONGAZE =================
+\chapter{Making Plots: DRAGONGAZE (Alpha)}
+\label{chap:gaze}
+
+DRAGON Graphical Analysis \& Zonal Exploration (DRAGONGAZE) is DRAGON's Python plotting toolkit: a set of standalone scripts that turn the HDF5 frames written by DRAGON (\Cref{chap:hoard}) into PNG images, using Matplotlib. Nothing here needs to be compiled or linked against DRAGON -- \bash{DRAGONGAZE/} is a Python package, so each script is run as a module from the command line, from the directory that \emph{contains} \bash{DRAGONGAZE/}, once a simulation has produced at least one output frame.
+
+\section{Setup}
+\label{sec:gaze-setup}
+
+DRAGONGAZE needs \textbf{h5py} and \textbf{Matplotlib} installed (\Cref{sec:dependencies}). Before running any script, check two settings at the top of \py{Config.py}: \py{hdf_dir} must point to the same directory the simulation is writing output to (i.e.\ DRAGONHOARD's own \py{output_dir}, \Cref{sec:hoard-format}), and \py{img_dir} is where the generated plots will be saved. Be sure to create this directory first if it doesn't already exist.
+
+\section{Generating Plots}
+\label{sec:gaze-usage}
+
+Every command below is run from the directory that contains \bash{DRAGONGAZE/} (e.g.\ the DRAGON repository root), not from inside it -- see \Cref{sec:gaze-developers} for why.
+
+\begin{itemize}
+\item \textbf{1D runs:} run \py{python -m DRAGONGAZE.GAZE1D} for hydrodynamics, or \py{python -m DRAGONGAZE.GAZE1DMHD} for MHD. No arguments are needed -- each produces one multi-panel image per existing frame, combining density, pressure, energy, and velocity (plus, for MHD, the transverse magnetic field components) into a single figure.
+\item \textbf{2D/3D runs:} list the fields to plot on the command line, e.g.\ \py{python -m DRAGONGAZE.GAZE2D rho p Bmag} or \py{python -m DRAGONGAZE.GAZE3D rho Bmag}. Each named field gets its own image per frame. Available field names are \py{rho}, \py{vx}, \py{vy}, \py{vz}, \py{p}, \py{E}, and (MHD builds) \py{Bx}, \py{By}, \py{Bz}, plus \py{Bmag} for the field strength $|\mathbf{B}|$ -- this is computed automatically, so there's no need to request the components separately just to see it.
+\item \textbf{3D slices:} a field can optionally be suffixed with an axis pair to pick which mid-plane slice to render, e.g.\ \py{rho-xy}, \py{p-xz}, \py{Bmag-yz} (order doesn't matter -- \py{xy} and \py{yx} give the same slice). A field with no suffix produces all three mid-plane slices. A field can be listed twice to select two of the three possible slices, for example \py{rho-xy rho-xz}.
+\end{itemize}
+
+Images are written into \py{img_dir}, named by field, frame number, and (for 3D) axis pair (e.g.\ \py{density\_frame\_00003.png}, or \py{density\_xy\_frame\_00003.png} for a 3D slice).  A sequence of frames for one field sorts naturally and can be stitched directly into an animation (e.g.\ with \bash{ffmpeg} or \bash{magick}). To keep such an animation from flickering, DRAGONGAZE fixes each field's colour and axis limits once across every existing frame before it starts plotting, rather than rescaling them frame by frame.
+
+\section{Customizing Plot Appearance}
+\label{sec:gaze-appearance}
+
+Everything about how a plot looks is controlled from \py{Config.py} -- the plotting scripts themselves never need to be touched:
+\begin{itemize}
+\item \py{titles} and \py{labels} set each field's plot title and axis label -- labels support LaTeX-style math via Matplotlib's mathtext, so a density label can be written to render as $\rho$ rather than plain text.
+\item \py{cmaps} sets the colormap used for each field; any colormap name from \href{https://matplotlib.org/stable/gallery/color/colormap_reference.html}{Matplotlib's reference} can be used.
+\item \py{log_plots} switches a field between a linear and a logarithmic scale.
+\item \py{x_mode}/\py{y_mode}/\py{z_mode} choose where each axis's origin is labelled from -- centred, or at one edge. This is purely cosmetic and never changes the underlying data.
+\item \py{plot_title} sets a title shared across every plot, and \py{time_unit} appends a unit label after the timestamp shown on each plot. DRAGON is unitless by default, so this is left blank unless a specific run has been given physical units.
+\end{itemize}
+
+
+\section{Additional Information for Developers}
+\label{sec:gaze-developers}
+
+ \bash{HDF5_keys.py} maps each plottable field name to the HDF5 dataset path DRAGONHOARD wrote it under (\Cref{sec:hoard-format}). These paths are hard-copied from \bash{HDF5_Attrs.hpp} rather than shared with the C++ side in any way, so a key renamed or added there has no effect until \bash{HDF5_keys.py} is updated to match. The failure mode is a plain \py{KeyError} at plot time, not a build error.
+ 
+ 
+ 
+ \py{FileUtils.readField(n, field)} is what actually resolves a field name to an array: for every field except \py{Bmag} this is a direct lookup via \py{HDF5_keys.keys}, while \py{Bmag} is synthesized on the fly as $\sqrt{B_x^2+B_y^2+B_z^2}$ since it isn't stored directly.
+ You can use the same pattern to (checking for a special-cased name before falling back to the \py{keys} lookup) is the place to add any other derived quantity (such as kinetic energy). Be sure to also add entries for the your new field in \bash{Config.py}.
+
+
+
+
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 % ================= Validation =================
