@@ -18,6 +18,7 @@ DRAGON is a modern C++ Eulerian hydrodynamics and magnetohydrodynamics code impl
 - Boundary options can be combined using a BoundaryList, which can be invoked by syntax such as 
 `Boundary::Reflective("X") + Boundary::Periodic("YZ")`
 - A unit test suite covering fluid elements, Riemann Solvers, boundary conditions, Godunov methods, constrained transport, and more
+- Over a dozen standard benchmark problems, including shock tubes, blasts, convergence tests, and the Orszag-Tang Vortex.
 
 
 ## Project Layout
@@ -28,7 +29,7 @@ DRAGON/
     BoundaryTypes/  Pre-defined options (Reflective, Periodic, Outflow, etc)
   FluidElement/     Primitive/conservative states, vectors, fluxes, arithmetic
   Hydro/            Godunov Scheme Components
-    Hydro/Grid.hpp        Grid structure which holds fluid elements
+    Grid.hpp        Grid structure which holds fluid elements
     CFL/            Timestep Control
     ExtendedArray/  Multidimensional arrays + ghost access
     Godunov/        Sweep logic, split/unsplit updates
@@ -239,9 +240,6 @@ Currently, 3D only supports plotting midplane slices.
 ## Status and Roadmap
 
 DRAGON is an actively developed research code. The current version is suitable for demonstrating the numerical framework, solver implementations, boundary-condition infrastructure, and unit-test coverage. Basic plotting tools are also included. 
-
-Todo before v1.0:
-- Write Documentation
 
 Additional features planned for future versions include:
 - Adaptive Mesh Refinement
