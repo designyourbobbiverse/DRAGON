@@ -3,6 +3,7 @@
 //  DRAGON/Examples/MHD/LoopAdvection
 //
 //  Created by Bobbie Markwick on 20/07/2026.
+//  Gardiner and Stone (2008). https://arxiv.org/abs/0712.2634
 //
 
 #include "main/Problem.hpp"

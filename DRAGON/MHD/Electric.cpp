@@ -4,7 +4,7 @@
 //  DRAGON/MHD
 //
 //  Created by Bobbie Markwick on 24/06/2026.
-//  CT Implementaiton based in part on https://doi.org/10.1088/0067-0049/182/2/519
+//  CT Implementaiton based in part on https://arxiv.org/abs/0710.0424
 //      Evans and Hawley (1988). https://doi.org/10.1086/166684
 //      Gardiner and Stone (2008). https://arxiv.org/abs/0712.2634
 

@@ -3,6 +3,7 @@
 //  DRAGON/Examples/1D/Lax
 //
 //  Created by Bobbie Markwick on 7/07/2026.
+//  Lax (1954). https://doi.org/10.1002/cpa.3160070112
 //
 
 #include "main/Problem.hpp"

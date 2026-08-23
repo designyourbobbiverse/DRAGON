@@ -3,6 +3,8 @@
 //  DRAGON/Examples/Hydro/Blast
 //
 //  Created by Bobbie Markwick on 7/07/2026.
+//  Taylor (1950). https://doi.org/10.1098/rspa.1950.0049
+//  Sedov (1959). Similarity and Dimensional Methods in Mechanics (book, no DOI/arXiv).
 //
 
 #include "main/Problem.hpp"

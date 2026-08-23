@@ -3,6 +3,7 @@
 //  DRAGON/Examples/1D/Brio-Wu
 //
 //  Created by Bobbie Markwick on 7/07/2026.
+//  Brio and Wu (1988). https://doi.org/10.1016/0021-9991(88)90120-9
 //
 
 #include "main/Problem.hpp"

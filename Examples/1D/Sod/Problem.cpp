@@ -3,6 +3,7 @@
 //  DRAGON/Examples/1D/SOD
 //
 //  Created by Bobbie Markwick on 7/07/2026.
+//  Sod (1978). https://doi.org/10.1016/0021-9991(78)90023-2
 //
 
 #include "main/Problem.hpp"

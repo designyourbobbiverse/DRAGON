@@ -3,6 +3,8 @@
 //  DRAGON/Examples/MHD/MHDRotor
 //
 //  Created by Bobbie Markwick on 8/07/2026.
+//  Balsara and Spicer (1999). https://doi.org/10.1006/jcph.1998.6153
+//  Toth (2000). https://doi.org/10.1006/jcph.2000.6519
 //
 
 #include "main/Problem.hpp"

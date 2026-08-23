@@ -3,6 +3,7 @@
 //  DRAGON/Examples/1D/Ryu-Jones
 //
 //  Created by Bobbie Markwick on 7/07/2026.
+//  Ryu and Jones (1995). https://arxiv.org/abs/astro-ph/9404074
 //
 
 #include "main/Problem.hpp"

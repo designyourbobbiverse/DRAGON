@@ -3,6 +3,7 @@
 //  DRAGON/Examples/MHD/Orszag–Tang
 //
 //  Created by Bobbie Markwick on 22/07/2026.
+//  Orszag and Tang (1979). https://doi.org/10.1017/S002211207900210X
 //
 
 #include "main/Problem.hpp"

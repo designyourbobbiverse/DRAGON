@@ -3,6 +3,7 @@
 //  DRAGON/Examples/1D/Shu-Osher
 //
 //  Created by Bobbie Markwick on 7/07/2026.
+//  Shu and Osher (1989). https://doi.org/10.1016/0021-9991(89)90222-2
 //
 
 #include "main/Problem.hpp"

@@ -4,9 +4,9 @@
 //  DRAGON/MHD
 //
 //  Created by Bobbie Markwick on 16/07/2026.
-//  CT Implementaiton based in part on https://doi.org/10.1088/0067-0049/182/2/519
+//  CT Implementaiton based in part on https://arxiv.org/abs/0710.0424
 //      Evans and Hawley (1988). https://doi.org/10.1086/166684
-//      Gardiner and Stone (2005). https://doi.org/10.1016/j.jcp.2004.11.016
+//      Gardiner and Stone (2005 & 2008). https://arxiv.org/abs/astro-ph/0501557   https://arxiv.org/abs/0712.2634
 
 
 #include "MHD/CT.hpp"

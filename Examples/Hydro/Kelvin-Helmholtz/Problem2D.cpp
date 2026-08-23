@@ -3,6 +3,7 @@
 //  DRAGON/Examples/Hydro/Kelvin-Helmholtz
 //
 //  Created by Bobbie Markwick on 8/07/2026.
+//  McNally, Lyra, and Passy (2012). https://arxiv.org/abs/1111.1764
 //
 
 #include "main/Problem.hpp"
