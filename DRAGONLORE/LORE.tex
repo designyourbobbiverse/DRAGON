@@ -18,6 +18,7 @@
 \usepackage{caption}
 \usepackage{subcaption}
 \usepackage{bm}
+\usepackage[round,authoryear]{natbib}
 
 \geometry{margin=1in}
 
@@ -207,7 +208,7 @@ The magnetic field is stored on a staggered face-centred grid, with \cpp{B[i,j,k
 \section{Dependencies}
 \label{sec:dependencies}
 
-DRAGON's only dependency is \textbf{HDF5}, used by DRAGONHOARD (\Cref{ch:hoard})\footnote{Core DRAGON and DRAGONWING are agnostic to the file storage format, so if HDF5 is for some reason unavailable on your system, you would only need to modify DRAGONHOARD to interface with your alternative format.} for output and restart I/O.  
+DRAGON's only dependency is \textbf{HDF5} \citep{HDFGroup}, used by DRAGONHOARD (\Cref{ch:hoard})\footnote{Core DRAGON and DRAGONWING are agnostic to the file storage format, so if HDF5 is for some reason unavailable on your system, you would only need to modify DRAGONHOARD to interface with your alternative format.} for output and restart I/O.
 No other third-party library is required to build or run DRAGON itself.
 
 DRAGON's in-house visualisation toolkit DRAGONGAZE (\Cref{ch:gaze}) depends separately on \textbf{h5py} (to read the HDF5 files DRAGONHOARD writes) and \textbf{Matplotlib} (to render plots from that data). These are Python-side dependencies only and do not affect the C++ build.
@@ -408,8 +409,8 @@ The \cpp{Boundary::Ignore} class is a no-op boundary. Generally you should not u
 
  \section{Multidimensional Integration Schemes}
  \subsection{Operator-Split (Strang) Update}\label{sec:split}
- 
-In split mode, each timestep is built from a sequence of 1D sweeps along coordinate directions, each solved with the same 1D Godunov kernel (\cpp{Godunov::sweep}): 
+
+In split mode, each timestep is built from a sequence of 1D sweeps along coordinate directions following the dimensional-splitting approach of \citet{Strang1968}, each solved with the same 1D Godunov kernel (\cpp{Godunov::sweep}): 
 apply boundary conditions (\Cref{sec:boundary}), reconstruct interface states with MUSCL (\Cref{sec:reconstruction}), solve the Riemann problem (\Cref{sec:riemann}) at each face, and difference the resulting fluxes into every cell in a single pass down the array, reusing the right-going flux of one interface as the left-going flux of the next.
 
 A multidmensional split sweep consists of sweeps in the $x$, $y$, and (if applicable) $z$ directions. 
@@ -502,7 +503,7 @@ This retry-with-halving behaviour is what lets the physicality checks recover fr
 
 \section{Reconstruction}\label{sec:reconstruction}
 
-DRAGON reconstructs left/right interface states using the MUSCL (Monotonic Upstream-centered Scheme for Conservation Laws) approach of van Leer, applied to the primitive variables $w = (\rho,  \mathbf{v}, p, \mathbf{B})$.
+DRAGON reconstructs left/right interface states using the MUSCL (Monotonic Upstream-centered Scheme for Conservation Laws) approach of \citet{vanLeer1979}, applied to the primitive variables $w = (\rho,  \mathbf{v}, p, \mathbf{B})$.
 
 \subsection{Piecewise-Linear Slopes}
 
@@ -511,7 +512,7 @@ For each cell $i$, a limited slope $\Delta_i$ is computed from the neighbouring 
     \Delta_i = \mathrm{limiter}\!\left( w_i - w_{i-1},\; w_{i+1} - w_i \right),
 \end{equation}
 where $w_i$ are the primitive variables in the $i$th cell, and limiter is the limiter function selected by setting \cpp{MUSCL_DEFAULT_LIMITER} in \bash{Config.h}.
-The following limiter functions are implemented:
+The following limiter functions are implemented \citep{Roe1986,vanLeer1974,vanLeer1977,vanAlbada1982}:
 \begin{subequations}
 \begin{equation} \label{eq:minmod}
     \mathrm{minmod}(a, b) =
@@ -556,7 +557,7 @@ The following limiter functions are implemented:
     \end{cases}
 \end{equation}
 \end{subequations}
-The MC limiter is selected by default, as it provides a reasonable balance between robustness and nondiffusiveness.
+The monotonized-central (MC) limiter \citep{vanLeer1977} is selected by default, as it provides a reasonable balance between robustness and nondiffusiveness.%; minmod and superbee are due to \citet{Roe1986}, the van Leer limiter to \citet{vanLeer1974}, and van Albada to \citet{vanAlbada1982}.
 
 Once $\Delta_i$ is computed, the piecewise-linear interface states are computed as
 \begin{equation}
@@ -592,8 +593,8 @@ When reconstructing MHD states, additional source terms $S_\mathrm{MHD}$ are nee
  \begin{equation} \pd{B_z}{x} = \frac{1}{\Delta z} \left(B^z_{i,j,k+1/2} - B^z_{i,j,k-1/2}\right) \end{equation}
  \end{subequations}
  Source terms are also not needed for density and momentum, as these terms do not interact with magnetic field outside of their fluxes.
-For the transverse magnetic field, the source terms are given as\footnote{Note that minmod is used regardless of which limiter is used for equation \ref{eq:MUSCL_lim}.
-}
+For the transverse magnetic field, the source terms are given as \citep{GardinerStone2008}:\footnote{Note that minmod is used regardless of which limiter is used for equation \ref{eq:MUSCL_lim}.
+}. 
 \begin{equation} 
 S_\mathrm{MHD}(B_y) = v_y \left[ \mathrm{minmod}\left(\pd{B_x}{x}, -\pd{B_y}{y}\right) - \frac{\Delta_i(B_x)}{\Delta x}\right]
 \end{equation}
@@ -610,7 +611,7 @@ where $\mathbf B$ are taken from $w_i$.
 \label{sec:ctu}
 
 The plain MUSCL half-states of \Cref{sec:reconstruction} account only for the wave structure normal to each interface; used directly in an unsplit update, they under-resolve genuinely multidimensional flow. 
-DRAGON corrects for this following the procedure given by Gardiner \& Stone (2008, hereafter GS08).
+DRAGON corrects for this following the procedure given by \citet{GardinerStone2008}.
 
 
 \paragraph{Hydrodynamics.}
@@ -620,7 +621,7 @@ DRAGON corrects for this following the procedure given by Gardiner \& Stone (200
 w^{L,\mathrm{corr}}_{d} = w^{L}_{d} - \frac{\Delta t}{2\Delta d'} \left[F_{d'}(w_{d'+\frac12}) - F_{d'}(w_{d'-\frac12})\right],
 \qquad w^{R,\mathrm{corr}}_{d} = w^{R}_{d} - \frac{\Delta t}{2\Delta d'} \left[\cdots\right], \end{equation}
 for each transverse direction $d' \ne d$. 
-In 3D, GS08's ``12-solve'' algorithm additionally corrects each transverse flux itself with a one-third-weighted contribution from the \emph{third} direction before using it (\cpp{computeCTUFlux_X/Y/Z}), so that corner-crossing waves are not double-counted.
+In 3D, \citet{GardinerStone2008}'s ``12-solve'' algorithm additionally corrects each transverse flux itself with a one-third-weighted contribution from the \emph{third} direction before using it (\cpp{computeCTUFlux_X/Y/Z}), so that corner-crossing waves are not double-counted.
 
 
 \paragraph{Magnetohydrodynamics.} 
@@ -639,7 +640,7 @@ B^{LR, n+\frac12}_{z,i\pm\frac12 ,j,k}  = B^{LR, n}_{z,i\pm\frac12 ,j,k}   +  \f
 and similarly for the y and z interfaces. The normal components of $\mathbf{B}$ meanwhile are set to equal to the face-normal values from the staggered grid.
 
 
-However, the MHD correction additionally needs to keep the corrected interface states consistent with the CT electric field, following GS08 eqs.\ 51--59. These additional\footnote{That is, these terms are in addition to, not in place of equations \ref{eq:ctu-mag1} and the corresponding hydrodynamic update} corrections are
+However, the MHD correction additionally needs to keep the corrected interface states consistent with the CT electric field, following \citet{GardinerStone2008} eqs.\ 51--59. These additional\footnote{That is, these terms are in addition to, not in place of equations \ref{eq:ctu-mag1} and the corresponding hydrodynamic update} corrections are
 \begin{subequations}
 \begin{equation}
 SB_y = \frac{\Delta t}{2}v_y\mathrm{minmod}\left(\pd{B_x}{x}, - \pd{B_z}{z}\right), \qquad
@@ -650,7 +651,7 @@ SE =  \frac{\Delta t}{8\pi}  \left[B_y v_y\mathrm{minmod}\left(\pd{B_x}{x}, - \p
 \end{equation}
 \end{subequations}
 for x-interfaces and similarly for y and z interfaces.  The derivatives $\pd{B_i}{x_i}$ are the same as computed in section \ref{sec:MUSCL_MHD_src}.
-Note that GS08 also includes a momentum term, but our MUSCL implementation renders this term unnecessary.
+Note that \citet{GardinerStone2008} also prescribe a momentum term, but our MUSCL implementation renders this term unnecessary.
 
 
 
@@ -670,7 +671,7 @@ In multidimensional problems,  the Riemann problem will also need to be solved o
 
 \subsection{Exact (Hydrodynamics Only)} \label{sec:Riemann-exact}
 
-The Exact Riemann solver provides an exact solution to the Hydrodynamic Riemann problem, but as it generally requires an iterative procedure it is more costly than the other solvers. 
+The Exact Riemann solver provides an exact solution to the Hydrodynamic Riemann problem \citep{Toro2009}, but as it generally requires an iterative procedure it is more costly than the other solvers.
 This solver can be called directly as \cpp{Riemann(wL,wR).exact().flux()}\footnote{The intermediate object given by \cpp{Riemann(wL,wR).exact()} contains the star states as well as the initial problem; calling \cpp{flux(x_t)} on this object then computes the flux through the trajectory $x/t=$\cpp{x_t}, with \cpp{x_t=0} as the default.}
 
 
@@ -746,7 +747,7 @@ where $c$  is the fast magnetosonic speed (sound speed in pure hydrodynamics) ev
 \subsubsection{HLL Flux}
 Once the above speed estimates are calculated, the flux is then found via \cpp{Riemann(wL,wR).HLL(SL,SR)}\footnote{If you have your own method for calculating the wave speed estimates, you can call this method yourself instead of using the existing HLL machinery.}
 
-The standard two-state flux is given by (Harten, Lax, \& van Leer 1983)
+The standard two-state flux is given by \citet{HartenLaxVanLeer1983}:
 \begin{equation}
 F_{\mathrm{HLL}}(S_L, S_R) =
 \begin{cases}
@@ -759,7 +760,7 @@ where $F_L$ and $F_R$ are the fluxes computed directly from conservative states 
 
 \subsection{HLLE} \label{sec:HLLE}
 
-The HLLE solver implemented in \cpp{Riemann::HLLE()} uses the same two-state flux formula as HLL, but with the Einfeldt (1988) wave-speed bounds to additionally guarantee positivity of the intermediate density.  
+The HLLE solver implemented in \cpp{Riemann::HLLE()} uses the same two-state flux formula as HLL, but with the \citet{Einfeldt1988} wave-speed bounds to additionally guarantee positivity of the intermediate density.
 
 These speeds are given as
 \begin{equation} S_L = \min(v_{x,L} - c_L,\; v_{x,M} - d), \qquad S_R = \max(v_{x,R} + c_R,\; v_{x,M} + d),\end{equation}
@@ -773,7 +774,7 @@ d = \sqrt{\,\bar{a}^2 + \tfrac{1}{2}\sqrt{\rho_L\rho_R}\bar{v}_x^2}, \qquad
 
 \subsection{HLLC (Hydrodynamics Only)}
 
-HLLC (Toro, Spruce, \& Speares 1994) restores the contact discontinuity smeared out by HLL/HLLE.  
+HLLC \citep{ToroSpruceSpeares1994} restores the contact discontinuity smeared out by HLL/HLLE.
 
  \cpp{Riemann(wL,wR).HLLC()} uses the same outer wave speeds given in section \ref{sec:HLL_speed}, or \cpp{Riemann(wL,wR).HLLC(SL,SR)} can be called directly given alternative estimates. The speed of the restored contact wave is then given by
  \begin{equation}  S_M = \frac{p_R^{*} - p_L^{*}}{\rho_R(v_{x,R} - S_R) - \rho_L(v_{x,L} - S_L)} \end{equation}
@@ -793,7 +794,7 @@ F = F_X + S_X(U^{*} - U_X).
 
 \subsection{HLLD (MHD Only)} \label{sec:HLLD}
 
-HLLD (Miyoshi \& Kusano 2005) extends the contact-resolving idea of HLLC to MHD by resolving five waves: the two outer fast waves ($S_L,
+HLLD \citep{MiyoshiKusano2005} extends the contact-resolving idea of HLLC to MHD by resolving five waves: the two outer fast waves ($S_L,
 S_R$), two rotational/Alfv\'en waves ($S_L^{*}, S_R^{*}$), and the contact wave ($S_M$).
 
 \subsubsection{Wave speeds}
@@ -897,7 +898,7 @@ symmetry at that single point.
 
 \subsection{Roe (Hydrodynamics Only)}
 
-The Roe solver (Roe 1981; Roe \& Pike 1984) linearizes the Euler flux Jacobian about the Roe-averaged state of \Cref{sec:roe-avg}, giving the five eigenvalues
+The Roe solver \citep{Roe1981,RoePike1984} linearizes the Euler flux Jacobian about the Roe-averaged state of \Cref{sec:roe-avg}, giving the five eigenvalues
 \begin{equation}
 \lambda = \left( v_{x,M} - a_M,\; v_{x,M},\; v_{x,M},\; v_{x,M},\; v_{x,M} + a_M \right)
 \end{equation}
@@ -925,7 +926,7 @@ which correspond to the left acoustic, entropy, two shear, and right acoustic mo
 The flux is then computed by 
 \begin{equation}F_{\mathrm{Roe}} = \frac{1}{2}(F_L + F_R) - \frac{1}{2}\sum_{k=1}^{5} \alpha_k \, |\lambda_k| \, K_k.\end{equation}
 
-However, the Roe method requires an entropy fix. (Harten \& Hyman 1983). This is enabled by \cpp{Harten\_Hyman} in \bash{Config.h}. 
+However, the Roe method requires an entropy fix \citep{HartenHyman1983}. This is enabled by \cpp{Harten\_Hyman} in \bash{Config.h}.
 The entropy fix checks whether the left or right acoustic wave is a transonic rarefaction. If this is the case, the offending eigenvalue is replaced by an interpolated value between the fan's bounding speeds before the flux is assembled.
 
 \subsection{Riemann Solver Fallback Behaviour}
@@ -956,8 +957,8 @@ From our own testing we have found that \cpp{HLLD_PHYSICAL_SAFETY} is a more rob
 
 \section{Constrained Transport} \label{sec:ct}
 
-DRAGON uses constrained transport to ensure that magnetic fields remain free of divergences.
-The specific implementation is largely based on Gardiner \& Stone (2008).
+DRAGON uses constrained transport \citep{EvansHawley1988} to ensure that magnetic fields remain free of divergences.
+The specific implementation is largely based on \citet{GardinerStone2008}.
 
 \subsection{Computation of Electric Fields}
 
@@ -978,9 +979,8 @@ E^y_{i-\frac12,j,k-\frac12} = \frac14\left[ F^{X, B_z}_{i-\frac12, j, k-1}+ F^{X
 E^z_{i-\frac12,j-\frac12,k} = \frac14\left[ F^{Y, B_x}_{i-1,j-\frac12, j, k}+ F^{Y, B_x}_{i,j-\frac12,k} - F^{X, B_y}_{i-\frac12,j-1, k}- F^{X, B_y}_{i-\frac12,j,k}\right]
 \end{equation}
 \end{subequations}
-where $F^{X, B_y}_{i-\frac12, j,k}$ denotes the $B^y$ component of the flux returned by the $x$-direction Riemann solve at face $(i-1/2,j,k)$, and similarly for the other flux/component pairs. 
-%This is the classic Evans \& Hawley (1988) corner-averaging construction.
-
+where $F^{X, B_y}_{i-\frac12, j,k}$ denotes the $B^y$ component of the flux returned by the $x$-direction Riemann solve at face $(i-1/2,j,k)$, and similarly for the other flux/component pairs.
+%This is the classic \citet{EvansHawley1988} corner-averaging construction.
 In 2D, the $E_z$ component is likewise derived as
 \begin{equation}
 E^z_{i-\frac12,j-\frac12} = \frac14\left[ F^{Y, B_x}_{i-1,j-\frac12, j}+ F^{Y, B_x}_{i,j-\frac12} - F^{X, B_y}_{i-\frac12,j-1}- F^{X, B_y}_{i-\frac12,j}\right].
@@ -994,7 +994,7 @@ Meanwhile, the $E_x$ and $E_y$ components only touch one face:
 \subsubsection{CTU Upwinding}
 
 The above four-face average is only first-order accurate at the edge and can allow spurious checkerboard-like noise to grow. 
-DRAGON corrects this in \cpp{CT::upwindElectric} using the unsplit Corner Transport Upwind (CTU) scheme of Gardiner \& Stone (2008).
+DRAGON corrects this in \cpp{CT::upwindElectric} using the unsplit Corner Transport Upwind (CTU) scheme of \citet{GardinerStone2008}.
 
 
 Each edge-centred $\mathbf{E}$ component is upwinded once per adjacent
@@ -1014,7 +1014,7 @@ which side to draw from:
     \end{cases}
 \end{equation}
 with $\epsilon = 10^{-18}$ (\cpp{CTU\_TOL} in \bash{Electric.cpp}) guarding the near-zero-velocity case. 
-Here $\dot m$ is the mass flux\footnote{The GS08 paper uses velocity, but mass flux will almost always have the same sign and fluxes are already being passed to \cpp{CT::upwindElectric}} through the relevant face.
+Here $\dot m$ is the mass flux\footnote{\citet{GardinerStone2008} use velocity, but mass flux will almost always have the same sign and fluxes are already being passed to \cpp{CT::upwindElectric}} through the relevant face.
 $E^{\mathrm{body}}_{\pm}$ are the cell-centred reference values $\mathbf{E} = -\mathbf{v} \times \mathbf{B}$ (calculated by \cpp{CT::bodyElectric}) in the two cells adjacent to that face, and  $E^{\mathrm{face}}_{\pm}$ are the face-centred field values values (as used in \cpp{CT::computeElectric}) in the faces which 1) border both the cell and edge in question and 2) are not the face through which mass flux is taken.
 Each edge component receives one such correction per bordering face, and the corrections are summed onto the flux-averaged value from \cpp{CT::computeElectric}.
 
@@ -1568,7 +1568,7 @@ Ryu \& Jones & Yes & \mbox{$v_x = 10.0$}, \mbox{$p = 20.0$} & \mbox{$\rho = 1.0$
 \end{tabular}
 \end{table}
 
-The 1D examples (\bash{Examples/1D/}) are classic shock-tube and wave-interaction Riemann problems with well-established reference solutions: Sod, Lax, Shu \& Osher, and the Strong Shock test for pure hydrodynamics; and Brio \& Wu, Dai \& Woodward, and Ryu \& Jones for MHD. Each is a self-contained \bash{Config.h}/\bash{Problem.cpp} pair (plus, for Brio \& Wu, a \bash{Constants.h} setting $\gamma = 2$). All of these problems use outflow boundaries, HLLC (hydro) or HLLD (MHD) as the Riemann solver, and MC limiting for hydro / MINMOD for MHD -- MC was found to produce spurious oscillations near strong shocks in the MHD cases. The specific inputs  for each test are listed in \Cref{tab:1D}. \Cref{fig:1d-hydro} shows DRAGON's output for the hydrodynamic problems, generated with DRAGONGAZE (\Cref{ch:gaze}); the corresponding plots for the MHD problems can be found in Appendix \ref{ch:additional-figures}. \Cref{tab:1d-examples-ic} lists the initial left, right, and shared states set up in each problem's \bash{Problem.cpp}.
+The 1D examples (\bash{Examples/1D/}) are classic shock-tube and wave-interaction Riemann problems with well-established reference solutions:  \citet{Sod1978},  \citet{Lax1954},  \citet{ShuOsher1989}, and the Strong Shock test for pure hydrodynamics; and \citet{BrioWu1988}, citet{DaiWoodward1994}, and \citet{RyuJones1995} for MHD. Each is a self-contained \bash{Config.h}/\bash{Problem.cpp} pair (plus, for Brio \& Wu, a \bash{Constants.h} setting $\gamma = 2$). All of these problems use outflow boundaries, HLLC (hydro) or HLLD (MHD) as the Riemann solver, and MC limiting for hydro / MINMOD for MHD -- MC was found to produce spurious oscillations near strong shocks in the MHD cases. The specific inputs  for each test are listed in \Cref{tab:1D}. \Cref{fig:1d-hydro} shows DRAGON's output for the hydrodynamic problems, generated with DRAGONGAZE (\Cref{ch:gaze}); the corresponding plots for the MHD problems can be found in Appendix \ref{ch:additional-figures}. \Cref{tab:1d-examples-ic} lists the initial left, right, and shared states set up in each problem's \bash{Problem.cpp}.
 
 
 \subsection{Hydrodynamic Examples in Two and Three dimensions}
@@ -1656,7 +1656,7 @@ The resulting point explosion is then allowed to expand outward.
 Concretely, this is implemented as a pressure spike: \cpp{Problem::makeProblem()} first counts how many cells actually fall within $r_0$ of the origin at the chosen resolution, then scales the per-cell blast pressure so that the total deposited energy is (to grid resolution) independent of $n$. \cpp{Problem::initialFluidState(...)} then applies that pressure only within $r_0$, leaving density uniform ($\rho=1$) and the exterior at the low ambient pressure $p_\mathrm{amb}=10^{-5}$ everywhere else. 
 %The domain uses outflow boundaries (\Cref{sec:boundary}) so the resulting shock can leave the grid without reflecting back in.
 
-The expected result of this problem is the self-similar Sedov--Taylor blast wave: a thin, strong spherical (circular, in 2D) shock expanding outward, enclosing a hot, nearly-uniform-pressure interior and leaving vacuum-like ambient conditions untouched ahead of the shock front. However, such a strong, grid-aligned shock is prone to the carbuncle instability, a well-known failure mode in which a contact-preserving solver like HLLC lets a spurious, grid-aligned perturbation grow along the shock front.
+The expected result of this problem is the self-similar Sedov--Taylor blast wave \citep{Taylor1950,Sedov1959}: a thin, strong spherical (circular, in 2D) shock expanding outward, enclosing a hot, nearly-uniform-pressure interior and leaving vacuum-like ambient conditions untouched ahead of the shock front. However, such a strong, grid-aligned shock is prone to the carbuncle instability \citep{Quirk1994}, a well-known failure mode in which a contact-preserving solver like HLLC lets a spurious, grid-aligned perturbation grow along the shock front.
 To avoid this, we use the HLLE (\Cref{sec:HLLE})  Riemann solver rather than HLLC for this example. HLLE has no separate contact wave, so it is more diffusive across contacts; that extra diffusion is exactly what damps the carbuncle-forming perturbation, at the cost of a somewhat more smeared shock front.
 
 \begin{figure}[htbp]
@@ -1684,8 +1684,8 @@ and the (log-scaled) pressure panel shows the sharp several-orders-of-magnitude 
 \subsubsection{Kelvin--Helmholtz Instability}
 \label{sec:kh-instability}
 
-The Kelvin--Helmholtz example sets up a shear layer: a denser right moving band ($\rho_1=2$, $v_x = +V_0$) separated from a lighter left-moving ambient medium ($\rho_2=1, v_x = -V_0$) by two $\tanh$-smoothed interfaces. 
-A small, spatially-localized transverse velocity perturbation is seeded at both interfaces -- a $\sin(2\pi\,\mathtt{kmode}\,x)$ pattern windowed by a Gaussian centred on each interface; this gives the shear instability something to grow from rather than waiting on grid noise. 
+The Kelvin--Helmholtz example sets up a shear layer, following the well-posed construction of \citet{McNallyLyraPassy2012}: a denser right moving band ($\rho_1=2$, $v_x = +V_0$) separated from a lighter left-moving ambient medium ($\rho_2=1, v_x = -V_0$) by two $\tanh$-smoothed interfaces.
+A small, spatially-localized transverse velocity perturbation is seeded at both interfaces -- a $\sin(2\pi\,\mathtt{kmode}\,x)$ pattern windowed by a Gaussian centred on each interface; this gives the shear instability something to grow from rather than waiting on grid noise.
 The perturbation itself is periodic in $x$ (integer \cpp{kmode=2}), so the seeded pattern tiles smoothly even though the outflow boundary condition doesn't enforce it.
 
 
@@ -1715,7 +1715,7 @@ Unlike the other two examples in this section, Kelvin--Helmholtz has no closed-f
 \subsubsection{Field Loop Advection}
 \label{sec:loop-advection}
 
-The field loop advection test carries a weak magnetic field loop across a periodic domain at uniform velocity. 
+The field loop advection test \citep{GardinerStone2005,GardinerStone2008} carries a weak magnetic field loop across a periodic domain at uniform velocity.
 The field is deliberately weak ($B_0=10^{-6}$) in order to isolate inductive advection from the effects of magnetic pressure and tension altering the fluid.
 Any distortion, diffusion, or divergence error in the transported field can only come from the induction step itself. 
 The background velocity is oblique to all grid axes: $(v_x,v_y)=(2,0.5)$ in 2D and $(v_x,v_y,v_z)=(2,1,1)$ in 3D (with the loop uniform in the $z$ direction).
@@ -1801,7 +1801,7 @@ The Gaussian profile has no such kink and converges noticeably faster, though it
 \subsubsection{Linear Wave Convergence}
 \label{sec:linear-waves}
 
-The MHD linear wave test (cite: GS08) seeds a single, exactly linear eigenmode of the MHD equations on top of a uniform background state and lets it propagate. 
+The MHD linear wave test \citep{GardinerStone2008} seeds a single, exactly linear eigenmode of the MHD equations on top of a uniform background state and lets it propagate.
 The background is oriented obliquely to the grid so that the wave crosses all three axes rather than propagating along a single grid line, allowing this problem to properly test the convergence of DRAGON's CTU-CT implementation.
 
 All seven wave modes are implemented: fast, Alfv\'en, slow, and entropy, with $+$ and $-$ variants for the first three.
@@ -1882,7 +1882,7 @@ For the fast, Alfv\'en, and slow modes, the  $+$ and $-$ branches agree with eac
 \subsubsection{MHD Blast}
 \label{sec:mhd-blast}
 
-The MHD Blast test is the magnetized counterpart to the hydrodynamic Sedov Blast (\Cref{sec:sedov-blast}): a small central region of radius $r_0$ is set to a much higher pressure ($p_\mathrm{blast}=100$) than the surrounding ambient medium ($p_\mathrm{amb}=1$), with uniform density and zero velocity everywhere. 
+The MHD Blast test \citep{GardinerStone2008} is the magnetized counterpart to the hydrodynamic Sedov Blast (\Cref{sec:sedov-blast}): a small central region of radius $r_0$ is set to a much higher pressure ($p_\mathrm{blast}=100$) than the surrounding ambient medium ($p_\mathrm{amb}=1$), with uniform density and zero velocity everywhere. 
 Unlike the hydro version, the domain is threaded by a strong, uniform background magnetic field, with magnetic pressure comparable to or larger than the blast overpressure. 
 This field is  oriented diagonally at $45^\circ$ to the grid by default to better exercise the CTU machinery.
 
@@ -1925,7 +1925,7 @@ As a result of magnetic tension along the field lines, the blast expansion is no
 \subsubsection{MHD Rotor}
 \label{sec:mhd-rotor}
 
-The MHD Rotor test embeds a dense, rigidly rotating disk ($\rho_0=10$, angular velocity $\omega=20$, radius $r_0=0.1$) in a lighter, stationary ambient medium ($\rho_\mathrm{amb}=1$), with a linear taper in density and velocity between $r_0$ and $r_1=0.115$ so the initial condition is continuous. A uniform background field $B_x=B_0$ threads the whole domain. 
+The MHD Rotor test \citep{BalsaraSpicer1999,Toth2000} embeds a dense, rigidly rotating disk ($\rho_0=10$, angular velocity $\omega=20$, radius $r_0=0.1$) in a lighter, stationary ambient medium ($\rho_\mathrm{amb}=1$), with a linear taper in density and velocity between $r_0$ and $r_1=0.115$ so the initial condition is continuous. A uniform background field $B_x=B_0$ threads the whole domain. 
 Though the problem has no closed analytical solution, it is still useful in demonstrating expected behaviours of MHD: 
 as the disk spins up the surrounding fluid, it winds the field lines into a strong torsional structure, launching Alfv\'en waves outward and progressively braking the rotor , thus testing the coupling between the magnetic tension force and rotational flow.
 
@@ -1952,7 +1952,7 @@ as the disk spins up the surrounding fluid, it winds the field lines into a stro
 \subsubsection{Orszag--Tang}
 \label{sec:orszag-tang}
 
-The Orszag--Tang vortex is a fully periodic problem on $[0,2\pi]^2$: the velocity field $\mathbf v = (-\sin y,\ \sin x, 0)$ sets up a large-scale vortical flow, while the vector potential $A_z = B_0\big(\cos y + \tfrac14\cos 2x\big)$ seeds a magnetic field with an X-point current sheet at the origin. As with the MHD Rotor, there is no closed-form solution to compare against; instead this problem is a visual benchmark of a code's ability to handle the development of MHD turbulence, evolving a smooth initial vortex into a cascade of interacting shocks and current sheets.
+The Orszag--Tang vortex \citep{OrszagTang1979} is a fully periodic problem on $[0,2\pi]^2$: the velocity field $\mathbf v = (-\sin y,\ \sin x, 0)$ sets up a large-scale vortical flow, while the vector potential $A_z = B_0\big(\cos y + \tfrac14\cos 2x\big)$ seeds a magnetic field with an X-point current sheet at the origin. As with the MHD Rotor, there is no closed-form solution to compare against; instead this problem is a visual benchmark of a code's ability to handle the development of MHD turbulence, evolving a smooth initial vortex into a cascade of interacting shocks and current sheets.
 
 
 \begin{figure}[htbp]
@@ -2027,7 +2027,7 @@ Full-page versions of the MHD 1D reference plots referenced from \Cref{sec:tests
 \textbf{26 August 2026}:  Initial documentation for DRAGON v1.0
 
 % ================= Bibliography =================
-% \bibliographystyle{plain}
-% \bibliography{references}
+\bibliographystyle{plainnat}
+\bibliography{references}
 
 \end{document}
