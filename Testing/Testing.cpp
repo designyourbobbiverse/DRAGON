@@ -6,6 +6,8 @@
 //
 #include "Testing.hpp"
 #include <iostream>
+#include <chrono>
+#include <cmath>
 
 using namespace DRAGON_Test;
 using namespace DRAGON;

@@ -10,7 +10,7 @@
 
 #include <cmath>        //For std::abs, sqrt, pow
 #include <algorithm>    //For std::max
-#include "Constants.h"  //For gamma
+#include "Constants.h"  //For _gamma
 #include <iostream>     //For std::cout
 
 using namespace DRAGON_Test;
@@ -207,11 +207,11 @@ void DRAGON_Test::verify_enthalpy(){
 void DRAGON_Test::verify_wavespeeds(){
     PrimitiveState W = make_state(2.0, 3.0, 4.0, 0.0, 10.0);
     
-    assert(approx(W.cs(), std::sqrt(gamma * 5.0)));
+    assert(approx(W.cs(), std::sqrt(_gamma * 5.0)));
 #ifdef MHD
     W.B = {1,2,3};
     assert(approx(W.c_alfven(), std::sqrt(14/(8*M_PI)) ));
-    double c2 = gamma * 5.0, a2 = 14/(8*M_PI), ax2 = 1/(8*M_PI) ;
+    double c2 = _gamma * 5.0, a2 = 14/(8*M_PI), ax2 = 1/(8*M_PI) ;
     assert(approx(W.c_fast_max(), std::sqrt((c2+a2)/2 + std::sqrt(std::pow(c2+a2,2)/4 - ax2*c2))  ));
 
 #endif

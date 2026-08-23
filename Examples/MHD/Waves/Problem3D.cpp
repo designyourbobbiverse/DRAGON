@@ -9,7 +9,7 @@
 #include "Refinement/DistGrid.hpp"
 using namespace DRAGON;
 
-#include "Constants.h" //For gamma, sq4pi
+#include "Constants.h" //For _gamma, sq4pi
 #include <cmath> //For std::sin
 #include "DragonHoard.hpp" //For loading initial data to compare to final
 #include <iostream>        //For error output
@@ -53,7 +53,7 @@ PrimitiveState Problem::initialFluidState(double x, double y, double z){
     
     //Background State
     w.rho = 1.0;
-    w.p = 1.0/gamma;
+    w.p = 1.0/_gamma;
     w.v = (mode == Entropy ? 1.0 : 0.0) * e_x1;
     w.B = (e_x1 + 1.5 * e_x2) * sq4pi;  //Initialize magnetic field so we can perturb in conservative values
     

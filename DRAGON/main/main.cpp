@@ -7,6 +7,7 @@
 #include "DragonHoard.hpp"  //File output
 #include <iostream>         //Console messages
 #include <chrono>           //Runtime measurement
+#include <cmath>            //For std::floor/round
 using namespace DRAGON;
 
 #ifndef TESTMODE

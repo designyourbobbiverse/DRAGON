@@ -7,7 +7,7 @@
 
 #include "FluidElement.hpp"
 
-#include "Constants.h" //For gamma & pi-related values (e.g. _1_8pi = 1/(8*pi))
+#include "Constants.h" //For _gamma & pi-related values (e.g. _1_8pi = 1/(8*pi))
 #include <cmath> //For std::sqrt, std::pow, etc
 #include <algorithm> //For std::max
 #include <utility> //For std::swap
@@ -52,7 +52,7 @@ PrimitiveState::PrimitiveState(ConservativeState state){
 }
 
 double PrimitiveState::energy() const {
-    double E =  p/(gamma - 1.0) + (rho/2)*(v*v); //Thermal + Bulk Kinetic Energy Densities
+    double E =  p/(_gamma - 1.0) + (rho/2)*(v*v); //Thermal + Bulk Kinetic Energy Densities
     #ifdef MHD
     E += (B*B) * _1_8pi; //Magnetic Energy Density (if applicable). _1_8pi = 1/(8*pi)
     #endif
@@ -63,7 +63,7 @@ double ConservativeState::pressure() const {
     #ifdef MHD
      E_thermal -= (B*B) * _1_8pi; //Remove Magnetic Energy Density (if applicable)
     #endif
-    return  (gamma - 1.0) * E_thermal; //Convert thermal energy density to pressure
+    return  (_gamma - 1.0) * E_thermal; //Convert thermal energy density to pressure
 }
 
 //Enthalpy per mass
@@ -98,7 +98,7 @@ bool ConservativeState::isPhysical()  const {
 
 //MARK: Wave Speeds
 double PrimitiveState::cs() const {
-    return std::sqrt(gamma * p / rho); //Speed of sound waves in a pure hydro fluid
+    return std::sqrt(_gamma * p / rho); //Speed of sound waves in a pure hydro fluid
 }
 #ifdef MHD
 double PrimitiveState::c_alfven() const {

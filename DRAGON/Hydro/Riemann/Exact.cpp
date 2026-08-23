@@ -8,7 +8,7 @@
 
 #include "Hydro/Riemann/Riemann.hpp"
 
-#include "Constants.h" //For gamma and related coefficients
+#include "Constants.h" //For _gamma and related coefficients
 #include <cmath> //For std::sqrt, pow, abs
 #include <algorithm> //For std::min
 #include <utility> //For std::swap
@@ -28,10 +28,10 @@ RiemannSolution::RiemannSolution(Riemann problem){
 
 //MARK: Velocity Jump Function
 
-// Guide to gamma coefficients
-// Rules: _X_Y = X/Y, G = gamma, m = -, p = +
-// Example: _Gp1_2G = (gamma+1)/(2*gamma)
-// Example: _2_Gm1 = 2/(gamma - 1)
+// Guide to _gamma coefficients
+// Rules: _X_Y = X/Y, G = _gamma, m = -, p = +
+// Example: _Gp1_2G = (_gamma+1)/(2*_gamma)
+// Example: _2_Gm1 = 2/(_gamma - 1)
 
 double Riemann::f(double p, PrimitiveState w){
     if (p > w.p) { //Shock

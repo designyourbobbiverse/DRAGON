@@ -10,7 +10,7 @@
 using namespace DRAGON;
 
 #include <cmath>        //For std::sqrt
-#include "Constants.h"  //For gamma
+#include "Constants.h"  //For _gamma
 
 typedef DistGrid3D MyGrid;//Choose the dimension of your grid here
 

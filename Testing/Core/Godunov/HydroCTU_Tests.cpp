@@ -8,8 +8,8 @@
 #include "Testing.hpp"
 #include "Hydro/Grid.hpp"
 
-#include "Refinement/DistGrid.hpp"   //Do Blast tests in parallel
-#include <iostream>       //For std::cout
+#include "Refinement/DistGrid.hpp"  //Do Blast tests in parallel
+#include <cmath>                    //For std::sqrt
 
 
 using namespace DRAGON_Test;
