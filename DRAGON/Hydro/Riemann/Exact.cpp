@@ -55,7 +55,7 @@ RiemannSolution Riemann::exact(){
     return exact( (L.p + R.p)/2.0 ); //Default Initial Guess = average of sides
 }
 RiemannSolution Riemann::exact(double pGuess){
-    #ifdef Exact_Rarefactions_Check
+    #ifdef EXACT_RAREFACTIONS_CHECK
     //Check to see if the wave will be two rarefactions. If so, a closed solution exists.
     double p_min = std::min(L.p, R.p);
     if (f(p_min,L) + f(p_min,R) + R.v.x - L.v.x >= 0) return TRRS();

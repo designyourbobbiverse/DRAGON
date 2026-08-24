@@ -39,7 +39,7 @@ namespace DRAGON::Config{
 //MARK: Riemann Solver
 //DRAGON offers several different choices of Riemann Solver in Hydrodynamic mode, and choice of HLL/D/E in MHD
     #define RIEMANN_EXACT 0 //Produces an exact solution to the Hydrodynamic Euler Equations using an iterative procedure
-        #define Exact_Rarefactions_Check //Checks for the 2-rarefaction case before attempting an iterative procedure
+        #define EXACT_RAREFACTIONS_CHECK //Checks for the 2-rarefaction case before attempting an iterative procedure
         constexpr double exact_riemann_tolerance = 1E-12; //Defines the convergence threshold for the iterative procedure
         constexpr int exact_riemann_max_iters = 6; //Use a nonpostiive value for unlimited iterations
     #define RIEMANN_HLL 1 // Harten, Lax, and van Leer (1983). https://doi.org/10.1137/1025002
