@@ -27,8 +27,8 @@ using namespace DRAGON;
 
 void CT::computeElectric(MagneticArray2D& E, const FluxArray2D& F_X,const FluxArray2D& F_Y,  const int g){
     const int nx = E.getSizeX()-1, ny = E.getSizeY()-1;
-    for(int i=-g; i<=nx+g; i++){
-        for(int j=-g; j<=ny+g; j++){
+    for (int i=-g; i<=nx+g; i++) {
+        for (int j=-g; j<=ny+g; j++) {
             E[i,j].x = -F_Y[i,j].B.z;
             E[i,j].y = F_X[i,j].B.z;
             E[i,j].z = (F_Y[i-1,j].B.x -  F_X[i,j-1].B.y + F_Y[i,j].B.x  - F_X[i,j].B.y) * 0.25;
@@ -39,9 +39,9 @@ void CT::computeElectric(MagneticArray2D& E, const FluxArray2D& F_X,const FluxAr
 
 void CT::computeElectric(MagneticArray3D& E, const FluxArray3D& F_X,const FluxArray3D& F_Y, const FluxArray3D& F_Z, const int g){
     const int nx = E.getSizeX()-1, ny = E.getSizeY()-1, nz = E.getSizeZ()-1;
-    for(int i=-g; i<=nx+g; i++){
-        for(int j=-g; j<=ny+g; j++){
-            for(int k=-g; k<=nz+g; k++){
+    for (int i=-g; i<=nx+g; i++) {
+        for (int j=-g; j<=ny+g; j++) {
+            for (int k=-g; k<=nz+g; k++) {
                 E[i,j,k].x = (F_Z[i,j-1,k].B.y -  F_Y[i,j,k-1].B.z + F_Z[i,j,k].B.y  - F_Y[i,j,k].B.z) * 0.25;
                 E[i,j,k].y = (F_X[i,j,k-1].B.z -  F_Z[i-1,j,k].B.x + F_X[i,j,k].B.z  - F_Z[i,j,k].B.x) * 0.25;
                 E[i,j,k].z = (F_Y[i-1,j,k].B.x -  F_X[i,j-1,k].B.y + F_Y[i,j,k].B.x  - F_X[i,j,k].B.y) * 0.25;
@@ -62,7 +62,7 @@ void CT::computeElectric(MagneticArray3D& E, const FluxArray3D& F_X,const FluxAr
 
 
 constexpr double CTU_TOL = 1e-18;
-inline double upwindCorr(double massFlux, double faceEminus, double faceEplus, double bodyEminus, double bodyEplus) {
+inline double upwindCorr(double massFlux, double faceEminus, double faceEplus, double bodyEminus, double bodyEplus){
     //massFlux should have the same sign as velocity, so we can use it to detect the flow direction
     if (massFlux > CTU_TOL) return 0.25 * (faceEminus - bodyEminus); //Positive velocity -> upwind from the left
     if (massFlux < -CTU_TOL) return 0.25 * (faceEplus - bodyEplus); //Negative velocity -> upwind from the right
@@ -71,8 +71,8 @@ inline double upwindCorr(double massFlux, double faceEminus, double faceEplus, d
 
 void CT::upwindElectric(MagneticArray2D& E, const FluxArray2D& F_X,const FluxArray2D& F_Y,const MagneticArray2D& Ebody, int g){
     const int nx = E.getSizeX()-1, ny = E.getSizeY()-1;
-    for(int i=-g; i<=nx+g; i++){
-        for(int j=-g; j<=ny+g; j++){
+    for (int i=-g; i<=nx+g; i++) {
+        for (int j=-g; j<=ny+g; j++) {
             // X upwinds
             E[i,j].z += upwindCorr(F_X[i,j].rho, F_Y[i-1,j].B.x, F_Y[i,j].B.x, Ebody[i-1,j].z, Ebody[i,j].z);
             E[i,j].z += upwindCorr(F_X[i,j-1].rho, F_Y[i-1,j].B.x, F_Y[i,j].B.x, Ebody[i-1,j-1].z, Ebody[i,j-1].z);
@@ -89,9 +89,9 @@ void CT::upwindElectric(MagneticArray2D& E, const FluxArray2D& F_X,const FluxArr
     
 void CT::upwindElectric(MagneticArray3D& E, const FluxArray3D& F_X,const FluxArray3D& F_Y, const FluxArray3D& F_Z, const MagneticArray3D& Ebody, int g){
     const int nx = E.getSizeX()-1, ny = E.getSizeY()-1, nz = E.getSizeZ()-1;
-    for(int i=-g; i<=nx+g; i++){
-        for(int j=-g; j<=ny+g; j++){
-            for(int k=-g; k<=nz+g; k++){
+    for (int i=-g; i<=nx+g; i++) {
+        for (int j=-g; j<=ny+g; j++) {
+            for (int k=-g; k<=nz+g; k++) {
                 // X upwinds
                 E[i,j,k].y += upwindCorr(F_X[i,j,k].rho, -F_Z[i-1,j,k].B.x, -F_Z[i,j,k].B.x, Ebody[i-1,j,k].y, Ebody[i,j,k].y);
                 E[i,j,k].y += upwindCorr(F_X[i,j,k-1].rho, -F_Z[i-1,j,k].B.x, -F_Z[i,j,k].B.x, Ebody[i-1,j,k-1].y, Ebody[i,j,k-1].y);
@@ -121,17 +121,17 @@ void CT::upwindElectric(MagneticArray3D& E, const FluxArray3D& F_X,const FluxArr
 //E = - v x B = B x v
 void CT::bodyElectric(const FluidArray2D &w, MagneticArray2D &E, int g){ //1001001 in distress (iykyk)
     const int nx = w.getSizeX(), ny = w.getSizeY();
-    for(int i=-g-1; i <= nx+g; i++){
-        for(int j=-g-1; j <= ny+g; j++){
+    for (int i=-g-1; i <= nx+g; i++) {
+        for (int j=-g-1; j <= ny+g; j++) {
             E[i,j] = cross(w[i,j].B, w[i,j].v);
         }
     }
 }
 void CT::bodyElectric(const FluidArray3D &w, MagneticArray3D &E, int g){ //1001001 in distress (iykyk)
     const int nx = w.getSizeX(), ny = w.getSizeY(), nz = w.getSizeZ();
-    for(int i=-g-1; i <= nx+g; i++){
-        for(int j=-g-1; j <= ny+g; j++){
-            for(int k=-g-1; k <= nz+g; k++){
+    for (int i=-g-1; i <= nx+g; i++) {
+        for (int j=-g-1; j <= ny+g; j++) {
+            for (int k=-g-1; k <= nz+g; k++) {
                 E[i,j,k] = cross(w[i,j,k].B, w[i,j,k].v);
             }
         }

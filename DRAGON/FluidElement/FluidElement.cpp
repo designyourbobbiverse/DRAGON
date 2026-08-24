@@ -7,10 +7,10 @@
 
 #include "FluidElement.hpp"
 
-#include "Constants.h" //For _gamma & pi-related values (e.g. _1_8pi = 1/(8*pi))
-#include <cmath> //For std::sqrt, std::pow, etc
-#include <algorithm> //For std::max
-#include <utility> //For std::swap
+#include "Constants.h"  //For _gamma & pi-related values (e.g. _1_8pi = 1/(8*pi))
+#include <cmath>        //For std::sqrt, std::pow, etc
+#include <algorithm>    //For std::max
+#include <utility>      //For std::swap
 using namespace DRAGON;
 
 //MARK: Empty Constructors
@@ -82,13 +82,13 @@ bool isfinite(const vec3& v){
 
 bool PrimitiveState::isPhysical() const {
     #ifdef MHD
-    if(!isfinite(B)) return false;
+    if (!isfinite(B)) return false;
     #endif
     return std::isfinite(rho) && isfinite(v) && std::isfinite(p)   && rho > 0.0 && p > 0.0;
 }
 bool ConservativeState::isFinite()  const {
     #ifdef MHD
-    if(!isfinite(B)) return false;
+    if (!isfinite(B)) return false;
     #endif
     return std::isfinite(rho) && isfinite(mom) && std::isfinite(E);
 }
@@ -116,7 +116,7 @@ double PrimitiveState::c_fast(double Bk) const {
 }
 double PrimitiveState::c_fast_max() const {
     double Bk; //Bk is the smalelst B, which in turn gives highest fast speed
-    if(B.x*B.x < B.y*B.y) Bk = (B.x*B.x < B.z*B.z) ?  B.x : B.z;
+    if (B.x*B.x < B.y*B.y) Bk = (B.x*B.x < B.z*B.z) ?  B.x : B.z;
     else  Bk = (B.y*B.y < B.z*B.z) ?  B.y : B.z;
     return c_fast(Bk);
 }
@@ -189,7 +189,7 @@ vec3 vec3::swappedYZ() const {
 }
 
 
-void PrimitiveState::swapXY() {
+void PrimitiveState::swapXY(){
     v.swapXY();
     #ifdef MHD
     B.swapXY();
@@ -201,7 +201,7 @@ PrimitiveState PrimitiveState::swappedXY() const {
     return wT;//Return
 }
 
-void PrimitiveState::swapXZ() {
+void PrimitiveState::swapXZ(){
     v.swapXZ();
     #ifdef MHD
     B.swapXZ();
@@ -213,7 +213,7 @@ PrimitiveState PrimitiveState::swappedXZ() const {
     return wT; //Return
 }
 
-void PrimitiveState::swapYZ() {
+void PrimitiveState::swapYZ(){
     v.swapYZ();
     #ifdef MHD
     B.swapYZ();
@@ -229,7 +229,7 @@ PrimitiveState PrimitiveState::swappedYZ() const {
 
 
 
-void ConservativeState::swapXY() {
+void ConservativeState::swapXY(){
     mom.swapXY();
     #ifdef MHD
     B.swapXY();
@@ -241,7 +241,7 @@ ConservativeState ConservativeState::swappedXY() const {
     return uT;//Return
 }
 
-void ConservativeState::swapXZ() {
+void ConservativeState::swapXZ(){
     mom.swapXZ();
     #ifdef MHD
     B.swapXZ();
@@ -253,7 +253,7 @@ ConservativeState ConservativeState::swappedXZ() const {
     return uT; //Return
 }
 
-void ConservativeState::swapYZ() {
+void ConservativeState::swapYZ(){
     mom.swapYZ();
     #ifdef MHD
     B.swapYZ();

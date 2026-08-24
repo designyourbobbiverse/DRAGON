@@ -21,19 +21,19 @@
     //For example, RIEMANN_ROE has Harten_Hyman  below it.
         //If Harten_Hyman is enabled, the roe solver includes the entropy fix. If you turn it off, it skips that step
         //If you aren't using the Roe solver, Harten_Hyman doesn't do antying
-    //As another example, RIEMANN_VERIFY_FALLBACK has the constant Riemann_ExactFallback_Parameter
+    //As another example, RIEMANN_VERIFY_FALLBACK has the constant riemann_fallback_param
         //This constant is used only in the execution of the RIEMANN_VERIFY_FALLBACK procedure
-    //Indented and below generally priority over Indented and above (e.g. ExactRiemann_MaxIters is a parameter for RIEMANN_EXACT, not one of the options for RIEMANN_HLL [which doesn't even have options])
+    //Indented and below generally priority over Indented and above (e.g. exact_riemann_max_iters is a parameter for RIEMANN_EXACT, not one of the options for RIEMANN_HLL [which doesn't even have options])
 
 
-namespace DRAGON::CONFIG{
+namespace DRAGON::Config{
 //MARK: Top level Options
 
 #define MHD //Determines whether the simulation is run using MHD or Pure Hydrodynamics
         #define CT_CONSV_TOTAL_E 0 //Enforces total energy conservation, but more prone to numerical issues
         #define CT_CONSV_THERMAL 1 //Keeps thermal pressure unchanged by CT update. Violates strict energy conservation in exchange for being less prone to numerical issues
-        #define CT_CONSV_BETA_GATED 2 //CT_CONSV_THERMAL if beta<CT_Energy_Beta, otherwise CT_CONSV_TOTAL_E
-            constexpr double CT_Energy_Beta = 0.1;
+        #define CT_CONSV_BETA_GATED 2 //CT_CONSV_THERMAL if beta<ct_energy_beta, otherwise CT_CONSV_TOTAL_E
+            constexpr double ct_energy_beta = 0.1;
     #define CT_ENERGY_CONSV CT_CONSV_BETA_GATED
 
 #define DIMENSION_UNSPLIT //Use an Unsplit advancement scheme for multidimensional flows
@@ -43,8 +43,8 @@ namespace DRAGON::CONFIG{
 //DRAGON offers several different choices of Riemann Solver in Hydrodynamic mode, and choice of HLL/D/E in MHD
     #define RIEMANN_EXACT 0 //Produces an exact solution to the Hydrodynamic Euler Equations using an iterative procedure
         #define Exact_Rarefactions_Check //Checks for the 2-rarefaction case before attempting an iterative procedure
-        constexpr double ExactRiemann_Tolerance = 1E-12; //Defines the convergence threshold for the iterative procedure
-        constexpr int ExactRiemann_MaxIters = 6; //Use a nonpostiive value for unlimited iterations
+        constexpr double exact_riemann_tolerance = 1E-12; //Defines the convergence threshold for the iterative procedure
+        constexpr int exact_riemann_max_iters = 6; //Use a nonpostiive value for unlimited iterations
     #define RIEMANN_HLL 1 // Harten, Lax, and van Leer (1983). https://doi.org/10.1137/1025002
     #define RIEMANN_HLLC 2 // Toro, Spruce, and Speares (1994). https://doi.org/10.1007/BF01414629
     #define RIEMANN_HLLD 3 // Miyoshi and Kusano (2005). https://doi.org/10.1016/j.jcp.2005.02.017
@@ -59,7 +59,7 @@ namespace DRAGON::CONFIG{
 //Check if physical. If not, recalculate tries Exact (Hydro only). Failing that, forces a restart
 #ifndef MHD //I found this option to be somewhat detrimental if HLLD_PHYSICAL_SAFETY is on
 #define RIEMANN_VERIFY_FALLBACK
-    constexpr double Riemann_ExactFallback_Parameter = 1.0; //Scales F*dt/dx for the purpose of physicality verificaiton
+    constexpr double riemann_fallback_param = 1.0; //Scales F*dt/dx for the purpose of physicality verificaiton
 //    #define RIEMANN_FALLBACK_TRY_HLLE //try HLLE before Exact (Hydro) or restart (MHD)
 #endif
 
@@ -67,8 +67,8 @@ namespace DRAGON::CONFIG{
 constexpr double final_time = M_PI * 5;
 constexpr double dt = 0.05 * M_PI;
 
-constexpr double CFL_coeff = 0.3; //The Coefficient used together with the above to determine the maximum timestep size
-constexpr double Timestep_Tolerance = 1e-14; //Timesteps smaller than this are treated as zero
+constexpr double cfl_coeff = 0.3; //The Coefficient used together with the above to determine the maximum timestep size
+constexpr double timestep_tolerance = 1e-14; //Timesteps smaller than this are treated as zero
 
 //Courant, Friedrichs, and Lewy (1928). https://doi.org/10.1007/BF01448839
 //The following variants are available for computing the CFL heuristic for each cell in a multidimensional grid

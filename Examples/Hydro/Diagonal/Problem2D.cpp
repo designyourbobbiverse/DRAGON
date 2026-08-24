@@ -74,14 +74,14 @@ void Problem::problemComplete(Grid& problem, double t){
     double L2 = 0;
     double Linf = 0;
     
-    for(int i=0; i<n;i++){
-        for(int j=0; j<n; j++){
+    for (int i=0; i<n;i++) {
+        for (int j=0; j<n; j++) {
             double x = (i + 0.5)/n;
             double y = (j + 0.5)/n;
             double rho_exact = rho0 + rho1 * std::sin(2.0 * M_PI * (x + y - 2 * t));
 
             double err = std::abs(grid[i,j].rho - rho_exact);
-            if(err > Linf) Linf = err;
+            if (err > Linf) Linf = err;
             L1 += err ;
             L2 += err*err;
             

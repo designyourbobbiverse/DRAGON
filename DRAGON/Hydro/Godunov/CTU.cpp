@@ -10,16 +10,13 @@
 #include "Hydro/Grid.hpp"
 #include "Godunov.hpp"
 
+#include "MHD/CT.hpp"   //For MHD
+#include "Config.h"     //For MHD vs Hydro
 
-
-#include "Hydro/Riemann/Riemann.hpp"  //For Riemann Solvers
-#include "MHD/CT.hpp"           //For MHD
-
-
-#include "Config.h"
-#include "DragonWing.hpp" //For Memory Management
-#include "Hydro/Reconstruction/TVD.hpp"        //For MINMOD
-#include "Constants.h"    //For _1_8pi
+#include "Hydro/Riemann/Riemann.hpp"    //For Riemann Solvers
+#include "DragonWing.hpp"               //For Memory Management
+#include "Hydro/Reconstruction/TVD.hpp" //For MINMOD
+#include "Constants.h"                  //For _1_8pi
 using namespace DRAGON;
 
 #ifdef CTU
@@ -61,9 +58,9 @@ void Godunov::ctu_sweep_MHD(FluidArray3D& _xL, FluidArray3D& _xR, FluidArray3D& 
         __whalf.release();
     
     //CTU corrections
-    for(int i=-1; i<nx+1; i++){
-        for(int j=-1; j<ny+1; j++){
-            for(int k=-1; k<nz+1; k++){
+    for (int i=-1; i<nx+1; i++) {
+        for (int j=-1; j<ny+1; j++) {
+            for (int k=-1; k<nz+1; k++) {
                 double dBx = (B[i+1,j,k].x - B[i,j,k].x) * dt_dx;
                 double dBy = (B[i,j+1,k].y - B[i,j,k].y) * dt_dy;
                 double dBz = (B[i,j,k+1].z - B[i,j,k].z) * dt_dz;
@@ -159,8 +156,8 @@ void Godunov::ctu_sweep_MHD(FluidArray2D& _xL, FluidArray2D& _xR, FluidArray2D& 
     
     
     //CTU Corrections
-    for(int i=-1; i<nx+1; i++){
-        for(int j=-1; j<ny+1; j++){
+    for (int i=-1; i<nx+1; i++) {
+        for (int j=-1; j<ny+1; j++) {
             double dBx = (B[i+1,j].x - B[i,j].x) * dt_dx;
             double dBy = (B[i,j+1].y - B[i,j].y) * dt_dy;
 
@@ -268,8 +265,8 @@ void Godunov::correctState(FluidArray2D& _L, FluidArray2D& _R, const FluxArray2D
     const int xL = -isY, xR = F.getSizeX()+isY, yL = -isX, yR = F.getSizeY()+isX;
     
     //Cycle
-    for(int i=xL; i<xR; i++){
-        for(int j=yL; j<yR; j++){
+    for (int i=xL; i<xR; i++) {
+        for (int j=yL; j<yR; j++) {
             auto trans = (F[i+isX,j+isY] - F[i,j]) * dt_dL;
             _L[i,j] = _L[i,j] -  trans;
             _R[i,j] = _R[i,j] -  trans;
@@ -289,9 +286,9 @@ void Godunov::correctState(FluidArray3D& _L, FluidArray3D& _R, const FluxArray3D
     const int xL = -isX_, xR = F.getSizeX()+isX_, yL = -isY_, yR = F.getSizeY()+isY_, zL = -isZ_, zR = F.getSizeZ()+isZ_;
     
     //cycle
-    for(int i=xL; i<xR; i++){
-        for(int j=yL; j<yR; j++){
-            for(int k=zL; k<zR; k++){
+    for (int i=xL; i<xR; i++) {
+        for (int j=yL; j<yR; j++) {
+            for (int k=zL; k<zR; k++) {
                 auto trans = (F[i+isX, j+isY, k+isZ] - F[i,j,k]) * dt_dL;
                 _L[i,j,k] = _L[i,j,k] -  trans;
                 _R[i,j,k] = _R[i,j,k] -  trans;
@@ -311,11 +308,11 @@ void Godunov::computeCTUFlux_X(const FluidArray3D& _L, const FluidArray3D& _R, c
     const int xL = 0, xR = F.getSizeX(), yL = -1+isY, yR = F.getSizeY()+1-isY, zL = -1+isZ, zR = F.getSizeZ()+1-isZ;
     
     //cycle
-    for(int j=yL; j<yR; j++){
-        for(int k=zL; k<zR; k++){
+    for (int j=yL; j<yR; j++) {
+        for (int k=zL; k<zR; k++) {
             //Compute Left half-state on the first cell
             PrimitiveState  __R, __L =  _R[xL-1, j,k] - (FYZ[xL-1, j+isY, k+isZ] - FYZ[xL-1,j,k]) * dt_dy;
-            for(int i=xL; i<=xR; i++){
+            for (int i=xL; i<=xR; i++) {
                 auto trans = (FYZ[i, j+isY, k+isZ] - FYZ[i,j,k]) * dt_dy;
                 __R = _L[i,j,k] -  trans;//Compute Right half-state for this flux
                 F[i,j,k] = Riemann(__L, __R).flux_X(dt_dx);
@@ -334,11 +331,11 @@ void Godunov::computeCTUFlux_Y(const FluidArray3D& _L, const FluidArray3D& _R, c
     
     
     //cycle
-    for(int i=xL; i<xR; i++){
-        for(int k=zL; k<zR; k++){
+    for (int i=xL; i<xR; i++) {
+        for (int k=zL; k<zR; k++) {
             //Compute Left half-state on the first cell
             PrimitiveState  __R, __L =  _R[i,yL-1,k] - (FXZ[i+isX,yL-1, k+isZ] - FXZ[i,yL-1,k]) * dt_dz;
-            for(int j=yL; j<=yR; j++){
+            for (int j=yL; j<=yR; j++) {
                 auto trans = (FXZ[i+isX, j, k+isZ] - FXZ[i,j,k]) * dt_dz;
                 __R = _L[i,j,k] -  trans;//Compute Right half-state for this flux
                 F[i,j,k] = Riemann(__L, __R).flux_Y(dt_dy);
@@ -355,11 +352,11 @@ void Godunov::computeCTUFlux_Z(const FluidArray3D& _L, const FluidArray3D& _R, c
     int isY = dim%3 == 1 ? 1 : 0;
     const int xL = -1+isX, xR = F.getSizeX()+1-isX, yL = -1+isY, yR = F.getSizeY()+1-isY, zL = 0, zR = F.getSizeZ();
     //cycle
-    for(int i=xL; i<xR; i++){
-        for(int j=yL; j<yR; j++){
+    for (int i=xL; i<xR; i++) {
+        for (int j=yL; j<yR; j++) {
             //Compute Left half-state on the first cell
             PrimitiveState  __R, __L =  _R[i,j,zL-1] - (FXY[i+isX,j+isY,zL-1] - FXY[i,j,zL-1]) * dt_dy;
-            for(int k=zL; k<=zR; k++){
+            for (int k=zL; k<=zR; k++) {
                 auto trans = (FXY[i+isX, j+isY, k] - FXY[i,j,k]) * dt_dy;
                 __R = _L[i,j,k] -  trans;//Compute Right half-state for this flux
                 F[i,j,k] = Riemann(__L, __R).flux_Z(dt_dz);

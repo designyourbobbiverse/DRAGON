@@ -7,7 +7,7 @@
 #ifndef TVD_hpp
 #define TVD_hpp
 
-#include "FluidElement/FluidElement.hpp"
+#include "FluidElement/FluidElement.hpp" //For PrimitiveState, vec3
 
 const DRAGON::vec3 zero = {0,0,0};
 

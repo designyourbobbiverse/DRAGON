@@ -9,9 +9,9 @@
 #ifndef Riemann_hpp
 #define Riemann_hpp
 
-#include "FluidElement/FluidElement.hpp"
+#include "FluidElement/FluidElement.hpp" //For PrimitiveState, ConservativeState
 
-#include "Config.h"
+#include "Config.h" //For MHD vs Hydro
 //Macro which tells hydro only solvers to not compile if using MHD, except for unit testing where both modes are needed.
 #if !defined(MHD) || defined(TESTMODE)
 #define HYDRO_AVAILABLE

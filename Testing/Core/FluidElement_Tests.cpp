@@ -16,48 +16,48 @@
 using namespace DRAGON_Test;
 
 
-void DRAGON_Test::verify_fluid_element(bool output) {
-    if(output) std::cout << "Fluid Arithmetic: \n";
-    if(output) std::cout << "- Element Construction: ";
+void DRAGON_Test::verify_fluid_element(bool output){
+    if (output) std::cout << "Fluid Arithmetic: \n";
+    if (output) std::cout << "- Element Construction: ";
     verify_constructors();
-    if(output) std::cout << "Passed\n";
-    if(output) std::cout << "- Form Conversion: ";
+    if (output) std::cout << "Passed\n";
+    if (output) std::cout << "- Form Conversion: ";
     verify_conversion();
-    if(output) std::cout << "Passed\n";
-    if(output) std::cout << "- Wave Speeds: ";
+    if (output) std::cout << "Passed\n";
+    if (output) std::cout << "- Wave Speeds: ";
     verify_enthalpy();
     verify_wavespeeds();
-    if(output) std::cout << "Passed\n";
-    if(output) std::cout << "- Physicality: ";
+    if (output) std::cout << "Passed\n";
+    if (output) std::cout << "- Physicality: ";
     verify_physicality();
-    if(output) std::cout << "Passed\n";
-    if(output) std::cout << "- Axis Swaps: ";
+    if (output) std::cout << "Passed\n";
+    if (output) std::cout << "- Axis Swaps: ";
     verify_swaps_P();
     verify_swaps_C();
-    if(output) std::cout << "Passed\n";
-    if(output) std::cout << "- Addition: ";
+    if (output) std::cout << "Passed\n";
+    if (output) std::cout << "- Addition: ";
     verify_add();
-    if(output) std::cout << "Passed\n";
-    if(output) std::cout << "- Subtraction: ";
+    if (output) std::cout << "Passed\n";
+    if (output) std::cout << "- Subtraction: ";
     verify_sub();
-    if(output) std::cout << "Passed\n";
-    if(output) std::cout << "- Multiplication: ";
+    if (output) std::cout << "Passed\n";
+    if (output) std::cout << "- Multiplication: ";
     verify_mult();
-    if(output) std::cout << "Passed\n";
-    if(output) std::cout << "- Division: ";
+    if (output) std::cout << "Passed\n";
+    if (output) std::cout << "- Division: ";
     verify_div();
-    if(output) std::cout << "Passed\n";
-    if(output) std::cout << "- Flux Calculation: ";
+    if (output) std::cout << "Passed\n";
+    if (output) std::cout << "- Flux Calculation: ";
     verify_flux();
-    if(output) std::cout << "Passed\n";
-    if(output) std::cout << "- Flux Addition: ";
+    if (output) std::cout << "Passed\n";
+    if (output) std::cout << "- Flux Addition: ";
     verify_flux_add();
-    if(output) std::cout << "Passed\n";
-    if(output) std::cout << "All Fluid Arithmetic Tests Passed.\n\n";
+    if (output) std::cout << "Passed\n";
+    if (output) std::cout << "All Fluid Arithmetic Tests Passed.\n\n";
 }
 
 
-PrimitiveState DRAGON_Test::make_state(double rho, double vx, double vy, double vz, double p) {
+PrimitiveState DRAGON_Test::make_state(double rho, double vx, double vy, double vz, double p){
     PrimitiveState W;
     W.rho = rho;
     W.v.x = vx;
@@ -71,7 +71,7 @@ PrimitiveState DRAGON_Test::make_state(double rho, double vx, double vy, double 
 }
 
 #ifdef MHD
-PrimitiveState DRAGON_Test::make_mhd_state(double rho, double vx,double vy,double vz, double p, double Bx,double By,double Bz) {
+PrimitiveState DRAGON_Test::make_mhd_state(double rho, double vx,double vy,double vz, double p, double Bx,double By,double Bz){
     PrimitiveState W = make_state(rho, vx, vy, vz, p);
     W.B = {Bx, By, Bz};
     return W;
@@ -80,15 +80,15 @@ PrimitiveState DRAGON_Test::make_mhd_state(double rho, double vx,double vy,doubl
 
 
 //MARK: Close enough
-bool DRAGON_Test::approx(double a, double b, double rel, double abs) {
+bool DRAGON_Test::approx(double a, double b, double rel, double abs){
     return std::abs(a - b) <= abs + rel * std::max(std::abs(a), std::abs(b));
 }
-void DRAGON_Test::expect_close(const vec3& a, const vec3& b, double rel, double abs) {
+void DRAGON_Test::expect_close(const vec3& a, const vec3& b, double rel, double abs){
     assert(approx(a.x,  b.x,  rel, abs));
     assert(approx(a.y,  b.y,  rel, abs));
     assert(approx(a.z,  b.z,  rel, abs));
 }
-void DRAGON_Test::expect_close(const ConservativeState& a, const ConservativeState& b, double rel, double abs) {
+void DRAGON_Test::expect_close(const ConservativeState& a, const ConservativeState& b, double rel, double abs){
     assert(approx(a.rho, b.rho, rel, abs));
     assert(approx(a.E,   b.E,   rel, abs));
     expect_close(a.mom, b.mom, rel, abs);
@@ -96,7 +96,7 @@ void DRAGON_Test::expect_close(const ConservativeState& a, const ConservativeSta
     expect_close(a.B, b.B, rel, abs);
 #endif
 }
-void DRAGON_Test::expect_close(const PrimitiveState& a, const PrimitiveState& b, double rel, double abs) {
+void DRAGON_Test::expect_close(const PrimitiveState& a, const PrimitiveState& b, double rel, double abs){
     assert(approx(a.rho, b.rho, rel, abs));
     assert(approx(a.p, b.p,   rel, abs));
     expect_close(a.v, b.v, rel, abs);
@@ -546,7 +546,7 @@ void DRAGON_Test::verify_div(){
     assert(approx(k,2));  // original unchanged
 
 }
-void DRAGON_Test::verify_flux_add() {
+void DRAGON_Test::verify_flux_add(){
     PrimitiveState W= make_state(1.0, 2.0, 3.0, 4.0, 10.0);
 #ifdef MHD
     W.B = {0.1,0.2,0.3};

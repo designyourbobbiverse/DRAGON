@@ -61,7 +61,7 @@ Important switches include:
 - `RIEMANN_DEFAULT`: the default Riemann solver. The default `RIEMANN_HLLX` uses HLLC for pure hydrodynamics and HLLD for MHD.
 - `RIEMANN_VERIFY_FALLBACK`: if enabled, physicality of the Riemann solution is verified before returning. On failure, will attempt to pivot to more robust (albeit more diffusive or more expensive) solvers if needed.
 - `CFL_CALCULATION`: chooses CFL speed calculation method for multidimensional problems.
-- `CFL_coeff`: global CFL coefficient. The current value is `0.3`.
+- `cfl_coeff`: global CFL coefficient. The current value is `0.3`.
 - `MUSCL_Hancock`: enables second-order MUSCL-Hancock reconstruction. Comment it out for a first-order Godunov scheme.
 - `MUSCL_DEFAULT_LIMITER`: the TVD limiter used by MUSCL reconstruction.
 - `DIMENSION_UNSPLIT`: unsplit multidimensional advancement (turn off for Strang splitting).

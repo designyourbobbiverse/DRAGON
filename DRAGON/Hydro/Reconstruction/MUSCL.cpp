@@ -54,7 +54,7 @@ void TVD::MUSCL(const PrimitiveState& wL, PrimitiveState& _L, const PrimitiveSta
     _R = UR - correction;
     
     //Check to make sure this didn't overshoot past positivity limit, fallback to First order if needed
-    if(_L.isPhysical() && _R.isPhysical() ) return;
+    if (_L.isPhysical() && _R.isPhysical() ) return;
 #endif
     //First order version if MUSCL is disabled or failed physicality check.
     _L = wC;

@@ -8,10 +8,10 @@
 
 #include "Hydro/Riemann/Riemann.hpp"
 
-#include "Constants.h" //For _gamma and related coefficients
-#include <cmath> //For std::sqrt, pow, abs
-#include <algorithm> //For std::min
-#include <utility> //For std::swap
+#include "Constants.h"  //For _gamma and related coefficients
+#include <cmath>        //For std::sqrt, pow, abs
+#include <algorithm>    //For std::min
+#include <utility>      //For std::swap
 using namespace DRAGON;
 
 
@@ -58,7 +58,7 @@ RiemannSolution Riemann::exact(double pGuess){
     #ifdef Exact_Rarefactions_Check
     //Check to see if the wave will be two rarefactions. If so, a closed solution exists.
     double p_min = std::min(L.p, R.p);
-    if(f(p_min,L) + f(p_min,R) + R.v.x - L.v.x >= 0) return TRRS();
+    if (f(p_min,L) + f(p_min,R) + R.v.x - L.v.x >= 0) return TRRS();
     #endif
     
     RiemannSolution s = RiemannSolution(*this);
@@ -79,14 +79,14 @@ RiemannSolution Riemann::exact(double pGuess){
 
 double Riemann::exact_StarP(double pGuess){
     double pStar = pGuess, CHA = 1;
-    int iters = CONFIG::ExactRiemann_MaxIters; //Keeps track of hwo many iterations we have left
-    do{ //Newton's Method on the Velocity jump equation
+    int iters = Config::exact_riemann_max_iters; //Keeps track of hwo many iterations we have left
+    do { //Newton's Method on the Velocity jump equation
         double fp = f(pStar, L) + f(pStar, R) + R.v.x - L.v.x;
         double dfdp = df(pStar, L) + df(pStar, R);
         double delta = std::min(fp/dfdp, 0.8*pStar); //0.8 helps keep from going negative/diverging
         pStar -= delta;
         CHA = std::abs(delta/(pStar+delta/2));
-    } while(CHA > CONFIG::ExactRiemann_Tolerance &&  --iters != 0 );
+    } while(CHA > Config::exact_riemann_tolerance &&  --iters != 0 );
     return pStar;
 }
 //v* and rho* given p*
@@ -94,7 +94,7 @@ double Riemann::exact_StarV(double pStar){
     return (L.v.x + R.v.x + f(pStar,R)-f(pStar,L))/2.0;
 }
 double Riemann::exact_StarRho(PrimitiveState w, double p){
-    if(p>w.p) return w.rho * (p+_Gm1_Gp1*w.p)/(_Gm1_Gp1*p+w.p);//Shock
+    if (p>w.p) return w.rho * (p+_Gm1_Gp1*w.p)/(_Gm1_Gp1*p+w.p);//Shock
     else return w.rho * std::pow( p/w.p, _Ginv); //Rarefaction
 }
 
@@ -133,42 +133,42 @@ ConservativeState RiemannSolution::flux(double x_t){
 PrimitiveState RiemannSolution::sample(double x_t){
     PrimitiveState state;
     //Edge case: Right on the contact wave, do this to help ensure symmetry
-    if(std::abs(sR.v.x - x_t) < 1e-12){
+    if (std::abs(sR.v.x - x_t) < 1e-12) {
         double sql = std::sqrt(sL.rho), sqr = std::sqrt(sR.rho);
         return (sql*sL + sqr*sR)/(sql+sqr);
     }
     
     //Handle left vs Right side
     bool isLeft = x_t < sR.v.x;
-    if(isLeft){ mirror(); x_t=-x_t; }
+    if (isLeft) { mirror(); x_t=-x_t; }
     
     //Calculate Hydro Sound Speed
     double a = wR.cs();
     //Determine Zone
     int zone = 0; // 1 = outside, 2 = fan, 3 = star
-    if (sR.p > wR.p){ //shock
+    if (sR.p > wR.p) { //shock
         double scale = std::sqrt(_Gp1_2G*sR.p/wR.p + _Gm1_2G );
         zone = ( (x_t-wR.v.x)  > scale * a ) ? 1 : 3; //Shocks have no fan, just jump form outside to star
-    } else{ //Rarefraction
+    } else { //Rarefraction
         if ( (x_t-wR.v.x) > a ) zone = 1; //Outside region
         else if ( (x_t-sR.v.x) > a ) zone = 2; //one extra compare that saves a call to pow
         else if ( (x_t-sR.v.x) > a * std::pow(sR.p/wR.p, _Gm1_2G) ) zone = 2; //Fan
         else zone = 3; //Inside the star region
     }
     //Calculate the State at x/t
-    switch(zone){
-        case 1: state=wR; break; //Outer Region
-        case 3: state=sR;break; //Star Region
-        case 2://Fan
-            state = wR;
-            double scale = _2_Gp1 - _Gm1_Gp1 * (wR.v.x-x_t)/a;
-            state.rho *= std::pow(scale, _2_Gm1);
-            state.p *= std::pow(scale,_2G_Gm1);
-            state.v.x = _2_Gp1 * (x_t-a + wR.v.x * _Gm1_2);
-            break;
+    switch(zone) {
+    case 1: state=wR; break; //Outer Region
+    case 3: state=sR;break; //Star Region
+    case 2://Fan
+        state = wR;
+        double scale = _2_Gp1 - _Gm1_Gp1 * (wR.v.x-x_t)/a;
+        state.rho *= std::pow(scale, _2_Gm1);
+        state.p *= std::pow(scale,_2G_Gm1);
+        state.v.x = _2_Gp1 * (x_t-a + wR.v.x * _Gm1_2);
+        break;
     }
     //Be a good citizen, restore original state if we mirrored
-    if(isLeft){ mirror(); state.v.x *= -1;}
+    if (isLeft) { mirror(); state.v.x *= -1;}
 
     return state;
 }

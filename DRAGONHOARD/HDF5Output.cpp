@@ -40,9 +40,9 @@ std::string DRAGONHOARD::cycle_string(int n){
 namespace{
 
 template <typename T> H5::PredType hdf5Type();
-    template <> H5::PredType hdf5Type<int>() { return H5::PredType::NATIVE_INT; }
-    template <> H5::PredType hdf5Type<float>() { return H5::PredType::NATIVE_FLOAT; }
-    template <> H5::PredType hdf5Type<double>() { return H5::PredType::NATIVE_DOUBLE; }
+    template <> H5::PredType hdf5Type<int>(){ return H5::PredType::NATIVE_INT; }
+    template <> H5::PredType hdf5Type<float>(){ return H5::PredType::NATIVE_FLOAT; }
+    template <> H5::PredType hdf5Type<double>(){ return H5::PredType::NATIVE_DOUBLE; }
 
 template <typename T>
 void writeArray(H5::H5File& file,const std::string& name, const std::vector<T>& data, hsize_t nx){
@@ -91,7 +91,7 @@ void writeArray(H5::H5File& file,const std::string& name, const std::vector<T>& 
 }
 
 template <typename T>
-void writeAttribute(H5::H5File& file, const std::string& name, T value) {
+void writeAttribute(H5::H5File& file, const std::string& name, T value){
     H5::DataSpace dataspace(H5S_SCALAR);
     H5::Attribute attr = file.createAttribute(name, hdf5Type<T>(), dataspace);
     attr.write(hdf5Type<T>(), &value);
@@ -103,17 +103,17 @@ void writeAttribute(H5::H5File& file, const std::string& name, T value) {
 //MARK: Dispatch
 void DRAGONHOARD::writeToFile(Grid& grid, double t, int cycle, const std::string& filename){
     Grid3D* grid3D = dynamic_cast<Grid3D*>(&grid);
-    if(grid3D){
+    if (grid3D) {
         writeToFile(*grid3D, t, cycle, filename);
         return;
     }
     Grid2D* grid2D = dynamic_cast<Grid2D*>(&grid);
-    if(grid2D){
+    if (grid2D) {
         writeToFile(*grid2D, t, cycle, filename);
         return;
     }
     Grid1D* grid1D = dynamic_cast<Grid1D*>(&grid);
-    if(grid1D){
+    if (grid1D) {
         writeToFile(*grid1D, t, cycle, filename);
         return;
     }
@@ -181,7 +181,7 @@ void DRAGONHOARD::writeToFile(Grid1D& grid, double t, int cycle, const std::stri
     std::vector<double> By(size);
     std::vector<double> Bz(size);
     #endif
-    for(int i = i0; i<in; i++){
+    for (int i = i0; i<in; i++) {
         PrimitiveState w = grid[i];
         size_t n = i-i0;
 
@@ -307,8 +307,8 @@ void DRAGONHOARD::writeToFile(Grid2D& grid, double t, int cycle, const std::stri
     std::vector<double> Bfy(size_B);
     std::vector<double> Bfz(size_B);
     #endif
-    for(int i = i0; i<in; i++){
-        for(int j=j0; j<jn; j++){
+    for (int i = i0; i<in; i++) {
+        for (int j=j0; j<jn; j++) {
             PrimitiveState w = grid[i,j];
             size_t n = (j-j0)*(in-i0) + (i-i0);
             
@@ -336,8 +336,8 @@ void DRAGONHOARD::writeToFile(Grid2D& grid, double t, int cycle, const std::stri
         }
     }
     #ifdef MHD
-    for(int i = i0; i<=in; i++){
-        for(int j=j0; j<=jn; j++){
+    for (int i = i0; i<=in; i++) {
+        for (int j=j0; j<=jn; j++) {
             size_t n =  (j-j0)*(in-i0+1) + (i-i0);
             Bfx[n] = grid._B()[i,j].x;
             Bfy[n] = grid._B()[i,j].y;
@@ -454,9 +454,9 @@ void DRAGONHOARD::writeToFile(Grid3D& grid, double t, int cycle, const std::stri
     std::vector<double> Bfy(size_B);
     std::vector<double> Bfz(size_B);
     #endif
-    for(int i = i0; i<in; i++){
-        for(int j=j0; j<jn; j++){
-            for(int k=k0; k<kn; k++){
+    for (int i = i0; i<in; i++) {
+        for (int j=j0; j<jn; j++) {
+            for (int k=k0; k<kn; k++) {
                 PrimitiveState w = grid[i,j,k];
                 size_t n = ((k-k0)*(jn-j0) + (j-j0))*(in-i0) + (i-i0);
                 
@@ -485,9 +485,9 @@ void DRAGONHOARD::writeToFile(Grid3D& grid, double t, int cycle, const std::stri
         }
     }
     #ifdef MHD
-    for(int i = i0; i<=in; i++){
-        for(int j=j0; j<=jn; j++){
-            for(int k=k0; k<=kn; k++){
+    for (int i = i0; i<=in; i++) {
+        for (int j=j0; j<=jn; j++) {
+            for (int k=k0; k<=kn; k++) {
                 vec3 B = grid._B()[i,j,k];
                 size_t n = ((k-k0)*(jn-j0+1) + j-j0)*(in-i0+1) + (i-i0);
                 Bfx[n] = B.x;

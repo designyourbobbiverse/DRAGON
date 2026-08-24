@@ -16,6 +16,7 @@
 #include "MHD/CT.hpp"      //For MHD
 
 #include "DragonWing.hpp" //For memory management & synchronization
+
 #include <stdexcept>      //For error handling
 #include <format>         //For error message formatting
 using namespace DRAGON;
@@ -42,7 +43,7 @@ void Grid2D::unsplit_step(double dt){
     const int nx = w.getSizeX(), ny = w.getSizeY(), ghosts = w.getGhosts();
     const double dt_dx = dt/dx, dt_dy = dt/dy;
     
-    if(!DRAGONWING::waitForRelease()) return; //On memory-constrained systems, we might have to wait until it's our turn
+    if (!DRAGONWING::waitForRelease()) return; //On memory-constrained systems, we might have to wait until it's our turn
     
     //Compute Interface States
         auto __half_states = DRAGONWING::requestPrimitiveArrays(4, nx, ny, ghosts);
@@ -54,13 +55,13 @@ void Grid2D::unsplit_step(double dt){
     computeHalfStates_Y(_yL, (*this), _yR, dt);
     
     #ifdef CTU //Gardiner and Stone (2008) https://arxiv.org/abs/0712.2634
-        #ifdef MHD
-            auto __E_half = DRAGONWING::requestVec3Arrays(1, nx+1, ny+1, ghosts);
-        MagneticArray2D& _E_half = *__E_half[0];
-        ctu_sweep_MHD(_xL, _xR, _yL, _yR, B, w, _E_half, dt_dx, dt_dy);
-        #else
-        ctu_sweep_hydro(_xL, _xR, _yL, _yR, dt_dx, dt_dy);
-        #endif
+    #ifdef MHD
+        auto __E_half = DRAGONWING::requestVec3Arrays(1, nx+1, ny+1, ghosts);
+    MagneticArray2D& _E_half = *__E_half[0];
+    ctu_sweep_MHD(_xL, _xR, _yL, _yR, B, w, _E_half, dt_dx, dt_dy);
+    #else
+    ctu_sweep_hydro(_xL, _xR, _yL, _yR, dt_dx, dt_dy);
+    #endif
     #endif
 
     //Compute Fluxes
@@ -102,16 +103,16 @@ void Grid2D::unsplit_step(double dt){
         __fluxes.release();
 
     //Verify Physicality of solution
-    for(int i=0; i<nx; i++){
-        for(int j=0; j<ny; j++){
-            if(!_w[i,j].isPhysical())
+    for (int i=0; i<nx; i++) {
+        for (int j=0; j<ny; j++) {
+            if (!_w[i,j].isPhysical())
                 throw std::runtime_error(std::format("Unphysical state would be produced at ({},{})",i,j));
         }
     }
         
     //Wait for any parallel grids to finish
     DRAGONWING::reportCheckpoint1();
-    if(!DRAGONWING::waitForCheckpoint1()) return;
+    if (!DRAGONWING::waitForCheckpoint1()) return;
     
     //Commit flux updates
     w.clone(_w, false);
@@ -127,7 +128,7 @@ void Grid3D::unsplit_step(double dt){
     const int nx = w.getSizeX(), ny = w.getSizeY(), nz = w.getSizeZ(), ghosts = w.getGhosts();
     const double dt_dx = dt/dx, dt_dy = dt/dy, dt_dz = dt/dz;
     
-    if(!DRAGONWING::waitForRelease()) return; //On memory-constrained systems, we might have to wait until it's our turn.
+    if (!DRAGONWING::waitForRelease()) return; //On memory-constrained systems, we might have to wait until it's our turn.
 
     //Compute Half States
         auto __half_states = DRAGONWING::requestPrimitiveArrays(6, nx, ny, nz, ghosts);
@@ -142,13 +143,13 @@ void Grid3D::unsplit_step(double dt){
     computeHalfStates_Z(_zL, (*this), _zR, dt);
     
     #ifdef CTU //Gardiner and Stone (2008) https://arxiv.org/abs/0712.2634
-        #ifdef MHD
-            auto __E_half = DRAGONWING::requestVec3Arrays(1, nx+1, ny+1, nz+1, ghosts);
-        MagneticArray3D& _E_half = *__E_half[0];
-        ctu_sweep_MHD(_xL, _xR, _yL, _yR, _zL, _zR, B, w, _E_half, dt_dx, dt_dy, dt_dz);
-        #else
-        ctu_sweep_hydro(_xL, _xR, _yL, _yR, _zL, _zR, dt_dx, dt_dy, dt_dz);
-        #endif
+    #ifdef MHD
+        auto __E_half = DRAGONWING::requestVec3Arrays(1, nx+1, ny+1, nz+1, ghosts);
+    MagneticArray3D& _E_half = *__E_half[0];
+    ctu_sweep_MHD(_xL, _xR, _yL, _yR, _zL, _zR, B, w, _E_half, dt_dx, dt_dy, dt_dz);
+    #else
+    ctu_sweep_hydro(_xL, _xR, _yL, _yR, _zL, _zR, dt_dx, dt_dy, dt_dz);
+    #endif
     #endif
 
     //Compute Fluxes
@@ -194,10 +195,10 @@ void Grid3D::unsplit_step(double dt){
 
     
     //Check Physicality
-    for(int i=0; i<nx; i++){
-        for(int j=0; j<ny; j++){
-            for(int k=0; k<nz; k++){
-                if(!_w[i,j,k].isPhysical())
+    for (int i=0; i<nx; i++) {
+        for (int j=0; j<ny; j++) {
+            for (int k=0; k<nz; k++) {
+                if (!_w[i,j,k].isPhysical())
                     throw std::runtime_error(std::format("Unphysical state would be produced at ({},{},{})",i,j,k));
             }
         }
@@ -205,7 +206,7 @@ void Grid3D::unsplit_step(double dt){
     
     //Wait for any parallel grids to finish
     DRAGONWING::reportCheckpoint1();
-    if(!DRAGONWING::waitForCheckpoint1()) return;
+    if (!DRAGONWING::waitForCheckpoint1()) return;
     
     //Commit Flux updates
     w.clone(_w, false);

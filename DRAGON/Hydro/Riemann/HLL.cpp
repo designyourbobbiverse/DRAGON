@@ -13,9 +13,9 @@
 
 #include "Hydro/Riemann/Riemann.hpp"
 
-#include <cmath> //For std::sqrt
-#include <algorithm> //For std::max/min
-#include "Constants.h" //For _gamma
+#include <cmath>        //For std::sqrt
+#include <algorithm>    //For std::max/min
+#include "Constants.h"  //For _gamma
 using namespace DRAGON;
 
 namespace DRAGON::HLL{
@@ -62,8 +62,8 @@ ConservativeState Riemann::HLL(){
 }
 ConservativeState Riemann::HLL(double sl, double sr){
     //Outside region
-    if(sl >= 0) return ConservativeState(L).flux(L.v);
-    if(sr <= 0) return ConservativeState(R).flux(R.v);
+    if (sl >= 0) return ConservativeState(L).flux(L.v);
+    if (sr <= 0) return ConservativeState(R).flux(R.v);
     
     ConservativeState UL = ConservativeState(L);
     ConservativeState UR = ConservativeState(R);
@@ -117,8 +117,8 @@ ConservativeState Riemann::HLLC(){
 }
 ConservativeState Riemann::HLLC(double sl, double sr){
     //Exterior region
-    if(sl >= 0) return L.flux();
-    if(sr <= 0) return R.flux();
+    if (sl >= 0) return L.flux();
+    if (sr <= 0) return R.flux();
     //Calculate the contact wave
     double _pr = R.p + R.rho*R.v.x*(R.v.x - sr), _pl = L.p + L.rho*L.v.x*(L.v.x - sl);
     double sc = (_pr - _pl) / (R.rho*(R.v.x-sr) - L.rho*(L.v.x-sl));

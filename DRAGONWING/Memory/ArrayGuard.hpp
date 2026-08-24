@@ -5,7 +5,8 @@
 //  Created by Bobbie Markwick on 10/07/2026.
 //
 
-#pragma once
+#ifndef ArrayGuard_hpp
+#define ArrayGuard_hpp
 #include <vector>
 
 #include <concepts>     //for ValidGridType template
@@ -44,7 +45,7 @@ class ArrayGuard{
 private:
     std::vector<T*> arrays;
 public:
-    ArrayGuard(std::vector<T*> arrs): arrays(arrs) {}
+    ArrayGuard(std::vector<T*> arrs): arrays(arrs){}
     ArrayGuard(const ArrayGuard&) = delete; //No copying
     ArrayGuard& operator=(const ArrayGuard&) = delete;
     
@@ -54,7 +55,7 @@ public:
     
     //Return all of the arrays in the batch to the shared memory pool
     void release(){
-        while (!arrays.empty()) {
+        while(!arrays.empty()) {
             T* arr = arrays.back();
             arrays.pop_back();
             DRAGONWING::Internal::releaseArray(arr);
@@ -63,3 +64,4 @@ public:
     ~ArrayGuard(){ release(); }
 };
 }
+#endif

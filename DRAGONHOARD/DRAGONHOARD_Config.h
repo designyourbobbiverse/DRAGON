@@ -6,8 +6,8 @@
 //  Created by Bobbie Markwick on 23/07/2026.
 //
 
-#ifndef DRAGONHOARD_CONFIG_h
-#define DRAGONHOARD_CONFIG_h
+#ifndef DRAGONHOARD_Config_h
+#define DRAGONHOARD_Config_h
 
 #include <string>
 

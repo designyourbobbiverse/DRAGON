@@ -16,15 +16,15 @@ using namespace DRAGON_Test;
 using namespace Boundary;
 
 void DRAGON_Test::verify_boundary_reflective(bool output){
-    if(output) std::cout<<"- 1D: ";
+    if (output) std::cout<<"- 1D: ";
     verify_boundary_reflective_1D();
-    if(output) std::cout<<"Passed\n";
-    if(output) std::cout<<"- 2D: ";
+    if (output) std::cout<<"Passed\n";
+    if (output) std::cout<<"- 2D: ";
     verify_boundary_reflective_2D();
-    if(output) std::cout<<"Passed\n";
-    if(output) std::cout<<"- 3D: ";
+    if (output) std::cout<<"Passed\n";
+    if (output) std::cout<<"- 3D: ";
     verify_boundary_reflective_3D();
-    if(output) std::cout<<"Passed\n";
+    if (output) std::cout<<"Passed\n";
 }
 
 
@@ -45,7 +45,7 @@ void reflectX1D(PrimitiveState& W){
 #endif
 }
 
-void DRAGON_Test::verify_boundary_reflective_1D() {
+void DRAGON_Test::verify_boundary_reflective_1D(){
     
     
     Grid1D grid(4, 1.0, 2);

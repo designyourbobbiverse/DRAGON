@@ -89,8 +89,8 @@ void Problem::problemComplete(Grid& problem, double t){
     
     vec3 L1;
     
-    for(int i=0; i<n;i++){
-        for(int j=0; j<n/2; j++){
+    for (int i=0; i<n;i++) {
+        for (int j=0; j<n/2; j++) {
             vec3 err = grid[i,j].B - expected[i,j].B;
             L1 += vec3{std::abs(err.x), std::abs(err.y), std::abs(err.z)} ;
         }

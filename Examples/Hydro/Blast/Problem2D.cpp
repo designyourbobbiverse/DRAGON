@@ -32,12 +32,12 @@ Grid& Problem::makeProblem(){
     
     //Compute blast area
     int blast_cells = 0;
-    for(int i=0; i<n;i++){
-        for(int j=0; j<n; j++){
+    for (int i=0; i<n;i++) {
+        for (int j=0; j<n; j++) {
             double x = (i + 0.5)/n  - 0.5;
             double y = (j + 0.5)/n - 0.5;
             double r = std::sqrt(x*x + y*y);
-            if(r < r0) blast_cells++;
+            if (r < r0) blast_cells++;
         }
     }
     p_blast *= (n*n) / blast_cells;
@@ -55,7 +55,7 @@ PrimitiveState Problem::initialFluidState(double x, double y, double z){
     w.p = p_amb;
     
     double r = std::sqrt(x*x + y*y);
-    if(r < r0) w.p += p_blast;
+    if (r < r0) w.p += p_blast;
     
     return w;
 }

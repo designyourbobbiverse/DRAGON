@@ -91,9 +91,9 @@ void Problem::problemComplete(Grid& problem, double t){
     DRAGONHOARD::loadFromFile(expected, ig,nore, DRAGONHOARD::output_base_name + "_" + DRAGONHOARD::cycle_string(0));
     
     vec3 L1;
-    for(int i=0; i<n;i++){
-        for(int j=0; j<n/2; j++){
-            for(int k=0; k<n/2; k++){
+    for (int i=0; i<n;i++) {
+        for (int j=0; j<n/2; j++) {
+            for (int k=0; k<n/2; k++) {
                 vec3 err = grid[i,j,k].B - expected[i,j,k].B;
                 L1 += vec3{std::abs(err.x), std::abs(err.y), std::abs(err.z)} ;
             }

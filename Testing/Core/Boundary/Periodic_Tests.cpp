@@ -25,17 +25,17 @@ void fill_3D(Grid3D& grid);
 
 //MARK: Periodic
 void DRAGON_Test::verify_boundary_periodic(bool output){
-    if(output) std::cout<<"- 1D: ";
+    if (output) std::cout<<"- 1D: ";
     verify_boundary_periodic_1D();
-    if(output) std::cout<<"Passed\n";
-    if(output) std::cout<<"- 2D: ";
+    if (output) std::cout<<"Passed\n";
+    if (output) std::cout<<"- 2D: ";
     verify_boundary_periodic_2D();
-    if(output) std::cout<<"Passed\n";
-    if(output) std::cout<<"- 3D: ";
+    if (output) std::cout<<"Passed\n";
+    if (output) std::cout<<"- 3D: ";
     verify_boundary_periodic_3D();
-    if(output) std::cout<<"Passed\n";
+    if (output) std::cout<<"Passed\n";
 }
-void DRAGON_Test::verify_boundary_periodic_1D() {
+void DRAGON_Test::verify_boundary_periodic_1D(){
     Grid1D grid(4, 1.0, 2);
     fill_1D(grid);
 
@@ -48,7 +48,7 @@ void DRAGON_Test::verify_boundary_periodic_1D() {
     expect_close(grid[5], grid[1]);
 }
 //MARK: Periodic - 2D
-void DRAGON_Test::verify_boundary_periodic_2D() {
+void DRAGON_Test::verify_boundary_periodic_2D(){
     Grid2D grid(3, 4, 1.0, 1.0, 2);
     
     //X
@@ -85,7 +85,7 @@ void DRAGON_Test::verify_boundary_periodic_2D() {
     expect_close(grid[-1,-1], grid[2,3]);
 }
 //MARK: Periodic - 3D
-void DRAGON_Test::verify_boundary_periodic_3D() {
+void DRAGON_Test::verify_boundary_periodic_3D(){
     Grid3D grid(3, 4, 5, 1.0, 1.0, 1.0, 1);
     
     //X

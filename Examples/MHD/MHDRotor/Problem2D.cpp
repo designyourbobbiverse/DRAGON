@@ -46,10 +46,10 @@ PrimitiveState Problem::initialFluidState(double x, double y, double z){
     PrimitiveState w;
     w.p = p_amb;
     
-    if(r<r0){
+    if (r<r0) {
         w.rho = rho0;
         w.v = omega * vec3{-y,x,0};
-    } else if (r < r1){
+    } else if (r < r1) {
         double f = (r1 - r) / (r1 - r0);
         w.rho = rho_amb + (rho0-rho_amb) *  f;
         w.v = (omega * f * r0/r) * vec3{-y,x,0};

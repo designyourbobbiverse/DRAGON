@@ -8,9 +8,10 @@
 #include "DragonWing.hpp"
 
 #include "DRAGONWING_Config.hpp"
-#include <iostream> //For std::cerr
-#include "Hydro/Grid.hpp" //For grid.advance()
 
+#include "Hydro/Grid.hpp"   //For grid.advance()
+
+#include <iostream>         //For std::cerr
 
 //MARK: Threadpool access
 //The thread pool associated with the current thread
@@ -22,24 +23,24 @@ static DRAGONWING::ThreadPool* current_thread_pool;
 
 //Call the corresponding function on this thread's threadpool, if one exists
 void DRAGONWING::reportCheckpoint1(){
-    if(!current_thread_pool) return; //Single thread mode
+    if (!current_thread_pool) return; //Single thread mode
     current_thread_pool->reportCheckpoint1();
 }
 void DRAGONWING::reportCheckpoint2(){
-    if(!current_thread_pool) return; //Single thread mode
+    if (!current_thread_pool) return; //Single thread mode
     current_thread_pool->reportCheckpoint2();
 }
 bool DRAGONWING::requestRestart(std::string msg){
-    if(!current_thread_pool) return false; //Single thread mode
+    if (!current_thread_pool) return false; //Single thread mode
     current_thread_pool->requestRestart(msg);
     return true;
 }
 bool DRAGONWING::waitForRelease(){
-    if(!current_thread_pool) return true; //Single thread mode
+    if (!current_thread_pool) return true; //Single thread mode
     return current_thread_pool->waitForRelease();
 }
 bool DRAGONWING::waitForCheckpoint1(){
-    if(!current_thread_pool) return true; //Single thread mode
+    if (!current_thread_pool) return true; //Single thread mode
     return current_thread_pool->waitForCheckpoint1();
 }
 
@@ -98,7 +99,7 @@ void DRAGONWING::ThreadPool::reportCheckpoint2(){
 }
 void DRAGONWING::ThreadPool::requestRestart(std::string msg){
     std::unique_lock lock(mutex);
-    if(restart_msg.size() < 1) restart_msg = msg;
+    if (restart_msg.size() < 1) restart_msg = msg;
     abort_requested = true;
     lock.unlock();
     cv.notify_all();
@@ -107,10 +108,10 @@ void DRAGONWING::ThreadPool::requestRestart(std::string msg){
 //MARK: Synchronization
 bool DRAGONWING::ThreadPool::waitForRelease(){
     std::unique_lock lock(mutex);
-    if(CONFIG::phase_1_max_threads <= 0) return !abort_requested; //nonpositive phase_1_max_threads => no limit on threads in phase 1
+    if (Config::phase_1_max_threads <= 0) return !abort_requested; //nonpositive phase_1_max_threads => no limit on threads in phase 1
     //Wait until there is room to proceed
-    cv.wait(lock, [&] { return abort_requested || (active_phase_1 < CONFIG::phase_1_max_threads); });
-    if(!abort_requested)  active_phase_1++;
+    cv.wait(lock, [&] { return abort_requested || (active_phase_1 < Config::phase_1_max_threads); });
+    if (!abort_requested)  active_phase_1++;
     return !abort_requested;
 }
 bool DRAGONWING::ThreadPool::waitForCheckpoint1(){
@@ -137,7 +138,7 @@ bool DRAGONWING::ThreadPool::waitForCompletion(){
 void DRAGONWING::ThreadPool::reportCheckpoint1(){ }
 void DRAGONWING::ThreadPool::reportCheckpoint2(){ }
 void DRAGONWING::ThreadPool::requestRestart(std::string msg){
-    if(restart_msg.size() < 1) restart_msg = msg;
+    if (restart_msg.size() < 1) restart_msg = msg;
     abort_requested = true;
 }
 bool DRAGONWING::ThreadPool::waitForRelease(){ return !abort_requested; }

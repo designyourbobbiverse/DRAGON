@@ -11,7 +11,7 @@
 
 using namespace DRAGON_Test;
 using namespace DRAGON;
-int main() {
+int main(){
     
     auto start = std::chrono::system_clock::now();
 

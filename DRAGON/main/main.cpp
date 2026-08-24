@@ -6,6 +6,7 @@
 
 #include "DragonHoard.hpp"  //File output
 #include <iostream>         //Console messages
+
 #include <chrono>           //Runtime measurement
 #include <cmath>            //For std::floor/round
 using namespace DRAGON;
@@ -15,7 +16,7 @@ static void verify_dir();
 static void printCycleComplete(std::string cycleStr, double clock_time);
 
 
-int main(int argc, const char * argv[]) {
+int main(int argc, const char * argv[]){
     std::cout<<"May the power of the DRAGON guide us...\n"; //Blackwald et al. (2019)
     
     verify_dir();
@@ -32,12 +33,12 @@ int main(int argc, const char * argv[]) {
     printCycleComplete(cycleStr, clock_time);
     
     
-    while(time < CONFIG::final_time){
+    while (time < Config::final_time) {
         //Let the problem code to do any special processing
         Problem::beforeCycle(problem, cycle, time);
         //Advance the (Magneto)Hydrodynamics
-        problem.advance(CONFIG::dt);
-        time += CONFIG::dt;
+        problem.advance(Config::dt);
+        time += Config::dt;
         cycle++;
         //Let the problem code to do any special processing
         Problem::afterCycle(problem, cycle, time);
@@ -59,9 +60,9 @@ int main(int argc, const char * argv[]) {
 
 //MARK: File I/O
 static void verify_dir(){
-    try{
+    try {
         DRAGONHOARD::verifyOutputDirectory();
-    } catch (std::exception& e){
+    } catch (std::exception& e) {
         std::cout<<e.what()<<std::endl;
         throw e;
     }

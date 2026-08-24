@@ -8,8 +8,8 @@
 #ifndef Array_Types_hpp
 #define Array_Types_hpp
 
-#include "Hydro/ExtendedArray/ExtendedArray.hpp"
-#include "FluidElement/FluidElement.hpp"
+#include "Hydro/ExtendedArray/ExtendedArray.hpp" //For ExtendedArray
+#include "FluidElement/FluidElement.hpp"         //For PrimitiveState, ConservativeState, vec3
 
 namespace DRAGON{
 typedef ExtendedArray1D<PrimitiveState> FluidArray1D;

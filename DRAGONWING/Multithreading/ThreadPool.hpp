@@ -36,7 +36,7 @@ private:
     std::mutex mutex; //A mutex to protect inter-thread communication
     std::condition_variable cv; //To wake up the threads when a checkpoint (or restart request) has been reached
 
-    int active_phase_1 = 0; //How many threads are in memory-heavy phase 1. Max value = DRAGONWING::CONFIG::phase_1_max_threads
+    int active_phase_1 = 0; //How many threads are in memory-heavy phase 1. Max value = DRAGONWING::Config::phase_1_max_threads
     int reached_checkpoint_1 = 0; //How many threads have completed phase 1 (most of the calculation)
     int reached_checkpoint_2 = 0; //How many threads have completed phase 2 (committing the updates)
     #endif
@@ -47,7 +47,7 @@ private:
     std::string restart_msg = "";
 
 public:
-    ThreadPool(int N): nthreads(N) {} //Create a pool with room for n threads
+    ThreadPool(int N): nthreads(N){} //Create a pool with room for n threads
     void* launchParallel(DRAGON::Grid* grid, double dt); //Execute grid->advance(dt) on a new thread in the pool
     
     void requestRestart(std::string msg = ""); //Something went wrong, request a restart

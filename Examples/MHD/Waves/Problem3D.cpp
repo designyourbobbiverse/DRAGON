@@ -60,7 +60,7 @@ PrimitiveState Problem::initialFluidState(double x, double y, double z){
     
     //Perturbation Eigenvector
     ConservativeState R;
-    switch(mode){
+    switch(mode) {
     case Fast:
         R.rho = 1.0 / std::sqrt(5);
         R.mom = (minus_mode ? -1 : 1) * R.rho * (2.0 * e_x1 - 1.0 * e_x2) ;
@@ -98,7 +98,7 @@ vec3 Problem::initialMagneticPotential(double x, double y, double z){
 
     //Perturbation
     vec3 perturb  = {0,0,0};
-    switch(mode){
+    switch(mode) {
         case Fast: perturb.y = 2.0 * epsilon / std::sqrt(5); break;
         case Alfven: perturb.z = epsilon; break;
         case Slow: perturb.y = -epsilon / std::sqrt(5); break;
@@ -147,9 +147,9 @@ void Problem::problemComplete(Grid& problem, double t){
     
     ConservativeState L1;
     
-    for(int i=0; i<2*n;i++){
-        for(int j=0; j<n; j++){
-            for(int k=0; k<n; k++){
+    for (int i=0; i<2*n;i++) {
+        for (int j=0; j<n; j++) {
+            for (int k=0; k<n; k++) {
                 ConservativeState err = grid[i,j,k] - expected[i,j,k];
                 err.rho = std::abs(err.rho);
                 err.mom = abs(err.mom);

@@ -30,7 +30,7 @@ void DRAGON_Test::verify_god_dist_grid_1D(){
     grid.advance(1.0);
     dgrid.advance(1.0);
     
-    for (int i = 0; i < grid.getSize(); i++){
+    for (int i = 0; i < grid.getSize(); i++) {
         expect_close(grid[i], dgrid[i], 1e-26);
     }
 }
@@ -42,8 +42,8 @@ void DRAGON_Test::verify_god_dist_grid_2D(){
     grid.boundary = Periodic();
     dgrid.boundary = Periodic();
     
-    for (int i = 0; i <= grid.getSizeX(); i++){
-        for (int j = 0; j <= grid.getSizeY(); j++){
+    for (int i = 0; i <= grid.getSizeX(); i++) {
+        for (int j = 0; j <= grid.getSizeY(); j++) {
             grid[i,j] = make_state(1.0+0.1*i+0.1*j, 1.0+0.1*i, 1.0-0.1*j, 0.1*i*j, 10.0-0.1*i+0.1*j);
             dgrid[i,j] = grid[i,j];
         }
@@ -52,8 +52,8 @@ void DRAGON_Test::verify_god_dist_grid_2D(){
     grid.advance(1.0);
     dgrid.advance(1.0);
     
-    for (int i = 0; i < grid.getSizeX(); i++){
-        for (int j = 0; j < grid.getSizeY(); j++){
+    for (int i = 0; i < grid.getSizeX(); i++) {
+        for (int j = 0; j < grid.getSizeY(); j++) {
             expect_close(grid[i,j], dgrid[i,j], 1e-26);
         }
     }
@@ -65,8 +65,8 @@ void DRAGON_Test::verify_god_dist_grid_2D_MHD(){
     grid.boundary = Periodic();
     dgrid.boundary = Periodic();
     
-    for (int i = 0; i <= grid.getSizeX(); i++){
-        for (int j = 0; j <= grid.getSizeY(); j++){
+    for (int i = 0; i <= grid.getSizeX(); i++) {
+        for (int j = 0; j <= grid.getSizeY(); j++) {
             grid[i,j] = make_state(1.0+0.1*i+0.1*j, 1.0+0.1*i, 1.0-0.1*j, 0.1*i*j, 10.0-0.1*i+0.1*j);
             grid[i,j].B = vec3{0.1, -0.2, -0.3};
             grid._B()[i,j] = vec3{0.1, -0.2, -0.3};
@@ -78,8 +78,8 @@ void DRAGON_Test::verify_god_dist_grid_2D_MHD(){
     grid.advance(1.0);
     dgrid.advance(1.0);
 
-    for (int i = 0; i <= grid.getSizeX(); i++){
-        for (int j = 0; j <= grid.getSizeY(); j++){
+    for (int i = 0; i <= grid.getSizeX(); i++) {
+        for (int j = 0; j <= grid.getSizeY(); j++) {
             expect_close(grid[i,j], dgrid[i,j], 1e-26);
             expect_close(grid._B()[i,j], dgrid._B()[i,j], 1e-26);
         }
@@ -93,9 +93,9 @@ void DRAGON_Test::verify_god_dist_grid_3D(){
     grid.boundary = Periodic();
     dgrid.boundary = Periodic();
     
-    for (int i = 0; i < grid.getSizeX(); i++){
-        for (int j = 0; j < grid.getSizeY(); j++){
-            for(int k = 0; k < grid.getSizeZ(); k++){
+    for (int i = 0; i < grid.getSizeX(); i++) {
+        for (int j = 0; j < grid.getSizeY(); j++) {
+            for (int k = 0; k < grid.getSizeZ(); k++) {
                 grid[i,j,k] = make_state(1.0+0.1*i+0.1*j, 1.0+0.1*i, 1.0-0.1*j, 0.1*k, 10.0-0.1*i+0.1*j-0.1*k);
                 dgrid[i,j,k] = grid[i,j,k];
             }
@@ -105,9 +105,9 @@ void DRAGON_Test::verify_god_dist_grid_3D(){
     grid.advance(1.0);
     dgrid.advance(1.0);
     
-    for (int i = 0; i < grid.getSizeX(); i++){
-        for (int j = 0; j < grid.getSizeY(); j++){
-            for(int k = 0; k < grid.getSizeZ(); k++){
+    for (int i = 0; i < grid.getSizeX(); i++) {
+        for (int j = 0; j < grid.getSizeY(); j++) {
+            for (int k = 0; k < grid.getSizeZ(); k++) {
                 expect_close(grid[i,j,k], dgrid[i,j,k], 1e-26);
             }
         }
@@ -121,9 +121,9 @@ void DRAGON_Test::verify_god_dist_grid_3D_MHD(){
     grid.boundary = Periodic();
     dgrid.boundary = Periodic();
     
-    for (int i = 0; i <= grid.getSizeX(); i++){
-        for (int j = 0; j <= grid.getSizeY(); j++){
-            for(int k=0; k <= grid.getSizeZ(); k++){
+    for (int i = 0; i <= grid.getSizeX(); i++) {
+        for (int j = 0; j <= grid.getSizeY(); j++) {
+            for (int k=0; k <= grid.getSizeZ(); k++) {
                 grid[i,j,k] = make_state(1.0+0.1*i+0.1*j, 1.0+0.1*i, 1.0-0.1*j, 0.1*k, 10.0-0.1*i+0.1*j-0.1*k);
                 grid[i,j,k].B = vec3{0.1, -0.2, -0.3};
                 grid._B()[i,j,k] = vec3{0.1, -0.2, -0.3};
@@ -136,9 +136,9 @@ void DRAGON_Test::verify_god_dist_grid_3D_MHD(){
     grid.advance(1.0);
     dgrid.advance(1.0);
     
-    for (int i = 0; i <= grid.getSizeX(); i++){
-        for (int j = 0; j <= grid.getSizeY(); j++){
-            for(int k = 0; k <= grid.getSizeZ(); k++){
+    for (int i = 0; i <= grid.getSizeX(); i++) {
+        for (int j = 0; j <= grid.getSizeY(); j++) {
+            for (int k = 0; k <= grid.getSizeZ(); k++) {
                 expect_close(grid[i,j,k], dgrid[i,j,k], 1e-26);
                 expect_close(grid._B()[i,j,k], dgrid._B()[i,j,k], 1e-26);
             }

@@ -11,8 +11,8 @@
 
 #include "Hydro/Riemann/Riemann.hpp"
 
-#include <cmath> //For std::sqrt, abs
-#include "Constants.h" //For _gamma
+#include <cmath>        //For std::sqrt, abs
+#include "Constants.h"  //For _gamma
 using namespace DRAGON;
 
 #ifdef HYDRO_AVAILABLE
@@ -80,14 +80,14 @@ ConservativeState Riemann::Roe(){
     ConservativeState SL = UL + alpha[0]*K[0];
     double aL = std::sqrt(_gamma * L.p/L.rho), aSL = std::sqrt(_gamma*SL.pressure()/SL.rho);
     double lambdaL = L.v.x-aL, lambdaLS = SL.mom.x/SL.rho - aSL;
-    if(lambdaL < 0 &&  lambdaLS > 0 ) {//Left Rarefaction
+    if (lambdaL < 0 &&  lambdaLS > 0 ) {//Left Rarefaction
         double _lambda = lambdaL * (lambda[0] - lambdaLS)/(lambdaL - lambdaLS);
         return UL.flux(L.v) + _lambda*alpha[0]*K[0];
     }
     ConservativeState SR = UR - alpha[4]*K[4];
     double aR = std::sqrt(_gamma * R.p/R.rho), aSR = std::sqrt(_gamma*SR.pressure()/SR.rho);
     double lambdaR = R.v.x+aR, lambdaRS = SR.mom.x/SR.rho + aSR;
-    if(lambdaR > 0 &&  lambdaRS  < 0) {//Right Rarefaction
+    if (lambdaR > 0 &&  lambdaRS  < 0) {//Right Rarefaction
         double _lambda = lambdaR * (lambda[4] - lambdaRS)/(lambdaR - lambdaRS);
         return UR.flux(R.v) - _lambda*alpha[4]*K[4];
     }
@@ -95,7 +95,7 @@ ConservativeState Riemann::Roe(){
     
     //Combine the waves
     ConservativeState F = (UL.flux(L.v) + UR.flux(R.v));
-    for(int i = 0; i < 5; i++) F -= alpha[i]*std::abs(lambda[i])*K[i];
+    for (int i = 0; i < 5; i++) F -= alpha[i]*std::abs(lambda[i])*K[i];
     return F/2;
 }
 

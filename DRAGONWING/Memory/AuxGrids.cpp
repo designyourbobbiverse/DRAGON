@@ -37,27 +37,27 @@ DRAGONWING::ArrayGuard<ExtendedArray1D<T>> requestArrays(std::vector<ArrayItem<E
 
     //Search for an existing available item
     std::unique_lock lock(m);
-    for(auto& item : prealloc){
-        if(item.active) continue; //Check that the array isn't currently in use
+    for (auto& item : prealloc) {
+        if (item.active) continue; //Check that the array isn't currently in use
         auto arr = item.array;
-        if(arr->getSize() == nx && arr->getGhosts() == g){ //Check that the array is of the correct size
+        if (arr->getSize() == nx && arr->getGhosts() == g) { //Check that the array is of the correct size
             item.active = true;
             selected.push_back(arr);
-            if(selected.size() == N) return DRAGONWING::ArrayGuard(selected); //If we have enough arrays, we are done
+            if (selected.size() == N) return DRAGONWING::ArrayGuard(selected); //If we have enough arrays, we are done
         }
     }
     lock.unlock(); //The next part doesn't require synchronization, so don't hold everyone else up
     
     //Create a new grids if needed
     auto new_arrs = std::vector<ExtendedArray1D<T>*>();
-    while(selected.size() < N){
+    while(selected.size() < N) {
         auto arr = new ExtendedArray1D<T>(nx,g);
         new_arrs.push_back(arr);
         selected.push_back(arr);
     }
     //Add the new arrays to the global list
     lock.lock(); //accessing prealloc means we need to relock the mutex
-    for(auto& a : new_arrs) prealloc.push_back({a, true});
+    for (auto& a : new_arrs) prealloc.push_back({a, true});
     lock.unlock();
     
     return DRAGONWING::ArrayGuard(selected);
@@ -80,27 +80,27 @@ DRAGONWING::ArrayGuard<ExtendedArray2D<T>> requestArrays(std::vector<ArrayItem<E
 
     //Search for an existing available item
     std::unique_lock lock(m);
-    for(auto& item : prealloc){
-        if(item.active) continue; //Check that the array isn't currently in use
+    for (auto& item : prealloc) {
+        if (item.active) continue; //Check that the array isn't currently in use
         auto arr = item.array;
-        if(arr->getSizeX() == nx && arr->getSizeY() == ny && arr->getGhosts() == g){ //Check that the array is of the correct size
+        if (arr->getSizeX() == nx && arr->getSizeY() == ny && arr->getGhosts() == g) { //Check that the array is of the correct size
             item.active = true;
             selected.push_back(arr);
-            if(selected.size() == N) return DRAGONWING::ArrayGuard(selected); //If we have enough arrays, we are done
+            if (selected.size() == N) return DRAGONWING::ArrayGuard(selected); //If we have enough arrays, we are done
         }
     }
     lock.unlock(); //The next part doesn't require synchronization, so don't hold everyone else up
 
     //Create a new grids if needed
     auto new_arrs = std::vector<ExtendedArray2D<T>*>();
-    while(selected.size() < N){
+    while(selected.size() < N) {
         auto arr = new ExtendedArray2D<T>(nx,ny,g);
         new_arrs.push_back(arr);
         selected.push_back(arr);
     }
     //Add the new arrays to the global list
     lock.lock(); //accessing prealloc means we need to relock the mutex
-    for(auto& a : new_arrs) prealloc.push_back({a, true});
+    for (auto& a : new_arrs) prealloc.push_back({a, true});
     lock.unlock();
     
     return DRAGONWING::ArrayGuard(selected);
@@ -124,27 +124,27 @@ DRAGONWING::ArrayGuard<ExtendedArray3D<T>> requestArrays(std::vector<ArrayItem<E
 
     //Search for an existing available item
     std::unique_lock lock(m);
-    for(auto& item : prealloc){
-        if(item.active) continue; //Check that the array isn't currently in use
+    for (auto& item : prealloc) {
+        if (item.active) continue; //Check that the array isn't currently in use
         auto arr = item.array; //Check that the array is of the correct size
-        if(arr->getSizeX() == nx && arr->getSizeY() == ny && arr->getSizeZ() == nz && arr->getGhosts() == g){
+        if (arr->getSizeX() == nx && arr->getSizeY() == ny && arr->getSizeZ() == nz && arr->getGhosts() == g) {
             item.active = true;
             selected.push_back(arr);
-            if(selected.size() == N) return DRAGONWING::ArrayGuard(selected); //If we have enough arrays, we are done
+            if (selected.size() == N) return DRAGONWING::ArrayGuard(selected); //If we have enough arrays, we are done
         }
     }
     lock.unlock(); //The next part doesn't require synchronization, so don't hold everyone else up
     
     //Create a new grids if needed
     auto new_arrs = std::vector<ExtendedArray3D<T>*>();
-    while(selected.size() < N){
+    while(selected.size() < N) {
         auto arr = new ExtendedArray3D<T>(nx,ny,nz,g);
         new_arrs.push_back(arr);
         selected.push_back(arr);
     }
     //Add the new arrays to the global list
     lock.lock(); //accessing prealloc means we need to relock the mutex
-    for(auto& a : new_arrs) prealloc.push_back({a, true});
+    for (auto& a : new_arrs) prealloc.push_back({a, true});
     lock.unlock();
     
     return DRAGONWING::ArrayGuard(selected);
@@ -165,8 +165,8 @@ DRAGONWING::ArrayGuard<ExtendedArray3D<vec3>> DRAGONWING::requestVec3Arrays(int 
 template <class T>
 void releaseArray(std::vector<ArrayItem<T>>& arrs, T* arr){
     //Search for an existing available item
-    for(auto& item : arrs){
-        if(item.array != arr) continue;
+    for (auto& item : arrs) {
+        if (item.array != arr) continue;
         item.active = false; //If we found this array, mark it as available for use
         return;
     }
@@ -190,10 +190,10 @@ void DRAGONWING::Internal::releaseArray(ExtendedArray3D<vec3>* arr){ std::lock_g
 //MARK: Cleanup
 template <class T>
 static void purgeBuffers(std::vector<ArrayItem<T>>& array){
-    for(auto& item : array){
+    for (auto& item : array) {
         //If the item is inactive, we need to deallocate it from system memory
         //If the item is active, it will get deleted when releaseArray() is called
-        if(!item.active)  delete item.array;
+        if (!item.active)  delete item.array;
     }
 }
 void DRAGONWING::purgeAllBuffers(){

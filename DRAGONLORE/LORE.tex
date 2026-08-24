@@ -229,6 +229,139 @@ sudo apt install libhdf5-dev
 \end{lstlisting}
 
 
+\section{Style Guide}
+
+This section contains a style guide for developers who wish to contribute to DRAGON.
+
+\subsection{File Headers}
+
+Every file opens with a comment block:
+\begin{lstlisting}[language=C++]
+//
+//  <Filename>
+//  <DirectoryPath>
+//
+//  Created by <original developer> on <creation date>.
+//  <citations, if applicable>
+//
+\end{lstlisting}
+Here \bash{<Filename>} is the name of the file (including extension), and \bash{<DirectoryPath>} is relative to the project root.
+
+Each in-code citation should include author names, year, and a link. arXiv links  are preferred if available, as this makes the papers available to users who don't belong to an institution. For sources not on arXiv, use a doi link if possible. 
+If you implemented something based on the description in source A's description of a method first published in source B, you should cite as follows:
+\begin{lstlisting}[language=C++]
+//  Implemented based in part on <citation for source A>
+//      <citation(s) for source(s) B>
+\end{lstlisting}
+In addition to comment citations, also give a full citation in the bibliography of this document.
+
+\subsection{Header guards}
+The traditional pattern is preferred. Typically, the you should name it after the file stem.
+\begin{lstlisting}[language=C++]
+#ifndef Grid_hpp
+#define Grid_hpp
+...
+#endif
+\end{lstlisting}
+
+\subsection{Includes}
+
+Includes should be grouped in the following order, leaving a blank line between each group
+\begin{enumerate}
+\item Header files defining things that this file implements
+\item  Includes which are used in a major way.
+\item Includes which are used in a minor way.
+\item Includes which are only used in error paths.
+\end{enumerate}
+For header files other than in the first group, you should also include a trailing comment saying \textit{why} this header is included. Trailing comments in the same group should have their starting points vertically aligned. Comments may be omitted if the file is being used for a data type which shares its name with the include, and for the module's configuration header.
+
+For example, the includes in \bash{CFL.cpp} are
+\begin{lstlisting}[language=C++]
+#include "CFL.hpp"
+
+#include "Config.h"
+#include <cmath>        //For std::abs, sqrt, pow
+#include <algorithm>    //For std::min/max
+
+#include "Boundary/GhostFill.hpp"   //For boundary.apply
+
+#include <stdexcept>    //For std::runtime_error (CFL timestep fails to compute)
+#include <exception>    //For handling step restarts
+#include <iostream>     //For printing step-restart messages
+#include <cstdlib>      //For exit() if the timestep gets too small
+\end{lstlisting}
+This file implements everything declared in \bash{CFL.hpp}.
+\bash{Config.h} defines which of this file's calculation methods should be active, and the various \cpp{std::} functions are used heavily throughout the implmentation, so these includes qualify as major usage. \cpp{boundary.apply} meanwhile is only called in a couple of places, so it is considered a minor item. Lastly, the last four includes are only used to handle step restarts, so they are considered error-path-only.
+
+
+Immediately after the includes, source files typically contain \cpp{using namespace DRAGON;} (and/or any other namespace they live in).
+Each of the top-level modules has its own namespace of the same name: \cpp{DRAGON}, \cpp{DRAGONWING}, \cpp{DRAGONHOARD}. 
+Sub-areas get nested namespaces rather than longer names: \cpp{DRAGON::CONFIG}, \cpp{DRAGON::Boundary}, etc. 
+
+\subsection{Naming}
+
+\paragraph{Types}are PascalCase: \cpp{PrimitiveSate}, \cpp{Grid1D}, \cpp{ArrayGuard}. As an exception, \cpp{vec3} is lowercase. Namespaces are also PascalCase, except for top-level modules since those are acronyms.
+
+\paragraph{Functions}are typically either camelCase (e.g. \cpp{swapXY}, \cpp{getSize}, \cpp{waitForCompletion}) or snake\_case (e.g. \cpp{advance_split}, \cpp{cfl_time}, \cpp{verify_and_fallback}). Named algorithms should however defer to the capitalisation seen in the literature (e.g. \cpp{HLL}, \cpp{Roe}, \cpp{MUSCL}, \cpp{CTU}).
+
+\paragraph{Local variables} should stay short, and where possible should match symbols used in the physics (e.g. \cpp{rho}, \cpp{B}, \cpp{dx}, \cpp{nx}). 
+However, variable names should avoid conflicting with other variable names if this could lead to confusion (e.g. momentum is \cpp{mom}, since \cpp{p} already refers to pressure). 
+Loop indices should generally be \cpp{i}, \cpp{j}, \cpp{k} for $x$, $y$, and $z$ dimensions, plus \cpp{g} for ghost indices.
+
+
+\paragraph{Compile-time options} in \bash{Config.h} (and corresponding files in other modules) should be SCREAMING\_SNAKE\_CASE (e.g. \cpp{RIEMANN_HLLX}, \cpp{CT_CONSV_TOTAL_E}) for preprocessor options and snake\_case (e.g. \cpp{timestep_tolerance}, \cpp{ct_energy_beta}).
+
+\paragraph{Derived Constants}in \bash{Constants.h} use the format \cpp{_A_B} to refer to the fraction A/B. For example, \cpp{_1_4pi}$=\frac1{4\pi}$, or \cpp{_Gm1_2G}$= \frac{\gamma-1}{2\gamma}$.  Nonfractional constants may also include an underscore to avoid naming conflicts, such as \cpp{_gamma}. 
+
+
+
+\subsection{Indentation}
+
+Indent using four-space tabs\footnote{Here in the Cult of the DRAGON, we are \href{https://github.com/torvalds/linux/blob/master/Documentation/process/coding-style.rst}{heretics}.}. This is partly because I am used to Xcode's default, and partly because the ``You're nesting too much" crowd isn't usually nesting three dimensions of loops. 
+
+\
+
+\noindent \bash{Config.h} uses a specialindentation to encode which options belong to which setting:
+\begin{itemize}
+\item A \cpp{#define} indented and sitting \textit{above} another \cpp{#define}  is one of the enumerated choices for that setting (e.g. \cpp{RIEMANN_HLLC} is a choice for \cpp{RIEMANN_DEFAULT}).
+
+\item A \cpp{#define} or \cpp{const} indented and sitting \textit{below} another \cpp{#define} is a parameter specific to that setting (e.g. \cpp{exact_riemann_max_iters} only matters when \cpp{RIEMANN_EXACT} is selected).
+
+\end{itemize}
+This is spelled out in further detail in a comment at the top of the file.
+
+Outside of \bash{Config.h}, one should generally follow standard C++ indentation practices, with the following additional prescriptions:
+\begin{enumerate}
+\item Lines which purely serve an auxiliary purpose (e.g. calling \cpp{DRAGONWING} to allocate or release scratch memory) should be indented one extra line to keep the primary algorithm easier to read.
+\item \cpp{#if}/\cpp{#ifdef} blocks should be at the same indentation level as both the surrounding and enclosed code. As such nested \cpp{#if}'s should generally be on the same indentation level.%, though an exception can be made if not doing so significantly hinders readability.
+\item \cpp{case} statements should be at the \textit{same} indentation level as the \cpp{switch}. If a particular case requires multiple lines, indent after the first. 
+\end{enumerate}
+
+\subsection{Braces}
+Opening braces should stay on the same line as the function signature or control statement.
+Closing braces should be on their own line, except that \cpp{else} or \cpp{while} should be a single space come after the closing brace of an \cpp{if} or \cpp{do} statement (respectively, and when applicable).
+
+For \cpp{if}-\cpp{else} statements, either all should use braces or none should. 
+Except to compliance with the preceding guideline,  \cpp{if} statements with a single statement do not need braces, even if the statement is placed on its own line. 
+
+\subsection{Spaces}
+
+Spaces should be included after the following keywords
+\begin{lstlisting}[language=C++]
+if else switch case do while for
+\end{lstlisting}
+With most of these keywords you should also include a space before the opening brace. For functions however, there should be no space between the closing parentheses and the opening brace, unless there is some other keyword (e.g. \cpp{const}) between them, in which case that keyword should have a space on both sides.
+
+
+Generally you should use spaces on each side any of the following operators:
+\begin{lstlisting}[language=C++]
+=  +  -  <  >  *  /  %  |  &  ^  <=  >=  ==  !=  ?  :
+\end{lstlisting}
+However, sometimes omitting some of these spaces can make larger mathematical statements easier to read by conveying order of operations. If this is the case, do that. For loops are another place where omitting these extra spaces is generally acceptable.
+
+%\subsection{Miscellaneous}
+%Pay no attention to style guides that recommend keeping your lines under a certain length, unless you want to.
+
 % ================= Physical Model =================
 \chapter{Physical Model \& Numerical Methods}
 \label{ch:physics}

@@ -6,27 +6,28 @@
 //
 
 #include "Boundary/Boundary.hpp"
-#include "Hydro/Grid.hpp"
+
+#include "Hydro/Grid.hpp" //For filling ghost cells in the grid
 
 using namespace DRAGON;
 using namespace Boundary;
 
 //MARK: Constructors
-Boundary::Fixed::Fixed(PrimitiveState w_, int faces_, bool corners):  GhostFill(faces_, corners), state(w_) {}
-Boundary::Fixed::Fixed(PrimitiveState w_,std::string s,bool corners) : Fixed(w_,face_mask(s),corners) {}
+Boundary::Fixed::Fixed(PrimitiveState w_, int faces_, bool corners):  GhostFill(faces_, corners), state(w_){}
+Boundary::Fixed::Fixed(PrimitiveState w_,std::string s,bool corners) : Fixed(w_,face_mask(s),corners){}
 
 //MARK: 1D
 //All applicable ghost cells are set to equal this->state
-void Boundary::Fixed::apply(Grid1D& grid) {
+void Boundary::Fixed::apply(Grid1D& grid){
     int ng = grid.getGhosts();
-    if (faces & X_negative){
-        for(int g = 1; g <= ng; g++){
+    if (faces & X_negative) {
+        for (int g = 1; g <= ng; g++) {
             grid[-g] = state;
         }
     }
-    if (faces & X_positive){
+    if (faces & X_positive) {
         int nx = grid.getSize();
-        for(int g = 1; g <= ng; g++){
+        for (int g = 1; g <= ng; g++) {
             grid[nx-1+g] = state;
         }
     }
@@ -34,37 +35,37 @@ void Boundary::Fixed::apply(Grid1D& grid) {
 
 //MARK: 2D
 //All applicable ghost cells are set to equal this->state
-void Boundary::Fixed::apply(Grid2D& grid) {
+void Boundary::Fixed::apply(Grid2D& grid){
     //Calculate the bounds ahead of time
     int ng = grid.getGhosts(), nx = grid.getSizeX(), ny = grid.getSizeY();
     int i0 = (corners ? -ng : 0), in = (corners ? nx + ng : nx);
     int j0 = i0, jn = (corners ? ny + ng : ny);
 
 
-    if (faces & X_negative){
-        for(int j = j0 ; j < jn; j++){
-            for(int g = 1; g <= ng; g++){
+    if (faces & X_negative) {
+        for (int j = j0 ; j < jn; j++) {
+            for (int g = 1; g <= ng; g++) {
                 grid[-g,j] = state;
             }
         }
     }
-    if (faces & X_positive){
-        for(int j = j0 ; j < jn; j++){
-            for(int g = 1; g <= ng; g++){
+    if (faces & X_positive) {
+        for (int j = j0 ; j < jn; j++) {
+            for (int g = 1; g <= ng; g++) {
                 grid[nx-1+g,j] = state;
             }
         }
     }
-    if (faces & Y_negative){
-        for(int i = i0 ; i < in; i++){
-            for(int g = 1; g <= ng; g++){
+    if (faces & Y_negative) {
+        for (int i = i0 ; i < in; i++) {
+            for (int g = 1; g <= ng; g++) {
                 grid[i,-g] = state;
             }
         }
     }
-    if (faces & Y_positive){
-        for(int i = i0 ; i < in; i++){
-            for(int g = 1; g <= ng; g++){
+    if (faces & Y_positive) {
+        for (int i = i0 ; i < in; i++) {
+            for (int g = 1; g <= ng; g++) {
                 grid[i,ny-1+g] = state;
             }
         }
@@ -72,32 +73,32 @@ void Boundary::Fixed::apply(Grid2D& grid) {
 //MARK: 2D MHD
     #ifdef MHD // B lives on faces, which have one more physical point per dimension than w.
     auto& _B = grid._B();
-    if (faces & X_negative){
-        for(int j = j0 ; j <= jn; j++){
+    if (faces & X_negative) {
+        for (int j = j0 ; j <= jn; j++) {
             _B[0,j].x = state.B.x;
-            for(int g = 1; g <= ng; g++){
+            for (int g = 1; g <= ng; g++) {
                 _B[-g,j] = state.B;
             }
         }
     }
-    if (faces & X_positive){
-        for(int j = j0 ; j <= jn; j++){
-            for(int g = 0; g < ng; g++){
+    if (faces & X_positive) {
+        for (int j = j0 ; j <= jn; j++) {
+            for (int g = 0; g < ng; g++) {
                 _B[nx+g,j] = state.B;
             }
         }
     }
-    if (faces & Y_negative){
-        for(int i = i0 ; i <= in; i++){
+    if (faces & Y_negative) {
+        for (int i = i0 ; i <= in; i++) {
             _B[i,0].y = state.B.y;
-            for(int g = 1; g <= ng; g++){
+            for (int g = 1; g <= ng; g++) {
                 _B[i,-g] = state.B;
             }
         }
     }
-    if (faces & Y_positive){
-        for(int i = i0 ; i <= in; i++){
-            for(int g = 0; g < ng; g++){
+    if (faces & Y_positive) {
+        for (int i = i0 ; i <= in; i++) {
+            for (int g = 0; g < ng; g++) {
                 _B[i,ny+g] = state.B;
             }
         }
@@ -106,62 +107,62 @@ void Boundary::Fixed::apply(Grid2D& grid) {
 }
 //MARK: 3D
 //All applicable ghost cells are set to equal this->state
-void Boundary::Fixed::apply(Grid3D& grid) {
+void Boundary::Fixed::apply(Grid3D& grid){
     //Calculate the bounds ahead of time
     int ng = grid.getGhosts(), nx = grid.getSizeX(), ny = grid.getSizeY(), nz = grid.getSizeZ();
     int i0 = (corners ? -ng : 0), in = (corners ? nx + ng : nx);
     int j0 = i0, jn = (corners ? ny + ng : ny);
     int k0 = i0, kn = (corners ? nz + ng : nz);
     
-    if (faces & X_negative){
-        for(int j = j0; j < jn; j++){
-            for(int k = k0; k < kn; k++){
-                for(int g = 1; g <= ng; g++){
+    if (faces & X_negative) {
+        for (int j = j0; j < jn; j++) {
+            for (int k = k0; k < kn; k++) {
+                for (int g = 1; g <= ng; g++) {
                     grid[-g,j,k] = state;
                 }
             }
         }
     }
-    if (faces & X_positive){
-        for(int j = j0; j < jn; j++){
-            for(int k = k0; k < kn; k++){
-                for(int g = 1; g <= ng; g++){
+    if (faces & X_positive) {
+        for (int j = j0; j < jn; j++) {
+            for (int k = k0; k < kn; k++) {
+                for (int g = 1; g <= ng; g++) {
                     grid[nx-1+g,j,k] = state;
                 }
             }
         }
     }
-    if (faces & Y_negative){
-        for(int i = i0; i < in; i++){
-            for(int k = k0; k < kn; k++){
-                for(int g = 1; g <= ng; g++){
+    if (faces & Y_negative) {
+        for (int i = i0; i < in; i++) {
+            for (int k = k0; k < kn; k++) {
+                for (int g = 1; g <= ng; g++) {
                     grid[i,-g,k] = state;
                 }
             }
         }
     }
-    if (faces & Y_positive){
-        for(int i = i0; i < in; i++){
-            for(int k = k0; k < kn; k++){
-                for(int g = 1; g <= ng; g++){
+    if (faces & Y_positive) {
+        for (int i = i0; i < in; i++) {
+            for (int k = k0; k < kn; k++) {
+                for (int g = 1; g <= ng; g++) {
                     grid[i,ny-1+g,k] = state;
                 }
             }
         }
     }
-    if (faces & Z_negative){
-        for(int i = i0; i < in; i++){
-            for(int j = j0; j < jn; j++){
-                for(int g = 1; g <= ng; g++){
+    if (faces & Z_negative) {
+        for (int i = i0; i < in; i++) {
+            for (int j = j0; j < jn; j++) {
+                for (int g = 1; g <= ng; g++) {
                     grid[i,j,-g] = state;
                 }
             }
         }
     }
-    if (faces & Z_positive){
-        for(int i = i0; i < in; i++){
-            for(int j = j0; j < jn; j++){
-                for(int g = 1; g <= ng; g++){
+    if (faces & Z_positive) {
+        for (int i = i0; i < in; i++) {
+            for (int j = j0; j < jn; j++) {
+                for (int g = 1; g <= ng; g++) {
                     grid[i,j,nz-1+g] = state;
                 }
             }
@@ -171,58 +172,58 @@ void Boundary::Fixed::apply(Grid3D& grid) {
 //MARK: 3D MHD
     #ifdef MHD  // B lives on faces, which have one more physical point per dimension than w.
     auto& _B = grid._B();
-    if (faces & X_negative){
-        for(int j = j0; j <= jn; j++){
-            for(int k = k0; k <= kn; k++){
+    if (faces & X_negative) {
+        for (int j = j0; j <= jn; j++) {
+            for (int k = k0; k <= kn; k++) {
                 _B[0,j,k].x = state.B.x;
-                for(int g = 1; g <= ng; g++){
+                for (int g = 1; g <= ng; g++) {
                     _B[-g,j,k] = state.B;
                 }
             }
         }
     }
-    if (faces & X_positive){
-        for(int j = j0; j <= jn; j++){
-            for(int k = k0; k <= kn; k++){
-                for(int g = 0; g < ng; g++){
+    if (faces & X_positive) {
+        for (int j = j0; j <= jn; j++) {
+            for (int k = k0; k <= kn; k++) {
+                for (int g = 0; g < ng; g++) {
                     _B[nx+g,j,k] = state.B;
                 }
             }
         }
     }
-    if (faces & Y_negative){
-        for(int i = i0; i <= in; i++){
-            for(int k = k0; k <= kn; k++){
+    if (faces & Y_negative) {
+        for (int i = i0; i <= in; i++) {
+            for (int k = k0; k <= kn; k++) {
                 _B[i,0,k].y = state.B.y;
-                for(int g = 1; g <= ng; g++){
+                for (int g = 1; g <= ng; g++) {
                     _B[i,-g,k] = state.B;
                 }
             }
         }
     }
-    if (faces & Y_positive){
-        for(int i = i0; i <= in; i++){
-            for(int k = k0; k <= kn; k++){
-                for(int g = 0; g < ng; g++){
+    if (faces & Y_positive) {
+        for (int i = i0; i <= in; i++) {
+            for (int k = k0; k <= kn; k++) {
+                for (int g = 0; g < ng; g++) {
                     _B[i,ny+g,k] = state.B;
                 }
             }
         }
     }
-    if (faces & Z_negative){
-        for(int i = i0; i <= in; i++){
-            for(int j = j0; j <= jn; j++){
+    if (faces & Z_negative) {
+        for (int i = i0; i <= in; i++) {
+            for (int j = j0; j <= jn; j++) {
                 _B[i,j,0].z = state.B.z;
-                for(int g = 1; g <= ng; g++){
+                for (int g = 1; g <= ng; g++) {
                     _B[i,j,-g] = state.B;
                 }
             }
         }
     }
-    if (faces & Z_positive){
-        for(int i = i0; i <= in; i++){
-            for(int j = j0; j <= jn; j++){
-                for(int g = 0; g < ng; g++){
+    if (faces & Z_positive) {
+        for (int i = i0; i <= in; i++) {
+            for (int j = j0; j <= jn; j++) {
+                for (int g = 0; g < ng; g++) {
                     _B[i,j,nz+g] = state.B;
                 }
             }

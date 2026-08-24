@@ -9,9 +9,9 @@
 #include "Hydro/Grid.hpp"
 #include "Godunov.hpp"
 
-#include "Hydro/Riemann/Riemann.hpp"  //For Riemann Solvers
-#include "Hydro/Reconstruction/TVD.hpp"      //For MUSCL reconstruction
-#include "Boundary/Boundary.hpp" //For boundary.apply
+#include "Hydro/Riemann/Riemann.hpp"    //For Riemann Solvers
+#include "Hydro/Reconstruction/TVD.hpp" //For MUSCL reconstruction
+#include "Boundary/Boundary.hpp"        //For boundary.apply
 
 #include "Config.h"
 #include <algorithm>      //For std::max
@@ -33,10 +33,10 @@ void Godunov::sweep(FluidArray1D& w, double dt_dx){
     TVD::MUSCL(w[-ghosts], _RL, w[-ghosts+1], _RR, w[-ghosts+2], dt_dx);
     fL = Riemann(_LR, _RL).flux_X(dt_dx);
     
-    for(int i=-ghosts+1; i<size+ghosts-1; i++) {
+    for (int i=-ghosts+1; i<size+ghosts-1; i++) {
         _LR = _RR;//Move Right state from previous cycle
         //Reconstruct Half-States (if applicable)
-        if(i+2 < size+ghosts){
+        if (i+2 < size+ghosts) {
             TVD::MUSCL(w[i], _RL, w[i+1], _RR, w[i+2], dt_dx);
         } else {
             _RL = w[i+1];
@@ -63,12 +63,12 @@ void Grid1D::unsplit_step(double dt){
     //Compute the updated states
     Godunov::sweep(_w, dt/dx);
     //Check physicality before comitting
-    for(int i=0; i<w.getSize(); i++){
-        if(!_w[i].isPhysical()) throw std::runtime_error(std::format("Unphysical state would be produced at ({})",i));
+    for (int i=0; i<w.getSize(); i++) {
+        if (!_w[i].isPhysical()) throw std::runtime_error(std::format("Unphysical state would be produced at ({})",i));
     }
     //If in a domain-composed group, wait for the other grids to finish before committing
     DRAGONWING::reportCheckpoint1();
-    if(!DRAGONWING::waitForCheckpoint1()) return; //Only proceed once everyone is done and if nobody had an error
+    if (!DRAGONWING::waitForCheckpoint1()) return; //Only proceed once everyone is done and if nobody had an error
     //Commit updates
     w.clone(_w);
 }
@@ -91,13 +91,13 @@ void Grid2D::split_step(double dt){
             _w.advanceX(dt);
             _w.advanceY(dt/2);
         }
-    } catch (...){
+    } catch (...) {
         boundary = std::move(_w.boundary);
         throw;
     }
     //If in a domain-composed group, wait for the other grids to finish before committing
     DRAGONWING::reportCheckpoint1();
-    if(!DRAGONWING::waitForCheckpoint1()){
+    if (!DRAGONWING::waitForCheckpoint1()) {
         boundary = std::move(_w.boundary);
         return; //Somebody had an error, have to restart
     }
@@ -158,13 +158,13 @@ void Grid3D::split_step(double dt){
             _w.advanceY(dt/2);
             break;
         }
-    } catch (...){
+    } catch (...) {
         boundary = std::move(_w.boundary);
         throw;
     }
     //If in a domain-composed group, wait for the other grids to finish before committing
     DRAGONWING::reportCheckpoint1();
-    if(!DRAGONWING::waitForCheckpoint1()){
+    if (!DRAGONWING::waitForCheckpoint1()) {
         boundary = std::move(_w.boundary);
         return; //Somebody had an error, have to restart
     }
@@ -182,12 +182,12 @@ void Grid2D::advanceX(double dt){
         auto __B = DRAGONWING::requestPrimitiveArrays(1, nx, ghosts);
     FluidArray1D& _w = *__B[0];
 
-    for(int j=-ghosts; j<ny+ghosts; j++){
-        for(int i=-ghosts; i<nx+ghosts; i++) _w[i] = w[i,j]; //Copy to a 1D array
+    for (int j=-ghosts; j<ny+ghosts; j++) {
+        for (int i=-ghosts; i<nx+ghosts; i++) _w[i] = w[i,j]; //Copy to a 1D array
 
         Godunov::sweep(_w, dt/dx);
         
-        for(int i=-ghosts; i<nx+ghosts; i++) w[i,j] = _w[i]; //Copy 1D array back to grid
+        for (int i=-ghosts; i<nx+ghosts; i++) w[i,j] = _w[i]; //Copy 1D array back to grid
     }
 }
 void Grid2D::advanceY(double dt){
@@ -196,12 +196,12 @@ void Grid2D::advanceY(double dt){
         auto __B = DRAGONWING::requestPrimitiveArrays(1, ny, ghosts);
     FluidArray1D& _w = *__B[0];
 
-    for(int i=-ghosts; i<nx+ghosts; i++){
-        for(int j=-ghosts; j<ny+ghosts; j++)  _w[j] = w[i,j].swappedXY(); //Dimension swap + copy to a 1D array
+    for (int i=-ghosts; i<nx+ghosts; i++) {
+        for (int j=-ghosts; j<ny+ghosts; j++)  _w[j] = w[i,j].swappedXY(); //Dimension swap + copy to a 1D array
         
         Godunov::sweep(_w, dt/dy);
         
-        for(int j=-ghosts; j<ny+ghosts; j++)  w[i,j] = _w[j].swappedXY(); //Dimension swap back + copy back to grid
+        for (int j=-ghosts; j<ny+ghosts; j++)  w[i,j] = _w[j].swappedXY(); //Dimension swap back + copy back to grid
     }
 }
 
@@ -213,13 +213,13 @@ void Grid3D::advanceX(double dt){
         auto __B = DRAGONWING::requestPrimitiveArrays(1, nx, ghosts);
     FluidArray1D& _w = *__B[0];
     
-    for(int k=-ghosts; k<nz+ghosts; k++){
-        for(int j=-ghosts; j<ny+ghosts; j++){
-            for(int i=-ghosts; i<nx+ghosts; i++) _w[i] = w[i,j,k]; //Copy to a 1D array
+    for (int k=-ghosts; k<nz+ghosts; k++) {
+        for (int j=-ghosts; j<ny+ghosts; j++) {
+            for (int i=-ghosts; i<nx+ghosts; i++) _w[i] = w[i,j,k]; //Copy to a 1D array
             
             Godunov::sweep(_w, dt/dx); //Sweep through the 1D array
             
-            for(int i=-ghosts; i<nx+ghosts; i++) w[i,j,k] = _w[i]; //Copy back to grid
+            for (int i=-ghosts; i<nx+ghosts; i++) w[i,j,k] = _w[i]; //Copy back to grid
         }
     }
 }
@@ -230,13 +230,13 @@ void Grid3D::advanceY(double dt){
         auto __B = DRAGONWING::requestPrimitiveArrays(1, ny, ghosts);
     FluidArray1D& _w = *__B[0];
 
-    for(int k=-ghosts; k<nz+ghosts; k++){
-        for(int i=-ghosts; i<nx+ghosts; i++) {
-            for(int j=-ghosts; j<ny+ghosts; j++) _w[j] = w[i,j,k].swappedXY(); //Dimension swap + copy to a 1D array
+    for (int k=-ghosts; k<nz+ghosts; k++) {
+        for (int i=-ghosts; i<nx+ghosts; i++) {
+            for (int j=-ghosts; j<ny+ghosts; j++) _w[j] = w[i,j,k].swappedXY(); //Dimension swap + copy to a 1D array
 
             Godunov::sweep(_w, dt/dy); //Sweep through the 1D array
 
-            for(int j=-ghosts; j<ny+ghosts; j++) w[i,j,k] = _w[j].swappedXY();  //Dimension swap back + copy back to grid
+            for (int j=-ghosts; j<ny+ghosts; j++) w[i,j,k] = _w[j].swappedXY();  //Dimension swap back + copy back to grid
        }
     }
 }
@@ -247,13 +247,13 @@ void Grid3D::advanceZ(double dt){
     FluidArray1D& _w = *__B[0];
 
     
-    for(int i=-ghosts; i<nx+ghosts; i++) {
-        for(int j=-ghosts; j<ny+ghosts; j++) {
-            for(int k=-ghosts; k<nz+ghosts; k++) _w[k] = w[i,j,k].swappedXZ(); //Dimension swap + copy to a 1D array
+    for (int i=-ghosts; i<nx+ghosts; i++) {
+        for (int j=-ghosts; j<ny+ghosts; j++) {
+            for (int k=-ghosts; k<nz+ghosts; k++) _w[k] = w[i,j,k].swappedXZ(); //Dimension swap + copy to a 1D array
             
             Godunov::sweep(_w, dt/dz); //Sweep through the 1D array
 
-            for(int k=-ghosts; k<nz+ghosts; k++) w[i,j,k] = _w[k].swappedXZ(); //Dimension swap back + copy back to grid
+            for (int k=-ghosts; k<nz+ghosts; k++) w[i,j,k] = _w[k].swappedXZ(); //Dimension swap back + copy back to grid
        }
     }
 }

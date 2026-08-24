@@ -5,10 +5,10 @@
 //  Created by Bobbie Markwick on 10/07/2026.
 //
 
-#ifndef DRAGONWING_CONFIG_h
-#define DRAGONWING_CONFIG_h
+#ifndef DRAGONWING_Config_h
+#define DRAGONWING_Config_h
 
-namespace DRAGONWING::CONFIG{
+namespace DRAGONWING::Config{
 
 
 #define REUSE_AUX_GRIDS //Reuse Auxiliary Grids instead of reallocating them each time

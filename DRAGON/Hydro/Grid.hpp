@@ -9,11 +9,11 @@
 #ifndef Grid_hpp
 #define Grid_hpp
 
-#include "Hydro/ExtendedArray/ExtendedArray.hpp"
-#include "FluidElement/FluidElement.hpp"
-#include "Boundary/Boundary.hpp"
+#include "Hydro/ExtendedArray/ArrayTypes.hpp"   //For ExtendedArray, PrimitiveState
+#include "Boundary/Boundary.hpp"                //For Boundary::BoundaryList
 
-#include "Config.h"
+#include "Config.h" //For enabling or disabling MHD declarations
+
 #include <exception> //For on_step_fail
 
 namespace DRAGON{

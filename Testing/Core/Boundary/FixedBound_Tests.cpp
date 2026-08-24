@@ -18,15 +18,15 @@ using namespace Boundary;
 
 
 void DRAGON_Test::verify_boundary_fixed(bool output){
-    if(output) std::cout<<"- 1D: ";
+    if (output) std::cout<<"- 1D: ";
     verify_boundary_fixed_1D();
-    if(output) std::cout<<"Passed\n";
-    if(output) std::cout<<"- 2D: ";
+    if (output) std::cout<<"Passed\n";
+    if (output) std::cout<<"- 2D: ";
     verify_boundary_fixed_2D();
-    if(output) std::cout<<"Passed\n";
-    if(output) std::cout<<"- 3D: ";
+    if (output) std::cout<<"Passed\n";
+    if (output) std::cout<<"- 3D: ";
     verify_boundary_fixed_3D();
-    if(output) std::cout<<"Passed\n";
+    if (output) std::cout<<"Passed\n";
 }
 
 //MARK: Helpers
@@ -37,7 +37,7 @@ void fill_2D(Grid2D& grid);
 void fill_3D(Grid3D& grid);
 
 //MARK: Fixed - 1D
-void DRAGON_Test::verify_boundary_fixed_1D() {
+void DRAGON_Test::verify_boundary_fixed_1D(){
     Grid1D grid(4, 1.0, 2);
     PrimitiveState W = make_tagged_state(2112);
     
@@ -66,7 +66,7 @@ void DRAGON_Test::verify_boundary_fixed_1D() {
     expect_close(grid[5], W);
 }
 //MARK: Fixed - 2D
-void DRAGON_Test::verify_boundary_fixed_2D() {
+void DRAGON_Test::verify_boundary_fixed_2D(){
     Grid2D grid(3, 4, 1.0, 1.0, 1);
     PrimitiveState W = make_tagged_state(2112);
 
@@ -100,7 +100,7 @@ void DRAGON_Test::verify_boundary_fixed_2D() {
     expect_close(grid[-1,-1], W);
 }
 //MARK: Fixed - 3D
-void DRAGON_Test::verify_boundary_fixed_3D() {
+void DRAGON_Test::verify_boundary_fixed_3D(){
     Grid3D grid(3, 4, 5, 1.0, 1.0, 1.0, 1);
     PrimitiveState W = make_tagged_state(2112);
 
