@@ -9,7 +9,7 @@
 #include "MHD/CT.hpp"
 
 #include "Refinement/DistGrid.hpp"
-#include "Constants.h"      //For M_PI, _1_8pi
+#include "Constants.h"      //For _pi, _1_8pi
 #include <iostream>
 
 #ifdef MHD
@@ -21,7 +21,7 @@ using namespace DRAGON_Test;
 void DRAGON_Test::verify_ct_stationary_2D(){
     return;
     
-    double dx = M_PI/5;
+    double dx = _pi/5;
     Grid2D grid(10,10,dx,dx, 2), expected(10,10,dx,dx, 2);
     double p0 = 5.0;
     PrimitiveState W = make_state(1.0, 0.0, 0.0, 0.0, p0);
@@ -57,7 +57,7 @@ void DRAGON_Test::verify_ct_stationary_2D(){
 }
 
 void DRAGON_Test::verify_ct_stationary_3D(){
-    double dx = M_PI/5;
+    double dx = _pi/5;
     Grid3D grid(10,10,10,dx,dx,dx, 2), expected(10,10,10,dx,dx,dx, 2);
     double p0 = 5.0;
     PrimitiveState W = make_state(1.0, 0.0, 0.0, 0.0, p0);

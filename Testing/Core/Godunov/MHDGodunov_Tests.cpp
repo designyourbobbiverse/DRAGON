@@ -9,6 +9,7 @@
 #include "Hydro/Grid.hpp"
 
 #include <iostream> //For std::cout
+#include "Constants.h" //For _pi
 
 using namespace DRAGON_Test;
 using namespace Boundary;
@@ -223,7 +224,7 @@ void DRAGON_Test::verify_god_periodic_conservation_2D_MHD(){
     for (int i = 0; i <= grid.getSizeX(); i++) {
         for (int j = 0; j <= grid.getSizeY(); j++) {
             grid[i,j] = make_state(1.0+0.1*i+0.1*j, 1.0+0.1*i, 1.0-0.1*j, 0.1*i*j, 10.0-0.1*i+0.1*j);
-            grid._B()[i,j] = {sin(2*M_PI*i/grid.getSizeX()), cos(2*M_PI*j/grid.getSizeY()), 0.1};
+            grid._B()[i,j] = {sin(2*_pi*i/grid.getSizeX()), cos(2*_pi*j/grid.getSizeY()), 0.1};
         }
     }
     grid.initialize_B_fields();
@@ -256,7 +257,7 @@ void DRAGON_Test::verify_god_periodic_conservation_3D_MHD(){
         for (int j = 0; j <= grid.getSizeY(); j++) {
             for (int k = 0; k <= grid.getSizeZ(); k++) {
                 grid[i,j,k] = make_state(1.0+0.1*i+0.1*j, 1.0+0.1*i, 1.0-0.1*j, 0.1*k, 10.0-0.1*i+0.1*j-0.1*k);
-                grid._B()[i,j,k] = {sin(2*M_PI*i/grid.getSizeX()), cos(2*M_PI*j/grid.getSizeY()), 0.1};
+                grid._B()[i,j,k] = {sin(2*_pi*i/grid.getSizeX()), cos(2*_pi*j/grid.getSizeY()), 0.1};
             }
         }
     }

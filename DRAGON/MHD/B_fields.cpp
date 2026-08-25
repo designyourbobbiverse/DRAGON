@@ -13,7 +13,7 @@
 #include "Hydro/Grid.hpp" //Implements Grid::initialize_B_fields()
 
 #include "Config.h"
-#include "Constants.h" //For _1_8pi
+#include "Constants.h" //For _pi, _1_8pi
 using namespace DRAGON;
 
 #ifdef MHD
@@ -113,7 +113,7 @@ bool shouldProtectThermal(const PrimitiveState& w){
     #elif CT_CONSV_BETA_GATED
     double B2 = (w.B * w.B);
     if (B2 == 0) return false;
-    double beta = 8*M_PI*w.p / (w.B*w.B);
+    double beta = 8*_pi*w.p / (w.B*w.B);
     return beta <= Config::ct_energy_beta;
     #endif
 }

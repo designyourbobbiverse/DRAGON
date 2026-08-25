@@ -10,7 +10,7 @@
 #include "Refinement/DistGrid.hpp"
 using namespace DRAGON;
 
-#include "Constants.h" //For _gamma, sq4pi
+#include "Constants.h" //For _gamma, _pi, sq4pi
 #include <cmath> //For std::sin
 #include "DragonHoard.hpp" //For loading initial data to compare to final
 #include <iostream>        //For error output
@@ -85,7 +85,7 @@ PrimitiveState Problem::initialFluidState(double x, double y, double z){
     }
     //Apply Perturbation
     double x1 = x * cos_alpha*cos_beta + y * cos_alpha*sin_beta + z * sin_alpha;
-    w += (epsilon * R) * std::cos(2*M_PI*x1);
+    w += (epsilon * R) * std::cos(2*_pi*x1);
     
     return w;
 }
@@ -105,7 +105,7 @@ vec3 Problem::initialMagneticPotential(double x, double y, double z){
     }
     
     //Vector Potential
-    double sinx = std::sin(2*M_PI*x1) / (2*M_PI);
+    double sinx = std::sin(2*_pi*x1) / (2*_pi);
     double Ax2 = perturb.z * sinx;
     double Ax3 = x2 - 1.5 * x1 - perturb.y * sinx;
     return (Ax2*e_x2 + Ax3*e_x3) * sq4pi;

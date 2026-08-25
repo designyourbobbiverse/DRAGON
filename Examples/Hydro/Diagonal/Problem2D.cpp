@@ -10,6 +10,7 @@
 using namespace DRAGON;
 
 #include <cmath> //For std::sin
+#include "Constants.h" //For _pi
 #include <iostream> //For std::cout at completion
 
 typedef DistGrid2D MyGrid;//Choose the dimension of your grid here
@@ -31,7 +32,7 @@ PrimitiveState Problem::initialFluidState(double x, double y, double z){
     //Initialize the fluid state w at point (x,y,z).
         //dx/2, dy/2 corresponds to the [0,0] cell. z will always be zero.
     PrimitiveState w;
-    w.rho =  rho0 + rho1 * std::sin(2*M_PI*(x+y));
+    w.rho =  rho0 + rho1 * std::sin(2*_pi*(x+y));
     w.p = p_amb;
     w.v = {1,1,0};
     return w;
@@ -78,7 +79,7 @@ void Problem::problemComplete(Grid& problem, double t){
         for (int j=0; j<n; j++) {
             double x = (i + 0.5)/n;
             double y = (j + 0.5)/n;
-            double rho_exact = rho0 + rho1 * std::sin(2.0 * M_PI * (x + y - 2 * t));
+            double rho_exact = rho0 + rho1 * std::sin(2.0 * _pi * (x + y - 2 * t));
 
             double err = std::abs(grid[i,j].rho - rho_exact);
             if (err > Linf) Linf = err;

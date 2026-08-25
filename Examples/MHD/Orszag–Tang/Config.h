@@ -11,6 +11,7 @@
 
 #include <string>
 #include <cmath>
+#include "Constants.h"
 
 //MARK: How to use this file
 //If something is indented once and sits above something else, it is one of the options for the something else
@@ -64,8 +65,8 @@ namespace DRAGON::Config{
 #endif
 
 //MARK: Time Control
-constexpr double final_time = M_PI * 5;
-constexpr double dt = 0.05 * M_PI;
+constexpr double final_time = _pi * 5;
+constexpr double dt = 0.05 * _pi;
 
 constexpr double cfl_coeff = 0.3; //The Coefficient used together with the above to determine the maximum timestep size
 constexpr double timestep_tolerance = 1e-14; //Timesteps smaller than this are treated as zero

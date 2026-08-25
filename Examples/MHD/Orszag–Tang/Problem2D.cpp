@@ -11,15 +11,16 @@
 using namespace DRAGON;
 
 #include <cmath> //For std::sin, cos
+#include "Constants.h" //For _pi
 
 typedef DistGrid2D MyGrid;//Choose the dimension of your grid here
 
-constexpr double rho0 = 25.0 / (36*M_PI);
-constexpr double p_amb = 5.0 / (12*M_PI);
+constexpr double rho0 = 25.0 / (36*_pi);
+constexpr double p_amb = 5.0 / (12*_pi);
 constexpr double B0 = 1.0;
 
 constexpr int n = 512;
-constexpr double dx = 2*M_PI/n;
+constexpr double dx = 2*_pi/n;
 
 
 Grid& Problem::makeProblem(){

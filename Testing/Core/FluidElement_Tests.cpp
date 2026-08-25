@@ -10,7 +10,7 @@
 
 #include <cmath>        //For std::abs, sqrt, pow
 #include <algorithm>    //For std::max
-#include "Constants.h"  //For _gamma
+#include "Constants.h"  //For _gamma, _pi
 #include <iostream>     //For std::cout
 
 using namespace DRAGON_Test;
@@ -158,7 +158,7 @@ void DRAGON_Test::verify_conversion(){
     assert(approx(U2.mom.x, 6.0));
     assert(approx(U2.mom.y, 8.0));
     assert(approx(U2.mom.z, 0.0));
-    assert(approx(U2.E, 40.0 + (14.0)/(8*M_PI) ));
+    assert(approx(U2.E, 40.0 + (14.0)/(8*_pi) ));
     assert(approx(U2.pressure(), 10.0));
     
     PrimitiveState W3(U2);
@@ -183,14 +183,14 @@ void DRAGON_Test::verify_flux(){
     F = W.flux();
 
     assert(approx(F.rho, 6.0));
-    assert(approx(F.mom.x, 28.0 + 12/(8*M_PI) ));  // rho v.x^2 + p = 2*9 + 10
-    assert(approx(F.mom.y, 24.0 - 2/(4*M_PI)));  // rho v.x v.y = 2*3*4
-    assert(approx(F.mom.z, 30.0- 3/(4*M_PI)));  // rho v.x v.z = 2*3*5
+    assert(approx(F.mom.x, 28.0 + 12*_1_8pi ));  // rho v.x^2 + p = 2*9 + 10
+    assert(approx(F.mom.y, 24.0 - 2*_1_4pi));  // rho v.x v.y = 2*3*4
+    assert(approx(F.mom.z, 30.0- 3*_1_4pi));  // rho v.x v.z = 2*3*5
     assert(approx(F.B.x, 0));
     assert(approx(F.B.y, W.v.x * W.B.y - W.v.y * W.B.x));
     assert(approx(F.B.z, W.v.x * W.B.z - W.v.z * W.B.x));
 
-    assert(approx(F.E, W.v.x * (W.energy() + W.p + (W.B*W.B)/(8*M_PI)) - W.v * (W.B.x * W.B)/(4*M_PI) ));
+    assert(approx(F.E, W.v.x * (W.energy() + W.p + (W.B*W.B)*_1_8pi) - W.v * (W.B.x * W.B)*_1_4pi ));
 
 #endif
 }
@@ -200,7 +200,7 @@ void DRAGON_Test::verify_enthalpy(){
     assert(approx(W.enthalpy(), 25.0));
 #ifdef MHD
     W.B = {1.0,2.0,3.0};
-    assert(approx(W.enthalpy(), 25.0 + (14.0)/(8*M_PI) ));
+    assert(approx(W.enthalpy(), 25.0 + (14.0)*_1_8pi ));
 #endif
 }
 
@@ -210,8 +210,8 @@ void DRAGON_Test::verify_wavespeeds(){
     assert(approx(W.cs(), std::sqrt(_gamma * 5.0)));
 #ifdef MHD
     W.B = {1,2,3};
-    assert(approx(W.c_alfven(), std::sqrt(14/(8*M_PI)) ));
-    double c2 = _gamma * 5.0, a2 = 14/(8*M_PI), ax2 = 1/(8*M_PI) ;
+    assert(approx(W.c_alfven(), std::sqrt(14*_1_8pi) ));
+    double c2 = _gamma * 5.0, a2 = 14*_1_8pi, ax2 = _1_8pi ;
     assert(approx(W.c_fast_max(), std::sqrt((c2+a2)/2 + std::sqrt(std::pow(c2+a2,2)/4 - ax2*c2))  ));
 
 #endif

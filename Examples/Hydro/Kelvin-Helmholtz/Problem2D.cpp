@@ -11,6 +11,7 @@
 using namespace DRAGON;
 
 #include <cmath> //For std::sin etc
+#include "Constants.h" //For _pi
 
 typedef DistGrid2D MyGrid;//Choose the dimension of your grid here
 
@@ -61,7 +62,7 @@ PrimitiveState Problem::initialFluidState(double x, double y, double z){
     //Perturbation
     const double env1 = std::exp(-(y - y_lower) * (y - y_lower) / (2.0 * sigma * sigma));
     const double env2 = std::exp(-(y - y_upper) * (y - y_upper) / (2.0 * sigma * sigma));
-    const double vy = amp * std::sin(2.0 * M_PI * kmode * x) * (env1 + env2);
+    const double vy = amp * std::sin(2.0 * _pi * kmode * x) * (env1 + env2);
 
     w.v = {vx, vy, 0};
     
