@@ -53,7 +53,11 @@ void* DRAGONWING::ThreadPool::launchParallel(DRAGON::Grid* grid, double dt){
     try {
         threads.emplace_back([thread_args, this]{//Run the code on a new thread
             current_thread_pool = this; //Give the thread access to the pool
-            thread_args->grid->advance(thread_args->dt, false); //Do the actual work
+            try{
+                thread_args->grid->advance_step(thread_args->dt); //Do the actual work
+            } catch (const std::exception &exc) {
+                requestRestart(exc.what());
+            }
         });
     } catch (const std::system_error&) {
         std::cerr << "Failed to create thread\n";
@@ -65,7 +69,11 @@ void* DRAGONWING::ThreadPool::launchParallel(DRAGON::Grid* grid, double dt){
 #else
 void* DRAGONWING::ThreadPool::launchParallel(Grid* grid, double dt){
     current_thread_pool = this;
-    grid->advance(dt, false);
+    try{
+        thread_args->grid->advance_step(thread_args->dt); //Do the actual work
+    } catch (const std::exception &exc) {
+        requestRestart(exc.what());
+    }
     current_thread_pool = nullptr;
     return nullptr;
 }

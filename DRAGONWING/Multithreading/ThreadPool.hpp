@@ -48,7 +48,7 @@ private:
     
 public:
     ThreadPool(int N): nthreads(N){} //Create a pool with room for n threads
-    void* launchParallel(DRAGON::Grid* grid, double dt); //Execute grid->advance(dt) on a new thread in the pool
+    void* launchParallel(DRAGON::Grid* grid, double dt); //Execute grid->advance_step(dt) on a new thread in the pool
     
     //Error Handling
     void requestRestart(std::string msg = ""); //Something went wrong, request a restart

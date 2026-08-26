@@ -157,6 +157,14 @@ void Grid::advance(double dt, bool check_cfl){
     #endif
 }
 
+void Grid::advance_step(double dt){
+    #ifdef DIMENSION_UNSPLIT
+    unsplit_step(dt);
+    #else
+    split_step(dt);
+    #endif
+}
+
 
 void Grid::advance_split(double dt, bool check_cfl){
     while(dt > Config::timestep_tolerance) {

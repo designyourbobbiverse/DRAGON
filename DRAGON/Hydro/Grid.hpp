@@ -20,6 +20,7 @@ namespace DRAGON{
 class Grid{
 public:
     //Advance a single timestep
+    void advance_step(double dt); //Calls split_step or unsplit_step in accordance with Config.h
     virtual void split_step(double dt) = 0; //Should advance all dimensnions by dt
     virtual void unsplit_step(double dt) = 0;
     

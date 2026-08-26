@@ -16,7 +16,7 @@ namespace DRAGONWING{
 //MARK: Multithreading
 //Multithreading is done via the ThreadPool class. Important functions:
     //ThreadPool(int n); //Creates a pool with n threads
-    //void* launchParallel(Grid* grid, double dt); //Creates a thread which calls grid->advance(dt, false);
+    //void* launchParallel(Grid* grid, double dt); //Creates a thread which calls grid->advance_step(dt);
     //std::string restartMsg(); //returns (+clears) the error message if something requested a restart.
     //bool waitForCompletion(); //Waits for all threads to finish. Returns false iff anyone requested a restart
 
