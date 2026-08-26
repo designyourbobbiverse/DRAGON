@@ -32,10 +32,6 @@ using namespace Godunov;
 // 7) If domain-decomposed, wait until everyone finishes (and is error-free)
 // 8) Commit the update
 
-bool Grid::on_step_fail(const std::exception &e){
-    return !DRAGONWING::requestRestart(e.what());
-}
-
 
 //MARK: 2D Unsplit Step
 

@@ -341,16 +341,3 @@ void DistGrid3D::unsplit_step(double dt){
     } else { DistGrid::step(dt); }
 }
 
-
-bool DistGrid1D::on_step_fail(const std::exception& e){
-    if (children.size() <= 1 ) return Grid1D::on_step_fail(e);
-    return true; //This is the parent, nobody left to pass the restart responsibility to. Return true to excecute the restart
-}
-bool DistGrid2D::on_step_fail(const std::exception& e){
-    if (children.size() <= 1 ) return Grid2D::on_step_fail(e);
-    return true; //This is the parent,nobody left to pass the restart responsibility to. Return true to excecute the restart
-}
-bool DistGrid3D::on_step_fail(const std::exception& e){
-    if (children.size() <= 1 ) return Grid3D::on_step_fail(e);
-    return true; //This is the parent, nobody left to pass the restart responsibility to. Return true to excecute the restart
-}

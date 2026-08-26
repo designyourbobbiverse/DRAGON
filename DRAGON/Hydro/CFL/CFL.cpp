@@ -173,20 +173,18 @@ void Grid::advance_split(double dt, bool check_cfl){
         double t1 = check_cfl ? std::min(dt,CFL::cfl_time(*this)) : dt;
         //Advance
         do{
-            if(check_cfl) DRAGONWING::resetFallbacks();
+            DRAGONWING::resetFallbacks();
             try{
                 split_step(t1);
                 break; //Successful, end the step-attempt loop
             } catch(const std::exception &exc) { //A restart was requested (e.g. unphysical cell update)
-                if (on_step_fail(exc)) { //on_step_fail returns true if we are supposed to handle the restart
-                    std::cout<<"\t"<<exc.what()<<"\n";
-                } else { return; } //on_step_fail returns false if we are supposed let a parent handle the restart
-            }
-            //We weren't successful, halve the timestep and try again
-            t1 *= 0.5;
-            if (t1 < Config::timestep_tolerance) { //Timestep has gotten so low that we aren't going anywhere
-                std::cout<<"Timestep has fallen below minimum. Exiting\n";
-                exit(1);
+                std::cout<<"\t"<<exc.what()<<"\n";
+                //We weren't successful, halve the timestep and try again
+                t1 *= 0.5;
+                if (t1 < Config::timestep_tolerance) { //Timestep has gotten so low that we aren't going anywhere
+                    std::cout<<"Timestep has fallen below minimum. Exiting\n";
+                    exit(1);
+                }
             }
         } while(true);
         dt -= t1;
@@ -201,20 +199,18 @@ void Grid::advance_unsplit(double dt, bool check_cfl){
         double t1 = check_cfl ? std::min(dt,CFL::cfl_time(*this)) : dt;
         //Advance
         do{
-            if(check_cfl) DRAGONWING::resetFallbacks();
+            DRAGONWING::resetFallbacks();
             try{
                 unsplit_step(t1);
                 break; //Successful, end the step-attempt loop
             } catch(const std::exception &exc) { //A restart was requested (e.g. unphysical cell update)
-                if (on_step_fail(exc)) { //on_step_fail returns true if we are supposed to handle the restart
-                    std::cout<<"\t"<<exc.what()<<"\n";
-                } else { return; } //on_step_fail returns false if we are supposed let a parent handle the restart
-            }
-            //We weren't successful, halve the timestep and try again
-            t1 *= 0.5;
-            if (t1 < Config::timestep_tolerance) { //Timestep has gotten so low that we aren't going anywhere
-                std::cout<<"Timestep has fallen below minimum. Exiting\n";
-                exit(1);
+                std::cout<<"\t"<<exc.what()<<"\n";
+                //We weren't successful, halve the timestep and try again
+                t1 *= 0.5;
+                if (t1 < Config::timestep_tolerance) { //Timestep has gotten so low that we aren't going anywhere
+                    std::cout<<"Timestep has fallen below minimum. Exiting\n";
+                    exit(1);
+                }
             }
         } while(true);
         dt -= t1;

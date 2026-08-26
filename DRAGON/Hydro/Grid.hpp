@@ -14,8 +14,6 @@
 
 #include "Config.h" //For enabling or disabling MHD declarations
 
-#include <exception> //For on_step_fail
-
 namespace DRAGON{
 class Grid{
 public:
@@ -29,13 +27,9 @@ public:
     void advance_split(double dt, bool check_cfl=true); //Calls split_step one or more times
     void advance_unsplit(double dt, bool check_cfl=true); //Calls unsplit_step one or more times
     
-    //Called if un/split_step throws an exception
-    //Return true if this grid should handle the restart, false to return from advance and let a parent handle it
-    virtual bool on_step_fail(const std::exception& e);
     #ifdef MHD
     virtual void initialize_B_fields(){}
     #endif
-    
     
     //Boundary
     Boundary::BoundaryList boundary = Boundary::BoundaryList();
