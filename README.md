@@ -241,11 +241,15 @@ Currently, 3D only supports plotting midplane slices.
 
 DRAGON is an actively developed research code. The current version is suitable for demonstrating the numerical framework, solver implementations, boundary-condition infrastructure, and unit-test coverage. Basic plotting tools are also included. 
 
+Todo for v1.1
+- More direct testing for DRAGONWING
+- Unit tests for Fallback Counter
+- Passive Scalars
+
 Additional features planned for future versions include:
 - Adaptive Mesh Refinement
 - Methods for suppressing the carbuncle instability and other grid artifacts
 - Source Terms
-- Passive Scalars
 - Resistivity and Extended MHD
 
 
