@@ -18,6 +18,7 @@ DRAGON is a modern C++ Eulerian hydrodynamics and magnetohydrodynamics code impl
 - Boundary options can be combined using a BoundaryList, which can be invoked by syntax such as 
 `Boundary::Reflective("X") + Boundary::Periodic("YZ")`
 - A unit test suite covering fluid elements, Riemann Solvers, boundary conditions, Godunov methods, constrained transport, and more
+- Over a dozen standard benchmark problems, including shock tubes, blasts, convergence tests, and the Orszag-Tang Vortex.
 
 
 ## Project Layout
@@ -30,6 +31,7 @@ DRAGON/
   Hydro/            Godunov Scheme Components
     Grid.hpp        Grid structure which holds fluid elements
     CFL/            Timestep Control
+    ExtendedArray/  Multidimensional arrays + ghost access
     Godunov/        Sweep logic, split/unsplit updates
     Riemann/        Riemann solvers
     TVD/            MUSCL Reconstruction + limiter options
@@ -42,19 +44,12 @@ DRAGON/
   Problem.cpp       Example problem initialization and output handling
 
 DRAGONWING/         Multithreading & Memory Management
-  Config.h          Performance-related Settings
 DRAGONHOARD/        HDF5 output + simulation restart
-  Config.h          Output Settings
 DRAGONGAZE/         Plotting Tools
   Config.h          Visualisation Settings
 Examples/           Example Problems & Validation
 Testing/            Unit test suite
 ```
-## Acronyms
-Besides DRAGON itself, the full names of some of the other components are as follows:
-- DRAGONWING: DRAGON Wide Infrastructure for Numerical Grids
-- DRAGONGAZE: DRAGON Graphical Analysis and Zonal Exploration
-- DRAGONHOARD: DRAGON Hierarchichal Ouptut for Analysis, Restarts, and Diagnostics
 
 ## Configuration
 
@@ -66,7 +61,7 @@ Important switches include:
 - `RIEMANN_DEFAULT`: the default Riemann solver. The default `RIEMANN_HLLX` uses HLLC for pure hydrodynamics and HLLD for MHD.
 - `RIEMANN_VERIFY_FALLBACK`: if enabled, physicality of the Riemann solution is verified before returning. On failure, will attempt to pivot to more robust (albeit more diffusive or more expensive) solvers if needed.
 - `CFL_CALCULATION`: chooses CFL speed calculation method for multidimensional problems.
-- `CFL_coeff`: global CFL coefficient. The current value is `0.3`.
+- `cfl_coeff`: global CFL coefficient. The current value is `0.3`.
 - `MUSCL_Hancock`: enables second-order MUSCL-Hancock reconstruction. Comment it out for a first-order Godunov scheme.
 - `MUSCL_DEFAULT_LIMITER`: the TVD limiter used by MUSCL reconstruction.
 - `DIMENSION_UNSPLIT`: unsplit multidimensional advancement (turn off for Strang splitting).
@@ -76,16 +71,11 @@ Physical parameters meanwhile can be found in `DRAGON/Constants.h`. Currently, t
 
 ## Setting up your Problem
 
-Along with `Config.h`, `Problem.cpp` contains the information needed to set up the problem you wish to run. Until HDF5 output is implemented, this file also includes the code to write selected simulation data to CSV files. 
+Along with `Config.h`, `Problem.cpp` contains the information needed to set up the problem you wish to run. Both files are filled with comments detailing how to configure your particular problem.
 
-To run a problem, edit `Config.h` to choose the numerical options and edit `Problem.cpp` to define the initial conditions, boundary conditions, and desired output.
+To run a problem, edit `Config.h` to choose the numerical options and edit `Problem.cpp` to define the initial and boundary conditions.
 
-## Running an Example Problem
-
-
-The Examples folder includes several example problems. To run an exmaple problem, replace Config.h and Problem.cpp with the desired example files. 
-
-Some problems may include additional files. For example, CollidingFlows includes a Jet class which demonstrates how to use the Boundary API to implement mixed boundary conditions on the same face. Copy these alongside the Config.h and Problem.cpp files.
+The Examples folder includes several example problems. To run an exmaple problem, replace Config.h, Problem.cpp, and (if applicable) Constants.h with the desired example files. 
 
 ## Building DRAGON on macOS
 
@@ -106,20 +96,27 @@ If you are using Xcode, open the project's build settings and add (using the pat
 
 Once you do this, you should be able to build and run the DRAGON target, or the DRAGON_TESTS target for the unit test suite.
 
-If the project builds but fails when running, go to *Signing & Capabilities* for each executable target and ensure that `Disable Library Validation` is enabled under *Hardened Runtime*. If this was disabled, clean and build before trying to run the code again.
+If the project builds but fails when running, go to *Signing & Capabilities* for each executable target and ensure that `Disable Library Validation` is enabled under *Hardened Runtime*. After changing this setting, clean and build before trying to run the code again.
 
 
-If you aren't using Xcode, you can build DRAGON from command line. From the project's root directory, run the following:
+If you aren't using Xcode, you can build DRAGON from command line.
+The first time you build DRAGON, you will need to create the `bin/` directory that the build output will go into. From the project's root directory, run:
+```bash
+mkdir -p bin
+echo "bin/" >> .gitignore
+```
+Then build:
 ```bash
 HDF5_PATH=$(brew --prefix hdf5)
 ```
 ```bash
 clang++ -std=c++23 -O3 \
+    -o bin/DRAGON \
     -I"$HDF5_PATH/include" \
     -L"$HDF5_PATH/lib" \
     -Wl,-rpath,"$HDF5_PATH/lib" \
-    -o DRAGON \
-    $(find DRAGON DRAGONWING -name "*.cpp") \
+    -IDRAGON -IDRAGONWING -IDRAGONHOARD \
+    $(find DRAGON DRAGONWING DRAGONHOARD -name "*.cpp") \
     -lhdf5_cpp -lhdf5
 ```
 The test suite can be built similarly as follows:
@@ -129,11 +126,12 @@ HDF5_PATH=$(brew --prefix hdf5)
 ```bash
 clang++ -std=c++23 -O3 \
     -DTESTMODE \
+    -o bin/DRAGON_TESTS \
     -I"$HDF5_PATH/include" \
     -L"$HDF5_PATH/lib" \
     -Wl,-rpath,"$HDF5_PATH/lib" \
-    -o DRAGON_TESTS \
-    $(find DRAGON DRAGONWING Testing -name "*.cpp") \
+    -IDRAGON -IDRAGONWING -IDRAGONHOARD -ITesting\
+    $(find DRAGON DRAGONWING DRAGONHOARD Testing -name "*.cpp") \
     -lhdf5_cpp -lhdf5
 ```
 
@@ -144,11 +142,18 @@ On Linux, use your system package manager to install HDF5. For example, on Debia
 sudo apt install libhdf5-dev
 ```
 
-You can compile with your normal C++ compiler and manually provide the HDF5 include and library paths. If HDF5 is installed in a standard system location, this may be sufficient:
+The first time you build DRAGON, you will need to create the `bin/` directory that the build output will go into. From the project's root directory, run:
+```bash
+mkdir -p bin
+echo "bin/" >> .gitignore
+```
+
+From there, you can compile with your normal C++ compiler and manually provide the HDF5 include and library paths, along with DRAGON's own header search paths. If HDF5 is installed in a standard system location, this may be sufficient:
 ```bash
 g++ -std=c++23 -O3 \
-    -o DRAGON \
-    $(find DRAGON DRAGONWING -name "*.cpp") \
+    -o bin/DRAGON \
+    -IDRAGON -IDRAGONWING -IDRAGONHOARD \
+    $(find DRAGON DRAGONWING DRAGONHOARD -name "*.cpp") \
     -lhdf5_cpp -lhdf5
 ```
 
@@ -156,22 +161,25 @@ The test suite can be built similarly
 ```bash
 g++ -std=c++23 -O3 \
     -DTESTMODE \
-    -o DRAGON_TESTS \
-    $(find DRAGON DRAGONWING Testing -name "*.cpp") \
+    -o bin/DRAGON_TESTS \
+    -IDRAGON -IDRAGONWING -IDRAGONHOARD -ITesting \
+    $(find DRAGON DRAGONWING DRAGONHOARD Testing -name "*.cpp") \
     -lhdf5_cpp -lhdf5
 ```
 
 If your system provides the HDF5 compiler wrapper, you can use `h5c++` instead of manually specifying the linker flags:
 ```bash
 h5c++ -std=c++23 -O3 \
-    -o DRAGON \
-    $(find DRAGON DRAGONWING -name "*.cpp")
+    -o bin/DRAGON \
+    -IDRAGON -IDRAGONWING -IDRAGONHOARD \
+    $(find DRAGON DRAGONWING DRAGONHOARD -name "*.cpp")
 ```
 ```bash
 h5c++ -std=c++23 -O3 \
     -DTESTMODE \
-    -o DRAGON_TESTS \
-    $(find DRAGON DRAGONWING Testing -name "*.cpp")
+    -o bin/DRAGON_TESTS \
+    -IDRAGON -IDRAGONWING -IDRAGONHOARD -ITesting \
+    $(find DRAGON DRAGONWING DRAGONHOARD Testing -name "*.cpp")
 ```
 
 If the compiler cannot find `H5Cpp.h`, add the appropriate include path with `-I`. 
@@ -204,25 +212,25 @@ Before making your plots, edit `DRAGONGAZE/Config.py` with the following:
 - `img_dir` controls where the plots are written
 - Any other options you wish to edit. These typically the contents of the plots
 
-After running DRAGON, navigate to the DRAGONGAZE directory and run the relevant python command (for macOS users, if you replaced `pip` with `pip3` earlier, replace `python` with `python3` below)
+`DRAGONGAZE/` is a Python package, so after running DRAGON, run the relevant command as a module from the project's root directory (the one containing `DRAGONGAZE/`), not from inside `DRAGONGAZE/` itself. Running a script directly (e.g. `python DRAGONGAZE/GAZE1D.py`) will fail with `attempted relative import with no known parent package` -- the `-m` form below is required. (For macOS users, if you replaced `pip` with `pip3` earlier, replace `python` with `python3` below.)
 
 For 1D hydrodynamics:
 ```bash
-python GAZE1D.py
+python -m DRAGONGAZE.GAZE1D
 ```
 For 1D MHD:
 ```bash
-python GAZE1DMHD.py
+python -m DRAGONGAZE.GAZE1DMHD
 ```
 For 2D problems, pass one or more field keys:
 ```bash
-python GAZE2D rho p E By
+python -m DRAGONGAZE.GAZE2D rho p E By
 ```
 Valid 2D keys are rho, vx, vy, vz, Bx, By, Bz, p, and E.
 
 For 3D problems, pass one or more field keys, and optionally specify which pair(s) of axes you want ploted
 ```bash
-python GAZE3D rho E-xz E-xy By-xz
+python -m DRAGONGAZE.GAZE3D rho E-xz E-xy By-xz
 ```
 Valid 3D keys are rho, vx, vy, vz, Bx, By, Bz, p, and E (same as 2D).  Valid axis options are xy, xz, and yz. A key may be specified more than once to specify multiple axis options, or the axis option can be omitted to plot all 3.
 
@@ -232,11 +240,6 @@ Currently, 3D only supports plotting midplane slices.
 ## Status and Roadmap
 
 DRAGON is an actively developed research code. The current version is suitable for demonstrating the numerical framework, solver implementations, boundary-condition infrastructure, and unit-test coverage. Basic plotting tools are also included. 
-
-Todo before v1.0:
-- Add Alfven wave Example/validation problem
-- Write Documentation
-- Code Cleanup + Pre-Release Audit
 
 Additional features planned for future versions include:
 - Adaptive Mesh Refinement
@@ -253,4 +256,4 @@ DRAGON is licensed under the Apache License 2.0. See `LICENSE` for details.
 
 ## Use of Generative AI
 
-I, Bobbie Markwick, developed DRAGON as an independent C++ MHD code.  During development I have made use of Generative AI tools for taks such as learning modern C++ features, exploring established numerical algorithms and benchmarks, typo-hunting, and drafting unit tests. All produciton code for DRAGON itself was written manually by me.
+I, Bobbie Markwick, developed DRAGON as an independent C++ MHD code.  During development I have made use of Generative AI tools for tasks such as learning modern C++ features, exploring established numerical algorithms and benchmarks, typo-hunting, and drafting unit tests. All produciton code for DRAGON itself was written manually by me.

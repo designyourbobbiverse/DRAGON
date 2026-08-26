@@ -1,7 +1,16 @@
 '''
-CONFIG.py
+Config.py
 DRAGONGAZE
 Created by Bobbie Markwick on 07/07/2026.
+
+User-facing settings for the DRAGONGAZE plotting scripts: file locations, plot
+titles/labels, colormaps, and axis conventions.
+
+Each of the five dictionaries below (fileprefix, titles, labels, cmaps,
+log_plots) is keyed by field name ("rho", "vx", "Bmag", etc). To add a new
+plottable field, add a matching entry to all five here AND a corresponding
+HDF5 dataset key in HDF5_keys.py's `keys` dict (see that file's header) --
+GAZE2D.py/GAZE3D.py are field-generic and will pick it up automatically.
 '''
 
 
@@ -34,10 +43,10 @@ Titles
 
 plot_title = ""#The top level title of your plot
 
-#Subitles for individual plots
+#Subtitles for individual plots.
 titles = {
     "rho": "Density",
-    "v-1D": "Normal Velocity",
+    "v-1D": "Normal Velocity", #used for vx in GAZE1D.py/GAZE1DMHD.py
     "vx": "Velocity (x)",
     "p": "Pressure",
     "E": "Energy Density",
@@ -46,7 +55,7 @@ titles = {
     "vy": "Velocity (y)",
     "Bz": "Mangetic Field (z)",
     "vz": "Velocity (z)",
-    "Bmag": "Mangetic Field Strength",
+    "Bmag": "Mangetic Field Strength", #|B| = sqrt(Bx^2+By^2+Bz^2)
 }
 
 
@@ -99,7 +108,9 @@ cmaps = {
     "Bmag": "plasma"
 }
 
-log_plots = { #If true, plots this quantity logarithmically. If false, plots it linearly
+#If true, plots this quantity logarithmically (via LogNorm/semilogy). If false, plots it linearly.
+#Note: In 1D, only rho/p/E respect this (velocity and transverse-B panels are always linear in 1D).
+log_plots = {
     "rho": False,
     "vx": False,
     "vy": False,

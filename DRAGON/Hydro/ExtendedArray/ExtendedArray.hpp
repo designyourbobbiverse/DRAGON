@@ -1,23 +1,23 @@
 //
-//  ExtendedArray.hpp
+//  Hydro/ExtendedArray/ExtendedArray.hpp
 //  DRAGON/Hydro/ExtendedArray
 //
 //  Created by Bobbie Markwick on 16/06/2026.
 //
 
-#ifndef Storage_hpp
-#define Storage_hpp
-#ifdef TESTMODE
-#include <cassert>
+#ifndef ExtendedArray_hpp
+#define ExtendedArray_hpp
+
+#ifdef TESTMODE //Squawk at out of bounds access during unit tests.
+#include <cassert> //For assert
 #endif
 
-#pragma once
-
+namespace DRAGON{
 //MARK: 1D Array
 template <class T>
 struct ExtendedArray1D{
     
-    ExtendedArray1D(int size, int ghosts=2): size(size), ghosts(ghosts) { x = new T[size+2*ghosts]; }
+    ExtendedArray1D(int size, int ghosts=2): size(size), ghosts(ghosts){ x = new T[size+2*ghosts]; }
     ~ExtendedArray1D(){ delete[] x; }
     ExtendedArray1D(const ExtendedArray1D&) = delete; //No copying
     ExtendedArray1D& operator=(const ExtendedArray1D&) = delete;
@@ -25,16 +25,16 @@ struct ExtendedArray1D{
     //Grid access
     //Can take inputs <0 or >= n to access ghost cells
     T& operator[](int i){
-    #ifdef TESTMODE //Verify that we are in bounds, but strip in production to save time
+        #ifdef TESTMODE //Verify that we are in bounds, but strip in production to save time
         assert(i + ghosts >= 0 && i < size+ghosts);
-    #endif
+        #endif
         int m = i+ghosts;
         return x[m];
     }
     const T& operator[](int i) const{
-    #ifdef TESTMODE //Verify that we are in bounds, but strip in production to save time
+        #ifdef TESTMODE //Verify that we are in bounds, but strip in production to save time
         assert(i + ghosts >= 0 && i < size+ghosts);
-    #endif
+        #endif
         int m = i+ghosts;
         return x[m];
     }
@@ -44,7 +44,7 @@ struct ExtendedArray1D{
     //Cloning
     void clone(const ExtendedArray1D& ref, bool copyghosts = true){
         const int ng = copyghosts ? ghosts : 0;
-        for(int i = -ng; i<size+ng;i++){
+        for (int i = -ng; i<size+ng;i++) {
             (*this)[i] = ref[i];
         }
     }
@@ -58,7 +58,7 @@ private:
 template <class T>
 struct ExtendedArray2D{
     
-    ExtendedArray2D(int nx_, int ny_, int ghosts=2): nx(nx_), ny(ny_), ghosts(ghosts) {
+    ExtendedArray2D(int nx_, int ny_, int ghosts=2): nx(nx_), ny(ny_), ghosts(ghosts){
         x = new T[(nx+2*ghosts)*(ny+2*ghosts)];
     }
     ~ExtendedArray2D(){ delete[] x; }
@@ -68,18 +68,18 @@ struct ExtendedArray2D{
     //Grid access
     //Can take inputs <0 or >= n to access ghost cells
     T& operator[](int i,int j){
-    #ifdef TESTMODE //Verify that we are in bounds, but strip in production to save time
+        #ifdef TESTMODE //Verify that we are in bounds, but strip in production to save time
         assert(i + ghosts >= 0 && i < nx+ghosts);
         assert(j + ghosts >= 0 && j < ny+ghosts);
-    #endif
+        #endif
         int m = (i+ghosts)*(ny+2*ghosts) + (j+ghosts);
         return x[m];
     }
     const T& operator[](int i,int j) const{
-    #ifdef TESTMODE //Verify that we are in bounds, but strip in production to save time
+        #ifdef TESTMODE //Verify that we are in bounds, but strip in production to save time
         assert(i + ghosts >= 0 && i < nx+ghosts);
         assert(j + ghosts >= 0 && j < ny+ghosts);
-    #endif
+        #endif
         int m = (i+ghosts)*(ny+2*ghosts) + (j+ghosts);
         return x[m];
     }
@@ -90,8 +90,8 @@ struct ExtendedArray2D{
     //Cloning
     void clone(const ExtendedArray2D& ref, bool copyghosts = true){
         const int ng = copyghosts ? ghosts : 0;
-        for(int i = -ng; i<nx+ng;i++){
-            for(int j = -ng; j<ny+ng;j++){
+        for (int i = -ng; i<nx+ng;i++) {
+            for (int j = -ng; j<ny+ng;j++) {
                 (*this)[i,j] = ref[i,j];
             }
         }
@@ -107,7 +107,7 @@ private:
 template <class T>
 struct ExtendedArray3D{
     
-    ExtendedArray3D(int nx_, int ny_, int nz_, int ghosts=2): nx(nx_), ny(ny_), nz(nz_), ghosts(ghosts) {
+    ExtendedArray3D(int nx_, int ny_, int nz_, int ghosts=2): nx(nx_), ny(ny_), nz(nz_), ghosts(ghosts){
         x = new T[(nx+2*ghosts)*(ny+2*ghosts)*(nz+2*ghosts)];
     }
     ~ExtendedArray3D(){ delete[] x; }
@@ -117,20 +117,20 @@ struct ExtendedArray3D{
     //Grid access
     //Can take inputs <0 or >= n to access ghost cells
     T& operator[](int i,int j, int k){
-    #ifdef TESTMODE //Verify that we are in bounds, but strip in production to save time
+        #ifdef TESTMODE //Verify that we are in bounds, but strip in production to save time
         assert(i + ghosts >= 0 && i < nx+ghosts);
         assert(j + ghosts >= 0 && j < ny+ghosts);
         assert(k + ghosts >= 0 && k < nz+ghosts);
-    #endif
+        #endif
         int m = ((i+ghosts)*(ny+2*ghosts) + (j+ghosts)) * (nz+2*ghosts) + (k+ghosts);
         return x[m];
     }
     const T& operator[](int i,int j,int k) const{
-    #ifdef TESTMODE //Verify that we are in bounds, but strip in production to save time
+        #ifdef TESTMODE //Verify that we are in bounds, but strip in production to save time
         assert(i + ghosts >= 0 && i < nx+ghosts);
         assert(j + ghosts >= 0 && j < ny+ghosts);
         assert(k + ghosts >= 0 && k < nz+ghosts);
-    #endif
+        #endif
         int m = ((i+ghosts)*(ny+2*ghosts) + (j+ghosts)) * (nz+2*ghosts) + (k+ghosts);
         return x[m];
     }
@@ -142,9 +142,9 @@ struct ExtendedArray3D{
     //Cloning
     void clone(const ExtendedArray3D& ref, bool copyghosts = true){
         const int ng = copyghosts ? ghosts : 0;
-        for(int i = -ng; i<nx+ng;i++){
-            for(int j = -ng; j<ny+ng;j++){
-                for(int k = -ng; k<nz+ng;k++){
+        for (int i = -ng; i<nx+ng;i++) {
+            for (int j = -ng; j<ny+ng;j++) {
+                for (int k = -ng; k<nz+ng;k++) {
                     (*this)[i,j,k] = ref[i,j,k];
                 }
             }
@@ -154,5 +154,5 @@ private:
     T* x; //The array storing all of the objects
     int ghosts, nx, ny, nz;
 };
-
+}
 #endif /* Storage_hpp */

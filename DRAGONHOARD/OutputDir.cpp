@@ -1,5 +1,5 @@
 //
-//  HDF5Output.cpp
+//  OutputDir.cpp
 //  DRAGONHOARD
 //
 //  Created by Bobbie Markwick on 03/07/2026.
@@ -7,12 +7,12 @@
 
 #include "DragonHoard.hpp"
 
-#include <filesystem>
+#include <filesystem> //For std::filesystem::exists / etc
 
 #include "DRAGONHOARD_Config.h" //For output_dir, RESTART_FRAME
-#include "HDF5_Attrs.hpp" //For file_ext
-#include <string> //For std::stoi
-#include <cctype> //For std::isdigit
+#include "HDF5_Attrs.hpp"       //For file_ext
+#include <string>               //For std::stoi
+#include <cctype>               //For std::isdigit
 
 //MARK: Verify the output directory exists
 void DRAGONHOARD::verifyOutputDirectory(){
@@ -26,17 +26,17 @@ void DRAGONHOARD::verifyOutputDirectory(){
     }
 }
 //MARK: Identify the restart file
-static bool verifyFileType(const std::string& s, const std::string& ext =  file_ext) {
+static bool verifyFileType(const std::string& s, const std::string& ext =  file_ext){
     std::size_t end = s.rfind('.');
     if (end == std::string::npos) end = s.size(); //File extension missing
     return s.substr(end) == ext;
 }
-static int extractNumber(const std::string& s) {
+static int extractNumber(const std::string& s){
     const std::size_t end = s.find('.');
     const std::size_t pos = s.rfind('_', end);
     if (pos == std::string::npos || pos + 1 >= end) return -1; //String isn't in the format [NAME]_#####, skip it
    
-    for (std::size_t i = pos + 1; i < end; ++i) {
+    for (std::size_t i = pos+1; i < end; ++i) {
         if (!std::isdigit(static_cast<unsigned char>(s[i]))) {
             return -1; //String isn't in the format [NAME]_#####, skip it
         }
@@ -44,7 +44,13 @@ static int extractNumber(const std::string& s) {
     
     return std::stoi(s.substr(pos+1, end-pos-1));
 }
-
+namespace DRAGONHOARD{
+std::string checkExtension(const std::string& filename){
+    if (filename.size() <= file_ext.size()) return filename + file_ext; //Shorter = definitley missing
+    if (filename.substr(filename.size() - file_ext.size()) == file_ext) return filename;
+    return filename + file_ext;
+}
+}
 
 std::string DRAGONHOARD::restartFileName(){
     std::string filename = "";
@@ -56,11 +62,11 @@ std::string DRAGONHOARD::restartFileName(){
     for (const auto& entry : std::filesystem::directory_iterator(dir)) {
         if (!entry.is_regular_file()) continue;
         auto str = entry.path().filename().string();
-        if(!verifyFileType(str)) continue;
+        if (!verifyFileType(str)) continue;
         
         int n = extractNumber(str);
         #if RESTART_FRAME < 0
-        if(n > max_frame_num){
+        if (n > max_frame_num) {
             filename = str;
             max_frame_num = n;
         }

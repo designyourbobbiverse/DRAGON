@@ -7,6 +7,7 @@
 
 #ifndef GhostFill_hpp
 #define GhostFill_hpp
+namespace DRAGON{
 
 class Grid;
 class Grid1D;
@@ -22,11 +23,12 @@ public:
     virtual void apply(Grid1D& grid) = 0;
     virtual void apply(Grid2D& grid) = 0;
     virtual void apply(Grid3D& grid) = 0;
-    void apply(Grid& grid);
+    void apply(Grid& grid); //Calls Grid1D/2D/3D as appropriate
 protected:
     int faces; //A bit mask desgnating to which faces this GhostFill shall be applied
     bool corners; //Designates whether this object should also fill corner cells of the respective face
-    explicit GhostFill(int faces_, bool corner_ghosts) : faces(faces_), corners(corner_ghosts) {}
+    explicit GhostFill(int faces_, bool corner_ghosts) : faces(faces_), corners(corner_ghosts){}
 };
 
+}
 #endif

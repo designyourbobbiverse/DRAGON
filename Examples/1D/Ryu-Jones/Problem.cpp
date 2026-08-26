@@ -3,10 +3,12 @@
 //  DRAGON/Examples/1D/Ryu-Jones
 //
 //  Created by Bobbie Markwick on 7/07/2026.
+//  Ryu and Jones (1995). https://arxiv.org/abs/astro-ph/9404074
 //
 
-#include "Problem.hpp"
-#include "DistGrid.hpp"
+#include "main/Problem.hpp"
+#include "Refinement/DistGrid.hpp"
+using namespace DRAGON;
 
 typedef DistGrid1D MyGrid;//Choose the dimension of your grid here
 

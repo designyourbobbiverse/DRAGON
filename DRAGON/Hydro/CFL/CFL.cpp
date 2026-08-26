@@ -10,27 +10,27 @@
 #include "CFL.hpp"
 
 #include "Config.h"
-#include <cmath> //For std::abs, sqrt, pow
-#include <algorithm> //For std::min/max
+#include <cmath>        //For std::abs, sqrt, pow
+#include <algorithm>    //For std::min/max
 
-#include "GhostFill.hpp" //For boundary.apply
+#include "Boundary/GhostFill.hpp"   //For boundary.apply
 
-#include <stdexcept> //For std::runtime_error (CFL timestep fails to compute)
-#include <exception> //For handling step restarts
-#include <iostream>  //For printing step-restart messages
-#include <cstdlib>   //For exit() if the timestep gets too small
+#include <stdexcept>    //For std::runtime_error (CFL timestep fails to compute)
+#include <exception>    //For handling step restarts
+#include <iostream>     //For printing step-restart messages
+#include <cstdlib>      //For exit() if the timestep gets too small
 
-
-using namespace CONFIG;
+using namespace DRAGON;
+using namespace Config;
 
 //MARK: Individual Speeds
 //CFL speed = highest (|v|+a)/dL of any one side
 double CFL::cfl_max_speed(const PrimitiveState& W, double dx, double dy, double dz){
-#ifdef MHD //Use Magnetosonic fast speed for MHD
+    #ifdef MHD //Use Magnetosonic fast speed for MHD
     double a = W.c_fast_max();
-#else //Use sound speed for Hydro
+    #else //Use sound speed for Hydro
     double a = W.cs();
-#endif
+    #endif
     double speed = 0;
     if (dx > 1e-14) speed = (std::abs(W.v.x) + a)/dx;
     if (dy > 1e-14)  speed = std::max(speed, (std::abs(W.v.y) + a)/dy);
@@ -40,11 +40,11 @@ double CFL::cfl_max_speed(const PrimitiveState& W, double dx, double dy, double 
 
 //CFL speed = sum of (|v|+a)/dL over all applicable sides
 double CFL::cfl_add_speed(const PrimitiveState& W, double dx, double dy, double dz){
-#ifdef MHD //Use Magnetosonic fast speed for MHD
+    #ifdef MHD //Use Magnetosonic fast speed for MHD
     double a = W.c_fast_max();
-#else //Use sound speed for Hydro
+    #else //Use sound speed for Hydro
     double a = W.cs();
-#endif
+    #endif
     double speed = 0;
     if (dx > 1e-14) speed = (std::abs(W.v.x) + a)/dx;
     if (dy > 1e-14) speed +=  (std::abs(W.v.y) + a)/dy;
@@ -54,11 +54,11 @@ double CFL::cfl_add_speed(const PrimitiveState& W, double dx, double dy, double 
 
 //CFL speed = [sum of ((|v|+a)/dL)^p]^(1/p)
 double CFL::cfl_pow_speed(const PrimitiveState& W, double p, double dx, double dy, double dz){
-#ifdef MHD //Use Magnetosonic fast speed for MHD
+    #ifdef MHD //Use Magnetosonic fast speed for MHD
     double a = W.c_fast_max();
-#else //Use sound speed for Hydro
+    #else //Use sound speed for Hydro
     double a = W.cs();
-#endif
+    #endif
     double speed = 0;
     if (dx > 1e-14) speed = std::pow((std::abs(W.v.x) + a)/dx, p);
     if (dy > 1e-14) speed +=  std::pow((std::abs(W.v.y) + a)/dy,p);
@@ -68,19 +68,19 @@ double CFL::cfl_pow_speed(const PrimitiveState& W, double p, double dx, double d
 
 //MARK: Configuration-Control
 double CFL::cfl_speed(const PrimitiveState& W, double dx, double dy, double dz){
-#if CFL_CALCULATION == CHOOSE_RUNTIME || defined(TESTMODE) //Choose at runtime (which is always the case when unit testing)
-    switch(CONFIG::cfl_choice){
-        case CFL_MAX: return cfl_max_speed(W, dx, dy, dz);
-        case CFL_ADD: return cfl_add_speed(W, dx, dy, dz);
-        default: return cfl_pow_speed(W, CONFIG::cfl_choice, dx, dy, dz);
+    #if CFL_CALCULATION == CHOOSE_RUNTIME || defined(TESTMODE) //Choose at runtime (which is always the case when unit testing)
+    switch(Config::cfl_choice) {
+    case CFL_MAX: return cfl_max_speed(W, dx, dy, dz);
+    case CFL_ADD: return cfl_add_speed(W, dx, dy, dz);
+    default: return cfl_pow_speed(W, Config::cfl_choice, dx, dy, dz);
     }
-#elif CFL_CALCULATION == CFL_MAX //Use highest individual dimension
+    #elif CFL_CALCULATION == CFL_MAX //Use highest individual dimension
     return cfl_max_speed(W, dx, dy, dz);
-#elif CFL_CALCULATION == CFL_ADD //Add the speeds together
+    #elif CFL_CALCULATION == CFL_ADD //Add the speeds together
     return cfl_add_speed(W, dx, dy, dz);
-#elif CFL_CALCULATION > 0 //Use the  (sum of []^p)^(1/p) method
+    #elif CFL_CALCULATION > 0 //Use the  (sum of []^p)^(1/p) method
     return cfl_pow_speed(W, CFL_CALCULATION, dx, dy, dz);
-#endif
+    #endif
 }
 
 //MARK: Grid Minimum
@@ -89,7 +89,7 @@ double CFL::cfl_time(const Grid1D& g){
     //Calculate the highest speed over the entire grid
     double max_speed = 0;
     int ng = std::min(1,g.getGhosts());
-    for(int i = -ng; i<g.getSize()+ng; i++){
+    for (int i = -ng; i<g.getSize()+ng; i++) {
         const PrimitiveState& W = g[i];
         #ifdef MHD //Use Magnetosonic fast speed for MHD
         double a = W.c_fast_max();
@@ -99,49 +99,49 @@ double CFL::cfl_time(const Grid1D& g){
       double speed = std::abs(W.v.x) + a;
       max_speed = std::max(max_speed, speed);
     }
-    if(max_speed <= 0) throw std::runtime_error("CFL timestep failed: max signal speed is zero");
+    if (max_speed <= 0) throw std::runtime_error("CFL timestep failed: max signal speed is zero");
     //Then convert to time and apply the coefficient
-    return CFL_coeff * g.dx / max_speed;
+    return cfl_coeff * g.dx / max_speed;
 }
 
 double CFL::cfl_time(const Grid2D& g){
     //Calculate the highest speed over the entire grid
     double max_speed = 0;
     int ng = std::min(1,g.getGhosts());
-    for(int i = -ng; i<g.getSizeX()+ng; i++){
-        for(int j = -ng; j<g.getSizeY()+ng; j++){
+    for (int i = -ng; i<g.getSizeX()+ng; i++) {
+        for (int j = -ng; j<g.getSizeY()+ng; j++) {
             double speed = cfl_speed(g[i,j], g.dx, g.dy);
             max_speed = std::max(max_speed, speed);
         }
     }
-    if(max_speed <= 0) throw std::runtime_error("CFL timestep failed: max signal speed is zero");
+    if (max_speed <= 0) throw std::runtime_error("CFL timestep failed: max signal speed is zero");
     //Then convert to time and apply the coefficient
-    return CFL_coeff / max_speed;
+    return cfl_coeff / max_speed;
 }
 
 double CFL::cfl_time(const Grid3D& g){
     //Calculate the highest speed over the entire grid
     double max_speed = 0;
     int ng = std::min(1,g.getGhosts());
-    for(int i = -ng; i<g.getSizeX()+ng; i++){
-        for(int j = -ng; j<g.getSizeY()+ng; j++){
-            for(int k = -ng; k<g.getSizeZ()+ng; k++){
+    for (int i = -ng; i<g.getSizeX()+ng; i++) {
+        for (int j = -ng; j<g.getSizeY()+ng; j++) {
+            for (int k = -ng; k<g.getSizeZ()+ng; k++) {
                 double speed = cfl_speed(g[i,j,k], g.dx, g.dy, g.dz);
                 max_speed = std::max(max_speed, speed);
             }
         }
     }
-    if(max_speed <= 0) throw std::runtime_error("CFL timestep failed: max signal speed is zero");
+    if (max_speed <= 0) throw std::runtime_error("CFL timestep failed: max signal speed is zero");
     //Then convert to time and apply the coefficient
-    return CFL_coeff / max_speed;
+    return cfl_coeff / max_speed;
 }
 double CFL::cfl_time(const Grid& grid){
     const Grid3D* grid3D = dynamic_cast<const Grid3D*>(&grid);
-    if(grid3D)  return cfl_time(*grid3D);
+    if (grid3D)  return cfl_time(*grid3D);
     const Grid2D* grid2D = dynamic_cast<const Grid2D*>(&grid);
-    if(grid2D) return cfl_time(*grid2D);
+    if (grid2D) return cfl_time(*grid2D);
     const Grid1D* grid1D = dynamic_cast<const Grid1D*>(&grid);
-    if(grid1D) return cfl_time(*grid1D);
+    if (grid1D) return cfl_time(*grid1D);
     throw std::runtime_error("Invalid Grid Type");
 }
 
@@ -149,16 +149,16 @@ double CFL::cfl_time(const Grid& grid){
 
 
 void Grid::advance(double dt, bool check_cfl){
-#ifdef DIMENSION_UNSPLIT
+    #ifdef DIMENSION_UNSPLIT
     advance_unsplit(dt,check_cfl);
-#else
+    #else
     advance_split(dt,check_cfl);
-#endif
+    #endif
 }
 
 
 void Grid::advance_split(double dt, bool check_cfl){
-    while(dt > CONFIG::Timestep_Tolerance){
+    while(dt > Config::timestep_tolerance) {
         boundary.apply(*this);
         //CFL Time Constraint
         double t1 = check_cfl ? std::min(dt,CFL::cfl_time(*this)) : dt;
@@ -166,15 +166,15 @@ void Grid::advance_split(double dt, bool check_cfl){
         do{
             try{
                 split_step(t1);
-                break; //Successful, end the loop
-            } catch(const std::exception &exc){
-                if(on_step_fail(exc)){
+                break; //Successful, end the step-attempt loop
+            } catch(const std::exception &exc) { //A restart was requested (e.g. unphysical cell update)
+                if (on_step_fail(exc)) { //on_step_fail returns true if we are supposed to handle the restart
                     std::cout<<"\t"<<exc.what()<<"\n";
-                } else { return; }
+                } else { return; } //on_step_fail returns false if we are supposed let a parent handle the restart
             }
             //We weren't successful, halve the timestep and try again
             t1 *= 0.5;
-            if(t1 < CONFIG::Timestep_Tolerance){
+            if (t1 < Config::timestep_tolerance) { //Timestep has gotten so low that we aren't going anywhere
                 std::cout<<"Timestep has fallen below minimum. Exiting\n";
                 exit(1);
             }
@@ -186,7 +186,7 @@ void Grid::advance_split(double dt, bool check_cfl){
 
 
 void Grid::advance_unsplit(double dt, bool check_cfl){
-    while(dt > CONFIG::Timestep_Tolerance){
+    while(dt > Config::timestep_tolerance) {
         boundary.apply(*this);
         //CFL Time Constraint
         double t1 = check_cfl ? std::min(dt,CFL::cfl_time(*this)) : dt;
@@ -194,15 +194,15 @@ void Grid::advance_unsplit(double dt, bool check_cfl){
         do{
             try{
                 unsplit_step(t1);
-                break; //Successful, end the loop
-            } catch(const std::exception &exc){
-                if(on_step_fail(exc)){
+                break; //Successful, end the step-attempt loop
+            } catch(const std::exception &exc) { //A restart was requested (e.g. unphysical cell update)
+                if (on_step_fail(exc)) { //on_step_fail returns true if we are supposed to handle the restart
                     std::cout<<"\t"<<exc.what()<<"\n";
-                } else { return; }
+                } else { return; } //on_step_fail returns false if we are supposed let a parent handle the restart
             }
             //We weren't successful, halve the timestep and try again
             t1 *= 0.5;
-            if(t1 < CONFIG::Timestep_Tolerance){
+            if (t1 < Config::timestep_tolerance) { //Timestep has gotten so low that we aren't going anywhere
                 std::cout<<"Timestep has fallen below minimum. Exiting\n";
                 exit(1);
             }

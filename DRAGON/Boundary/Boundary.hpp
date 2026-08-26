@@ -1,5 +1,5 @@
 //
-//  Boundary.hpp
+//  Boundary/Boundary.hpp
 //  DRAGON/Boundary
 //  User-Facing Header file
 //
@@ -14,16 +14,15 @@
 #include <concepts> //For BoundaryElement template
 #include <type_traits> //For BoundaryElement template
 #include <string> //For face initialization
-#include "FluidElement.hpp" //For Boundary::fixed
+#include "FluidElement/FluidElement.hpp" //For Boundary::fixed
 
-
-namespace Boundary{
+namespace DRAGON::Boundary{
 
 //MARK: Boundary Composition
 //The conditions will be applied in order, with later conditions overriding prior conditions for overlapping cells
 //Outflow(missing_faces) will be added at the beginning if any faces are missing.
 class BoundaryList;
-template<class T> concept BoundaryElement = //Can't put lists inside of lists
+template<class T> concept BoundaryElement = //Can't put lists inside of lists (this keeps everything well-defined)
     !std::derived_from<std::decay_t<T>, BoundaryList> && std::derived_from<std::decay_t<T>, GhostFill>;
 
 //Addition operators
@@ -50,9 +49,10 @@ constexpr int Z_positive = 1 << 5;
 constexpr int Z = Z_negative | Z_positive;
 
 //Intialization from a string
-//X = X, Y = Y, Z = Z
-//- after XYZ means only the negative, + after XYZ means only the positive
-//Example: XYZ+ is everyting except negative Z
+//X = X, Y = Y, Z = Z (case insensitive)
+//- after X Y or Z means only the negative-side boundary
+//+ after X Y or Z means only the positive-side boundary
+//Example: XYZ+ is everything except negative Z
 int face_mask(std::string s);
 
 
@@ -72,7 +72,7 @@ public:
     void apply(Grid1D& grid) override;
     void apply(Grid2D& grid) override;
     void apply(Grid3D& grid) override;
-
+    
     bool gated; //If True, overrides any inflow component of velocity to be zero
 };
 

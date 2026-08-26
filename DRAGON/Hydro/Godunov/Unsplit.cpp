@@ -3,20 +3,34 @@
 //  DRAGON/Hydro/Godunov
 //
 //  Created by Bobbie Markwick on 10/06/2026.
-//  Implementation based in part on  Toro (2009). https://doi.org/10.1007/b79761
+//  Implementation based in part on
+//      Toro (2009) https://doi.org/10.1007/b79761
+//      Gardiner and Stone (2008) https://arxiv.org/abs/0712.2634
 
 
-#include "Grid.hpp"
-#include "Unsplit.hpp"
+
+#include "Hydro/Grid.hpp"
+#include "Godunov.hpp"
 
 #include "Config.h"
-#include "Riemann.hpp" //For Riemann Solvers
-#include "TVD.hpp"     //For MUSCL Reconstruction
-#include "CT.hpp"      //For MHD
+#include "MHD/CT.hpp"      //For MHD
 
 #include "DragonWing.hpp" //For memory management & synchronization
+
 #include <stdexcept>      //For error handling
 #include <format>         //For error message formatting
+using namespace DRAGON;
+using namespace Godunov;
+
+//General Procedure
+// 1) MUSCL (preliminary interface states)
+// 2) CTU (transverse corrections to interface states)
+// 3) Final fluxes
+// 4) Update hydro states
+// 5) Constrained Transport (E fields then B fields)
+// 6) Check that the solution is acceptable (if not, throw exception to trigger step restart)
+// 7) If domain-decomposed, wait until everyone finishes (and is error-free)
+// 8) Commit the update
 
 bool Grid::on_step_fail(const std::exception &e){
     return !DRAGONWING::requestRestart(e.what());
@@ -29,28 +43,25 @@ void Grid2D::unsplit_step(double dt){
     const int nx = w.getSizeX(), ny = w.getSizeY(), ghosts = w.getGhosts();
     const double dt_dx = dt/dx, dt_dy = dt/dy;
     
-    if(!DRAGONWING::waitForRelease()) return;
-    #ifndef MHD //Dummy B array
-        auto B = MagneticArray2D(0,0);
-    #endif
+    if (!DRAGONWING::waitForRelease()) return; //On memory-constrained systems, we might have to wait until it's our turn
     
-    //Compute Half States
+    //Compute Interface States
         auto __half_states = DRAGONWING::requestPrimitiveArrays(4, nx, ny, ghosts);
     FluidArray2D& _xL = *__half_states[0];
     FluidArray2D& _xR = *__half_states[1];
     FluidArray2D& _yL = *__half_states[2];
     FluidArray2D& _yR = *__half_states[3];
-    computeHalfStates_X(_xL, (*this), _xR, B, dt);
-    computeHalfStates_Y(_yL, (*this), _yR, B, dt);
+    computeHalfStates_X(_xL, (*this), _xR, dt);
+    computeHalfStates_Y(_yL, (*this), _yR, dt);
     
-    #ifdef CTU
-        #ifdef MHD //Gardiner and Stone (2005). https://doi.org/10.1016/j.jcp.2004.11.016
-            auto __E_half = DRAGONWING::requestVec3Arrays(1, nx+1, ny+1, ghosts);
-        MagneticArray2D& _E_half = *__E_half[0];
-        ctu_sweep_MHD(_xL, _xR, _yL, _yR, B, w, _E_half, dt_dx, dt_dy);
-        #else
-        ctu_sweep_hydro(_xL, _xR, _yL, _yR, dt_dx, dt_dy);
-        #endif
+    #ifdef CTU //Gardiner and Stone (2008) https://arxiv.org/abs/0712.2634
+    #ifdef MHD
+        auto __E_half = DRAGONWING::requestVec3Arrays(1, nx+1, ny+1, ghosts);
+    MagneticArray2D& _E_half = *__E_half[0];
+    ctu_sweep_MHD(_xL, _xR, _yL, _yR, B, w, _E_half, dt_dx, dt_dy);
+    #else
+    ctu_sweep_hydro(_xL, _xR, _yL, _yR, dt_dx, dt_dy);
+    #endif
     #endif
 
     //Compute Fluxes
@@ -67,7 +78,7 @@ void Grid2D::unsplit_step(double dt){
         __half_states.release();
     
     //Preliminarily apply all fluxes
-        auto __w = DRAGONWING::requestPrimitiveArrays(1,nx, ny, ghosts);
+        auto __w = DRAGONWING::requestPrimitiveArrays(1,nx, ny, ghosts); //Auto-releases when the function terminates
     FluidArray2D& _w = *__w[0];
     applyFluxes(w, _w, F_X, F_Y, dt_dx, dt_dy);
 
@@ -82,7 +93,7 @@ void Grid2D::unsplit_step(double dt){
         __E_half.release();
     #endif
     //Update B
-        auto __B = DRAGONWING::requestVec3Arrays(1, nx+1, ny+1, ghosts);
+        auto __B = DRAGONWING::requestVec3Arrays(1, nx+1, ny+1, ghosts); //Auto-releases when the function terminates
     MagneticArray2D& _B = *__B[0]; //Done with _E_half, reuse it
     _B.clone(B);
     CT::Faraday(E, _B, dt_dx, dt_dy);
@@ -92,15 +103,16 @@ void Grid2D::unsplit_step(double dt){
         __fluxes.release();
 
     //Verify Physicality of solution
-    for(int i=0; i<nx; i++){
-        for(int j=0; j<ny; j++){
-            if(!_w[i,j].isPhysical()) throw std::runtime_error(std::format("Unphysical state would be produced at ({},{})",i,j));
+    for (int i=0; i<nx; i++) {
+        for (int j=0; j<ny; j++) {
+            if (!_w[i,j].isPhysical())
+                throw std::runtime_error(std::format("Unphysical state would be produced at ({},{})",i,j));
         }
     }
         
     //Wait for any parallel grids to finish
     DRAGONWING::reportCheckpoint1();
-    if(!DRAGONWING::waitForCheckpoint1()) return;
+    if (!DRAGONWING::waitForCheckpoint1()) return;
     
     //Commit flux updates
     w.clone(_w, false);
@@ -116,11 +128,8 @@ void Grid3D::unsplit_step(double dt){
     const int nx = w.getSizeX(), ny = w.getSizeY(), nz = w.getSizeZ(), ghosts = w.getGhosts();
     const double dt_dx = dt/dx, dt_dy = dt/dy, dt_dz = dt/dz;
     
-    if(!DRAGONWING::waitForRelease()) return;
-    #ifndef MHD //Face Fields Dummy array
-        auto B = MagneticArray3D(0,0,0);
-    #endif
-    
+    if (!DRAGONWING::waitForRelease()) return; //On memory-constrained systems, we might have to wait until it's our turn.
+
     //Compute Half States
         auto __half_states = DRAGONWING::requestPrimitiveArrays(6, nx, ny, nz, ghosts);
     FluidArray3D& _xL = *__half_states[0];
@@ -129,18 +138,18 @@ void Grid3D::unsplit_step(double dt){
     FluidArray3D& _yR = *__half_states[3];
     FluidArray3D& _zL = *__half_states[4];
     FluidArray3D& _zR = *__half_states[5];
-    computeHalfStates_X(_xL, (*this), _xR, B, dt);
-    computeHalfStates_Y(_yL, (*this), _yR, B, dt);
-    computeHalfStates_Z(_zL, (*this), _zR, B, dt);
+    computeHalfStates_X(_xL, (*this), _xR, dt);
+    computeHalfStates_Y(_yL, (*this), _yR, dt);
+    computeHalfStates_Z(_zL, (*this), _zR, dt);
     
-    #ifdef CTU
-        #ifdef MHD //Gardiner and Stone (2005). https://doi.org/10.1016/j.jcp.2004.11.016
-            auto __E_half = DRAGONWING::requestVec3Arrays(1, nx+1, ny+1, nz+1, ghosts);
-        MagneticArray3D& _E_half = *__E_half[0];
-        ctu_sweep_MHD(_xL, _xR, _yL, _yR, _zL, _zR, B, w, _E_half, dt_dx, dt_dy, dt_dz);
-        #else
-        ctu_sweep_hydro(_xL, _xR, _yL, _yR, _zL, _zR, dt_dx, dt_dy, dt_dz);
-        #endif
+    #ifdef CTU //Gardiner and Stone (2008) https://arxiv.org/abs/0712.2634
+    #ifdef MHD
+        auto __E_half = DRAGONWING::requestVec3Arrays(1, nx+1, ny+1, nz+1, ghosts);
+    MagneticArray3D& _E_half = *__E_half[0];
+    ctu_sweep_MHD(_xL, _xR, _yL, _yR, _zL, _zR, B, w, _E_half, dt_dx, dt_dy, dt_dz);
+    #else
+    ctu_sweep_hydro(_xL, _xR, _yL, _yR, _zL, _zR, dt_dx, dt_dy, dt_dz);
+    #endif
     #endif
 
     //Compute Fluxes
@@ -160,7 +169,7 @@ void Grid3D::unsplit_step(double dt){
         __half_states.release();
     
     //Preliminarily apply all fluxes
-        auto __w = DRAGONWING::requestPrimitiveArrays(1, nx, ny, nz, ghosts);
+        auto __w = DRAGONWING::requestPrimitiveArrays(1, nx, ny, nz, ghosts); //Auto-releases when the function terminates
     FluidArray3D& _w = *__w[0];
     applyFluxes(w, _w, F_X, F_Y, F_Z, dt_dx, dt_dy, dt_dz);
     
@@ -175,7 +184,7 @@ void Grid3D::unsplit_step(double dt){
         __E_half.release();
     #endif
     //Update B
-        auto __B = DRAGONWING::requestVec3Arrays(1, nx+1, ny+1, nz+1, ghosts);
+        auto __B = DRAGONWING::requestVec3Arrays(1, nx+1, ny+1, nz+1, ghosts); //Auto-releases when the function terminates
     MagneticArray3D& _B = *__B[0]; //Done with _E_half, reuse it
     _B.clone(B);
     CT::Faraday(E, _B, dt_dx, dt_dy, dt_dz);
@@ -186,251 +195,22 @@ void Grid3D::unsplit_step(double dt){
 
     
     //Check Physicality
-    for(int i=0; i<nx; i++){
-        for(int j=0; j<ny; j++){
-            for(int k=0; k<nz; k++){
-                if(!_w[i,j,k].isPhysical()) throw std::runtime_error(std::format("Unphysical state would be produced at ({},{},{})",i,j,k));
+    for (int i=0; i<nx; i++) {
+        for (int j=0; j<ny; j++) {
+            for (int k=0; k<nz; k++) {
+                if (!_w[i,j,k].isPhysical())
+                    throw std::runtime_error(std::format("Unphysical state would be produced at ({},{},{})",i,j,k));
             }
         }
     }
     
     //Wait for any parallel grids to finish
     DRAGONWING::reportCheckpoint1();
-    if(!DRAGONWING::waitForCheckpoint1()) return;
+    if (!DRAGONWING::waitForCheckpoint1()) return;
     
     //Commit Flux updates
     w.clone(_w, false);
     #ifdef MHD
     B.clone(_B, false);
-    #endif
-}
-
-//MARK: Flux Calculation
-//Compute X fluxes between Right(_R) and Left (_L) half-states over the entire grid
-void computeFlux_X(const FluidArray2D& _L, const FluidArray2D& _R, FluxArray2D& F, int xL, int xR, int yL, int yR, double dt_dx ){
-    for(int i=xL; i<=xR; i++){
-        for(int j=yL; j<yR; j++){
-            F[i,j] = Riemann(_R[i-1,j], _L[i,j]).flux_X(dt_dx);
-        }
-    }
-}
-//Compute Y fluxes between Right(_R) and Left (_L) half-states over the entire grid
-void computeFlux_Y(const FluidArray2D& _L, const FluidArray2D& _R, FluxArray2D& F, int xL, int xR, int yL, int yR, double dt_dy){
-    for(int i=xL; i<xR; i++){
-        for(int j=yL; j<=yR; j++){
-            F[i,j] = Riemann(_R[i,j-1], _L[i,j]).flux_Y(dt_dy);
-        }
-    }
-}
-//Compute X fluxes between Right(_R) and Left (_L) half-states over the entire grid
-void computeFlux_X(const FluidArray3D& _L, const FluidArray3D& _R, FluxArray3D& F, int xL, int xR, int yL, int yR, int zL, int zR, double dt_dx){
-    for(int i=xL; i<=xR; i++){
-        for(int j=yL; j<yR; j++){
-            for(int k=zL; k<zR; k++){
-                F[i,j,k] = Riemann(_R[i-1,j,k], _L[i,j,k]).flux_X(dt_dx);
-            }
-        }
-    }
-}
-//Compute Y fluxes between Right(_R) and Left (_L) half-states over the entire grid
-void computeFlux_Y(const FluidArray3D& _L, const FluidArray3D& _R, FluxArray3D& F, int xL, int xR, int yL, int yR, int zL, int zR, double dt_dy){
-    for(int i=xL; i<xR; i++){
-        for(int j=yL; j<=yR; j++){
-            for(int k=zL; k<zR; k++){
-                F[i,j,k] = Riemann(_R[i,j-1,k], _L[i,j,k]).flux_Y(dt_dy);
-            }
-        }
-    }
-}
-//Compute Z fluxes between Right(_R) and Left (_L) half-states over the entire grid
-void computeFlux_Z(const FluidArray3D& _L, const FluidArray3D& _R, FluxArray3D& F, int xL, int xR, int yL, int yR, int zL, int zR, double dt_dz){
-    for(int i=xL; i<xR; i++){
-        for(int j=yL; j<yR; j++){
-            for(int k=zL; k<=zR; k++){
-                F[i,j,k] = Riemann(_R[i,j,k-1], _L[i,j,k]).flux_Z(dt_dz);
-            }
-        }
-    }
-}
-//MARK: Flux Application
-void applyFluxes(const FluidArray2D& w, FluidArray2D& _w, const FluxArray2D& F_X, const FluxArray2D& F_Y,  double dt_dx, double dt_dy,  int g){
-    const int nx = w.getSizeX(), ny = w.getSizeY();
-    _w.clone(w);
-    
-    for(int i=-g; i<nx+g; i++){
-        for(int j=-g; j<ny+g; j++){
-            ConservativeState U(w[i,j]);
-            U += dt_dx * (F_X[i,j] - F_X[i+1,j]);
-            U += dt_dy * (F_Y[i,j] - F_Y[i,j+1]);
-            _w[i,j] = U;
-
-            if(!U.isFinite()) throw std::runtime_error(std::format("\tNaN state would be produced at ({},{})\n",i,j));
-        }
-    }
-}
-void applyFluxes(const FluidArray3D& w, FluidArray3D& _w, const FluxArray3D& F_X, const FluxArray3D& F_Y, const FluxArray3D& F_Z, double dt_dx, double dt_dy, double dt_dz, int g){
-    const int nx = w.getSizeX(), ny = w.getSizeY(), nz = w.getSizeZ();
-    _w.clone(w);
-    
-    for(int i=-g; i<nx+g; i++){
-        for(int j=-g; j<ny+g; j++){
-            for(int k=-g; k<nz+g; k++){
-                ConservativeState U(w[i,j,k]);
-                U += dt_dx * (F_X[i,j,k] - F_X[i+1,j,k]);
-                U += dt_dy * (F_Y[i,j,k] - F_Y[i,j+1,k]);
-                U += dt_dz * (F_Z[i,j,k] - F_Z[i,j,k+1]);
-                _w[i,j,k] = U;
-
-                if(!U.isFinite()) throw std::runtime_error(std::format("\tNaN state would be produced at ({},{},{})\n",i,j,k));
-            }
-        }
-    }
-}
-
-//MARK: MUSCL
-//Apply MUSCL over the entire grid
-void computeHalfStates_X(FluidArray2D& _L, const Grid2D& _W, FluidArray2D& _R, const MagneticArray2D& B,  double dt){
-    const double dt_dx = dt/_W.dx, dt_dy = dt/_W.dy;//Compute once
-    const int nx = _W.getSizeX(), ny = _W.getSizeY(), g = _W.getGhosts();
-    //MUSCL Reconstruction
-    for(int i=-g+1; i<nx+g - 1; i++){
-        for(int j=-g; j<ny+g; j++){
-            vec3 dB = {0,0,0};
-            #ifdef MHD
-            dB.x = (B[i+1,j].x - B[i,j].x) * dt_dx;
-            dB.y = (B[i,j+1].y - B[i,j].y) * dt_dy;
-            #endif
-            auto wL =_W[i-1,j], wR = _W[i+1,j];
-            TVD::MUSCL(wL, _L[i,j], _W[i,j], _R[i,j], wR, dt_dx, dB);
-        }
-    }
-    //Leftmost and rightmost ghosts
-    for(int j=-g; j<ny+g; j++){
-        _L[-g,j] = _W[-g,j]; _R[-g,j] = _W[-g,j];
-        _L[nx-1+g,j] = _W[nx-1+g,j]; _R[nx-1+g,j] = _W[nx-1+g,j];
-    }
-    #ifdef MHD
-    CT::copyFaceFields_X(_L, B, _R);
-    #endif
-}
-void computeHalfStates_Y(FluidArray2D& _L, const Grid2D& _W, FluidArray2D& _R, const MagneticArray2D& B, double dt){
-    const double dt_dx = dt/_W.dx, dt_dy = dt/_W.dy;//Compute once
-    const int nx = _W.getSizeX(), ny = _W.getSizeY(), g = _W.getGhosts();
-
-    //MUSCL Reconstruction
-    for(int i=-g; i<nx+g; i++){
-        for(int j=-g + 1; j<ny+g - 1; j++){
-            vec3 dB = {0,0,0};
-            #ifdef MHD //Calculate with swapped XY
-            dB.y = (B[i+1,j].x - B[i,j].x) * dt_dx;
-            dB.x = (B[i,j+1].y - B[i,j].y) * dt_dy;
-            #endif
-            //Swap XY inputs to MUSCL, then swap output back
-            auto wL =_W[i,j-1].swappedXY(), wR = _W[i,j+1].swappedXY();
-            TVD::MUSCL(wL, _L[i,j], _W[i,j].swappedXY(), _R[i,j],wR, dt_dy, dB);
-            _L[i,j].swapXY(); _R[i,j].swapXY();
-        }
-    }
-    //Leftmost and rightmost ghosts
-    for(int i=-g; i<nx+g; i++){
-        _L[i,-g] = _W[i,-g]; _R[i,-g] = _W[i,-g];
-        _L[i,ny-1+g] = _W[i,ny-1+g]; _R[i,ny-1+g] = _W[i,ny-1+g];
-    }
-    #ifdef MHD
-    CT::copyFaceFields_Y(_L, B, _R);
-    #endif
-}
-void computeHalfStates_X(FluidArray3D& _L, const Grid3D& _W, FluidArray3D& _R, const MagneticArray3D& B, double dt){
-    const double dt_dx = dt/_W.dx, dt_dy = dt/_W.dy, dt_dz = dt/_W.dz;//Compute once
-    const int nx = _W.getSizeX(), ny = _W.getSizeY(),nz = _W.getSizeZ(), g = _W.getGhosts();
-
-    //MUSCL Reconstruction
-    for(int i=-g + 1; i<nx+g - 1; i++){
-        for(int j=-g; j<ny+g; j++){
-            for(int k=-g; k<nz+g; k++){
-                vec3 dB = {0,0,0};
-                #ifdef MHD
-                dB.x = (B[i+1,j,k].x - B[i,j,k].x) * dt_dx;
-                dB.y = (B[i,j+1,k].y - B[i,j,k].y) * dt_dy;
-                dB.z = (B[i,j,k+1].z - B[i,j,k].z) * dt_dz;
-                #endif
-                auto wL = _W[i-1,j,k], wR = _W[i+1,j,k];
-                TVD::MUSCL(wL, _L[i,j,k], _W[i,j,k], _R[i,j,k], wR, dt_dx, dB);
-            }
-        }
-    }
-    //Leftmost and rightmost ghosts
-    for(int j=-g; j<ny+g; j++){
-        for(int k=-g; k<nz+g; k++){
-            _L[-g,j,k] = _W[-g,j,k]; _R[-g,j,k] = _W[-g,j,k];
-            _L[nx-1+g,j,k] = _W[nx-1+g,j,k]; _R[nx-1+g,j,k] = _W[nx-1+g,j,k];
-        }
-    }
-    #ifdef MHD
-    CT::copyFaceFields_X(_L, B, _R);
-    #endif
-}
-void computeHalfStates_Y(FluidArray3D& _L, const Grid3D& _W, FluidArray3D& _R, const MagneticArray3D& B, double dt){
-    const double dt_dx = dt/_W.dx, dt_dy = dt/_W.dy, dt_dz = dt/_W.dz;//Compute once
-    const int nx = _W.getSizeX(), ny = _W.getSizeY(),nz = _W.getSizeZ(), g = _W.getGhosts();
-    
-    //MUSCL Reconstruction
-    for(int i=-g; i<nx+g; i++){
-        for(int j=-g + 1; j<ny+g - 1; j++){
-            for(int k=-g; k<nz+g; k++){
-                vec3 dB = {0,0,0};
-                #ifdef MHD //Calculate with swapped XY
-                dB.y = (B[i+1,j,k].x - B[i,j,k].x) * dt_dx;
-                dB.x = (B[i,j+1,k].y - B[i,j,k].y) * dt_dy;
-                dB.z = (B[i,j,k+1].z - B[i,j,k].z) * dt_dz;
-                #endif
-                //Swap XY inputs to MUSCL, then swap output back
-                auto wL =_W[i,j-1,k].swappedXY(), wR = _W[i,j+1,k].swappedXY();
-                TVD::MUSCL(wL, _L[i,j,k], _W[i,j,k].swappedXY(), _R[i,j,k],wR, dt_dy,dB);
-                _L[i,j,k].swapXY(); _R[i,j,k].swapXY();
-            }
-        }
-    }
-    //Leftmost and rightmost ghosts
-    for(int i=-g; i<nx+g; i++){
-        for(int k=-g; k<nz+g; k++){
-            _L[i,-g,k] = _W[i,-g,k]; _R[i,-g,k] = _W[i,-g,k];
-            _L[i,ny-1+g,k] = _W[i,ny-1+g,k]; _R[i,ny-1+g,k] = _W[i,ny-1+g,k];
-        }
-    }
-    #ifdef MHD
-    CT::copyFaceFields_Y(_L, B, _R);
-    #endif
-}
-void computeHalfStates_Z(FluidArray3D& _L, const Grid3D& _W, FluidArray3D& _R, const MagneticArray3D& B,  double dt){
-    const double dt_dx = dt/_W.dx, dt_dy = dt/_W.dy, dt_dz = dt/_W.dz;//Compute once
-    const int nx = _W.getSizeX(), ny = _W.getSizeY(),nz = _W.getSizeZ(), g = _W.getGhosts();
-    
-    //MUSCL Reconstruction
-    for(int i=-g; i<nx+g; i++){
-        for(int j=-g; j<ny+g; j++){
-            for(int k=-g + 1; k<nz+g - 1; k++){
-                vec3 dB = {0,0,0};
-                #ifdef MHD //Calculate with swapped XZ
-                dB.z = (B[i+1,j,k].x - B[i,j,k].x) * dt_dx;
-                dB.y = (B[i,j+1,k].y - B[i,j,k].y) * dt_dy;
-                dB.x = (B[i,j,k+1].z - B[i,j,k].z) * dt_dz;
-                #endif
-                //Swap XZ inputs to MUSCL, then swap output back
-                auto wL = _W[i,j,k-1].swappedXZ(), wR = _W[i,j,k+1].swappedXZ();
-                TVD::MUSCL(wL, _L[i,j,k], _W[i,j,k].swappedXZ(), _R[i,j,k],wR, dt_dz,dB);
-                _L[i,j,k].swapXZ(); _R[i,j,k].swapXZ();
-            }
-        }
-    }
-    //Leftmost and rightmost ghosts
-    for(int i=-g; i<nx+g; i++){
-        for(int j=-g; j<ny+g; j++){
-            _L[i,j,-g] = _W[i,j,-g]; _R[i,j,-g] = _W[i,j,-g];
-            _L[i,j,nz-1+g] = _W[i,j,nz-1+g]; _R[i,j,nz-1+g] = _W[i,j,nz-1+g];
-        }
-    }
-    #ifdef MHD
-    CT::copyFaceFields_Z(_L, B, _R);
     #endif
 }

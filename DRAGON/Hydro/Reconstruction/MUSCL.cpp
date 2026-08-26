@@ -11,6 +11,7 @@
 
 #include "Config.h"
 #include "Constants.h" //For _1_4pi
+using namespace DRAGON;
 
 //MARK: MUSCL-Hancock
 void TVD::MUSCL(const PrimitiveState& wL, PrimitiveState& _L, const PrimitiveState& wC, PrimitiveState& _R, const PrimitiveState& wR, double dt_dL, const vec3& dB){
@@ -20,9 +21,9 @@ void TVD::MUSCL(const PrimitiveState& wL, PrimitiveState& _L, const PrimitiveSta
     leftDiff.rho = wC.rho - wL.rho; rightDiff.rho = wR.rho - wC.rho;
     leftDiff.v = wC.v - wL.v; rightDiff.v = wR.v - wC.v;
     leftDiff.p = wC.p - wL.p; rightDiff.p = wR.p - wC.p;
-#ifdef MHD
+    #ifdef MHD
     leftDiff.B = wC.B - wL.B; rightDiff.B = wR.B - wC.B;
-#endif
+    #endif
     PrimitiveState dW = TVD::limit(leftDiff, rightDiff);
     //Spatial half step using the limited slope
     _L.rho = wC.rho - 0.5*dW.rho;
@@ -31,19 +32,18 @@ void TVD::MUSCL(const PrimitiveState& wL, PrimitiveState& _L, const PrimitiveSta
     _R.v = wC.v + 0.5*dW.v;
     _L.p = wC.p - 0.5*dW.p;
     _R.p = wC.p + 0.5*dW.p;
-#ifdef MHD
+    #ifdef MHD
     _L.B = wC.B - 0.5*dW.B;
     _R.B = wC.B + 0.5*dW.B;
-#endif
+    #endif
     
     //Time half step (MUSCL-Hancock Predictor)
     ConservativeState UL = ConservativeState(_L), UR = ConservativeState(_R);
     ConservativeState correction = (UR.flux(_R.v) - UL.flux(_L.v)) * (0.5 * dt_dL);
     #ifdef MHD//MHD Source Terms
-    const double a_s = (_R.B.x - _L.B.x) * dt_dL;
-    const double vy = 0.5*(_L.v.y + _R.v.y), vz = 0.5*(_L.v.z + _R.v.z);
-    const double dBy_ = 0.5 * wC.v.y * TVD::minmod(dB.x, -dB.y) - 0.5*vy*a_s;
-    const double dBz_ = 0.5 * wC.v.z * TVD::minmod(dB.x, -dB.z) - 0.5*vz*a_s;
+    //dB.x = (Bx[x+1/2 CT face] - Bx[x-1/2 CT face]) * dt_dL, etc
+    const double dBy_ = 0.5 * wC.v.y * (TVD::minmod(dB.x, -dB.y) - dW.B.x * dt_dL);
+    const double dBz_ = 0.5 * wC.v.z * (TVD::minmod(dB.x, -dB.z) - dW.B.x * dt_dL);
 
     correction.B.y -= dBy_;
     correction.B.z -= dBz_;
@@ -53,9 +53,10 @@ void TVD::MUSCL(const PrimitiveState& wL, PrimitiveState& _L, const PrimitiveSta
     _L = UL - correction;
     _R = UR - correction;
     
-    if(_L.isPhysical() && _R.isPhysical() ) return; //Check to make sure this is physical, fallback to First order if not
+    //Check to make sure this didn't overshoot past positivity limit, fallback to First order if needed
+    if (_L.isPhysical() && _R.isPhysical() ) return;
 #endif
-    //First order version if MUSCL is disabled or didn't work.
+    //First order version if MUSCL is disabled or failed physicality check.
     _L = wC;
     _R = wC;
 }

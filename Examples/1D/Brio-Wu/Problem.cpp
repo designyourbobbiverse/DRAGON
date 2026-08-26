@@ -3,10 +3,13 @@
 //  DRAGON/Examples/1D/Brio-Wu
 //
 //  Created by Bobbie Markwick on 7/07/2026.
+//  Brio and Wu (1988). https://doi.org/10.1016/0021-9991(88)90120-9
 //
 
-#include "Problem.hpp"
-#include "DistGrid.hpp"
+#include "main/Problem.hpp"
+#include "Refinement/DistGrid.hpp"
+using namespace DRAGON;
+
 #include "Constants.h" //For sq4pi
 
 typedef DistGrid1D MyGrid;

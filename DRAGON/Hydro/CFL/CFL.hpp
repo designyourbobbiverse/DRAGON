@@ -4,9 +4,9 @@
 //
 //  Created by Bobbie Markwick on 09/06/2026.
 //
-#include "Grid.hpp"
+#include "Hydro/Grid.hpp" //For Grid & PrimitiveState types
 
-namespace CFL{
+namespace DRAGON::CFL{
 //Computes the minimum cfl time for the whole grid, with Coefficient applied
 double cfl_time(const Grid& grid);
 double cfl_time(const Grid1D& grid);

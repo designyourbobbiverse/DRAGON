@@ -2,6 +2,10 @@
 HDF5_keys.py
 DRAGONGAZE
 Created by Bobbie Markwick on 07/07/2026.
+
+Dataset/attribute key strings for the HDF5 files DRAGONHOARD writes.
+These are hand-copied from DRAGON/DRAGONHOARD/HDF5_Attrs.hpp and NOT kept in sync automatically.
+If a key is renamed or added on the C++ side, this file must be updated to match or FileUtils.readField() will raise a KeyError.
 '''
 
 #Grid
@@ -48,6 +52,8 @@ key_time = "time";
 file_ext = ".h5";
 
 
+#Maps a plottable field name (as used throughout DRAGONGAZE and Config.py) to its HDF5 dataset path.
+#"Bmag" is deliberately absent -- it isn't stored, FileUtils.readField() computes it from Bx/By/Bz instead.
 keys = {
     "rho": key_rho,
     "vx": key_vx,

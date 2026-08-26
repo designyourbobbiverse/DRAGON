@@ -6,18 +6,17 @@
 //
 
 #include "Testing.hpp"
-#include "Grid.hpp"
+#include "Hydro/Grid.hpp"
 
-#include "DistGrid.hpp"   //Do Blast tests in parallel
-#include "DragonWing.hpp" //For cleanup after blast tests
-#include <iostream>       //For std::cout
+#include "Refinement/DistGrid.hpp"  //Do Blast tests in parallel
+#include <cmath>                    //For std::sqrt
 
 
 using namespace DRAGON_Test;
 using namespace Boundary;
 
 //MARK: Diagonal Contact
-void DRAGON_Test::verify_ctu_diagonal_contact_2D() {
+void DRAGON_Test::verify_ctu_diagonal_contact_2D(){
     const int nx = 40, ny = 40, ghosts = 2;
     const double dx = 1.0 / nx;
     const double dy = 1.0 / ny;
@@ -64,7 +63,7 @@ void DRAGON_Test::verify_ctu_diagonal_contact_2D() {
     }
 }
 
-void DRAGON_Test::verify_ctu_diagonal_contact_3D() {
+void DRAGON_Test::verify_ctu_diagonal_contact_3D(){
     const int nx = 24, ny = 24, nz = 24, ghosts = 2;
     const double dx = 1.0 / nx;
     const double dy = 1.0 / ny;
@@ -110,7 +109,7 @@ void DRAGON_Test::verify_ctu_diagonal_contact_3D() {
 }
 //MARK: Blast Helpers
 constexpr double blast_sym_tol = 1e-14;
-static void expect_blast_mirror_x(const PrimitiveState& L, const PrimitiveState& R, double rel = blast_sym_tol, double abs = blast_sym_tol) {
+static void expect_blast_mirror_x(const PrimitiveState& L, const PrimitiveState& R, double rel = blast_sym_tol, double abs = blast_sym_tol){
     assert(approx(L.rho, R.rho, rel, abs));
     assert(approx(L.p, R.p, rel, abs));
     assert(approx(L.v.x, -R.v.x, rel, abs));
@@ -123,7 +122,7 @@ static void expect_blast_mirror_x(const PrimitiveState& L, const PrimitiveState&
 #endif
 }
 
-static void expect_blast_mirror_y(const PrimitiveState& L, const PrimitiveState& R, double rel = blast_sym_tol, double abs = blast_sym_tol) {
+static void expect_blast_mirror_y(const PrimitiveState& L, const PrimitiveState& R, double rel = blast_sym_tol, double abs = blast_sym_tol){
     assert(approx(L.rho, R.rho, rel, abs));
     assert(approx(L.p, R.p, rel, abs));
     assert(approx(L.v.x, R.v.x, rel, abs));
@@ -136,7 +135,7 @@ static void expect_blast_mirror_y(const PrimitiveState& L, const PrimitiveState&
 #endif
 }
 
-static void expect_blast_mirror_z(const PrimitiveState& L, const PrimitiveState& R, double rel = blast_sym_tol, double abs = blast_sym_tol) {
+static void expect_blast_mirror_z(const PrimitiveState& L, const PrimitiveState& R, double rel = blast_sym_tol, double abs = blast_sym_tol){
     assert(approx(L.rho, R.rho, rel, abs));
     assert(approx(L.p, R.p, rel, abs));
     assert(approx(L.v.x, R.v.x, rel, abs));
@@ -150,7 +149,7 @@ static void expect_blast_mirror_z(const PrimitiveState& L, const PrimitiveState&
 }
 
 //MARK: Blast Tests
-void DRAGON_Test::verify_ctu_blast_2D() {
+void DRAGON_Test::verify_ctu_blast_2D(){
     const int nx = 64, ny = 64;
     const double dx = 1.0 / nx, dy = 1.0 / ny;
 
@@ -204,12 +203,9 @@ void DRAGON_Test::verify_ctu_blast_2D() {
             expect_blast_mirror_y(grid[i,j], grid[i,ny-1-j]);
         }
     }
-    
-    DRAGONWING::initialize(0);
-
 }
 
-void DRAGON_Test::verify_ctu_blast_3D() {
+void DRAGON_Test::verify_ctu_blast_3D(){
     const int nx = 64, ny = 64, nz = 64;
     const double dx = 1.0 / nx, dy = 1.0 / ny, dz = 1.0 / nz;
 
@@ -273,7 +269,5 @@ void DRAGON_Test::verify_ctu_blast_3D() {
             }
         }
     }
-    
-    DRAGONWING::initialize(0);
     
 }

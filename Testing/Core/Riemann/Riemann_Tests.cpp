@@ -6,7 +6,7 @@
 //
 
 #include "Testing.hpp"
-#include "Riemann.hpp"
+#include "Hydro/Riemann/Riemann.hpp"
 
 #include <cmath>    //For std::isfinite
 #include <iostream> //For std::cout
@@ -17,32 +17,32 @@ using namespace DRAGON_Test;
 
 
 void DRAGON_Test::verify_riemann(bool output){
-    if(output) std::cout << "Exact Riemann Solver: \n";
+    if (output) std::cout << "Exact Riemann Solver: \n";
     // Riemann construction / solution setup
-    if(output) std::cout << "- Construction: ";
+    if (output) std::cout << "- Construction: ";
     verify_riemann_constructor();
     verify_riemann_solution_constructor();
     verify_approximate_solver_finiteness();
-    if(output) std::cout << "Passed\n";
+    if (output) std::cout << "Passed\n";
     
     // Exact solver Tests
-    if(output) std::cout << "- Equation: ";
+    if (output) std::cout << "- Equation: ";
     verify_riemann_f();
-    if(output) std::cout << "Passed\n";
-    if(output) std::cout << "- Sampler: ";
+    if (output) std::cout << "Passed\n";
+    if (output) std::cout << "- Sampler: ";
     verify_sample_mirror_restores_state();
-    if(output) std::cout << "Passed\n";
-    if(output) std::cout << "- Selected Problems: ";
+    if (output) std::cout << "Passed\n";
+    if (output) std::cout << "- Selected Problems: ";
     verify_exact_equal_state();
     verify_exact_stationary_contact();
     verify_exact_supersonic_upwind();
     verify_exact_supersonic_upwind_transverse();
     verify_exact_sod();
     verify_riemann_exact_symmetry();
-    if(output) std::cout << "All Tests Passed\n";
+    if (output) std::cout << "All Tests Passed\n";
     
     // HLL Tests
-    if(output) std::cout << "HLL/C/E Riemann Solvers: ";
+    if (output) std::cout << "HLL/C/E Riemann Solvers: ";
     verify_hll_equal_state();
     verify_hll_stationary_contact();
     verify_hll_supersonic_upwind();
@@ -50,40 +50,40 @@ void DRAGON_Test::verify_riemann(bool output){
     verify_hll_symmetry();
     verify_hll_manual_wave_speeds();
     verify_hllc_manual_wave_speeds();
-    if(output) std::cout << "All Tests Passed\n";
+    if (output) std::cout << "All Tests Passed\n";
 #ifdef MHD
-    if(output) std::cout << "HLLD Riemann Solver: ";
+    if (output) std::cout << "HLLD Riemann Solver: ";
     verify_hlld_equal_state_nonzero_b();
     verify_hlld_supersonic_exterior_regions();
     verify_hlld_averages_normal_field();
     verify_hlld_explicit_normal_field();
     verify_hlld_star_regions_finite();
-    if(output) std::cout << "All Tests Passed\n";
+    if (output) std::cout << "All Tests Passed\n";
 #endif
 
 
     //Roe Tests
-    if(output) std::cout << "Roe Riemann Solver: ";
+    if (output) std::cout << "Roe Riemann Solver: ";
     verify_roe_equal_state();
     verify_roe_stationary_contact();
     verify_roe_supersonic_upwind();
     verify_roe_supersonic_upwind_transverse();
     verify_roe_symmetry();
     verify_roe_entropy_fix_rarefactions();
-    if(output) std::cout << "All Tests Passed\n";
+    if (output) std::cout << "All Tests Passed\n";
 
     
-    if(output) std::cout << "Riemann Dispatch: ";
+    if (output) std::cout << "Riemann Dispatch: ";
     verify_riemann_flux_dispatch();
     verify_riemann_flux_safety_check();
     verify_riemann_flux_dimension_wrappers();
 #ifdef MHD
     verify_riemann_flux_dimension_wrappers_mhd();
 #endif
-    if(output) std::cout << "Passed\n";
+    if (output) std::cout << "Passed\n";
 
 
-    if(output) std::cout << "All Riemann Solver Tests Passed.\n\n";
+    if (output) std::cout << "All Riemann Solver Tests Passed.\n\n";
 }
 
 
@@ -116,42 +116,42 @@ void DRAGON_Test::verify_riemann_flux_dispatch(){
     PrimitiveState L = make_state(1.0, 0.25, 0.2, -0.1, 1.0);
     PrimitiveState R = make_state(0.8, -0.15, -0.3, 0.4, 0.7);
 
-    int prev = CONFIG::riemann_choice;
+    int prev = Config::riemann_choice;
     
-    CONFIG::riemann_choice = RIEMANN_EXACT;
+    Config::riemann_choice = RIEMANN_EXACT;
     expect_close(Riemann(L,R).flux(), Riemann(L,R).exact().flux());
 
-    CONFIG::riemann_choice = RIEMANN_HLL;
+    Config::riemann_choice = RIEMANN_HLL;
     expect_close(Riemann(L,R).flux(), Riemann(L,R).HLL());
 
-    CONFIG::riemann_choice = RIEMANN_HLLE;
+    Config::riemann_choice = RIEMANN_HLLE;
     expect_close(Riemann(L,R).flux(), Riemann(L,R).HLLE());
 
-    CONFIG::riemann_choice = RIEMANN_HLLC;
+    Config::riemann_choice = RIEMANN_HLLC;
     expect_close(Riemann(L,R).flux(), Riemann(L,R).HLLC());
 
-    CONFIG::riemann_choice = RIEMANN_ROE;
+    Config::riemann_choice = RIEMANN_ROE;
     expect_close(Riemann(L,R).flux(), Riemann(L,R).Roe());
 
 #ifdef MHD
-    CONFIG::riemann_choice = RIEMANN_HLLD;
+    Config::riemann_choice = RIEMANN_HLLD;
     expect_close(Riemann(L,R).flux(), Riemann(L,R).HLLD());
 
-    CONFIG::riemann_choice = RIEMANN_HLLX;
+    Config::riemann_choice = RIEMANN_HLLX;
     expect_close(Riemann(L,R).flux(), Riemann(L,R).HLLD());
 #else
-    CONFIG::riemann_choice = RIEMANN_HLLX;
+    Config::riemann_choice = RIEMANN_HLLX;
     expect_close(Riemann(L,R).flux(), Riemann(L,R).HLLC());
 #endif
 
-    CONFIG::riemann_choice = prev;
+    Config::riemann_choice = prev;
 }
 
 void DRAGON_Test::verify_riemann_flux_safety_check(){
     PrimitiveState W = make_state(1.0, 0.2, -0.3, 0.4, 1.0);
 
-    int previous = CONFIG::riemann_choice;
-    CONFIG::riemann_choice = RIEMANN_HLL;
+    int previous = Config::riemann_choice;
+    Config::riemann_choice = RIEMANN_HLL;
     ConservativeState unchecked = Riemann(W,W).flux(0.0);
     ConservativeState checked = Riemann(W,W).flux(0.01);
 
@@ -162,14 +162,14 @@ void DRAGON_Test::verify_riemann_flux_safety_check(){
 #ifdef RIEMANN_VERIFY_FALLBACK
     PrimitiveState L = make_state(1.0, -3.0, 0.2, -0.1, 0.4);
     PrimitiveState R = make_state(1.0,  3.0, -0.3, 0.4, 0.4);
-    CONFIG::riemann_choice = RIEMANN_HLLC;
+    Config::riemann_choice = RIEMANN_HLLC;
 
     ConservativeState selected = Riemann(L, R).flux(0.0);
     ConservativeState fallback = Riemann(L, R).flux(1.0);
 
     bool selectedPhysical = (ConservativeState(L) - selected).isPhysical()
                          && (ConservativeState(R) + selected).isPhysical();
-    if(!selectedPhysical) {
+    if (!selectedPhysical) {
         ConservativeState hlle = Riemann(L, R).HLLE();
         ConservativeState exact = Riemann(L, R).exact().flux();
         assert(fallback == hlle || fallback == exact);
@@ -177,15 +177,15 @@ void DRAGON_Test::verify_riemann_flux_safety_check(){
     expect_finite(fallback);
 #endif
 
-    CONFIG::riemann_choice = previous;
+    Config::riemann_choice = previous;
 }
 //MARK: Dimension Wrappers
 void DRAGON_Test::verify_riemann_flux_dimension_wrappers(){
     PrimitiveState L = make_state(1.0, 0.6, -0.2, 0.3, 1.0);
     PrimitiveState R = make_state(0.7, -0.4, 0.5, -0.1, 0.8);
     
-    int previous =  CONFIG::riemann_choice;
-    CONFIG::riemann_choice = RIEMANN_HLL;
+    int previous =  Config::riemann_choice;
+    Config::riemann_choice = RIEMANN_HLL;
 
     Riemann xProblem(L, R);
     expect_close(xProblem.flux_X(), Riemann(L,R).flux());
@@ -204,7 +204,7 @@ void DRAGON_Test::verify_riemann_flux_dimension_wrappers(){
     expect_close(zProblem.L, L);
     expect_close(zProblem.R, R);
 
-    CONFIG::riemann_choice = previous;
+    Config::riemann_choice = previous;
 }
 
 #ifdef MHD
@@ -212,11 +212,11 @@ void DRAGON_Test::verify_riemann_flux_dimension_wrappers_mhd(){
     PrimitiveState L = make_mhd_state(1.0, 0.6, -0.2, 0.3, 1.0, 0.4, -0.3, 0.2);
     PrimitiveState R = make_mhd_state(0.7, -0.4, 0.5, -0.1, 0.8, 0.4, -0.3, 0.2);
 
-    int previous = CONFIG::riemann_choice;
+    int previous = Config::riemann_choice;
     int choices[] = { RIEMANN_HLL, RIEMANN_HLLE, RIEMANN_HLLD, RIEMANN_HLLX };
 
-    for(int choice : choices) {
-        CONFIG::riemann_choice = choice;
+    for (int choice : choices) {
+        Config::riemann_choice = choice;
 
         Riemann xProblem(L, R);
         expect_close(xProblem.flux_X(), Riemann(L,R).flux());
@@ -236,13 +236,13 @@ void DRAGON_Test::verify_riemann_flux_dimension_wrappers_mhd(){
         expect_close(zProblem.R, R);
     }
 
-    CONFIG::riemann_choice = previous;
+    Config::riemann_choice = previous;
 }
 #endif
 
 
 //MARK: Verify Finiteness
-void DRAGON_Test::expect_finite(const ConservativeState& U) {
+void DRAGON_Test::expect_finite(const ConservativeState& U){
     assert(std::isfinite(U.rho));
     assert(std::isfinite(U.mom.x));
     assert(std::isfinite(U.mom.y));
@@ -254,7 +254,7 @@ void DRAGON_Test::expect_finite(const ConservativeState& U) {
     assert(std::isfinite(U.B.z));
 #endif
 }
-void DRAGON_Test::expect_finite(const PrimitiveState& W) {
+void DRAGON_Test::expect_finite(const PrimitiveState& W){
     assert(std::isfinite(W.rho));
     assert(std::isfinite(W.v.x));
     assert(std::isfinite(W.v.y));
@@ -267,7 +267,7 @@ void DRAGON_Test::expect_finite(const PrimitiveState& W) {
 #endif
 }
 
-void DRAGON_Test::verify_approximate_solver_finiteness() {
+void DRAGON_Test::verify_approximate_solver_finiteness(){
     PrimitiveState cases[][2] = {
         { make_state(1.0,   0.0, 0.0, 0.0, 1.0),  make_state(0.125, 0.0, 0.0, 0.0, 0.1)  }, // Sod-like
         { make_state(0.125, 0.0, 0.0, 0.0, 0.1),  make_state(1.0,   0.0, 0.0, 0.0, 1.0)  }, // reverse Sod

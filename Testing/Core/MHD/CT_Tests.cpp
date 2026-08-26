@@ -6,11 +6,10 @@
 //
 
 #include "Testing.hpp"
-#include "CT.hpp"
+#include "MHD/CT.hpp"
 
-#include "DistGrid.hpp"
-#include "DragonWing.hpp"   //For resetting after parallelized tests
-#include "Constants.h"      //For M_PI, _1_8pi
+#include "Refinement/DistGrid.hpp"
+#include "Constants.h"      //For _pi, _1_8pi
 #include <iostream>
 
 #ifdef MHD
@@ -22,14 +21,14 @@ using namespace DRAGON_Test;
 void DRAGON_Test::verify_ct_stationary_2D(){
     return;
     
-    double dx = M_PI/5;
+    double dx = _pi/5;
     Grid2D grid(10,10,dx,dx, 2), expected(10,10,dx,dx, 2);
     double p0 = 5.0;
     PrimitiveState W = make_state(1.0, 0.0, 0.0, 0.0, p0);
     W.B = {0.2, -0.3, 0.4};
 
-    for (int i = 0; i <= grid.getSizeX(); i++){
-        for (int j = 0; j <= grid.getSizeY(); j++){
+    for (int i = 0; i <= grid.getSizeX(); i++) {
+        for (int j = 0; j <= grid.getSizeY(); j++) {
             grid[i,j] = W;
             grid._B()[i,j] = W.B;
         }
@@ -38,8 +37,8 @@ void DRAGON_Test::verify_ct_stationary_2D(){
     grid.boundary.apply(grid);
     grid.initialize_B_fields();
 
-    for (int i = 0; i <= grid.getSizeX(); i++){
-        for (int j = 0; j <= grid.getSizeY(); j++){
+    for (int i = 0; i <= grid.getSizeX(); i++) {
+        for (int j = 0; j <= grid.getSizeY(); j++) {
             grid[i,j].p = p0 - grid[i,j].B * grid[i,j].B * _1_8pi;
             expected[i,j] = grid[i,j];
         }
@@ -49,8 +48,8 @@ void DRAGON_Test::verify_ct_stationary_2D(){
     
     grid.advance(1.0);
     
-    for (int i = 0; i < grid.getSizeX(); i++){
-        for (int j = 0; j < grid.getSizeY(); j++){
+    for (int i = 0; i < grid.getSizeX(); i++) {
+        for (int j = 0; j < grid.getSizeY(); j++) {
             expect_close(grid[i,j].B, expected[i,j].B);
         }
     }
@@ -58,15 +57,15 @@ void DRAGON_Test::verify_ct_stationary_2D(){
 }
 
 void DRAGON_Test::verify_ct_stationary_3D(){
-    double dx = M_PI/5;
+    double dx = _pi/5;
     Grid3D grid(10,10,10,dx,dx,dx, 2), expected(10,10,10,dx,dx,dx, 2);
     double p0 = 5.0;
     PrimitiveState W = make_state(1.0, 0.0, 0.0, 0.0, p0);
     W.B = {0.2, -0.3, 0.4};
 
-    for (int i = 0; i <= grid.getSizeX(); i++){
-        for (int j = 0; j <= grid.getSizeY(); j++){
-            for (int k = 0; k <= grid.getSizeZ(); k++){
+    for (int i = 0; i <= grid.getSizeX(); i++) {
+        for (int j = 0; j <= grid.getSizeY(); j++) {
+            for (int k = 0; k <= grid.getSizeZ(); k++) {
                 grid[i,j,k] = W;
                 grid._B()[i,j,k] = W.B;
             }
@@ -76,9 +75,9 @@ void DRAGON_Test::verify_ct_stationary_3D(){
     grid.boundary.apply(grid);
     grid.initialize_B_fields();
 
-    for (int i = 0; i <= grid.getSizeX(); i++){
-        for (int j = 0; j <= grid.getSizeY(); j++){
-            for (int k = 0; k <= grid.getSizeZ(); k++){
+    for (int i = 0; i <= grid.getSizeX(); i++) {
+        for (int j = 0; j <= grid.getSizeY(); j++) {
+            for (int k = 0; k <= grid.getSizeZ(); k++) {
                 expected[i,j,k] = grid[i,j,k];
             }
         }
@@ -88,16 +87,14 @@ void DRAGON_Test::verify_ct_stationary_3D(){
     
     grid.advance(0.1);
     
-    for (int i = 0; i < grid.getSizeX(); i++){
-        for (int j = 0; j < grid.getSizeY(); j++){
-            for (int k = 0; k < grid.getSizeZ(); k++){
+    for (int i = 0; i < grid.getSizeX(); i++) {
+        for (int j = 0; j < grid.getSizeY(); j++) {
+            for (int k = 0; k < grid.getSizeZ(); k++) {
                 expect_close(grid[i,j,k].B, expected[i,j,k].B);
             }
         }
     }
     assert_divergenceless(grid._B(),dx,dx,dx);
-    
-    DRAGONWING::initialize(0);
 }
 
 
@@ -109,8 +106,8 @@ void DRAGON_Test::verify_ct_uniform_Bz0_2D(){
     auto grid = Grid2D(n,n, dx, dx);
     grid.boundary = Boundary::Periodic();
     
-    for(int i=0; i<=grid.getSizeX();i++){
-        for(int j=0; j<=grid.getSizeY(); j++){
+    for (int i=0; i<=grid.getSizeX();i++) {
+        for (int j=0; j<=grid.getSizeY(); j++) {
             grid[i,j] = make_state(1.0, 2.0, 3.0, 4.0, 5.0);
             grid._B()[i,j] = {0.2,0.3,0.0};
         }
@@ -118,34 +115,34 @@ void DRAGON_Test::verify_ct_uniform_Bz0_2D(){
     grid.initialize_B_fields();
     
     grid.advance(1.0);
-    for(int i=0; i<grid.getSizeX();i++){
-        for(int j=0; j<grid.getSizeY(); j++){
+    for (int i=0; i<grid.getSizeX();i++) {
+        for (int j=0; j<grid.getSizeY(); j++) {
             assert(approx(grid[i,j].B.z,0));
         }
     }
-    for(int i=0; i<=grid.getSizeX();i++){
-        for(int j=0; j<=grid.getSizeY(); j++){
+    for (int i=0; i<=grid.getSizeX();i++) {
+        for (int j=0; j<=grid.getSizeY(); j++) {
             grid._B()[i,j] = {0.0,0.2,0.3};
         }
     }
     grid.initialize_B_fields();
     
     grid.advance(0.1);
-    for(int i=0; i<grid.getSizeX();i++){
-        for(int j=0; j<grid.getSizeY(); j++){
+    for (int i=0; i<grid.getSizeX();i++) {
+        for (int j=0; j<grid.getSizeY(); j++) {
             assert(approx(grid[i,j].B.x,0));
         }
     }
-    for(int i=0; i<=grid.getSizeX();i++){
-        for(int j=0; j<=grid.getSizeY(); j++){
+    for (int i=0; i<=grid.getSizeX();i++) {
+        for (int j=0; j<=grid.getSizeY(); j++) {
             grid._B()[i,j] = {0.2,0.0,0.3};
         }
     }
     grid.initialize_B_fields();
     
     grid.advance(0.1);
-    for(int i=0; i<grid.getSizeX();i++){
-        for(int j=0; j<grid.getSizeY(); j++){
+    for (int i=0; i<grid.getSizeX();i++) {
+        for (int j=0; j<grid.getSizeY(); j++) {
             assert(approx(grid[i,j].B.y,0));
         }
     }
@@ -159,9 +156,9 @@ void DRAGON_Test::verify_ct_uniform_Bz0_3D(){
     auto grid = Grid3D(n,n,n, dx, dx, dx);
     grid.boundary = Boundary::Periodic();
     
-    for(int i=0; i<=grid.getSizeX();i++){
-        for(int j=0; j<=grid.getSizeY(); j++){
-            for(int k=0; k<=grid.getSizeZ(); k++){
+    for (int i=0; i<=grid.getSizeX();i++) {
+        for (int j=0; j<=grid.getSizeY(); j++) {
+            for (int k=0; k<=grid.getSizeZ(); k++) {
                 grid[i,j,k] = make_state(1.0, 2.0, 3.0, 4.0, 5.0);
                 grid._B()[i,j,k] = {0.2,0.3,0.0};
             }
@@ -170,9 +167,9 @@ void DRAGON_Test::verify_ct_uniform_Bz0_3D(){
     grid.initialize_B_fields();
     
     grid.advance(1.0);
-    for(int i=0; i<grid.getSizeX();i++){
-        for(int j=0; j<grid.getSizeY(); j++){
-            for(int k=0; k<grid.getSizeZ(); k++){
+    for (int i=0; i<grid.getSizeX();i++) {
+        for (int j=0; j<grid.getSizeY(); j++) {
+            for (int k=0; k<grid.getSizeZ(); k++) {
                 assert(approx(grid[i,j,k].B.z,0));
             }
         }

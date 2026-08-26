@@ -3,10 +3,12 @@
 //  DRAGON/Examples/1D/Dai-Woodward
 //
 //  Created by Bobbie Markwick on 7/07/2026.
+//  Dai and Woodward (1994). https://doi.org/10.1006/jcph.1994.1071
 //
 
-#include "Problem.hpp"
-#include "DistGrid.hpp"
+#include "main/Problem.hpp"
+#include "Refinement/DistGrid.hpp"
+using namespace DRAGON;
 
 typedef DistGrid1D MyGrid;
 

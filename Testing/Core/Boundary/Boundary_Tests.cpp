@@ -6,9 +6,9 @@
 //
 
 #include "Testing.hpp"
-#include "Boundary.hpp"
+#include "Boundary/Boundary.hpp"
 
-#include "Grid.hpp"
+#include "Hydro/Grid.hpp"
 #include <algorithm> //For std::max
 #include <iostream>  //For std::cout
 
@@ -17,29 +17,29 @@ using namespace Boundary;
 
 
 void DRAGON_Test::verify_boundary(bool output){
-    if(output) std::cout << "Boundary Constrction:\n";
+    if (output) std::cout << "Boundary Constrction:\n";
     verify_boundary_constructors();
     //Outflow
-    if(output) std::cout << "Outflow Boundary:\n";
+    if (output) std::cout << "Outflow Boundary:\n";
     verify_boundary_outflow();
     //Reflective
-    if(output) std::cout << "Reflective Boundary:\n";
+    if (output) std::cout << "Reflective Boundary:\n";
     verify_boundary_reflective();
     //Periodic
-    if(output) std::cout << "Periodic Boundary:\n";
+    if (output) std::cout << "Periodic Boundary:\n";
     verify_boundary_periodic();
     //Fixed
-    if(output) std::cout << "Fixed State Boundary:\n";
+    if (output) std::cout << "Fixed State Boundary:\n";
     verify_boundary_fixed();
     //Ignore
-    if(output) std::cout << "No-op Boundary:\n";
+    if (output) std::cout << "No-op Boundary:\n";
     verify_boundary_ignore();
     //Composition
-    if(output) std::cout << "Boundary Composition:\n";
+    if (output) std::cout << "Boundary Composition:\n";
     verify_boundary_composition();
 
 
-    if(output) std::cout << "All Boundary Setup tests passed\n\n";
+    if (output) std::cout << "All Boundary Setup tests passed\n\n";
 }
 
 //MARK: Helpers
@@ -50,17 +50,17 @@ vec3 make_tagged_vec(double tag){
 const PrimitiveState G = make_tagged_state(-666);
 
 
-void fill_1D(Grid1D& grid) {
+void fill_1D(Grid1D& grid){
     double s = 1.0 / grid.getSize();
     for (int i = 0; i < grid.getSize(); i++) {
         grid[i] = make_tagged_state(i*s);
     }
-    for (int g = 1; g <= grid.getGhosts(); g++){
+    for (int g = 1; g <= grid.getGhosts(); g++) {
         grid[-g] = G;
         grid[grid.getSize()+g-1] = G;
     }
 }
-void fill_2D(Grid2D& grid) {
+void fill_2D(Grid2D& grid){
     double s = 1.0 / std::max(grid.getSizeX(), grid.getSizeY());
     for (int i = -grid.getGhosts(); i < grid.getSizeX()+grid.getGhosts(); i++) {
         for (int j = -grid.getGhosts(); j < grid.getSizeY()+grid.getGhosts(); j++) {
@@ -81,7 +81,7 @@ void fill_2D(Grid2D& grid) {
 #endif
     
 }
-void fill_3D(Grid3D& grid) {
+void fill_3D(Grid3D& grid){
     double s = 1.0 / std::max(std::max(grid.getSizeX(), grid.getSizeY()), grid.getSizeZ());
     for (int i = -grid.getGhosts(); i < grid.getSizeX()+grid.getGhosts(); i++) {
         for (int j = -grid.getGhosts(); j < grid.getSizeY()+grid.getGhosts(); j++) {
@@ -113,17 +113,17 @@ void DRAGON_Test::verify_boundary_constructors(bool output){
     PrimitiveState W = make_tagged_state(999);
 
     //Reflective Constructors
-    if(output) std::cout<<"- Reflective: ";
+    if (output) std::cout<<"- Reflective: ";
     Reflective r0;
     Reflective r1(X);
     Reflective r2(X_negative, false);
     assert(&r0);
     assert(&r1);
     assert(&r2);
-    if(output) std::cout<<"Passed\n";
+    if (output) std::cout<<"Passed\n";
 
     //Outflow Constructors
-    if(output) std::cout<<"- Outflow: ";
+    if (output) std::cout<<"- Outflow: ";
     Outflow o0;
     Outflow o1(X);
     Outflow o2("X");
@@ -136,11 +136,11 @@ void DRAGON_Test::verify_boundary_constructors(bool output){
     assert(&o3);
     assert(&o4);
     assert(&o5);
-    if(output) std::cout<<"Passed\n";
+    if (output) std::cout<<"Passed\n";
 
 
     //Gated Outflow shorthand
-    if(output) std::cout<<"- Gated Outflow: ";
+    if (output) std::cout<<"- Gated Outflow: ";
     Outflow og0 = Outflow::Gated();
     Outflow og1 = Outflow::Gated(X_positive);
     Outflow og2 = Outflow::Gated(X_positive, false);
@@ -149,10 +149,10 @@ void DRAGON_Test::verify_boundary_constructors(bool output){
     assert(&og1);
     assert(&og2);
     assert(&og3);
-    if(output) std::cout<<"Passed\n";
+    if (output) std::cout<<"Passed\n";
 
     //Periodic Constructors
-    if(output) std::cout<<"- Periodic: ";
+    if (output) std::cout<<"- Periodic: ";
     Periodic p0;
     Periodic p1(X);
     Periodic p2(Y, false);
@@ -161,10 +161,10 @@ void DRAGON_Test::verify_boundary_constructors(bool output){
     assert(&p1);
     assert(&p2);
     assert(&p3);
-    if(output) std::cout<<"Passed\n";
+    if (output) std::cout<<"Passed\n";
 
     //Fixed State Constructors
-    if(output) std::cout<<"- Fixed State: ";
+    if (output) std::cout<<"- Fixed State: ";
     Fixed f0(W);
     Fixed f1(W, X);
     Fixed f2(W, Y, false);
@@ -173,10 +173,10 @@ void DRAGON_Test::verify_boundary_constructors(bool output){
     assert(&f1);
     assert(&f2);
     assert(&f3);
-    if(output) std::cout<<"Passed\n";
+    if (output) std::cout<<"Passed\n";
 
     //Composite Boundary Constructors
-    if(output) std::cout<<"- Composite: ";
+    if (output) std::cout<<"- Composite: ";
     BoundaryList b0(r1, p2, Outflow(Z));
     BoundaryList b1(Fixed(W, "X-"), Outflow::Gated(X_positive));
     assert(&b0);
@@ -189,23 +189,23 @@ void DRAGON_Test::verify_boundary_constructors(bool output){
     assert(Reflective(X | Y).get_faces() == (X | Y));
     assert(Periodic(Y).get_faces() == Y);
     assert(Outflow(Z_negative | Z_positive).get_faces() == Z);
-    if(output) std::cout<<"Passed\n";
+    if (output) std::cout<<"Passed\n";
 
 }
 
 //MARK: Composition
 void DRAGON_Test::verify_boundary_composition(bool output){
-    if(output) std::cout<<"- 2D: ";
+    if (output) std::cout<<"- 2D: ";
     verify_boundary_set_missing_faces_outflow_2D();
-    if(output) std::cout<<"Passed\n";
-    if(output) std::cout<<"- 3D: ";
+    if (output) std::cout<<"Passed\n";
+    if (output) std::cout<<"- 3D: ";
     verify_boundary_composition_3D();
     verify_boundary_composition_order();
     verify_boundary_composition_overlap_order();
-    if(output) std::cout<<"Passed\n";
+    if (output) std::cout<<"Passed\n";
 }
 void reflectX2D(PrimitiveState& w);
-void DRAGON_Test::verify_boundary_set_missing_faces_outflow_2D() {
+void DRAGON_Test::verify_boundary_set_missing_faces_outflow_2D(){
 
     Grid2D grid(3, 4, 1.0, 1.0, 1);
     fill_2D(grid);
@@ -223,7 +223,7 @@ void DRAGON_Test::verify_boundary_set_missing_faces_outflow_2D() {
 }
 
 void reflectZ3D(PrimitiveState& w);
-void DRAGON_Test::verify_boundary_composition_3D() {
+void DRAGON_Test::verify_boundary_composition_3D(){
 
     Grid3D grid(3, 4, 5, 1.0, 1.0,1.0, 1);
     fill_3D(grid);
@@ -247,7 +247,7 @@ void DRAGON_Test::verify_boundary_composition_3D() {
     expect_close(grid[-1,-1,-1], w);
 }
 void reflectX3D(PrimitiveState& w);
-void DRAGON_Test::verify_boundary_composition_order() {
+void DRAGON_Test::verify_boundary_composition_order(){
     Grid3D grid(3, 4, 5, 1.0, 1.0,1.0, 1);
     fill_3D(grid);
     BoundaryList boundary = Reflective();
@@ -266,7 +266,7 @@ void DRAGON_Test::verify_boundary_composition_order() {
     PrimitiveState w = grid[0,3,0]; reflectX3D(w);reflectZ3D(w);
     expect_close(grid[-1,-1,-1], w);
 }
-void DRAGON_Test::verify_boundary_composition_overlap_order() {
+void DRAGON_Test::verify_boundary_composition_overlap_order(){
     Grid2D grid(3, 4, 1.0, 1.0, 1);
     fill_2D(grid);
     PrimitiveState W = make_tagged_state(2112);
@@ -281,18 +281,18 @@ void DRAGON_Test::verify_boundary_composition_overlap_order() {
 
 //MARK: Ignore (No-op) Boundary
 void DRAGON_Test::verify_boundary_ignore(bool output){
-    if(output) std::cout<<"- 1D: ";
+    if (output) std::cout<<"- 1D: ";
     verify_boundary_ignore_1D();
-    if(output) std::cout<<"Passed\n";
-    if(output) std::cout<<"- 2D: ";
+    if (output) std::cout<<"Passed\n";
+    if (output) std::cout<<"- 2D: ";
     verify_boundary_ignore_2D();
-    if(output) std::cout<<"Passed\n";
-    if(output) std::cout<<"- 3D: ";
+    if (output) std::cout<<"Passed\n";
+    if (output) std::cout<<"- 3D: ";
     verify_boundary_ignore_3D();
-    if(output) std::cout<<"Passed\n";
-    if(output) std::cout<<"- Implicit Outflow: ";
+    if (output) std::cout<<"Passed\n";
+    if (output) std::cout<<"- Implicit Outflow: ";
     verify_boundary_ignore_blocks_implicit_outflow();
-    if(output) std::cout<<"Passed\n";
+    if (output) std::cout<<"Passed\n";
 }
 
 void DRAGON_Test::verify_boundary_ignore_1D(){
@@ -301,7 +301,7 @@ void DRAGON_Test::verify_boundary_ignore_1D(){
 
     Ignore(X).apply(grid);
 
-    for(int i = 0; i < grid.getSize(); i++)
+    for (int i = 0; i < grid.getSize(); i++)
         expect_close(grid[i], make_tagged_state(i * (1.0 / grid.getSize())));
     expect_close(grid[-1], G);
     expect_close(grid[-2], G);
@@ -315,14 +315,14 @@ void DRAGON_Test::verify_boundary_ignore_2D(){
 
     Ignore(X | Y).apply(grid);
 
-    for(int i = -grid.getGhosts(); i < grid.getSizeX() + grid.getGhosts(); i++) {
-        for(int j = -grid.getGhosts(); j < grid.getSizeY() + grid.getGhosts(); j++) {
-            if(i < 0 || i >= grid.getSizeX() || j < 0 || j >= grid.getSizeY()) expect_close(grid[i,j], G);
+    for (int i = -grid.getGhosts(); i < grid.getSizeX() + grid.getGhosts(); i++) {
+        for (int j = -grid.getGhosts(); j < grid.getSizeY() + grid.getGhosts(); j++) {
+            if (i < 0 || i >= grid.getSizeX() || j < 0 || j >= grid.getSizeY()) expect_close(grid[i,j], G);
         }
     }
 #ifdef MHD
-    for(int i = -grid.getGhosts(); i <= grid.getSizeX() + grid.getGhosts(); i++) {
-        for(int j = -grid.getGhosts(); j <= grid.getSizeY() + grid.getGhosts(); j++) {
+    for (int i = -grid.getGhosts(); i <= grid.getSizeX() + grid.getGhosts(); i++) {
+        for (int j = -grid.getGhosts(); j <= grid.getSizeY() + grid.getGhosts(); j++) {
             expect_close(grid._B()[i,j], make_tagged_vec(10*i + j));
         }
     }
@@ -335,17 +335,17 @@ void DRAGON_Test::verify_boundary_ignore_3D(){
 
     Ignore(X | Y | Z).apply(grid);
 
-    for(int i = -grid.getGhosts(); i < grid.getSizeX() + grid.getGhosts(); i++) {
-        for(int j = -grid.getGhosts(); j < grid.getSizeY() + grid.getGhosts(); j++) {
-            for(int k = -grid.getGhosts(); k < grid.getSizeZ() + grid.getGhosts(); k++) {
-                if(i < 0 || i >= grid.getSizeX() || j < 0 || j >= grid.getSizeY() || k < 0 || k >= grid.getSizeZ()) expect_close(grid[i,j,k], G);
+    for (int i = -grid.getGhosts(); i < grid.getSizeX() + grid.getGhosts(); i++) {
+        for (int j = -grid.getGhosts(); j < grid.getSizeY() + grid.getGhosts(); j++) {
+            for (int k = -grid.getGhosts(); k < grid.getSizeZ() + grid.getGhosts(); k++) {
+                if (i < 0 || i >= grid.getSizeX() || j < 0 || j >= grid.getSizeY() || k < 0 || k >= grid.getSizeZ()) expect_close(grid[i,j,k], G);
             }
         }
     }
 #ifdef MHD
-    for(int i = -grid.getGhosts(); i <= grid.getSizeX() + grid.getGhosts(); i++) {
-        for(int j = -grid.getGhosts(); j <= grid.getSizeY() + grid.getGhosts(); j++) {
-            for(int k = -grid.getGhosts(); k <= grid.getSizeZ() + grid.getGhosts(); k++) {
+    for (int i = -grid.getGhosts(); i <= grid.getSizeX() + grid.getGhosts(); i++) {
+        for (int j = -grid.getGhosts(); j <= grid.getSizeY() + grid.getGhosts(); j++) {
+            for (int k = -grid.getGhosts(); k <= grid.getSizeZ() + grid.getGhosts(); k++) {
                // expect_close(grid._A()[i,j,k], make_tagged_vec(100*i + 10*j + k));
             }
         }
@@ -360,12 +360,12 @@ void DRAGON_Test::verify_boundary_ignore_blocks_implicit_outflow(){
     BoundaryList(Ignore(X)).apply(grid);
 
     //Make sure it blocks the X outflow
-    for(int j = 0; j < grid.getSizeY(); j++) {
+    for (int j = 0; j < grid.getSizeY(); j++) {
         expect_close(grid[-1,j], G);
         expect_close(grid[3,j], G);
     }
     //Make sure allows the Y outflow
-    for(int i = 0; i < grid.getSizeX(); i++) {
+    for (int i = 0; i < grid.getSizeX(); i++) {
         expect_close(grid[i,-1], grid[i,0]);
         expect_close(grid[i,4], grid[i,3]);
     }

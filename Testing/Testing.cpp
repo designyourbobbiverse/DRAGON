@@ -6,10 +6,12 @@
 //
 #include "Testing.hpp"
 #include <iostream>
+#include <chrono>
+#include <cmath>
 
 using namespace DRAGON_Test;
-
-int main() {
+using namespace DRAGON;
+int main(){
     
     auto start = std::chrono::system_clock::now();
 

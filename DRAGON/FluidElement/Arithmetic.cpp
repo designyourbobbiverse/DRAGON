@@ -6,8 +6,10 @@
 //
 
 #include "FluidElement.hpp"
-#include <cmath>
 
+#include <cmath> //For std::abs
+
+using namespace DRAGON;
 
 
 //MARK: (+): Add two states together
@@ -21,9 +23,9 @@ ConservativeState& operator+=(ConservativeState &X, const ConservativeState &Y){
     X.rho += Y.rho;
     X.mom += Y.mom;
     X.E += Y.E;
-#ifdef MHD
+    #ifdef MHD
     X.B += Y.B;
-#endif
+    #endif
     return X;
 }
 vec3 operator+(vec3 v, const vec3 &w){
@@ -47,9 +49,9 @@ ConservativeState& operator-=(ConservativeState &X, const ConservativeState &Y){
     X.rho -= Y.rho;
     X.mom -= Y.mom;
     X.E -= Y.E;
-#ifdef MHD
+    #ifdef MHD
     X.B -= Y.B;
-#endif
+    #endif
     return X;
 }
 vec3 operator-(vec3 v, const vec3 &w){
@@ -72,9 +74,9 @@ ConservativeState& operator*=(ConservativeState &X, double a){
     X.rho *= a;
     X.mom *= a;
     X.E *= a;
-#ifdef MHD
+    #ifdef MHD
     X.B *= a;
-#endif
+    #endif
     return X;
 }
 vec3 operator*(const double &a, vec3 v){ return v*a; }
@@ -111,9 +113,9 @@ ConservativeState& operator/=(ConservativeState &X, double a){
     X.rho /= a;
     X.mom /= a;
     X.E /= a;
-#ifdef MHD
+    #ifdef MHD
     X.B /= a;
-#endif
+    #endif
     return X;
 }
 vec3 operator/(vec3 v, double a){
@@ -131,26 +133,26 @@ vec3& operator/=(vec3 &v, double a){
 //MARK: (==) Equality
 //Each of these checks to within a 1e-12 tolerance to allow for floating point errors
 bool operator==(const PrimitiveState &X, const PrimitiveState &Y){
-    if(std::abs(X.rho - Y.rho) >= 1e-12) return false;
-    if(X.v != Y.v) return false;
-    if(std::abs(X.p - Y.p) >= 1e-12) return false;
-#ifdef MHD
-    if(X.B != Y.B) return false;
-#endif
+    if (std::abs(X.rho - Y.rho) >= 1e-12) return false;
+    if (X.v != Y.v) return false;
+    if (std::abs(X.p - Y.p) >= 1e-12) return false;
+    #ifdef MHD
+    if (X.B != Y.B) return false;
+    #endif
     return true;
 }
 bool operator==(const ConservativeState &X, const ConservativeState &Y){
-    if(std::abs(X.rho - Y.rho) >= 1e-12) return false;
-    if(X.mom != Y.mom) return false;
-    if(std::abs(X.E - Y.E) >= 1e-12) return false;
-#ifdef MHD
-    if(X.B != Y.B) return false;
-#endif
+    if (std::abs(X.rho - Y.rho) >= 1e-12) return false;
+    if (X.mom != Y.mom) return false;
+    if (std::abs(X.E - Y.E) >= 1e-12) return false;
+    #ifdef MHD
+    if (X.B != Y.B) return false;
+    #endif
     return true;
 }
 bool operator==(const vec3 &X, const vec3 &Y){
-    if(std::abs(X.x - Y.x) >= 1e-12) return false;
-    if(std::abs(X.y - Y.y) >= 1e-12) return false;
-    if(std::abs(X.z - Y.z) >= 1e-12) return false;
+    if (std::abs(X.x - Y.x) >= 1e-12) return false;
+    if (std::abs(X.y - Y.y) >= 1e-12) return false;
+    if (std::abs(X.z - Y.z) >= 1e-12) return false;
     return true;
 }

@@ -3,10 +3,12 @@
 //  DRAGON/Examples/1D/Shu-Osher
 //
 //  Created by Bobbie Markwick on 7/07/2026.
+//  Shu and Osher (1989). https://doi.org/10.1016/0021-9991(89)90222-2
 //
 
-#include "Problem.hpp"
-#include "DistGrid.hpp"
+#include "main/Problem.hpp"
+#include "Refinement/DistGrid.hpp"
+using namespace DRAGON;
 
 typedef DistGrid1D MyGrid;//Choose the dimension of your grid here
 

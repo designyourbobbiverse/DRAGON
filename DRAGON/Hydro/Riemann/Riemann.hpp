@@ -1,5 +1,5 @@
 //
-//  Riemann.hpp
+//  Hydro/Riemann/Riemann.hpp
 //  DRAGON/Hydro/Riemann
 //
 //  Created by Bobbie Markwick on 28/04/2026.
@@ -9,9 +9,9 @@
 #ifndef Riemann_hpp
 #define Riemann_hpp
 
-#include "FluidElement.hpp"
+#include "FluidElement/FluidElement.hpp" //For PrimitiveState, ConservativeState
 
-#include "Config.h"
+#include "Config.h" //For MHD vs Hydro
 //Macro which tells hydro only solvers to not compile if using MHD, except for unit testing where both modes are needed.
 #if !defined(MHD) || defined(TESTMODE)
 #define HYDRO_AVAILABLE
@@ -34,6 +34,7 @@
  Riemann(wL,wR).flux(dt/dx) //does a safety check, pivot to exact on failure
  */
 
+namespace DRAGON{
 struct Riemann;
 struct RiemannSolution;
 
@@ -62,17 +63,17 @@ struct Riemann{
 //MARK: Approximate Solvers
     ConservativeState HLL(); // Harten, Lax, & van Leer (1983). https://doi.org/10.1137/1025002
     ConservativeState HLL(double SL, double SR);
-#ifdef HYDRO_AVAILABLE
+    #ifdef HYDRO_AVAILABLE
     ConservativeState HLLC(); // Toro, Spruce, & Speares (1994). https://doi.org/10.1007/BF01414629
     ConservativeState HLLC(double SL, double SR);
-#endif
-#ifdef MHD
+    #endif
+    #ifdef MHD
     ConservativeState HLLD(); // Miyoshi and Kusano (2005). https://doi.org/10.1016/j.jcp.2005.02.017
-#endif
+    #endif
     ConservativeState HLLE(); // Einfeldt (1988). https://doi.org/10.1137/0725021
-#ifdef HYDRO_AVAILABLE
+    #ifdef HYDRO_AVAILABLE
     ConservativeState Roe(); // Roe (1981). https://doi.org/10.1016/0021-9991(81)90128-5
-#endif
+    #endif
     
 private:
     void verify_and_fallback(ConservativeState& flux, double dt_dx);
@@ -103,10 +104,6 @@ private:
     //Swap left and right states, negate all v.x.
     void mirror();
 };
-
-
-
-
-    
+}
     
 #endif /* Solvers_hpp */

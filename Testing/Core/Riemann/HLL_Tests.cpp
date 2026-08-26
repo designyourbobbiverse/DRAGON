@@ -6,7 +6,7 @@
 //
 
 #include "Testing.hpp"
-#include "Riemann.hpp"
+#include "Hydro/Riemann/Riemann.hpp"
 
 #include <iostream> //For std::cout
 
@@ -20,7 +20,7 @@ using namespace RiemannTestHelpers;
 
 
 //MARK: Manual Wave Speeds
-void DRAGON_Test::verify_hll_manual_wave_speeds() {
+void DRAGON_Test::verify_hll_manual_wave_speeds(){
     PrimitiveState L = make_state(1.0,   0.0, 0.0, 0.0, 1.0);
     PrimitiveState R = make_state(0.125, 0.0, 0.0, 0.0, 0.1);
 
@@ -40,7 +40,7 @@ void DRAGON_Test::verify_hll_manual_wave_speeds() {
     expect_close(problem.HLL( 0.1, 2.0), FL);
     expect_close(problem.HLL(-2.0,-0.1), FR);
 }
-void DRAGON_Test::verify_hllc_manual_wave_speeds() {
+void DRAGON_Test::verify_hllc_manual_wave_speeds(){
     PrimitiveState L = make_state(1.0,   0.0, 0.0, 0.0, 1.0);
     PrimitiveState R = make_state(0.125, 0.0, 0.0, 0.0, 0.1);
 
@@ -57,7 +57,7 @@ void DRAGON_Test::verify_hllc_manual_wave_speeds() {
 
 
 //MARK: Hydro Test Problems
-void DRAGON_Test::verify_hll_equal_state() {
+void DRAGON_Test::verify_hll_equal_state(){
     PrimitiveState W = make_state(1.0, 0.75, 0.2, -0.1, 1.0);
     ConservativeState expected = ConservativeState(W).flux(W.v);
 
@@ -68,7 +68,7 @@ void DRAGON_Test::verify_hll_equal_state() {
 #endif
     expect_close(Riemann(W,W).HLLE(), expected);
 }
-void DRAGON_Test::verify_hll_stationary_contact() {
+void DRAGON_Test::verify_hll_stationary_contact(){
     PrimitiveState L = make_state(1.0, 0.0, 0.0, 0.0, 1.0);
     PrimitiveState R = make_state(2.0, 0.0, 0.0, 0.0, 1.0);
     ConservativeState expected;
@@ -87,7 +87,7 @@ void DRAGON_Test::verify_hll_stationary_contact() {
     expect_finite(Riemann(L,R).HLLE());
 }
 
-void DRAGON_Test::verify_hll_supersonic_upwind() {
+void DRAGON_Test::verify_hll_supersonic_upwind(){
     {
         PrimitiveState L = make_state(1.0,   10.0, 0.0, 0.0, 1.0);
         PrimitiveState R = make_state(0.125, 10.0, 0.0, 0.0, 0.1);
@@ -111,7 +111,7 @@ void DRAGON_Test::verify_hll_supersonic_upwind() {
         expect_close(Riemann(L,R).HLLE(), expected);
     }
 }
-void DRAGON_Test::verify_hll_supersonic_upwind_transverse() {
+void DRAGON_Test::verify_hll_supersonic_upwind_transverse(){
     {
         PrimitiveState L = make_state(1.0, 10.0, 2.0, -3.0, 1.0);
         PrimitiveState R = make_state(0.125, 10.0, -8.0, 9.0, 0.1);
@@ -142,7 +142,7 @@ void DRAGON_Test::verify_hll_supersonic_upwind_transverse() {
         expect_close(Riemann(L,R).HLLE(), expected);
     }
 }
-void DRAGON_Test::verify_hll_symmetry() {
+void DRAGON_Test::verify_hll_symmetry(){
     PrimitiveState L = make_state(1.0, 0.35, 0.2, -0.1, 1.0);
     PrimitiveState R = make_state(0.7, -0.45, -0.3, 0.4, 0.8);
 
@@ -181,7 +181,7 @@ void DRAGON_Test::verify_hll_symmetry() {
 
 //MARK: MHD Test Problems (HLLD)
 
-void DRAGON_Test::verify_hlld_equal_state_nonzero_b() {
+void DRAGON_Test::verify_hlld_equal_state_nonzero_b(){
     PrimitiveState W = make_mhd_state(1.0, 0.75, 0.2, -0.1, 1.0, 0.4, -0.3, 0.2);
     ConservativeState expected = ConservativeState(W).flux(W.v);
 
@@ -194,7 +194,7 @@ void DRAGON_Test::verify_hlld_equal_state_nonzero_b() {
     expect_finite(F);
 }
 
-void DRAGON_Test::verify_hlld_supersonic_exterior_regions() {
+void DRAGON_Test::verify_hlld_supersonic_exterior_regions(){
     {
         PrimitiveState L = make_mhd_state(1.0,   10.0, 0.5, -0.3, 1.0, 0.4, -0.3, 0.2);
         PrimitiveState R = make_mhd_state(0.125, 10.0, -0.2, 0.4, 0.1, 0.4, 0.1, -0.5);
@@ -211,7 +211,7 @@ void DRAGON_Test::verify_hlld_supersonic_exterior_regions() {
     }
 }
 
-void DRAGON_Test::verify_hlld_averages_normal_field() {
+void DRAGON_Test::verify_hlld_averages_normal_field(){
     PrimitiveState L = make_mhd_state(1.0, 0.2, 0.5, -0.3, 1.0, 0.8, -0.3, 0.2);
     PrimitiveState R = make_mhd_state(0.7, -0.4, -0.2, 0.4, 0.8, -0.2, 0.1, -0.5);
     double expectedBx = 0.5 * (L.B.x + R.B.x);
@@ -225,7 +225,7 @@ void DRAGON_Test::verify_hlld_averages_normal_field() {
     expect_finite(F);
 }
 
-void DRAGON_Test::verify_hlld_explicit_normal_field() {
+void DRAGON_Test::verify_hlld_explicit_normal_field(){
     PrimitiveState L = make_mhd_state(1.0, 0.2, 0.5, -0.3, 1.0, 0.25, -0.3, 0.2);
     PrimitiveState R = make_mhd_state(0.7, -0.4, -0.2, 0.4, 0.8, 0.25, 0.1, -0.5);
 
@@ -238,7 +238,7 @@ void DRAGON_Test::verify_hlld_explicit_normal_field() {
     expect_finite(F);
 }
 
-void DRAGON_Test::verify_hlld_star_regions_finite() {
+void DRAGON_Test::verify_hlld_star_regions_finite(){
     PrimitiveState cases[][2] = {
         { make_mhd_state(1.0,  -0.7, 0.6, -0.2, 1.0,  0.4,  0.3, -0.2),
           make_mhd_state(0.8,   0.5, -0.4, 0.3, 0.7,  0.4, -0.2,  0.5) },
@@ -250,7 +250,7 @@ void DRAGON_Test::verify_hlld_star_regions_finite() {
           make_mhd_state(5.99242,-6.19633, -0.4, 0.3, 46.0950,  1.0, -0.3,  0.4) }
     };
 
-    for(auto& pair : cases) {
+    for (auto& pair : cases) {
         ConservativeState F = Riemann(pair[0], pair[1]).HLLD();
 
         expect_finite(F);

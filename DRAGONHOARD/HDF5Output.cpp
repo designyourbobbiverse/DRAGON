@@ -17,6 +17,7 @@
 #include "Config.h"     //For #ifdef MHD
 #include <algorithm>    //For std::min
 #include <stdexcept>    //For file write errors
+using namespace DRAGON;
 
 #define HDF5_WRITE_ENERGY (HDF5_WRITE_PRIMITIVE_AND_ENERGY - HDF5_WRITE_PRIMITIVE)
 #define HDF5_WRITE_PRIMS (HDF5_WRITE_OPTION & HDF5_WRITE_PRIMITIVE)
@@ -29,7 +30,7 @@
 #error Specified write option does not write a sufficient description of the fluid. Please reconfigure HDF5_WRITE_OPTION in Config.h
 #endif
 
-
+//Convert integer to 5-character string
 std::string DRAGONHOARD::cycle_string(int n){
     std::string zeroes = n<10 ? "0000" : (n<100 ? "000" : (n<1000 ? "00" : (n<10000 ? "0" : "")));
     return zeroes +  std::to_string(n);
@@ -39,9 +40,9 @@ std::string DRAGONHOARD::cycle_string(int n){
 namespace{
 
 template <typename T> H5::PredType hdf5Type();
-    template <> H5::PredType hdf5Type<int>() { return H5::PredType::NATIVE_INT; }
-    template <> H5::PredType hdf5Type<float>() { return H5::PredType::NATIVE_FLOAT; }
-    template <> H5::PredType hdf5Type<double>() { return H5::PredType::NATIVE_DOUBLE; }
+    template <> H5::PredType hdf5Type<int>(){ return H5::PredType::NATIVE_INT; }
+    template <> H5::PredType hdf5Type<float>(){ return H5::PredType::NATIVE_FLOAT; }
+    template <> H5::PredType hdf5Type<double>(){ return H5::PredType::NATIVE_DOUBLE; }
 
 template <typename T>
 void writeArray(H5::H5File& file,const std::string& name, const std::vector<T>& data, hsize_t nx){
@@ -90,7 +91,7 @@ void writeArray(H5::H5File& file,const std::string& name, const std::vector<T>& 
 }
 
 template <typename T>
-void writeAttribute(H5::H5File& file, const std::string& name, T value) {
+void writeAttribute(H5::H5File& file, const std::string& name, T value){
     H5::DataSpace dataspace(H5S_SCALAR);
     H5::Attribute attr = file.createAttribute(name, hdf5Type<T>(), dataspace);
     attr.write(hdf5Type<T>(), &value);
@@ -102,23 +103,25 @@ void writeAttribute(H5::H5File& file, const std::string& name, T value) {
 //MARK: Dispatch
 void DRAGONHOARD::writeToFile(Grid& grid, double t, int cycle, const std::string& filename){
     Grid3D* grid3D = dynamic_cast<Grid3D*>(&grid);
-    if(grid3D){
+    if (grid3D) {
         writeToFile(*grid3D, t, cycle, filename);
         return;
     }
     Grid2D* grid2D = dynamic_cast<Grid2D*>(&grid);
-    if(grid2D){
+    if (grid2D) {
         writeToFile(*grid2D, t, cycle, filename);
         return;
     }
     Grid1D* grid1D = dynamic_cast<Grid1D*>(&grid);
-    if(grid1D){
+    if (grid1D) {
         writeToFile(*grid1D, t, cycle, filename);
         return;
     }
     
     throw std::runtime_error("IO attempted with unsupported Grid type");
 }
+namespace DRAGONHOARD{ std::string checkExtension(const std::string& filename); }
+
 
 //MARK: Writing - 1D
 
@@ -131,7 +134,7 @@ void DRAGONHOARD::writeToFile(Grid1D& grid, double t, int cycle, const std::stri
     const int i0 = 0, in = nx;
     #endif
  
-    std::string path = DRAGONHOARD::output_dir + "/" + filename + file_ext;
+    std::string path = DRAGONHOARD::output_dir + "/" + checkExtension(filename);
     H5::H5File file(path, H5F_ACC_TRUNC);
     
     //Metadata
@@ -178,7 +181,7 @@ void DRAGONHOARD::writeToFile(Grid1D& grid, double t, int cycle, const std::stri
     std::vector<double> By(size);
     std::vector<double> Bz(size);
     #endif
-    for(int i = i0; i<in; i++){
+    for (int i = i0; i<in; i++) {
         PrimitiveState w = grid[i];
         size_t n = i-i0;
 
@@ -243,12 +246,13 @@ void DRAGONHOARD::writeToFile(Grid2D& grid, double t, int cycle, const std::stri
     const int i0 = 0, in = nx, j0 = 0, jn = ny;
     #endif
 
-    std::string path = DRAGONHOARD::output_dir + "/" + filename + file_ext;
+    std::string path = DRAGONHOARD::output_dir + "/" + checkExtension(filename);
     H5::H5File file(path, H5F_ACC_TRUNC);
     
     //Metadata
     writeAttribute(file, key_fmt, 1);
     writeAttribute(file, key_wrt_opt, HDF5_WRITE_OPTION);
+    writeAttribute(file, key_B_opt, HDF5_REDUNDANT_VALS_OPTION);
     writeAttribute(file, key_dim, 2);
     #ifdef MHD
     writeAttribute(file, key_mhd, 1);
@@ -284,7 +288,7 @@ void DRAGONHOARD::writeToFile(Grid2D& grid, double t, int cycle, const std::stri
     std::vector<double> E(size);
     #elif HDF5_WRITE_E && HDF5_REDUNDANT_VALS_OPTION == HDF5_WRITE_DOUBLE
     std::vector<double> E(size);
-    #elif HDF5_WRITE_E && HDF5_REDUNDANT_VALS_OPTION == HDF5_WRITE_FLOAT
+    #elif HDF5_WRITE_E
     std::vector<float> E(size);
     #endif
     #ifdef MHD
@@ -293,17 +297,18 @@ void DRAGONHOARD::writeToFile(Grid2D& grid, double t, int cycle, const std::stri
     std::vector<double> Bx(size);
     std::vector<double> By(size);
     std::vector<double> Bz(size);
-    #elif HDF5_REDUNDANT_VALS_OPTION == HDF5_WRITE_FLOAT
+    #elif HDF5_REDUNDANT_VALS_OPTION == HDF5_WRITE_FLOAT //Write body B's as floats (face B will still be double to allow for restarts)
     std::vector<float> Bx(size);
     std::vector<float> By(size);
     std::vector<float> Bz(size);
     #endif
+    //Face B's
     std::vector<double> Bfx(size_B);
     std::vector<double> Bfy(size_B);
     std::vector<double> Bfz(size_B);
     #endif
-    for(int i = i0; i<in; i++){
-        for(int j=j0; j<jn; j++){
+    for (int i = i0; i<in; i++) {
+        for (int j=j0; j<jn; j++) {
             PrimitiveState w = grid[i,j];
             size_t n = (j-j0)*(in-i0) + (i-i0);
             
@@ -331,8 +336,8 @@ void DRAGONHOARD::writeToFile(Grid2D& grid, double t, int cycle, const std::stri
         }
     }
     #ifdef MHD
-    for(int i = i0; i<=in; i++){
-        for(int j=j0; j<=jn; j++){
+    for (int i = i0; i<=in; i++) {
+        for (int j=j0; j<=jn; j++) {
             size_t n =  (j-j0)*(in-i0+1) + (i-i0);
             Bfx[n] = grid._B()[i,j].x;
             Bfy[n] = grid._B()[i,j].y;
@@ -386,12 +391,13 @@ void DRAGONHOARD::writeToFile(Grid3D& grid, double t, int cycle, const std::stri
     const int i0 = 0, in = nx, j0 = 0, jn = ny, k0 = 0, kn = nz;
     #endif
 
-    std::string path = DRAGONHOARD::output_dir + "/" + filename + file_ext;
+    std::string path = DRAGONHOARD::output_dir + "/" + checkExtension(filename);
     H5::H5File file(path, H5F_ACC_TRUNC);
     
     //Metadata
     writeAttribute(file, key_fmt, 1);
     writeAttribute(file, key_wrt_opt, HDF5_WRITE_OPTION);
+    writeAttribute(file, key_B_opt, HDF5_REDUNDANT_VALS_OPTION);
     writeAttribute(file, key_dim, 3);
     #ifdef MHD
     writeAttribute(file, key_mhd, 1);
@@ -429,7 +435,7 @@ void DRAGONHOARD::writeToFile(Grid3D& grid, double t, int cycle, const std::stri
     std::vector<double> E(size);
     #elif HDF5_WRITE_E && HDF5_REDUNDANT_VALS_OPTION == HDF5_WRITE_DOUBLE
     std::vector<double> E(size);
-    #elif HDF5_WRITE_E && HDF5_REDUNDANT_VALS_OPTION == HDF5_WRITE_FLOAT
+    #elif HDF5_WRITE_E
     std::vector<float> E(size);
     #endif
     #ifdef MHD
@@ -438,18 +444,19 @@ void DRAGONHOARD::writeToFile(Grid3D& grid, double t, int cycle, const std::stri
     std::vector<double> Bx(size);
     std::vector<double> By(size);
     std::vector<double> Bz(size);
-    #elif HDF5_REDUNDANT_VALS_OPTION == HDF5_WRITE_FLOAT
+    #elif HDF5_REDUNDANT_VALS_OPTION == HDF5_WRITE_FLOAT //Write body B's as floats (face B will still be double to allow for restarts)
     std::vector<float> Bx(size);
     std::vector<float> By(size);
     std::vector<float> Bz(size);
     #endif
+    //Face B's
     std::vector<double> Bfx(size_B);
     std::vector<double> Bfy(size_B);
     std::vector<double> Bfz(size_B);
     #endif
-    for(int i = i0; i<in; i++){
-        for(int j=j0; j<jn; j++){
-            for(int k=k0; k<kn; k++){
+    for (int i = i0; i<in; i++) {
+        for (int j=j0; j<jn; j++) {
+            for (int k=k0; k<kn; k++) {
                 PrimitiveState w = grid[i,j,k];
                 size_t n = ((k-k0)*(jn-j0) + (j-j0))*(in-i0) + (i-i0);
                 
@@ -478,9 +485,9 @@ void DRAGONHOARD::writeToFile(Grid3D& grid, double t, int cycle, const std::stri
         }
     }
     #ifdef MHD
-    for(int i = i0; i<=in; i++){
-        for(int j=j0; j<=jn; j++){
-            for(int k=k0; k<=kn; k++){
+    for (int i = i0; i<=in; i++) {
+        for (int j=j0; j<=jn; j++) {
+            for (int k=k0; k<=kn; k++) {
                 vec3 B = grid._B()[i,j,k];
                 size_t n = ((k-k0)*(jn-j0+1) + j-j0)*(in-i0+1) + (i-i0);
                 Bfx[n] = B.x;

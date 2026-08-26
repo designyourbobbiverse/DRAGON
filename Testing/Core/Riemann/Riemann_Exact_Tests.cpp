@@ -6,7 +6,7 @@
 //
 
 #include "Testing.hpp"
-#include "Riemann.hpp"
+#include "Hydro/Riemann/Riemann.hpp"
 
 #include <cmath>    //For std::isfinite
 #include <iostream> //For std::cout
@@ -17,7 +17,7 @@ using namespace DRAGON_Test;
 //MARK: Helpers
 
 namespace RiemannTestHelpers{
-PrimitiveState mirrored_state(PrimitiveState W) {
+PrimitiveState mirrored_state(PrimitiveState W){
     W.v.x *= -1.0;
 #ifdef MHD
     W.B.x *= -1.0;
@@ -25,7 +25,7 @@ PrimitiveState mirrored_state(PrimitiveState W) {
     return W;
 }
 
-ConservativeState mirrored_flux(ConservativeState F) {
+ConservativeState mirrored_flux(ConservativeState F){
     F.rho *= -1.0;
     F.mom.y *= -1.0;
     F.mom.z *= -1.0;
@@ -41,7 +41,7 @@ using namespace RiemannTestHelpers;
 
 
 //MARK: Solver components
-void DRAGON_Test::verify_riemann_f() {
+void DRAGON_Test::verify_riemann_f(){
     PrimitiveState W = make_state(1.0, 0.0, 0.0, 0.0, 1.0);
     assert(approx(Riemann::f(W.p, W), 0.0));
     
@@ -55,7 +55,7 @@ void DRAGON_Test::verify_riemann_f() {
 }
 
 
-void DRAGON_Test::verify_sample_mirror_restores_state() {
+void DRAGON_Test::verify_sample_mirror_restores_state(){
     PrimitiveState L = make_state(1.0,   0.0, 0.0, 0.0, 1.0);
     PrimitiveState R = make_state(0.125, 0.0, 0.0, 0.0, 0.1);
 
@@ -74,7 +74,7 @@ void DRAGON_Test::verify_sample_mirror_restores_state() {
 }
 
 //MARK: Test Problems
-void DRAGON_Test::verify_exact_equal_state() {
+void DRAGON_Test::verify_exact_equal_state(){
     PrimitiveState W = make_state(1.0, 0.75, 0.2, -0.1, 1.0);
     ConservativeState expected = ConservativeState(W).flux(W.v);
 
@@ -85,7 +85,7 @@ void DRAGON_Test::verify_exact_equal_state() {
     expect_close(S.sR, W);
     expect_close(S.flux(), expected);
 }
-void DRAGON_Test::verify_exact_stationary_contact() {
+void DRAGON_Test::verify_exact_stationary_contact(){
     PrimitiveState L = make_state(1.0, 0.0, 0.0, 0.0, 1.0);
     PrimitiveState R = make_state(2.0, 0.0, 0.0, 0.0, 1.0);
     ConservativeState expected;
@@ -98,7 +98,7 @@ void DRAGON_Test::verify_exact_stationary_contact() {
     expect_close(Riemann(L,R).exact().flux(), expected, 1e-14, 1e-14);
 }
 
-void DRAGON_Test::verify_exact_supersonic_upwind() {
+void DRAGON_Test::verify_exact_supersonic_upwind(){
     {
         PrimitiveState L = make_state(1.0,   10.0, 0.0, 0.0, 1.0);
         PrimitiveState R = make_state(0.125, 10.0, 0.0, 0.0, 0.1);
@@ -113,7 +113,7 @@ void DRAGON_Test::verify_exact_supersonic_upwind() {
     }
 }
 
-void DRAGON_Test::verify_exact_sod() {
+void DRAGON_Test::verify_exact_sod(){
     PrimitiveState L = make_state(1.0,   0.0, 0.0, 0.0, 1.0);
     PrimitiveState R = make_state(0.125, 0.0, 0.0, 0.0, 0.1);
 
@@ -148,7 +148,7 @@ void DRAGON_Test::verify_exact_sod() {
     expect_finite(fan);
 }
 
-void DRAGON_Test::verify_exact_supersonic_upwind_transverse() {
+void DRAGON_Test::verify_exact_supersonic_upwind_transverse(){
     {
         PrimitiveState L = make_state(1.0, 10.0, 2.0, -3.0, 1.0);
         PrimitiveState R = make_state(0.125, 10.0, -8.0, 9.0, 0.1);
@@ -164,7 +164,7 @@ void DRAGON_Test::verify_exact_supersonic_upwind_transverse() {
     }
 }
 
-void DRAGON_Test::verify_riemann_exact_symmetry() {
+void DRAGON_Test::verify_riemann_exact_symmetry(){
     PrimitiveState L = make_state(1.0, 0.35, 0.2, -0.1, 1.0);
     PrimitiveState R = make_state(0.7, -0.45, -0.3, 0.4, 0.8);
 

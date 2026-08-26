@@ -9,18 +9,19 @@
 
 
 
-#include "Riemann.hpp"
+#include "Hydro/Riemann/Riemann.hpp"
 
-#include <cmath> //For std::abs, sqrt
-#include <algorithm> //For std::min/max
-#include "Constants.h" //For pi-coefficients
+#include <cmath>        //For std::abs, sqrt
+#include <algorithm>    //For std::min/max
+#include "Constants.h"  //For pi-coefficients
+using namespace DRAGON;
 
 #ifdef MHD
-namespace HLL{ PrimitiveState roeAvg(PrimitiveState L, PrimitiveState R); }
+namespace DRAGON::HLL{ PrimitiveState roeAvg(PrimitiveState L, PrimitiveState R); }
 
 void compute_outer_star(ConservativeState& usK, const PrimitiveState& K, double _xK, double SK, double SM, double pT, double Bx){
     double Bx2_4pi = (Bx*Bx) * _1_4pi; // B_x^2 / 4pi
-    double denom = _xK*(SK - SM) - Bx2_4pi; //Denominator of B and v scaling factors
+    double denom = _xK*(SK - SM) - Bx2_4pi; //Denominator of B and v scaling factors.
     //Set transverse components via vector arithmatic, then override x component
     //Magnetic Field
     usK.B = (std::abs(denom)<1e-12) ? K.B : K.B * (_xK*(SK-K.v.x)-Bx2_4pi)/denom;
@@ -42,14 +43,14 @@ ConservativeState Riemann::HLLD(){
     //Calculate Outer Wave speeds
     double cl = L.c_fast(), cr = R.c_fast();
     double SL = std::min(L.v.x - cl, R.v.x - cr);
-    if(SL >= 0) return L.flux(); //Left intial region
+    if (SL >= 0) return L.flux(); //Left intial region
     double SR = std::max(L.v.x + cl, R.v.x + cr);
-    if(SR <= 0) return R.flux(); //Right intial region
+    if (SR <= 0) return R.flux(); //Right intial region
     
-    //Check for zero-normal case
+    //Check for zero-Bx case (Alfven waves collapse onto the contact, so needs a special brach)
     auto cutoff = std::max(L.B*L.B+ R.B*R.B,1e-100);
-    if(Bx*Bx < 1e-12 * cutoff) return HLLD_zero_B(SL, SR);
-            
+    if (Bx*Bx < 1e-12 * cutoff) return HLLD_zero_B(SL, SR);
+
     //Calculate the Contact Wave Speed
     double pTL = L.p + (L.B*L.B)*_1_8pi, pTR = R.p + (R.B*R.B)*_1_8pi;
     double _xL = L.rho * (SL-L.v.x), _xR = R.rho * (SR-R.v.x);
@@ -68,64 +69,64 @@ ConservativeState Riemann::HLLD(){
     PrimitiveState wsL, wsR;
     double pT = (_xR*pTL - _xL*pTR + _xL*_xR*(R.v.x - L.v.x)) / (_xR - _xL);
     
-    if(SsR >= 0) {//If this isn't true, we are between right fast/alfven, so we won't need FsL
+    if (SsR >= 0) {//If this isn't true, we are between right fast/alfven, so we won't need FsL
         compute_outer_star(usL, L, _xL, SL, SM, pT, Bx);
         wsL.rho = usL.rho;
         wsL.v = usL.mom / usL.rho;
         wsL.B = usL.B;
 
-        #ifdef HLLD_PHYSICAL_SAFETY
+        #ifdef HLLD_PHYSICAL_SAFETY //If star state is unphysical (e.g. thermal pressure <= 0), try HLLE (more robust)
         wsL.p = pT - wsL.B*wsL.B*_1_8pi;
-        if(!wsL.isPhysical() || !usL.isPhysical()) return HLLE();
+        if (!wsL.isPhysical() || !usL.isPhysical()) return HLLE();
         #endif
         
         FsL =  L.flux() + (usL - L)*SL; FsL.B.x = 0;
     }
-    if(SsL <= 0) { //If this isn't true, we are between left fast/alfven, so we won't need FsR
+    if (SsL <= 0) { //If this isn't true, we are between left fast/alfven, so we won't need FsR
         compute_outer_star(usR, R, _xR, SR, SM, pT, Bx);
         wsR.rho = usR.rho;
         wsR.v = usR.mom / usR.rho;
         wsR.B = usR.B;
 
-        #ifdef HLLD_PHYSICAL_SAFETY
+        #ifdef HLLD_PHYSICAL_SAFETY //If star state is unphysical (e.g. thermal pressure <= 0), try HLLE (more robust)
         wsR.p = pT - wsR.B*wsR.B*_1_8pi;
-        if(!wsR.isPhysical() || !usR.isPhysical()) return HLLE();
+        if (!wsR.isPhysical() || !usR.isPhysical()) return HLLE();
         #endif
         
         FsR = R.flux() + (usR - R)*SR; FsR.B.x = 0;
     }
             
-    if(SsL >= 0) return FsL;//Check for Left fast-alfven region, if so can return the flux now
-    if(SsR <= 0) return FsR;//Check for Right fast-alfven region, if so can return the flux now
+    if (SsL >= 0) return FsL;//Check for Left fast-alfven region, if so can return the flux now
+    if (SsR <= 0) return FsR;//Check for Right fast-alfven region, if so can return the flux now
 
     auto ws = SM >= 0 ? wsL : wsR;
 
     //Calculate the regions between Alfven/Contact
     double sqL = std::sqrt(wsL.rho), sqR = std::sqrt(wsR.rho);
     double _sqL = sqL / (sqL + sqR), _sqR = sqR / (sqL + sqR);
-    double sbx = Bx > 0 ? sq4pi : (Bx < 0 ? -sq4pi : 0);
+    double sbx = Bx > 0 ? sq4pi : -sq4pi; //Sign of Bx, times sqrt(4pi)
     ConservativeState uss;
     PrimitiveState wss;
     wss.rho = ws.rho;
     uss.rho = wss.rho;
     //Set transverse components via vector arithmatic, then override x component
     wss.v = _sqL*wsL.v + _sqR*wsR.v + (sbx*(usR.B - usL.B)*_1_4pi)/(sqL+sqR);
-    wss.v.x = SM;
+    wss.v.x = SM; //Contact wave speed
     uss.mom = uss.rho * wss.v;
     wss.B = _sqL*usR.B + _sqR*usL.B + sbx*(wsR.v - wsL.v)*sqL*sqR/(sqL+sqR);
-    wss.B.x = Bx;
+    wss.B.x = Bx; //divB = 0 -> Bx must be the same Bx
     uss.B = wss.B;
     //Energy
     auto dE = sbx * (ws.v*ws.B - wss.v*wss.B) * _1_4pi * std::sqrt(wss.rho);
     uss.E = SM >= 0 ? usL.E - dE : usR.E + dE;
     
-    #ifdef HLLD_PHYSICAL_SAFETY
+    #ifdef HLLD_PHYSICAL_SAFETY //If star state is unphysical (e.g. thermal pressure <= 0), try HLLE (more robust)
     wss.p = pT - wss.B*wss.B*_1_8pi;
-    if(!wss.isPhysical() || !uss.isFinite()) return HLLE();
+    if (!wss.isPhysical() || !uss.isFinite()) return HLLE();
     #endif
     
     //Copy density and calculate final flux
-    if(SM >= 0){//Left
+    if (SM >= 0) {//Left
         return FsL + (uss-usL)*SsL;
     } else {//Right
         return FsR + (uss-usR)*SsR;
@@ -166,35 +167,35 @@ ConservativeState Riemann::HLLD_zero_B(double SL, double SR){
     PrimitiveState wsL, wsR;
     double pT = (_xR*pTL - _xL*pTR + _xL*_xR*(R.v.x - L.v.x)) / (_xR - _xL);
     
-    if(SM >= 0) {//If this isn't true, we are between right fast/alfven, so we won't need FsL
+    if (SM >= 0) {//If this isn't true, we are between right fast/alfven, so we won't need FsL
         compute_outer_star_zero_B(usL, L, _xL, SL, SM, pT);
         wsL.rho = usL.rho;
         wsL.v = usL.mom / usL.rho;
         wsL.B = usL.B;
 
-        #ifdef HLLD_PHYSICAL_SAFETY
+        #ifdef HLLD_PHYSICAL_SAFETY  //If star state is unphysical (e.g. thermal pressure <= 0), try HLLE (more robust)
         wsL.p = pT - wsL.B*wsL.B*_1_8pi;
-        if(!wsL.isPhysical() || !usL.isFinite()) return HLLE();
+        if (!wsL.isPhysical() || !usL.isFinite()) return HLLE();
         #endif
         
         FsL =  L.flux() + (usL - L)*SL; FsL.B.x = 0;
     }
-    if(SM <= 0) { //If this isn't true, we are between left fast/alfven, so we won't need FsR
+    if (SM <= 0) { //If this isn't true, we are between left fast/alfven, so we won't need FsR
         compute_outer_star_zero_B(usR, R, _xR, SR, SM, pT);
         wsR.rho = usR.rho;
         wsR.v = usR.mom / usR.rho;
         wsR.B = usR.B;
 
-        #ifdef HLLD_PHYSICAL_SAFETY
+        #ifdef HLLD_PHYSICAL_SAFETY //If star state is unphysical (e.g. thermal pressure <= 0), try HLLE (more robust)
         wsR.p = pT - wsR.B*wsR.B*_1_8pi;
-        if(!wsR.isPhysical() || !usR.isFinite()) return HLLE();
+        if (!wsR.isPhysical() || !usR.isFinite()) return HLLE();
         #endif
         
         FsR = R.flux() + (usR - R)*SR; FsR.B.x = 0;
     }
             
-    if(SM > 0) return FsL;//Check for Left fast-alfven region, if so can return the flux now
-    if(SM < 0) return FsR;//Check for Right fast-alfven region, if so can return the flux now
+    if (SM > 0) return FsL;//Check for Left fast-alfven region, if so can return the flux now
+    if (SM < 0) return FsR;//Check for Right fast-alfven region, if so can return the flux now
 
     
     //Special case: right on the contact wave (down to the bit)

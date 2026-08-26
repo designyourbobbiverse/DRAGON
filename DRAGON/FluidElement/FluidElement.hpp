@@ -1,5 +1,5 @@
 //
-//  FluidElement.hpp
+//  FluidElement/FluidElement.hpp
 //  DRAGON/FluidElement
 //  User-Facing Header file
 //
@@ -9,8 +9,10 @@
 #ifndef FluidElement_hpp
 #define FluidElement_hpp
 
-#include "Config.h"
+#include "Config.h" //#ifdef MHD code only compiles if MHD is defined in Config.h
 
+namespace DRAGON{
+struct vec3;
 struct PrimitiveState;
 struct ConservativeState;
 
@@ -36,12 +38,12 @@ struct PrimitiveState {
     double rho, p;
     //Velocity
     vec3 v;
-#ifdef MHD
+    #ifdef MHD
     //Magnetic Field
-    //Stored in Gaussian units, be explicit  with 4*M_PI
+    //Stored in Gaussian units, be explicit  with 4pi
     vec3 B;
-#endif
-     
+    #endif
+    
     PrimitiveState(); //Constructs a zero state
     PrimitiveState(ConservativeState state); //Converts conservative to primitive
     
@@ -50,19 +52,19 @@ struct PrimitiveState {
     double energy() const;//Energy Density
     double enthalpy() const;//Enthalpy per particle
     double cs() const; //Speed of hydrodynamic sound waves
-#ifdef MHD
+    #ifdef MHD
     double c_alfven() const; //Alfven wave speed
     double c_fast() const; //Wave speed for the fast magnetosonic mode (along x)
     double c_fast_max() const; //Wave speed for the fast magnetosonic mode (fastest of x/y/z)
 private:
     double c_fast(double Bk) const; //Wave speed for the fast magnetosonic mode along the k direction
 public:
-#endif
+    #endif
     
     //Computes the x-direction flux
     //Flux is stored as a Conservative state equal to [flux] * (1 time unit)/(1 length unit)
     ConservativeState flux() const;
-
+    
     //swapped__() returns a copy with the two specified components swapped
     PrimitiveState swappedXY() const;
     PrimitiveState swappedXZ() const;
@@ -82,11 +84,11 @@ struct ConservativeState {
     double rho, E;
     //Momentum density
     vec3 mom;
-#ifdef MHD
+    #ifdef MHD
     //Magnetic Field
-    //Stored in Gaussian units, be explicit  with 4*M_PI
+    //Stored in Gaussian units, be explicit  with 4pi
     vec3 B;
-#endif
+    #endif
     
     ConservativeState();//Constructs a zero state
     ConservativeState(const ConservativeState&) = default; //copying
@@ -99,7 +101,7 @@ struct ConservativeState {
     //Flux is stored as a Conservative state equal to [flux] * (1 time unit)/(1 length unit)
     ConservativeState flux() const;
     ConservativeState flux(vec3 v) const; //More effiecient version if you already know v
-
+    
     //swapped__() returns a copy with the two specified components swapped
     ConservativeState swappedXY() const;
     ConservativeState swappedXZ() const;
@@ -114,45 +116,44 @@ struct ConservativeState {
     // Checks whether all components are finite
     bool isFinite() const;
 };
-
+}
 
 //== verifies that all components are equal, to within an absolute difference of 1e-12 computational units
-bool operator==(const PrimitiveState &X, const PrimitiveState &Y);
-bool operator==(const ConservativeState &X, const ConservativeState &Y);
-bool operator==(const vec3 &v, const vec3 &w);
+bool operator==(const DRAGON::PrimitiveState &X, const DRAGON::PrimitiveState &Y);
+bool operator==(const DRAGON::ConservativeState &X, const DRAGON::ConservativeState &Y);
+bool operator==(const DRAGON::vec3 &v, const DRAGON::vec3 &w);
 
 
 //Arithmetic (+): Add two conservative states or 3-vectors together
-ConservativeState operator+(ConservativeState X, const ConservativeState &Y);
-ConservativeState& operator+=(ConservativeState &X, const ConservativeState &Y);
-vec3 operator+(vec3 v, const vec3 &w);
-vec3& operator+=(vec3 &v, const vec3 &w);
+DRAGON::ConservativeState operator+(DRAGON::ConservativeState X, const DRAGON::ConservativeState &Y);
+DRAGON::ConservativeState& operator+=(DRAGON::ConservativeState &X, const DRAGON::ConservativeState &Y);
+DRAGON::vec3 operator+(DRAGON::vec3 v, const DRAGON::vec3 &w);
+DRAGON::vec3& operator+=(DRAGON::vec3 &v, const DRAGON::vec3 &w);
 //Arithmetic (-): Subtract one state or 3-vector from another of the same type
-ConservativeState operator-(ConservativeState X, const ConservativeState &Y);
-ConservativeState& operator-=(ConservativeState &X, const ConservativeState &Y);
-vec3 operator-(vec3 v, const vec3 &w);
-vec3& operator-=(vec3 &v, const vec3 &w);
+DRAGON::ConservativeState operator-(DRAGON::ConservativeState X, const DRAGON::ConservativeState &Y);
+DRAGON::ConservativeState& operator-=(DRAGON::ConservativeState &X, const DRAGON::ConservativeState &Y);
+DRAGON::vec3 operator-(DRAGON::vec3 v, const DRAGON::vec3 &w);
+DRAGON::vec3& operator-=(DRAGON::vec3 &v, const DRAGON::vec3 &w);
 //Arithmetic (*): Multiply a conservative state or 3-vector by some scalar.
-ConservativeState operator*(ConservativeState X, double a);//state * scalar
-ConservativeState operator*(const double &a, ConservativeState X);//scalar * state
-ConservativeState& operator*=(ConservativeState &X, double a); //state *= scalar
-vec3 operator*(vec3 v, double a);//vector * scalar
-vec3 operator*(const double &a, vec3 v); //scalar * vector
-vec3& operator*=(vec3 &v, double a); //vector *= scalar
+DRAGON::ConservativeState operator*(DRAGON::ConservativeState X, double a);//state * scalar
+DRAGON::ConservativeState operator*(const double &a, DRAGON::ConservativeState X);//scalar * state
+DRAGON::ConservativeState& operator*=(DRAGON::ConservativeState &X, double a); //state *= scalar
+DRAGON::vec3 operator*(DRAGON::vec3 v, double a);//vector * scalar
+DRAGON::vec3 operator*(const double &a, DRAGON::vec3 v); //scalar * vector
+DRAGON::vec3& operator*=(DRAGON::vec3 &v, double a); //vector *= scalar
 //Arithmetic (*): Dot product
-double operator*(const vec3& v, const vec3& w); //Returns v.x*w.x + v.y*w.y + v.z*w.z
+double operator*(const DRAGON::vec3& v, const DRAGON::vec3& w); //Returns v.x*w.x + v.y*w.y + v.z*w.z
 //Arithmetic: Cross product
-vec3 cross(const vec3& v, const vec3& w);
+DRAGON::vec3 cross(const DRAGON::vec3& v, const DRAGON::vec3& w);
 
 //Arithmetic (/): Divide a conservative state or 3-vector by some scalar
-ConservativeState operator/(ConservativeState X, double a);
-ConservativeState& operator/=(ConservativeState &X, double a);
-vec3 operator/(vec3 v, double a);
-vec3& operator/=(vec3 &v, double a);
+DRAGON::ConservativeState operator/(DRAGON::ConservativeState X, double a);
+DRAGON::ConservativeState& operator/=(DRAGON::ConservativeState &X, double a);
+DRAGON::vec3 operator/(DRAGON::vec3 v, double a);
+DRAGON::vec3& operator/=(DRAGON::vec3 &v, double a);
 
 //Arithmetic (+): Adjust primative state by an amount equal to flux * (1 time unit) / (1 length unit)
-PrimitiveState& operator+=(PrimitiveState &X, const ConservativeState &flux);
-
+DRAGON::PrimitiveState& operator+=(DRAGON::PrimitiveState &X, const DRAGON::ConservativeState &flux);
 
 
 

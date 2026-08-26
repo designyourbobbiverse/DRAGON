@@ -3,10 +3,12 @@
 //  DRAGON/Examples/1D/SOD
 //
 //  Created by Bobbie Markwick on 7/07/2026.
+//  Sod (1978). https://doi.org/10.1016/0021-9991(78)90023-2
 //
 
-#include "Problem.hpp"
-#include "DistGrid.hpp"
+#include "main/Problem.hpp"
+#include "Refinement/DistGrid.hpp"
+using namespace DRAGON;
 
 typedef Grid1D MyGrid;//Choose the dimension of your grid here
 

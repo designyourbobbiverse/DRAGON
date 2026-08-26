@@ -9,40 +9,41 @@
 //      Harten and Hyman (1983). https://doi.org/10.1016/0021-9991(83)90066-9
 //
 
-#include "Riemann.hpp"
+#include "Hydro/Riemann/Riemann.hpp"
 
-#include <cmath> //For std::sqrt, abs
-#include "Constants.h" //For gamma
+#include <cmath>        //For std::sqrt, abs
+#include "Constants.h"  //For _gamma
+using namespace DRAGON;
 
 #ifdef HYDRO_AVAILABLE
 //MARK: Eigenvectors
-inline ConservativeState _K1(vec3 _v, double _H, double _a){
+inline ConservativeState _K1(vec3 _v, double _H, double _a){ //left acoustic wave
     ConservativeState K = ConservativeState();
     K.rho = 1;
     K.mom = _v - vec3{_a,0,0};
     K.E = _H - _v.x*_a;
     return K;
 }
-inline ConservativeState _K2(vec3 _v, double _V2){
+inline ConservativeState _K2(vec3 _v, double _V2){ //Entropy wave
     ConservativeState K = ConservativeState();
     K.rho = 1;
     K.mom = _v;
     K.E = _V2/2;
     return K;
 }
-inline ConservativeState _K3(double _vy){
+inline ConservativeState _K3(double _vy){ //y-shear wave
     ConservativeState K = ConservativeState();
     K.mom.y = 1;
     K.E = _vy;
     return K;
 }
-inline ConservativeState _K4(double _vz){
+inline ConservativeState _K4(double _vz){ //z-shear wave
     ConservativeState K = ConservativeState();
     K.mom.z = 1;
     K.E = _vz;
     return K;
 }
-inline ConservativeState _K5(vec3 _v, double _H, double _a){
+inline ConservativeState _K5(vec3 _v, double _H, double _a){ //Right acoustic wave
     ConservativeState K = ConservativeState();
     K.rho = 1;
     K.mom = _v + vec3{_a,0,0};
@@ -73,25 +74,28 @@ ConservativeState Riemann::Roe(){
         (R.rho - L.rho) - (R.p - L.p)/(_a*_a),  _rho * (R.v.y - L.v.y),  _rho * (R.v.z - L.v.z),
         ((R.p - L.p) + _rho*_a*(R.v.x - L.v.x)) / (2*_a*_a)
     };
-#ifdef Harten_Hyman
+    
+    //Entropy fix
+    #ifdef Harten_Hyman //Harten and Hyman (1983). https://doi.org/10.1016/0021-9991(83)90066-9
     ConservativeState SL = UL + alpha[0]*K[0];
     double aL = std::sqrt(_gamma * L.p/L.rho), aSL = std::sqrt(_gamma*SL.pressure()/SL.rho);
     double lambdaL = L.v.x-aL, lambdaLS = SL.mom.x/SL.rho - aSL;
-    if(lambdaL < 0 &&  lambdaLS > 0 ) {//Left Rarefaction
+    if (lambdaL < 0 &&  lambdaLS > 0 ) {//Left Rarefaction
         double _lambda = lambdaL * (lambda[0] - lambdaLS)/(lambdaL - lambdaLS);
         return UL.flux(L.v) + _lambda*alpha[0]*K[0];
     }
     ConservativeState SR = UR - alpha[4]*K[4];
     double aR = std::sqrt(_gamma * R.p/R.rho), aSR = std::sqrt(_gamma*SR.pressure()/SR.rho);
     double lambdaR = R.v.x+aR, lambdaRS = SR.mom.x/SR.rho + aSR;
-    if(lambdaR > 0 &&  lambdaRS  < 0) {//Right Rarefaction
+    if (lambdaR > 0 &&  lambdaRS  < 0) {//Right Rarefaction
         double _lambda = lambdaR * (lambda[4] - lambdaRS)/(lambdaR - lambdaRS);
         return UR.flux(R.v) - _lambda*alpha[4]*K[4];
     }
-#endif
+    #endif
+    
     //Combine the waves
     ConservativeState F = (UL.flux(L.v) + UR.flux(R.v));
-    for(int i = 0; i < 5; i++) F -= alpha[i]*std::abs(lambda[i])*K[i];
+    for (int i = 0; i < 5; i++) F -= alpha[i]*std::abs(lambda[i])*K[i];
     return F/2;
 }
 

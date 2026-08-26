@@ -10,10 +10,11 @@
 #include "DragonWing.hpp" //For parallelization
 
 #include "Config.h"
-#include <cmath>        //For std::sqrt, pow
-#include <algorithm>    //For std::max
-#include "Boundary.hpp" //For Boundary.Ignore
-#include <utility>      //For std::move
+#include <cmath>                 //For std::sqrt, pow
+#include <algorithm>             //For std::max
+#include "Boundary/Boundary.hpp" //For Boundary.Ignore
+#include <utility>               //For std::move
+using namespace DRAGON;
 
  
 //MARK: Bin Setup
@@ -29,9 +30,9 @@ static int validGhosts(int g){ //How many ghost cells are needed to do this corr
     #if defined(MUSCL_Hancock)
     return std::max(g, 4);
     #else
-    return std::max(g, 3);
+    return std::max(g, 2);
     #endif
-#elif  defined(MHD) && defined (CTU)
+#elif  defined(MHD) && defined (CTU) //Needs a 3rd ghost to properly calculate electric fields at the boundary
     return std::max(g, 3);
 #else
     return std::max(g, 2); //Unsplit syncs afeter every advance, so unless using MHD+CTU it's safe to use 2 ghosts
@@ -41,38 +42,38 @@ static int validGhosts(int g){ //How many ghost cells are needed to do this corr
 DistGrid1D::DistGrid1D(int nx, double dx_, int g, bool root): Grid1D(nx, dx_,validGhosts(g)), size_x(nx*dx_){
     
     
-    ncx = root ? CONFIG::core_count : 1;
+    ncx = root ? Config::core_count : 1;
 
-    if (ncx > 1){ //Children
+    if (ncx > 1) { //Children
         children.reserve(ncx);
-        for(int i = 0; i<ncx; i++){
+        for (int i = 0; i<ncx; i++) {
             int _nx = computeChildSize(nx, ncx, i);
         
             auto child = std::make_unique<DistGrid1D>(_nx, dx, getGhosts(), false);
-            child->boundary = Boundary::Ignore();
+            child->boundary = Boundary::Ignore(); //Child ghosts are filled by parent, not by boundary API
             children.push_back(std::move(child));
         }
     }
 }
 
-DistGrid2D::DistGrid2D(int nx, int ny, double dx_, double dy_, int g, bool root): Grid2D(nx, ny, dx_, dy_, validGhosts(g)), size_x(nx*dx_),size_y(ny*dy_) {
+DistGrid2D::DistGrid2D(int nx, int ny, double dx_, double dy_, int g, bool root): Grid2D(nx, ny, dx_, dy_, validGhosts(g)), size_x(nx*dx_),size_y(ny*dy_){
 
-    if(!root){ ncx = 1; ncy = 1; return;}
+    if (!root) { ncx = 1; ncy = 1; return;}
     
     //Goal: nx/ncx = ny/ncy,  ncx*ncy = core_count
-    ncx = std::ceil(std::sqrt( CONFIG::core_count * double(nx)/double(ny)) ); //ncx = core_count / ncy =  core_count * (nx/ny)/ ncx
-    ncy = std::ceil(std::sqrt( CONFIG::core_count * double(ny)/double(nx)) ); //ncy = core_count / ncx =  core_count * (ny/nx)/ ncy
+    ncx = std::ceil(std::sqrt( Config::core_count * double(nx)/double(ny)) ); //ncx = core_count / ncy =  core_count * (nx/ny)/ ncx
+    ncy = std::ceil(std::sqrt( Config::core_count * double(ny)/double(nx)) ); //ncy = core_count / ncx =  core_count * (ny/nx)/ ncy
 
     
-    if (ncx > 1 || ncy > 1){ //Children
+    if (ncx > 1 || ncy > 1) { //Children
         children.reserve(ncx * ncy);
-        for(int i = 0; i<ncx; i++){
+        for (int i = 0; i<ncx; i++) {
             int _nx = computeChildSize(nx, ncx, i);
-            for(int j = 0; j<ncy; j++){
+            for (int j = 0; j<ncy; j++) {
                 int _ny = computeChildSize(ny, ncy, j);
 
                 auto child = std::make_unique<DistGrid2D>(_nx, _ny, dx, dy, getGhosts(), false);
-                child->boundary = Boundary::Ignore();
+                child->boundary = Boundary::Ignore(); //Child ghosts are filled by parent, not by boundary API
                 children.push_back(std::move(child));
             }
         }
@@ -83,25 +84,25 @@ DistGrid2D::DistGrid2D(int nx, int ny, double dx_, double dy_, int g, bool root)
 DistGrid3D::DistGrid3D(int nx, int ny, int nz, double dx_, double dy_, double dz_, int g, bool root):
     Grid3D(nx, ny, nz, dx_, dy_, dz_, validGhosts(g)), size_x(nx*dx_),size_y(ny*dy_), size_z(nz*dz_){
 
-    if(!root){ ncx = 1; ncy = 1; ncz = 1; return;}
+    if (!root) { ncx = 1; ncy = 1; ncz = 1; return;}
         
     //Goal: nx/ncx = ny/ncy = nz/ncz,  ncx*ncy*ncz = core_count
     double rxy = double(nx)/double(ny), rxz = double(nx)/double(nz), ryz = double(ny)/double(nz);
-    ncx = std::ceil(std::pow( CONFIG::core_count * rxy*rxz, 0.3333) ); //ncx = core_count / (ncy*ncz) =  core_count * (nx/ny) * (nx/nz)/ ncx^2
-    ncy = std::ceil(std::pow( CONFIG::core_count * ryz/rxy, 0.3333) ); //ncy = core_count / (ncx*ncz) =  core_count * (ny/nx) * (ny/nz)/ ncy^2
-    ncz = std::ceil(std::pow( CONFIG::core_count / (rxz*ryz), 0.3333) ); //ncz = core_count / (ncy*ncz) =  core_count * (nz/nx) * (nz/ny)/ ncz^2
+    ncx = std::ceil(std::pow( Config::core_count * rxy*rxz, 0.3333) ); //ncx = core_count / (ncy*ncz) =  core_count * (nx/ny) * (nx/nz)/ ncx^2
+    ncy = std::ceil(std::pow( Config::core_count * ryz/rxy, 0.3333) ); //ncy = core_count / (ncx*ncz) =  core_count * (ny/nx) * (ny/nz)/ ncy^2
+    ncz = std::ceil(std::pow( Config::core_count / (rxz*ryz), 0.3333) ); //ncz = core_count / (ncy*ncz) =  core_count * (nz/nx) * (nz/ny)/ ncz^2
 
-    if (ncx > 1 || ncy > 1 || ncz > 1){ //Children
+    if (ncx > 1 || ncy > 1 || ncz > 1) { //Children
         children.reserve(ncx * ncy * ncz);
-        for(int i = 0; i<ncx; i++){
+        for (int i = 0; i<ncx; i++) {
             int _nx = computeChildSize(nx, ncx, i);
-            for(int j = 0; j<ncy; j++){
+            for (int j = 0; j<ncy; j++) {
                 int _ny = computeChildSize(ny, ncy, j);
-                for(int k = 0; k<ncz; k++){
+                for (int k = 0; k<ncz; k++) {
                     int _nz = computeChildSize(nz, ncz, k);
                     
                     auto child = std::make_unique<DistGrid3D>(_nx, _ny, _nz, dx, dy, dz, getGhosts(), false);
-                    child->boundary = Boundary::Ignore();
+                    child->boundary = Boundary::Ignore(); //Child ghosts are filled by parent, not by boundary API
                     children.push_back(std::move(child));
                 }
             }
@@ -113,47 +114,45 @@ DistGrid3D::DistGrid3D(int nx, int ny, int nz, double dx_, double dy_, double dz
 //MARK: Parent -> Child
 
 void DistGrid1D::pushToChildren(){
-    if(ncx == 1) return; //This is the child
+    if (ncx == 1) return; //This is the child
     const int ng = getGhosts();
     int x_offset = 0;
-    for(int zi = 0; zi<ncx; zi++){
+    for (int zi = 0; zi<ncx; zi++) {
         std::unique_ptr<DistGrid1D>& child = children[zi];
         //Copy parent data to child
-        for(int i = -ng; i < child->getSize() + ng; i++){
+        for (int i = -ng; i < child->getSize() + ng; i++) {
             (*child)[i] = w[i+x_offset];
             
         }
-        child->boundary = Boundary::Ignore(); //Don't let the boundary API overwrite this
         child->pushToChildren(); //If children have children, make them sync too
            
         x_offset += child->getSize();
     }
 }
 void DistGrid2D::pushToChildren(){
-    if(ncx*ncy == 1) return;
+    if (ncx*ncy == 1) return;
     const int ng = getGhosts();
 
     int x_offset = 0;
-    for(int zi = 0; zi<ncx; zi++){
+    for (int zi = 0; zi<ncx; zi++) {
         const int _nx = children[ncy*zi]->getSizeX();
         int y_offset = 0;
-        for(int zj = 0; zj<ncy; zj++){
+        for (int zj = 0; zj<ncy; zj++) {
             std::unique_ptr<DistGrid2D>& child = children[ncy*zi + zj];
             const int _ny = child->getSizeY();
             //Copy parent fluid to child
-            for(int i = -ng; i < _nx + ng; i++){
-                for(int j = -ng; j < _ny +ng; j++){
+            for (int i = -ng; i < _nx + ng; i++) {
+                for (int j = -ng; j < _ny +ng; j++) {
                     (*child)[i,j] = w[i+x_offset, j+y_offset];
                 }
             }
             #ifdef MHD//Copy parent magnetic fields to child
-            for(int i = -ng; i <= _nx + ng; i++){
-                for(int j = -ng; j <= _ny + ng; j++){
+            for (int i = -ng; i <= _nx + ng; i++) {
+                for (int j = -ng; j <= _ny + ng; j++) {
                     child->B[i,j] = B[i+x_offset, j+y_offset];
                 }
             }
             #endif
-            child->boundary = Boundary::Ignore();//Don't let the boundary API overwrite this
             child->pushToChildren();//If children have children, make them sync too
             
             y_offset += _ny;
@@ -162,37 +161,36 @@ void DistGrid2D::pushToChildren(){
     }
 }
 void DistGrid3D::pushToChildren(){
-    if(ncx*ncy*ncz == 1) return;
+    if (ncx*ncy*ncz == 1) return;
     const int ng = getGhosts();
     
     int x_offset = 0;
-    for(int zi = 0; zi<ncx; zi++){
+    for (int zi = 0; zi<ncx; zi++) {
         const int _nx = children[ncz*ncy*zi]->getSizeX();
         int y_offset = 0;
-        for(int zj = 0; zj<ncy; zj++){
+        for (int zj = 0; zj<ncy; zj++) {
             const int _ny = children[ncz*(ncy*zi + zj)]->getSizeY();
             int z_offset = 0;
-            for(int zk = 0; zk<ncz; zk++){
+            for (int zk = 0; zk<ncz; zk++) {
                 std::unique_ptr<DistGrid3D>& child = children[ncz*(ncy*zi + zj) + zk];
                 const int _nz = child->getSizeZ();
                 //Copy parent fluid to child
-                for(int i = -ng; i < _nx + ng; i++){
-                    for(int j = -ng; j < _ny + ng; j++){
-                        for(int k = -ng; k < _nz + ng; k++){
+                for (int i = -ng; i < _nx + ng; i++) {
+                    for (int j = -ng; j < _ny + ng; j++) {
+                        for (int k = -ng; k < _nz + ng; k++) {
                             (*child)[i,j,k] = w[i+x_offset, j+y_offset, k+z_offset];
                         }
                     }
                 }
                 #ifdef MHD//Copy parent magnetic fields to child
-                for(int i = -ng; i <= _nx + ng; i++){
-                    for(int j = -ng; j <= _ny + ng; j++){
-                        for(int k = -ng; k <= _nz + ng; k++){
+                for (int i = -ng; i <= _nx + ng; i++) {
+                    for (int j = -ng; j <= _ny + ng; j++) {
+                        for (int k = -ng; k <= _nz + ng; k++) {
                             child->B[i,j,k] = B[i+x_offset, j+y_offset, k+z_offset];
                         }
                     }
                 }
                 #endif
-                child->boundary = Boundary::Ignore();//Don't let the boundary API overwrite this
                 child->pushToChildren();//If children have children, make them sync too
                 
                 z_offset += _nz;
@@ -206,13 +204,13 @@ void DistGrid3D::pushToChildren(){
 
 //MARK: Child -> Parent
 void DistGrid1D::loadFromChildren(){
-    if(ncx == 1) return;
+    if (ncx == 1) return;
     int x_offset = 0;
-    for(int zi = 0; zi<ncx; zi++){
+    for (int zi = 0; zi<ncx; zi++) {
         std::unique_ptr<DistGrid1D>& child = children[zi];
         child->loadFromChildren(); //If children have children, make them sync first
         //Copy child data to parent
-        for(int i = 0; i < child->getSize(); i++) {
+        for (int i = 0; i < child->getSize(); i++) {
             w[i+x_offset] = (*child)[i];
         }
         x_offset += child->getSize();
@@ -220,24 +218,24 @@ void DistGrid1D::loadFromChildren(){
 }
 
 void DistGrid2D::loadFromChildren(){
-    if(ncx*ncy == 1) return;
+    if (ncx*ncy == 1) return;
     int x_offset = 0;
-    for(int zi = 0; zi<ncx; zi++){
+    for (int zi = 0; zi<ncx; zi++) {
         int _nx = children[ncy*zi]->getSizeX();
         int y_offset = 0;
-        for(int zj = 0; zj<ncy; zj++){
+        for (int zj = 0; zj<ncy; zj++) {
             std::unique_ptr<DistGrid2D>& child = children[ncy*zi + zj];
             child->loadFromChildren();//If children have children, make them sync first
             int _ny = child->getSizeY();
             //Copy child fluid to parent
-            for(int i = 0; i < _nx; i++){
-                for(int j=0; j < _ny; j++){
+            for (int i = 0; i < _nx; i++) {
+                for (int j=0; j < _ny; j++) {
                     w[i+x_offset, j+y_offset] = (*child)[i,j];
                 }
             }
             #ifdef MHD//Copy child magnetic fields to parent
-            for(int i = 0; i <= _nx; i++){
-                for(int j=0; j <= _ny; j++){
+            for (int i = 0; i <= _nx; i++) {
+                for (int j=0; j <= _ny; j++) {
                     B[i+x_offset, j+y_offset] = child->B[i,j];
                 }
             }
@@ -250,30 +248,30 @@ void DistGrid2D::loadFromChildren(){
 }
 
 void DistGrid3D::loadFromChildren(){
-    if(ncx*ncy*ncz == 1) return;
+    if (ncx*ncy*ncz == 1) return;
     int x_offset = 0;
-    for(int zi = 0; zi<ncx; zi++){
+    for (int zi = 0; zi<ncx; zi++) {
         int _nx = children[ncz*ncy*zi]->getSizeX();
         int y_offset = 0;
-        for(int zj = 0; zj<ncy; zj++){
+        for (int zj = 0; zj<ncy; zj++) {
             int _ny = children[ncz*(ncy*zi+zj)]->getSizeY();
             int z_offset = 0;
-            for(int zk = 0; zk<ncz; zk++){
+            for (int zk = 0; zk<ncz; zk++) {
                 std::unique_ptr<DistGrid3D>& child = children[ncz*(ncy*zi + zj) + zk];
                 child->loadFromChildren();//If children have children, make them sync first
                 int _nz = child->getSizeZ();
                 //Copy child fluid to parent
-                for(int i = 0; i < _nx; i++){
-                    for(int j=0; j < _ny; j++){
-                        for(int k=0; k < _nz; k++){
+                for (int i = 0; i < _nx; i++) {
+                    for (int j=0; j < _ny; j++) {
+                        for (int k=0; k < _nz; k++) {
                             w[i+x_offset, j+y_offset, k+z_offset] = (*child)[i,j,k];
                         }
                     }
                 }
                 #ifdef MHD //Copy child magnetic fields to parent
-                for(int i = 0; i <= _nx; i++){
-                    for(int j=0; j <= _ny; j++){
-                        for(int k=0; k <= _nz; k++){
+                for (int i = 0; i <= _nx; i++) {
+                    for (int j=0; j <= _ny; j++) {
+                        for (int k=0; k <= _nz; k++) {
                             B[i+x_offset, j+y_offset, k+z_offset] = child->B[i,j,k];
                         }
                     }
@@ -291,13 +289,11 @@ void DistGrid3D::loadFromChildren(){
 //MARK: Advance
 template <typename T> void DistGrid<T>::step(double dt){
     pushToChildren();
-    DRAGONWING::initialize(static_cast<int>(children.size()));
-    for(auto& child : children){
-        DRAGONWING::launchParallel(child.get(), dt);
-    }
-    bool success = DRAGONWING::waitForCheckpoint2(); //Wait for children to finish
-    if(!success) { //If we failed, try again with half time step
-        throw std::runtime_error(DRAGONWING::restartMsg());
+    DRAGONWING::ThreadPool pool(static_cast<int>(children.size()));
+    for (auto& child : children) pool.launchParallel(child.get(), dt);
+    bool success = pool.waitForCompletion(); //Wait for children to finish
+    if (!success) { //If we failed, throw an exception to trigger a step restart
+        throw std::runtime_error(pool.restartMsg());
     }
     //Copy Back
     loadFromChildren();
@@ -306,26 +302,26 @@ template <typename T> void DistGrid<T>::step(double dt){
 
 //MARK: Subclass Dispatch
 void DistGrid1D::split_step(double dt){
-    if(children.size() <= 1 ){
+    if (children.size() <= 1 ) {
         Grid1D::split_step(dt);
         DRAGONWING::reportCheckpoint2();
     } else { DistGrid::step(dt); }
 }
 void DistGrid1D::unsplit_step(double dt){
-    if(children.size() <= 1 ){
+    if (children.size() <= 1 ) {
         Grid1D::unsplit_step(dt);
         DRAGONWING::reportCheckpoint2();
         return;
     } else { DistGrid::step(dt); }
 }
 void DistGrid2D::split_step(double dt){
-    if(children.size() <= 1 ){
+    if (children.size() <= 1 ) {
         Grid2D::split_step(dt);
         DRAGONWING::reportCheckpoint2();
     } else { DistGrid::step(dt); }
 }
 void DistGrid2D::unsplit_step(double dt){
-    if(children.size() <= 1 ){
+    if (children.size() <= 1 ) {
         Grid2D::unsplit_step(dt);
         DRAGONWING::reportCheckpoint2();
         return;
@@ -333,13 +329,13 @@ void DistGrid2D::unsplit_step(double dt){
 }
 
 void DistGrid3D::split_step(double dt){
-    if(children.size() <= 1 ){
+    if (children.size() <= 1 ) {
         Grid3D::split_step(dt);
         DRAGONWING::reportCheckpoint2();
     } else {  DistGrid::step(dt); }
 }
 void DistGrid3D::unsplit_step(double dt){
-    if(children.size() <= 1 ){
+    if (children.size() <= 1 ) {
         Grid3D::unsplit_step(dt);
         DRAGONWING::reportCheckpoint2();
     } else { DistGrid::step(dt); }
@@ -347,14 +343,14 @@ void DistGrid3D::unsplit_step(double dt){
 
 
 bool DistGrid1D::on_step_fail(const std::exception& e){
-    if(children.size() <= 1 ) return Grid1D::on_step_fail(e);
-    return true;
+    if (children.size() <= 1 ) return Grid1D::on_step_fail(e);
+    return true; //This is the parent, nobody left to pass the restart responsibility to. Return true to excecute the restart
 }
 bool DistGrid2D::on_step_fail(const std::exception& e){
-    if(children.size() <= 1 ) return Grid2D::on_step_fail(e);
-    return true;
+    if (children.size() <= 1 ) return Grid2D::on_step_fail(e);
+    return true; //This is the parent,nobody left to pass the restart responsibility to. Return true to excecute the restart
 }
 bool DistGrid3D::on_step_fail(const std::exception& e){
-    if(children.size() <= 1 ) return Grid3D::on_step_fail(e);
-    return true;
+    if (children.size() <= 1 ) return Grid3D::on_step_fail(e);
+    return true; //This is the parent, nobody left to pass the restart responsibility to. Return true to excecute the restart
 }

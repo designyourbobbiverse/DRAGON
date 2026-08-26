@@ -7,27 +7,28 @@
 
 #include "FluidElement.hpp"
 
-#include "Constants.h" //For gamma & pi-related values
-#include <cmath> //For std::sqrt, std::pow, etc
-#include <algorithm> //For std::max
-#include <utility> //For std::swap
+#include "Constants.h"  //For _gamma & pi-related values (e.g. _1_8pi = 1/(8*pi))
+#include <cmath>        //For std::sqrt, std::pow, etc
+#include <algorithm>    //For std::max
+#include <utility>      //For std::swap
+using namespace DRAGON;
 
 //MARK: Empty Constructors
 PrimitiveState::PrimitiveState(){
     rho = 0;
     v = {0,0,0};
     p = 0;
-#ifdef MHD
+    #ifdef MHD
     B = {0,0,0};
-#endif
+    #endif
 }
 ConservativeState::ConservativeState(){
     rho = 0;
     mom = {0,0,0};
     E = 0;
-#ifdef MHD
+    #ifdef MHD
     B = {0,0,0};
-#endif
+    #endif
 }
 
 //MARK: Type Conversion
@@ -36,41 +37,41 @@ ConservativeState::ConservativeState(PrimitiveState state){
     rho = state.rho;
     mom = rho * state.v; //Momentum Density = Mass Denisty * Velocity
     E = state.energy();
-#ifdef MHD
+    #ifdef MHD
     B = state.B;
-#endif
+    #endif
 }
 
 PrimitiveState::PrimitiveState(ConservativeState state){
     rho = state.rho;
     v = state.mom / rho; //Bulk Velocity = Momentum Density / Mass Denisty
     p = state.pressure();
-#ifdef MHD
+    #ifdef MHD
     B = state.B;
-#endif
+    #endif
 }
 
 double PrimitiveState::energy() const {
     double E =  p/(_gamma - 1.0) + (rho/2)*(v*v); //Thermal + Bulk Kinetic Energy Densities
-#ifdef MHD
-    E += (B*B) * _1_8pi; //Magnetic Energy Density (if applicable)
-#endif
+    #ifdef MHD
+    E += (B*B) * _1_8pi; //Magnetic Energy Density (if applicable). _1_8pi = 1/(8*pi)
+    #endif
     return E;
 }
 double ConservativeState::pressure() const {
     double E_thermal = this->E - (mom*mom)/(2*rho); //Remove Bulk Kinetic Energy Density
-#ifdef MHD
+    #ifdef MHD
      E_thermal -= (B*B) * _1_8pi; //Remove Magnetic Energy Density (if applicable)
-#endif
+    #endif
     return  (_gamma - 1.0) * E_thermal; //Convert thermal energy density to pressure
 }
 
 //Enthalpy per mass
 double PrimitiveState::enthalpy() const {
     double h = energy() + p; //Energy + (Thermal) Pressure
-#ifdef MHD
+    #ifdef MHD
     h += (B*B)  * _1_8pi; //Don't forget magnetic pressure (p is thermal only)
-#endif
+    #endif
     return h / rho; //Divide by density to get per particle
 }
 
@@ -80,15 +81,15 @@ bool isfinite(const vec3& v){
 }
 
 bool PrimitiveState::isPhysical() const {
-#ifdef MHD
-    if(!isfinite(B)) return false;
-#endif
+    #ifdef MHD
+    if (!isfinite(B)) return false;
+    #endif
     return std::isfinite(rho) && isfinite(v) && std::isfinite(p)   && rho > 0.0 && p > 0.0;
 }
 bool ConservativeState::isFinite()  const {
-#ifdef MHD
-    if(!isfinite(B)) return false;
-#endif
+    #ifdef MHD
+    if (!isfinite(B)) return false;
+    #endif
     return std::isfinite(rho) && isfinite(mom) && std::isfinite(E);
 }
 bool ConservativeState::isPhysical()  const {
@@ -103,8 +104,9 @@ double PrimitiveState::cs() const {
 double PrimitiveState::c_alfven() const {
     return std::sqrt( (B*B) / rho ) / sq4pi; //Alfven speed, given in gaussian units
 }
-double PrimitiveState::c_fast() const { return c_fast(B.x); }
+double PrimitiveState::c_fast() const { return c_fast(B.x); } //In the x driection
 double PrimitiveState::c_fast(double Bk) const {
+    //Fast/slow magnetosonic speeds are roots of v^4 − (cs^2+a^2)v^2 + c^2·a_k^2 = 0; this returns the '+' (fast) root.
     //Precompute the sound and alvfen speeds
     double c = cs(), a = c_alfven(), c2 = std::pow(c,2), a2 = std::pow(a,2), ak2 = (Bk * Bk / rho) * _1_4pi;
     // std::max(0,__) to protect against numerical issues
@@ -113,8 +115,8 @@ double PrimitiveState::c_fast(double Bk) const {
     return std::sqrt( (c2 + a2)*0.5 + std::sqrt(disc) );
 }
 double PrimitiveState::c_fast_max() const {
-    double Bk;
-    if(B.x*B.x < B.y*B.y) Bk = (B.x*B.x < B.z*B.z) ?  B.x : B.z;
+    double Bk; //Bk is the smalelst B, which in turn gives highest fast speed
+    if (B.x*B.x < B.y*B.y) Bk = (B.x*B.x < B.z*B.z) ?  B.x : B.z;
     else  Bk = (B.y*B.y < B.z*B.z) ?  B.y : B.z;
     return c_fast(Bk);
 }
@@ -123,12 +125,12 @@ double PrimitiveState::c_fast_max() const {
 //MARK: Flux
 ConservativeState PrimitiveState::flux() const { return ConservativeState(*this).flux(v); }
 ConservativeState ConservativeState::flux() const {
-#ifdef MHD
+    #ifdef MHD
     return flux(mom / rho); //Compute the velocity then call the flux method
-#else
+    #else
     //vy and vz are never used in hydro flux, so don't waste a division on them
     return flux({mom.x / rho, 0 , 0});
-#endif
+    #endif
 }
 ConservativeState ConservativeState::flux(vec3 v) const {
     ConservativeState F = ConservativeState();
@@ -137,7 +139,7 @@ ConservativeState ConservativeState::flux(vec3 v) const {
     F.mom = mom * v.x; //Momentum flux from advection = \rho (v\otimes v)_x = (Momentum density) * x-velocity
     F.mom.x += _p; //Thermal pressure contributes to the normal component of momentum flux
     F.E =  (E + _p) * v.x; //Energy Flux = (Enthalpy density) * normal velocity [1st law of thermodynamics]
-#ifdef MHD
+    #ifdef MHD
     //Magnetic Pressure
     double p_mag = B*B * _1_8pi;
     F.mom.x += p_mag;
@@ -147,9 +149,9 @@ ConservativeState ConservativeState::flux(vec3 v) const {
     F.mom -= mag_ten;
     F.E -= v * mag_ten; //Poynting Flux
     //Magnetic Induction
-    F.B = v.x * B - B.x * v;
+    F.B = v.x * B - B.x * v; //dB/dt = curl(v x B)
     F.B.x = 0; //Guard against weird floating point errors
-#endif
+    #endif
     
     return F;
 }
@@ -187,11 +189,11 @@ vec3 vec3::swappedYZ() const {
 }
 
 
-void PrimitiveState::swapXY() {
+void PrimitiveState::swapXY(){
     v.swapXY();
-#ifdef MHD
+    #ifdef MHD
     B.swapXY();
-#endif
+    #endif
 }
 PrimitiveState PrimitiveState::swappedXY() const {
     PrimitiveState wT = *this; //Copy
@@ -199,11 +201,11 @@ PrimitiveState PrimitiveState::swappedXY() const {
     return wT;//Return
 }
 
-void PrimitiveState::swapXZ() {
+void PrimitiveState::swapXZ(){
     v.swapXZ();
-#ifdef MHD
+    #ifdef MHD
     B.swapXZ();
-#endif
+    #endif
 }
 PrimitiveState PrimitiveState::swappedXZ() const {
     PrimitiveState wT = *this;//Copy
@@ -211,11 +213,11 @@ PrimitiveState PrimitiveState::swappedXZ() const {
     return wT; //Return
 }
 
-void PrimitiveState::swapYZ() {
+void PrimitiveState::swapYZ(){
     v.swapYZ();
-#ifdef MHD
+    #ifdef MHD
     B.swapYZ();
-#endif
+    #endif
 }
 PrimitiveState PrimitiveState::swappedYZ() const {
     PrimitiveState wT = *this; //Copy
@@ -227,11 +229,11 @@ PrimitiveState PrimitiveState::swappedYZ() const {
 
 
 
-void ConservativeState::swapXY() {
+void ConservativeState::swapXY(){
     mom.swapXY();
-#ifdef MHD
+    #ifdef MHD
     B.swapXY();
-#endif
+    #endif
 }
 ConservativeState ConservativeState::swappedXY() const {
     ConservativeState uT = *this; //Copy
@@ -239,11 +241,11 @@ ConservativeState ConservativeState::swappedXY() const {
     return uT;//Return
 }
 
-void ConservativeState::swapXZ() {
+void ConservativeState::swapXZ(){
     mom.swapXZ();
-#ifdef MHD
+    #ifdef MHD
     B.swapXZ();
-#endif
+    #endif
 }
 ConservativeState ConservativeState::swappedXZ() const {
     ConservativeState uT = *this;//Copy
@@ -251,11 +253,11 @@ ConservativeState ConservativeState::swappedXZ() const {
     return uT; //Return
 }
 
-void ConservativeState::swapYZ() {
+void ConservativeState::swapYZ(){
     mom.swapYZ();
-#ifdef MHD
+    #ifdef MHD
     B.swapYZ();
-#endif
+    #endif
 }
 ConservativeState ConservativeState::swappedYZ() const {
     ConservativeState uT = *this; //Copy

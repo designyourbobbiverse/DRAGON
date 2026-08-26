@@ -7,9 +7,9 @@
 //
 
 #include "Testing.hpp"
-#include "Boundary.hpp"
+#include "Boundary/Boundary.hpp"
 
-#include "Grid.hpp"
+#include "Hydro/Grid.hpp"
 #include <iostream> //For std::cout
 
 using namespace DRAGON_Test;
@@ -17,26 +17,26 @@ using namespace Boundary;
 
 
 void DRAGON_Test::verify_boundary_outflow(bool output){
-    if(output) std::cout<<"- 1D: ";
+    if (output) std::cout<<"- 1D: ";
     verify_boundary_outflow_1D();
-    if(output) std::cout<<"Passed\n";
-    if(output) std::cout<<"- 2D: ";
+    if (output) std::cout<<"Passed\n";
+    if (output) std::cout<<"- 2D: ";
     verify_boundary_outflow_2D();
-    if(output) std::cout<<"Passed\n";
-    if(output) std::cout<<"- 3D: ";
+    if (output) std::cout<<"Passed\n";
+    if (output) std::cout<<"- 3D: ";
     verify_boundary_outflow_3D();
-    if(output) std::cout<<"Passed\n";
-    if(output) std::cout<<"- Gated 1D: ";
+    if (output) std::cout<<"Passed\n";
+    if (output) std::cout<<"- Gated 1D: ";
     verify_boundary_outflow_1D_gated();
-    if(output) std::cout<<"Passed\n";
-    if(output) std::cout<<"- Gated 2D: ";
+    if (output) std::cout<<"Passed\n";
+    if (output) std::cout<<"- Gated 2D: ";
     verify_boundary_outflow_2D_gated();
-    if(output) std::cout<<"Passed\n";
-    if(output) std::cout<<"- Gated 3D: ";
+    if (output) std::cout<<"Passed\n";
+    if (output) std::cout<<"- Gated 3D: ";
     verify_boundary_outflow_3D_gated_X();
     verify_boundary_outflow_3D_gated_Y();
     verify_boundary_outflow_3D_gated_Z();
-    if(output) std::cout<<"Passed\n";
+    if (output) std::cout<<"Passed\n";
 }
 
 
@@ -50,7 +50,7 @@ void fill_2D(Grid2D& grid);
 void fill_3D(Grid3D& grid);
 
 //MARK: Outflow - 1D
-void DRAGON_Test::verify_boundary_outflow_1D() {
+void DRAGON_Test::verify_boundary_outflow_1D(){
     Grid1D grid(4, 1.0, 2);
     fill_1D(grid);
 
@@ -77,7 +77,7 @@ void DRAGON_Test::verify_boundary_outflow_1D() {
     expect_close(grid[-2], G);
 }
 //MARK: Outflow - 2D
-void DRAGON_Test::verify_boundary_outflow_2D() {
+void DRAGON_Test::verify_boundary_outflow_2D(){
     Grid2D grid(3, 4, 1.0, 1.0, 1);
     
     //X
@@ -110,7 +110,7 @@ void DRAGON_Test::verify_boundary_outflow_2D() {
     expect_close(grid[-1,-1], grid[0,0]);
 }
 //MARK: Outflow - 3D
-void DRAGON_Test::verify_boundary_outflow_3D() {
+void DRAGON_Test::verify_boundary_outflow_3D(){
     Grid3D grid(3, 4, 5, 1.0, 1.0, 1.0, 1);
     
     //X
