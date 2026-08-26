@@ -11,6 +11,8 @@
 
 #include "Config.h"
 #include "Constants.h" //For _1_4pi
+
+#include "DragonWing.hpp" //For fallback reporting
 using namespace DRAGON;
 
 //MARK: MUSCL-Hancock
@@ -55,6 +57,8 @@ void TVD::MUSCL(const PrimitiveState& wL, PrimitiveState& _L, const PrimitiveSta
     
     //Check to make sure this didn't overshoot past positivity limit, fallback to First order if needed
     if (_L.isPhysical() && _R.isPhysical() ) return;
+        //Report that this cell needs to fall back to first order
+        DRAGONWING::reportFallback(Config::fallback_weight_MUSCL, Config::fallback_limit);
 #endif
     //First order version if MUSCL is disabled or failed physicality check.
     _L = wC;

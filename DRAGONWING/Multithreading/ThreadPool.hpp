@@ -16,7 +16,8 @@ namespace DRAGON{ class Grid;}
 #include <thread>             //Execute tasks in parallel
 #include <mutex>              //For synchronisation
 #include <condition_variable> //For synchronisation
-#include <deque>    //For thread tracking
+#include <deque>              //For thread tracking
+#include <atomic>             //For Fallback Counting
 
 namespace DRAGONWING{
 struct ThreadArgs{ //The things a thread needs to know to do its work
@@ -45,14 +46,19 @@ private:
     //Restart requests
     bool abort_requested = false;
     std::string restart_msg = "";
+    
+    std::atomic<std::size_t> fallback_counter;
 
 public:
     ThreadPool(int N): nthreads(N){} //Create a pool with room for n threads
     void* launchParallel(DRAGON::Grid* grid, double dt); //Execute grid->advance(dt) on a new thread in the pool
     
+    //Error Handling
+    void reportFallback(const int weight, const int threshold); //increase fallback_counter, throw if at/above threshold
     void requestRestart(std::string msg = ""); //Something went wrong, request a restart
     std::string restartMsg(); //The message reported by the first thread to call requestRestart()
     
+    //Checkpoints
     void reportCheckpoint1(); //Report that this thread's subgrid has computed (but not committed) its updated state
     void reportCheckpoint2(); //Report that this thread's subgrid has fully completed (and committed) its update
     //The following waitFor___ functions return false iff a restart has been requested

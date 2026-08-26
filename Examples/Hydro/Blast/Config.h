@@ -32,10 +32,18 @@ namespace DRAGON::Config{
         #define CT_CONSV_THERMAL 1 //Keeps thermal pressure unchanged by CT update. Violates strict energy conservation in exchange for being less prone to numerical issues
         #define CT_CONSV_BETA_GATED 2 //CT_CONSV_THERMAL if beta<ct_energy_beta, otherwise CT_CONSV_TOTAL_E
             constexpr double ct_energy_beta = 0.1;
+            constexpr int fallback_weight_ct_beta = 0;//The fallback reporting weight for cells with beta<ct_energy_beta.
+                //More specifically, the  ratio fallback_limit/fallback_weight_ct_beta gives the maximum number of cells which can use CT_CONSV_THERMAL mode before a restart is triggered.
     #define CT_ENERGY_CONSV CT_CONSV_BETA_GATED
 
 #define DIMENSION_UNSPLIT //Use an Unsplit advancement scheme for multidimensional flows
     #define CTU //Corner Transport Upwind.  Colella (1990). https://doi.org/10.1016/0021-9991(90)90233-Q
+
+
+//Setting fallback_limit will cause an exception to be thrown if too many fallbacks are reported in a given timestep
+//When a fallback behaviour occurs, a counter will be increased by that failure mode's weight. If this brings the threshold to (or above) fallback_limit, the step will restart.
+//If fallback_limit is nonpositive, then all fallback behaviours will apply so long as they successfully salvage a physical end result.
+constexpr int fallback_limit = 0;
 
 //MARK: Riemann Solver
 //DRAGON offers several different choices of Riemann Solver in Hydrodynamic mode, and choice of HLL/D/E in MHD
@@ -60,6 +68,10 @@ namespace DRAGON::Config{
     constexpr double riemann_fallback_param = 1.0; //Scales F*dt/dx for the purpose of physicality verificaiton
 //    #define RIEMANN_FALLBACK_TRY_HLLE //try HLLE before Exact (Hydro) or restart (MHD)
 #endif
+constexpr int fallback_weight_riemann = 0; //The fallback reporting weight for Riemann solver fallbacks.
+    //More specifically, the  ratio fallback_limit/fallback_weight_riemann gives the maximum number of fluxes use a different Riemmann solver than RIEMANN_DEFAULT before a step restart is triggered.
+    //This weight applies to both RIEMANN_VERIFY_FALLBACK and to HLLD_PHYSICAL_SAFETY fallbacks
+
 
 //MARK: Time Control
 
@@ -86,6 +98,9 @@ constexpr double timestep_tolerance = 1e-14; //Timesteps smaller than this are t
         #define LIMITER_SUPERBEE 3 //Very compressive, sharply preserves discontinuities but can be aggressive
         #define LIMITER_VANALBADA 4 //Smooth, reduces clipping near smooth extrema while remaining shock-safe
     #define MUSCL_DEFAULT_LIMITER LIMITER_MINMOD
+    constexpr int fallback_weight_MUSCL = 0;//The fallback reporting weight for MUSCL->constant fallbacks.
+        //More specifically, the  ratio fallback_limit/fallback_weight_MUSCL gives the maximum number of cells which can fall back to constant reconstruction before a restart is triggered.
+
 
 //MARK: Grid Operation
 

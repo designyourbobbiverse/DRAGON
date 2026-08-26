@@ -14,6 +14,8 @@
 #include <cmath>        //For std::abs, sqrt
 #include <algorithm>    //For std::min/max
 #include "Constants.h"  //For pi-coefficients
+
+#include "DragonWing.hpp" //For reporting fallbacks
 using namespace DRAGON;
 
 #ifdef MHD
@@ -77,7 +79,10 @@ ConservativeState Riemann::HLLD(){
 
         #ifdef HLLD_PHYSICAL_SAFETY //If star state is unphysical (e.g. thermal pressure <= 0), try HLLE (more robust)
         wsL.p = pT - wsL.B*wsL.B*_1_8pi;
-        if (!wsL.isPhysical() || !usL.isPhysical()) return HLLE();
+        if (!wsL.isPhysical() || !usL.isPhysical()) {
+                DRAGONWING::reportFallback(Config::fallback_weight_riemann, Config::fallback_limit);
+            return HLLE();
+        }
         #endif
         
         FsL =  L.flux() + (usL - L)*SL; FsL.B.x = 0;
@@ -90,7 +95,10 @@ ConservativeState Riemann::HLLD(){
 
         #ifdef HLLD_PHYSICAL_SAFETY //If star state is unphysical (e.g. thermal pressure <= 0), try HLLE (more robust)
         wsR.p = pT - wsR.B*wsR.B*_1_8pi;
-        if (!wsR.isPhysical() || !usR.isPhysical()) return HLLE();
+        if (!wsR.isPhysical() || !usR.isPhysical()) {
+                DRAGONWING::reportFallback(Config::fallback_weight_riemann, Config::fallback_limit);
+            return HLLE();
+        }
         #endif
         
         FsR = R.flux() + (usR - R)*SR; FsR.B.x = 0;
@@ -122,7 +130,10 @@ ConservativeState Riemann::HLLD(){
     
     #ifdef HLLD_PHYSICAL_SAFETY //If star state is unphysical (e.g. thermal pressure <= 0), try HLLE (more robust)
     wss.p = pT - wss.B*wss.B*_1_8pi;
-    if (!wss.isPhysical() || !uss.isFinite()) return HLLE();
+    if (!wss.isPhysical() || !uss.isFinite()) {
+            DRAGONWING::reportFallback(Config::fallback_weight_riemann, Config::fallback_limit);
+        return HLLE();
+    }
     #endif
     
     //Copy density and calculate final flux
@@ -175,7 +186,10 @@ ConservativeState Riemann::HLLD_zero_B(double SL, double SR){
 
         #ifdef HLLD_PHYSICAL_SAFETY  //If star state is unphysical (e.g. thermal pressure <= 0), try HLLE (more robust)
         wsL.p = pT - wsL.B*wsL.B*_1_8pi;
-        if (!wsL.isPhysical() || !usL.isFinite()) return HLLE();
+        if (!wsL.isPhysical() || !usL.isFinite()) {
+                DRAGONWING::reportFallback(Config::fallback_weight_riemann, Config::fallback_limit);
+            return HLLE();
+        }
         #endif
         
         FsL =  L.flux() + (usL - L)*SL; FsL.B.x = 0;
@@ -188,7 +202,10 @@ ConservativeState Riemann::HLLD_zero_B(double SL, double SR){
 
         #ifdef HLLD_PHYSICAL_SAFETY //If star state is unphysical (e.g. thermal pressure <= 0), try HLLE (more robust)
         wsR.p = pT - wsR.B*wsR.B*_1_8pi;
-        if (!wsR.isPhysical() || !usR.isFinite()) return HLLE();
+        if (!wsR.isPhysical() || !usR.isFinite()) {
+                DRAGONWING::reportFallback(Config::fallback_weight_riemann, Config::fallback_limit);
+            return HLLE();
+        }
         #endif
         
         FsR = R.flux() + (usR - R)*SR; FsR.B.x = 0;
