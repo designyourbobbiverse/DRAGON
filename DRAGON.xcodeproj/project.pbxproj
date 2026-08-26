@@ -48,6 +48,7 @@
 		F76C27C52FDB955000B706F5 /* Exceptions for "DRAGONWING" folder in "DRAGON_TESTS" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				Atomics/FallbackCounter.cpp,
 				Memory/AuxGrids.cpp,
 				Multithreading/ThreadPool.cpp,
 			);

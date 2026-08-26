@@ -1,5 +1,5 @@
 //
-//  pthread_parallel.cpp
+//  ThreadPool.cpp
 //  DRAGONWING/Multithreading
 //
 //  Created by Bobbie Markwick on 11/06/2026.
@@ -22,12 +22,6 @@ static DRAGONWING::ThreadPool* current_thread_pool;
 #endif
 
 //Call the corresponding function on this thread's threadpool, if one exists
-
-void DRAGONWING::reportFallback(int weight, int threshold){
-    if(weight <= 0 || threshold < 0) return; //User doesn't want track this type of fallback
-    if (!current_thread_pool) return; //Single thread mode
-    current_thread_pool->reportFallback(weight, threshold);
-}
 void DRAGONWING::reportCheckpoint1(){
     if (!current_thread_pool) return; //Single thread mode
     current_thread_pool->reportCheckpoint1();
@@ -78,15 +72,6 @@ void* DRAGONWING::ThreadPool::launchParallel(Grid* grid, double dt){
 #endif
 
 //MARK: Error Handling
-void DRAGONWING::ThreadPool::reportFallback(int weight, int threshold){
-    if(weight <= 0 || threshold < 0) return; //User doesn't want track this type of fallback
-    
-    std::size_t prev = fallback_counter.fetch_add(weight, std::memory_order_relaxed);
-    if(prev+weight > threshold){
-        throw std::runtime_error("Too many fallback behaviours reported");
-    }
-}
-
 std::string DRAGONWING::ThreadPool::restartMsg(){
     #ifndef MULTITHREAD_UNAVAILABLE
     std::lock_guard lock(mutex);

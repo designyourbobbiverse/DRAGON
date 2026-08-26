@@ -21,7 +21,6 @@ namespace DRAGONWING{
     //bool waitForCompletion(); //Waits for all threads to finish. Returns false iff anyone requested a restart
 
 //Everything below automatically invokes the ThreadPool associated with the current thread. No need to pass the object around yourself.
-void reportFallback(int weight, int threshold); //Reports a fallback, throws if sum of fallbacks exceeds threshold
 bool requestRestart(std::string msg = ""); //Request that all threads restart the timestep. Returns true iff in multithread mode
 //If any thread requests (or has already requested) a step-restart, all waitFor functions will promptly return false. If on the other hand the waitFor condition is successfully reached, the waitFor functions will return true.
 bool waitForRelease(); //Call this before entering memory-heavy phase 1 to avoid too many threads fighting for memory usage.
@@ -50,6 +49,14 @@ ArrayGuard<DRAGON::ExtendedArray3D<DRAGON::vec3>> requestVec3Arrays(int N, int n
 
 void purgeAllBuffers();
 
+
+//MARK: Atomics
+//DRAGONWING provides an atomic counter to be used for tracking fallback behaviours
+//When a fallback behaviour occurs, use reportFallback(weight,threshold) to increase the counter by weight
+//If this causes the counter to exceed the threshold, then an exception will be thrown
+//Call resetFallbacks() after the step completes to reset the counter
+void reportFallback(int weight, int threshold); //Reports a fallback, throws if sum of fallbacks exceeds threshold
+void resetFallbacks();
 }
 
 
