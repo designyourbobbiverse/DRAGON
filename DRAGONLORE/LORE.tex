@@ -1332,7 +1332,11 @@ DRAGON reports fallback in the following cases
 
 \end{itemize}
 The weights for these fallbacks are defined in DRAGON's \bash{Config.h}: \cpp{Config::fallback_weight_riemann} for the first two cases, \cpp{Config::fallback_weight_MUSCL} for MUSCL falling back to PCM reconstruction,  and \cpp{Config::fallback_weight_ct_beta} for the low-beta guard cases.
-Each of the fallback cases will also pass \cpp{Config::fallback_limit} as the threshold to \cpp{DRAGONWING::reportFallback}. 
+
+Each of the fallback cases will also pass \cpp{Config::fallback_limit} as the threshold for triggering a restart. This limit is the upper bound of the safes zone, it must be \textit{exceeded} to trigger a step restart.
+ Note that \cpp{fallback_limit}  don't take resolution into account; if you are running the same simulation at multiple resolutions, you might consider increasing \cpp{fallback_limit} as resolution increases.
+ % One possible way to do this might be to define your resolution in a separate header file that gets imported by both \bash{Config.h} and \bash{Problem.cpp}, and calculating \cpp{fallback_limit} based on the resolution.
+
 
 As an example, if we use
 \begin{lstlisting}[language=C++]
@@ -1342,7 +1346,6 @@ constexpr int fallback_weight_MUSCL = 4;
 constexpr int fallback_weight_ct_beta = 0;
 \end{lstlisting}
 then a restart will be triggered after three Riemann solver fallbacks, two MUSCL fallbacks, or one of each (plasma-beta fallbacks will not trigger step restarts in this example).
-
 
 
 
@@ -2183,7 +2186,7 @@ Full-page versions of the MHD 1D reference plots referenced from \Cref{sec:tests
 \chapter{Changelog}
 \textbf{Date TBD}: DRAGON v1.1 introduced the following changes
 \begin{itemize}
-\item Added counter (\Cref{sec:atomics}) which triggers step restart after too many fallbacks behaviours have occurred in a step.
+\item Added counter (\Cref{sec:atomics}) which triggers a step restart if too many fallbacks behaviour have occurred in one advancement.
 
 \item Streamlined advancement and exception handling for domain-decomposed grids
 \begin{itemize}
