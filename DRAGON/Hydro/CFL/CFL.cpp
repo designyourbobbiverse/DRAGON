@@ -14,6 +14,7 @@
 #include <algorithm>    //For std::min/max
 
 #include "Boundary/GhostFill.hpp"   //For boundary.apply
+#include "DragonWing.hpp"           //For reseting the fallback counter
 
 #include <stdexcept>    //For std::runtime_error (CFL timestep fails to compute)
 #include <exception>    //For handling step restarts
@@ -164,6 +165,7 @@ void Grid::advance_split(double dt, bool check_cfl){
         double t1 = check_cfl ? std::min(dt,CFL::cfl_time(*this)) : dt;
         //Advance
         do{
+            if(check_cfl) DRAGONWING::resetFallbacks();
             try{
                 split_step(t1);
                 break; //Successful, end the step-attempt loop
@@ -179,7 +181,6 @@ void Grid::advance_split(double dt, bool check_cfl){
                 exit(1);
             }
         } while(true);
-        
         dt -= t1;
     }
 }
@@ -192,6 +193,7 @@ void Grid::advance_unsplit(double dt, bool check_cfl){
         double t1 = check_cfl ? std::min(dt,CFL::cfl_time(*this)) : dt;
         //Advance
         do{
+            if(check_cfl) DRAGONWING::resetFallbacks();
             try{
                 unsplit_step(t1);
                 break; //Successful, end the step-attempt loop
@@ -207,7 +209,6 @@ void Grid::advance_unsplit(double dt, bool check_cfl){
                 exit(1);
             }
         } while(true);
-        
         dt -= t1;
     }
 }
