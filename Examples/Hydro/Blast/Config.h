@@ -33,7 +33,7 @@ namespace DRAGON::Config{
         #define CT_CONSV_BETA_GATED 2 //CT_CONSV_THERMAL if beta<ct_energy_beta, otherwise CT_CONSV_TOTAL_E
             constexpr double ct_energy_beta = 0.1;
             constexpr int fallback_weight_ct_beta = 0;//The fallback reporting weight for cells with beta<ct_energy_beta.
-                //More specifically, the  ratio fallback_limit/fallback_weight_ct_beta gives the maximum number of cells which can use CT_CONSV_THERMAL mode before a restart is triggered.
+                //More specifically, the  ratio fallback_limit/fallback_weight_ct_beta gives the maximum number of cells which can use CT_CONSV_THERMAL mode before a restart is triggered, assuming no other fallbacks.
     #define CT_ENERGY_CONSV CT_CONSV_BETA_GATED
 
 #define DIMENSION_UNSPLIT //Use an Unsplit advancement scheme for multidimensional flows
@@ -69,7 +69,7 @@ constexpr int fallback_limit = 0;
 //    #define RIEMANN_FALLBACK_TRY_HLLE //try HLLE before Exact (Hydro) or restart (MHD)
 #endif
 constexpr int fallback_weight_riemann = 0; //The fallback reporting weight for Riemann solver fallbacks.
-    //More specifically, the  ratio fallback_limit/fallback_weight_riemann gives the maximum number of fluxes use a different Riemmann solver than RIEMANN_DEFAULT before a step restart is triggered.
+    //More specifically, the  ratio fallback_limit/fallback_weight_riemann gives the maximum number of fluxes use a different Riemmann solver than RIEMANN_DEFAULT before a step restart is triggered, assuming no other fallbacks.
     //This weight applies to both RIEMANN_VERIFY_FALLBACK and to HLLD_PHYSICAL_SAFETY fallbacks
 
 
@@ -99,7 +99,7 @@ constexpr double timestep_tolerance = 1e-14; //Timesteps smaller than this are t
         #define LIMITER_VANALBADA 4 //Smooth, reduces clipping near smooth extrema while remaining shock-safe
     #define MUSCL_DEFAULT_LIMITER LIMITER_MINMOD
     constexpr int fallback_weight_MUSCL = 0;//The fallback reporting weight for MUSCL->constant fallbacks.
-        //More specifically, the  ratio fallback_limit/fallback_weight_MUSCL gives the maximum number of cells which can fall back to constant reconstruction before a restart is triggered.
+        //More specifically, the  ratio fallback_limit/fallback_weight_MUSCL gives the maximum number of cells which can fall back to constant reconstruction before a restart is triggered, assuming no other fallbacks.
 
 
 //MARK: Grid Operation
