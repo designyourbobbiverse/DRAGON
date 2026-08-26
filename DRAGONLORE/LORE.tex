@@ -1062,7 +1062,7 @@ The flux is then computed by
 However, the Roe method requires an entropy fix \citep{HartenHyman1983}. This is enabled by \cpp{Harten\_Hyman} in \bash{Config.h}.
 The entropy fix checks whether the left or right acoustic wave is a transonic rarefaction. If this is the case, the offending eigenvalue is replaced by an interpolated value between the fan's bounding speeds before the flux is assembled.
 
-\subsection{Riemann Solver Fallback Behaviour}
+\subsection{Riemann Solver Fallback Behaviour}\label{sec:riemann_fallback}
 
 Most Riemann solvers are not guaranteed to produce physically sound results. DRAGON provides mechanisms to adaptively pivoting to a different solver should one fail.
 One such mechanism is the \cpp{HLLD_PHYSICAL_SAFETY} pathway described in \Cref{sec:HLLD}, which causes the HLLD solver to switch to HLLE in the event that a star state pressure is nonphsyical. 
@@ -1219,7 +1219,7 @@ If instead \cpp{REUSE_AUX_GRIDS} is disabled, Requests for arrays always allocat
 \section{Multithreading}
 \label{sec:wing-threading}
 
-\cpp{DRAGONWING::ThreadPool} is used by \cpp{DistGrid} (see \Cref{sec:distgrid}) to advance sibling subgrids concurrently, each on its own thread. It is constructed with a fixed thread budget \cpp{N} (one thread per child subgrid); \cpp{launchParallel(grid, dt)} is then called once per child to start \cpp{grid->advance(dt, false)}\footnote{\cpp{grid->advance(dt, false)} bypasses the CFL checks of \Cref{sec:CFL} since these are handled by the parent.} running on a new thread. 
+\cpp{DRAGONWING::ThreadPool} is used by \cpp{DistGrid} (see \Cref{sec:distgrid}) to advance sibling subgrids concurrently, each on its own thread. It is constructed with a fixed thread budget \cpp{N} (one thread per child subgrid); \cpp{launchParallel(grid, dt)} is then called once per child to start \cpp{grid->advance_step(dt)} running on a new thread. 
 
 \subsection{Checkpoint Protocol}
 
@@ -1236,7 +1236,7 @@ Subgrids maintain these synchronisation phases as follows:
 \item  \cpp{DRAGONWING::waitForRelease()} (Optional but recommended).  Since phase 1 typically uses a significant amount of scratch memory,  the user might optionally set  \cpp{DRAGONWING::CONFIG::phase_1_max_threads} in \bash{DRAGONWING_Config.hpp} to limit program's total memory usage. The \cpp{ThreadPool} will track the number of threads currently in phase 1. If the number of threads is already at its limit, the caller will be blocked until another thread either reports completion of phase 1 or requests a step restart. \cpp{waitForRelease()} returns a boolean, which is true if the caller is clear to proceed with phase 1 and false if another subgrid has requested a restart (in which case the calling function should return instead of proceeding).
 \item Do the work of phase 1.
 \begin{enumerate}
-\item If an error occurs, call \cpp{DRAGONWING::requestRestart(error_msg)} to request that all subgrids restart the current step. For the first subgrid to request a step restart, the \cpp{error_msg} string can be accessed via \cpp{ThreadPool.restartMsg()}. Calling \cpp{restartMsg()} will then clear the message.
+\item If an error occurs, throw a \cpp{std::exception}. \cpp{launchParallel}'s exception handler will then call \cpp{DRAGONWING::requestRestart(error_msg)} to request that all subgrids restart the current step. For the first subgrid to request a step restart, the \cpp{error_msg} string can be accessed via \cpp{ThreadPool.restartMsg()}. Calling \cpp{restartMsg()} will then clear the message.
 \end{enumerate}
 \item \cpp{DRAGONWING::reportChckpoint1()}. This informs the local \cpp{ThreadPool} that another subgrid has completed phase 1. This will wake up any threads currenlty blocked in \cpp{waitForRelease()} and will allow one to proceed, or if it is the last function to complete it will wake up all threads blocked by in  the next step
 \item \cpp{DRAGONWING::waitForCheckpoint1()}. This will block the current thread until all subgrids have completed phase 1. This function returns a boolean, which is true if the caller is clear to proceed with phase 2 and false if another subgrid has requested a restart (in which case the calling function should return instead of proceeding).
@@ -1249,6 +1249,9 @@ After all subgrids are launched via \cpp{launchParallel(grid, dt)}, call \cpp{wa
 This will wait until either either all threads have reported completion of phase 2 or any thread has requested a step restart. \cpp{waitForCompletion()} will return true if the step was successful, or false if it needs to be restarted.
 
 %When \cpp{MULTITHREAD_UNAVAILABLE} is defined in \bash{DRAGONWING_Config.hpp}, \cpp{ThreadPool} compiles to single-threaded stub implementations: \cpp{launchParallel} runs the grid's advance synchronously on the calling thread instead of spawning one, and every checkpoint/wait function reduces to a check of the (still-cooperative) abort flag. This lets code written against the \cpp{ThreadPool}/checkpoint API run correctly, if serially, on platforms or configurations without thread support.
+
+
+
 
 
 \section{Domain Decomposition}
@@ -1312,12 +1315,33 @@ Leaf grids (\cpp{children.size() <= 1}) bypass all of this: their \cpp{split\_st
 
 
 
+\section{Atomics}
+\label{sec:atomics}
 
+DRAGONWING is responsible for managing any atomic registers which need to be accessed across multiple threads.
+Currently, there is one such register, which tracks fallback behaviours.
+When \cpp{DRAGONWING::reportFallback(weight,threshold)} is called, the fallback counter is incremented by \cpp{weight}. If this causes the counter to attain a value greater than \cpp{threshold}, an exception will be thrown to trigger a restart of the current step.
+The counter is then reset by calling \cpp{DRAGONWING::resetFallbacks()}.
 
+DRAGON reports fallback in the following cases
+\begin{itemize}
+\item When \cpp{Riemann::verify_and_fallback} (\Cref{sec:riemann_fallback}) detects the initial solution to be unphysical.
+\item When HLLD computes a nonphysical star state and reverts to HLLE
+\item When MUSCL computes a nonphysical interface \& reverts to piecwise-constant reconstruction
+\item If \cpp{CT_CONSV_BETA_GATED} is enabled, when the local plasma beta is less than \cpp{Config::ct_energy_beta} and thermal pressure is protected.
 
+\end{itemize}
+The weights for these fallbacks are defined in DRAGON's \bash{Config.h}: \cpp{Config::fallback_weight_riemann} for the first two cases, \cpp{Config::fallback_weight_MUSCL} for MUSCL falling back to PCM reconstruction,  and \cpp{Config::fallback_weight_ct_beta} for the low-beta guard cases.
+Each of the fallback cases will also pass \cpp{Config::fallback_limit} as the threshold to \cpp{DRAGONWING::reportFallback}. 
 
-
-
+As an example, if we use
+\begin{lstlisting}[language=C++]
+constexpr int fallback_limit = 6;
+constexpr int fallback_weight_riemann = 3;
+constexpr int fallback_weight_MUSCL = 4;
+constexpr int fallback_weight_ct_beta = 0;
+\end{lstlisting}
+then a restart will be triggered after three Riemann solver fallbacks, two MUSCL fallbacks, or one of each (plasma-beta fallbacks will not trigger step restarts in this example).
 
 
 
@@ -2157,6 +2181,17 @@ Full-page versions of the MHD 1D reference plots referenced from \Cref{sec:tests
 \end{figure}
 
 \chapter{Changelog}
+\textbf{Date TBD}: DRAGON v1.1 introduced the following changes
+\begin{itemize}
+\item Added counter (\Cref{sec:atomics}) which triggers step restart after too many fallbacks behaviours have occurred in a step.
+
+\item Streamlined advancement and exception handling for domain-decomposed grids
+\begin{itemize}
+\item New \cpp{Grid::advance_step(dt)} delegates to \cpp{split_step} or \cpp{unsplit_step} as appropriate.
+\item \cpp{launchParallel} now calls \cpp{grid.advance_step} instead of \cpp{grid.advance}, calls \cpp{requestRestart()} directly if an exception is thrown.
+\item Removed \cpp{Grid::on_step_fail}
+\end{itemize}
+\end{itemize} 
 \textbf{26 August 2026}:  Initial documentation for DRAGON v1.0
 
 % ================= Bibliography =================
