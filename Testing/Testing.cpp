@@ -13,9 +13,6 @@ using namespace DRAGON_Test;
 using namespace DRAGON;
 int main(){
     
-    verify_WING();
-    return 0;
-    
     auto start = std::chrono::system_clock::now();
     //Data structures
     verify_fluid_element();

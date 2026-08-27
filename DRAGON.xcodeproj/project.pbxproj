@@ -112,6 +112,7 @@
 				Core/TVD_Tests.cpp,
 				Infrastructure/HOARD_Tests.cpp,
 				Infrastructure/WING/WING_Atomic_Tests.cpp,
+				Infrastructure/WING/WING_Concurrency_Tests.cpp,
 				Infrastructure/WING/WING_Memory_Tests.cpp,
 				Infrastructure/WING/WING_Tests_Main.cpp,
 				Testing.cpp,
