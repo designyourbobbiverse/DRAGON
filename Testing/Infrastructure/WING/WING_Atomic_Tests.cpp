@@ -9,10 +9,6 @@
 #include "DragonWing.hpp"
 using namespace DRAGON_Test;
 
-//Things not tested:
-//REUSE_AUX_GRIDS disabled
-//Concurrency Stress Testing
-
 
 void DRAGON_Test::verify_WING_fbcount_no_op(){
     for(int i=0; i<1000;i++){
