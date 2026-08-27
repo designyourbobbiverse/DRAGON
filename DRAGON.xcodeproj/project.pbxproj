@@ -103,7 +103,6 @@
 				Core/Godunov/MHDDimMatch_Tests.cpp,
 				Core/Godunov/MHDGodunov_Tests.cpp,
 				Core/Grid_Tests.cpp,
-				Core/IO_Tests.cpp,
 				Core/MHD/CT_Tests.cpp,
 				Core/MHD/Faraday_tests.cpp,
 				Core/Riemann/HLL_Tests.cpp,
@@ -111,6 +110,7 @@
 				Core/Riemann/Riemann_Tests.cpp,
 				Core/Riemann/Roe_Tests.cpp,
 				Core/TVD_Tests.cpp,
+				Infrastructure/HOARD_Tests.cpp,
 				Testing.cpp,
 			);
 			target = F77A715B2FB415A5006C2776 /* DRAGON_TESTS */;
