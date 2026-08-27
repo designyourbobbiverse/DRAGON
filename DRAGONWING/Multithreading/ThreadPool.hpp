@@ -12,7 +12,6 @@
 namespace DRAGON{ class Grid;}
 
 #include "DRAGONWING_Config.hpp"
-#ifndef MULTITHREAD_UNAVAILABLE
 #include <thread>             //Execute tasks in parallel
 #include <mutex>              //For synchronisation
 #include <condition_variable> //For synchronisation
@@ -24,13 +23,13 @@ struct ThreadArgs{ //The things a thread needs to know to do its work
     double dt; //The time the subgrid is supposed to advance by
 };
 }
-#endif
 
 namespace DRAGONWING {
 
 class ThreadPool{
 private:
-    #ifndef MULTITHREAD_UNAVAILABLE
+    int nthreads; //Total number of threads in the pool
+    
     std::deque<std::thread> threads; //All of the threads in the pool
     std::deque<DRAGONWING::ThreadArgs> args; //All of the arguments given to each thread
     std::mutex mutex; //A mutex to protect inter-thread communication
@@ -39,8 +38,6 @@ private:
     int active_phase_1 = 0; //How many threads are in memory-heavy phase 1. Max value = DRAGONWING::Config::phase_1_max_threads
     int reached_checkpoint_1 = 0; //How many threads have completed phase 1 (most of the calculation)
     int reached_checkpoint_2 = 0; //How many threads have completed phase 2 (committing the updates)
-    #endif
-    int nthreads; //Total number of threads in the pool
 
     //Restart requests
     bool abort_requested = false;

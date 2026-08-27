@@ -10,7 +10,7 @@
 using namespace DRAGON_Test;
 
 //Things not tested:
-//Nonstandard Configuration (REUSE_AUX_GRIDS disabled / MULTITHREAD_UNAVAILABLE enabled)
+//REUSE_AUX_GRIDS disabled
 //Concurrency Stress Testing
 
 

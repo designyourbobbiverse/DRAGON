@@ -24,13 +24,6 @@ constexpr int phase_1_max_threads = -1; //Use a nonpositive number means that th
 
 
 
-//Enable this if for some reason you need to compile DRAGON for a system without multithreading support
-//#define MULTITHREAD_UNAVAILABLE
-
-
-
-
-
 
 
 //******************************************************************//
