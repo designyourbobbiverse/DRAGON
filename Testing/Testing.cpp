@@ -19,7 +19,7 @@ int main(){
     
     verify_grid();
     verify_boundary();
-    verify_IO();
+    verify_HOARD();
     
     verify_riemann();
     verify_tvd();
