@@ -80,6 +80,7 @@
 				Hydro/Riemann/Roe.cpp,
 				MHD/B_fields.cpp,
 				MHD/Electric.cpp,
+				Passives/Passives.cpp,
 				Refinement/DistGrid.cpp,
 			);
 			target = F77A715B2FB415A5006C2776 /* DRAGON_TESTS */;

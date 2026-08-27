@@ -1,0 +1,266 @@
+//
+//  Passives.cpp
+//  DRAGON/Passives
+//
+//  Created by Bobbie Markwick on 31/07/2026.
+//
+
+#include "Passives.hpp"
+using namespace DRAGON;
+
+const double advect_tol = 1e-18;
+
+//MARK: Access
+double& PassiveArray::lookup(PassiveSet& q, const std::string key) const { return q[keys.at(key)]; }
+const double& PassiveArray::lookup(const PassiveSet& q, const std::string key) const { return q[keys.at(key)]; }
+std::size_t PassiveArray::count() const { return keys.size(); }
+
+//Get all the scalars in a given cell
+PassiveSet& PassiveArray1D::operator[](int i){ return q[i]; }
+const PassiveSet& PassiveArray1D::operator[](int i) const { return q[i]; }
+PassiveSet& PassiveArray2D::operator[](int i, int j){ return q[i,j]; }
+const PassiveSet& PassiveArray2D::operator[](int i, int j) const { return q[i,j]; }
+PassiveSet& PassiveArray3D::operator[](int i, int j, int k){ return q[i,j,k]; }
+const PassiveSet& PassiveArray3D::operator[](int i, int j, int k) const { return q[i,j,k]; }
+//Get the nth scalar in a given cell
+double& PassiveArray1D::operator[](int i, int n){ return q[i][n]; }
+const double& PassiveArray1D::operator[](int i, int n) const { return q[i][n]; }
+double& PassiveArray2D::operator[](int i, int j, int n){ return q[i,j][n]; }
+const double& PassiveArray2D::operator[](int i, int j, int n) const { return q[i,j][n]; }
+double& PassiveArray3D::operator[](int i, int j, int k, int n){ return q[i,j,k][n]; }
+const double& PassiveArray3D::operator[](int i, int j, int k, int n) const { return q[i,j,k][n]; }
+//Get the scalar assocaited with "key" in a given cell
+double& PassiveArray1D::operator[](int i, std::string key){ return lookup(q[i], key); }
+const double& PassiveArray1D::operator[](int i, std::string key) const { return lookup(q[i], key); }
+double& PassiveArray2D::operator[](int i, int j, std::string key){ return lookup(q[i,j], key); }
+const double& PassiveArray2D::operator[](int i, int j, std::string key) const { return lookup(q[i,j], key); }
+double& PassiveArray3D::operator[](int i, int j, int k, std::string key){ return lookup(q[i,j,k], key); }
+const double& PassiveArray3D::operator[](int i, int j, int k, std::string key) const { return lookup(q[i,j,k], key); }
+
+
+//MARK: Cloning
+void PassiveArray1D::clone(const PassiveArray1D& arr){
+    keys = arr.keys;
+    q.clone(arr.q);
+}
+void PassiveArray2D::clone(const PassiveArray2D& arr){
+    keys = arr.keys;
+    q.clone(arr.q);
+}
+void PassiveArray3D::clone(const PassiveArray3D& arr){
+    keys = arr.keys;
+    q.clone(arr.q);
+}
+
+
+
+//MARK: Adding Scalars
+void PassiveArray1D::add(std::string key){
+    if(keys.contains(key)) return; //scalar already exists
+    keys[key] = count();
+    const int nx = q.getSize(), g = q.getGhosts();
+    for (int i=-g; i<nx+g; i++) {
+        q[i].push_back(0);
+    }
+}
+void PassiveArray2D::add(std::string key){
+    if(keys.contains(key)) return; //scalar already exists
+    keys[key] = count();
+    const int nx = q.getSizeX(), ny = q.getSizeY(), g = q.getGhosts();
+    for (int i=-g; i<nx+g; i++) {
+        for (int j=-g; j<ny+g; j++) {
+            q[i,j].push_back(0);
+        }
+    }
+}
+void PassiveArray3D::add(std::string key){
+    if(keys.contains(key)) return; //scalar already exists
+    keys[key] = count();
+    const int nx = q.getSizeX(), ny = q.getSizeY(), nz = q.getSizeZ(), g = q.getGhosts();
+    for (int i=-g; i<nx+g; i++) {
+        for (int j=-g; j<ny+g; j++) {
+            for (int k=-g; k<nz+g; k++) {
+                q[i,j,k].push_back(0);
+            }
+        }
+    }
+}
+
+
+//MARK: Removing Scalars
+void PassiveArray1D::remove(std::string key){
+    if(!keys.contains(key)) return; //scalar doesn't exist
+    auto idx = keys[key];
+    keys.erase(key);
+    
+    const int nx = q.getSize(), g = q.getGhosts();
+    for (int i=-g; i<nx+g; i++) {
+        q[i].erase(q[i].begin() + idx);
+    }
+}
+void PassiveArray2D::remove(std::string key){
+    if(!keys.contains(key)) return; //scalar doesn't exist
+    auto idx = keys[key];
+    keys.erase(key);
+    
+    const int nx = q.getSizeX(), ny = q.getSizeY(), g = q.getGhosts();
+    for (int i=-g; i<nx+g; i++) {
+        for (int j=-g; j<ny+g; j++) {
+            q[i,j].erase(q[i,j].begin()+idx);
+        }
+    }
+}
+void PassiveArray3D::remove(std::string key){
+    if(!keys.contains(key)) return; //scalar doesn't exist
+    auto idx = keys[key];
+    keys.erase(key);
+    
+    const int nx = q.getSizeX(), ny = q.getSizeY(), nz = q.getSizeZ(), g = q.getGhosts();
+    for (int i=-g; i<nx+g; i++) {
+        for (int j=-g; j<ny+g; j++) {
+            for (int k=-g; k<nz+g; k++) {
+                q[i,j,k].erase(q[i,j,k].begin()+idx);
+            }
+        }
+    }
+}
+
+//MARK: Advection
+
+PassiveArray1D& PassiveArray1D::advected(const ExtendedArray1D<ConservativeState>& F, const FluidArray1D& w_old, const FluidArray1D& w_new){
+    const int nx = q.getSize(), g = q.getGhosts();
+    //Make a copy
+    auto& advected = *(new PassiveArray1D(nx, g));
+    advected.clone(*this);
+    //Convert to conservative
+    for(int i=-g; i<nx; i++){
+        for(int n = 0; n < count(); n++){
+            advected[i,n] *= w_old[i].rho;
+        }
+    }
+    //Apply fluxes
+    for(int i=-g; i<nx; i++){
+        for(int n = 0; n < count(); n++){
+            if(F[i].rho > advect_tol) { //Left to Right
+                advected[i,n] += F[i].rho * q[i-1][n];
+                advected[i-1,n] -= F[i].rho * q[i-1][n];
+            } else if(F[i].rho < -advect_tol){ //Right to Left
+                advected[i,n] += F[i].rho * q[i][n];
+                advected[i-1,n] -= F[i].rho * q[i][n];
+            }
+        }
+    }
+    //Convert to primitive
+    for(int i=-g; i<nx; i++){
+        for(int n = 0; n < count(); n++){
+            advected[i,n] /= w_new[i].rho;
+        }
+    }
+    return advected;
+}
+PassiveArray2D& PassiveArray2D::advected(const FluxArray2D& F_X, const FluxArray2D& F_Y, const FluidArray2D& w_old, const FluidArray2D& w_new){
+    const int nx = q.getSizeX(), ny = q.getSizeY(), g = q.getGhosts();
+    //Make a copy
+    auto& advected = *(new PassiveArray2D(nx, ny, g));
+    advected.clone(*this);
+    //Convert to conservative
+    for(int i=-g; i<nx; i++){
+        for (int j=-g; j<ny+g; j++) {
+            for(int n = 0; n < count(); n++){
+                advected[i,j,n] *= w_old[i,j].rho;
+            }
+        }
+    }
+    //Apply fluxes
+    for(int i=-g; i<nx; i++){
+        for (int j=-g; j<ny+g; j++) {
+            for(int n = 0; n < count(); n++){
+                //X fluxes
+                if(F_X[i,j].rho > advect_tol) { //Left to Right
+                    advected[i,j,n] += F_X[i,j].rho * q[i-1,j][n];
+                    advected[i-1,j,n] -= F_X[i,j].rho * q[i-1,j][n];
+                } else if(F_X[i,j].rho < -advect_tol){ //Right to Left
+                    advected[i,j,n] += F_X[i,j].rho * q[i,j][n];
+                    advected[i-1,j,n] -= F_X[i,j].rho * q[i,j][n];
+                }
+                //Y fluxes
+                if(F_Y[i,j].rho > advect_tol) { //Left to Right
+                    advected[i,j,n] += F_Y[i,j].rho * q[i,j-1][n];
+                    advected[i,j-1,n] -= F_Y[i,j].rho * q[i,j-1][n];
+                } else if(F_Y[i,j].rho < -advect_tol){ //Right to Left
+                    advected[i,j,n] += F_Y[i,j].rho * q[i,j][n];
+                    advected[i,j-1,n] -= F_Y[i,j].rho * q[i,j][n];
+                }
+            }
+        }
+    }
+    //Convert to primitive
+    for(int i=-g; i<nx; i++){
+        for (int j=-g; j<ny+g; j++) {
+            for(int n = 0; n < count(); n++){
+                advected[i,j,n] /= w_new[i,j].rho;
+            }
+        }
+    }
+    return advected;
+}
+PassiveArray3D& PassiveArray3D::advected(const FluxArray3D& F_X, const FluxArray3D& F_Y, const FluxArray3D& F_Z, const FluidArray3D& w_old, const FluidArray3D& w_new){
+    const int nx = q.getSizeX(), ny = q.getSizeY(), nz = q.getSizeZ(), g = q.getGhosts();
+    //Make a copy
+    auto& advected = *(new PassiveArray3D(nx, ny, nz, g));
+    advected.clone(*this);
+    //Convert to conservative
+    for(int i=-g; i<nx; i++){
+        for (int j=-g; j<ny+g; j++) {
+            for (int k=-g; k<nz+g; k++) {
+                for(int n = 0; n < count(); n++){
+                    advected[i,j,k,n] *= w_old[i,j,k].rho;
+                }
+            }
+        }
+    }
+    //Apply fluxes
+    for(int i=-g; i<nx; i++){
+        for (int j=-g; j<ny+g; j++) {
+            for (int k=-g; k<nz+g; k++) {
+                for(int n = 0; n < count(); n++){
+                    //X fluxes
+                    if(F_X[i,j,k].rho > advect_tol) { //Left to Right
+                        advected[i,j,k,n] += F_X[i,j,k].rho * q[i-1,j,k][n];
+                        advected[i-1,j,k,n] -= F_X[i,j,k].rho * q[i-1,j,k][n];
+                    } else if(F_X[i,j,k].rho < -advect_tol){ //Right to Left
+                        advected[i,j,k,n] += F_X[i,j,k].rho * q[i,j,k][n];
+                        advected[i-1,j,k,n] -= F_X[i,j,k].rho * q[i,j,k][n];
+                    }
+                    //Y fluxes
+                    if(F_Y[i,j,k].rho > advect_tol) { //Left to Right
+                        advected[i,j,k,n] += F_Y[i,j,k].rho * q[i,j-1,k][n];
+                        advected[i,j-1,k,n] -= F_Y[i,j,k].rho * q[i,j-1,k][n];
+                    } else if(F_Y[i,j,k].rho < -advect_tol){ //Right to Left
+                        advected[i,j,k,n] += F_Y[i,j,k].rho * q[i,j,k][n];
+                        advected[i,j-1,k,n] -= F_Y[i,j,k].rho * q[i,j,k][n];
+                    }
+                    //Z fluxes
+                    if(F_Z[i,j,k].rho > advect_tol) { //Left to Right
+                        advected[i,j,k,n] += F_Z[i,j,k].rho * q[i,j,k-1][n];
+                        advected[i,j,k-1,n] -= F_Z[i,j,k].rho * q[i,j,k-1][n];
+                    } else if(F_Z[i,j,k].rho < -advect_tol){ //Right to Left
+                        advected[i,j,k,n] += F_Z[i,j,k].rho * q[i,j,k][n];
+                        advected[i,j,k-1,n] -= F_Z[i,j,k].rho * q[i,j,k][n];
+                    }
+                }
+            }
+        }
+    }
+    //Convert to primitive
+    for(int i=-g; i<nx; i++){
+        for (int j=-g; j<ny+g; j++) {
+            for (int k=-g; k<nz+g; k++) {
+                for(int n = 0; n < count(); n++){
+                    advected[i,j,k,n] /= w_new[i,j,k].rho;
+                }
+            }
+        }
+    }
+    return advected;
+}
