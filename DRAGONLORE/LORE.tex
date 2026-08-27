@@ -2187,13 +2187,13 @@ Full-page versions of the MHD 1D reference plots referenced from \Cref{sec:tests
 \textbf{Date TBD}: DRAGON v1.1 introduced the following changes
 \begin{itemize}
 \item Added an atomic counter (\Cref{sec:atomics}) which is used to trigger a step restart if too many fallback behaviours have occurred in one advancement.
-
+\item Additional unit tests to directly verify DRAGONWING
 \item Streamlined advancement and exception handling for domain-decomposed grids
 \begin{itemize}
 \item New \cpp{Grid::advance_step(dt)} delegates to \cpp{split_step} or \cpp{unsplit_step} as appropriate.
 \item \cpp{launchParallel} now calls \cpp{grid.advance_step} instead of \cpp{grid.advance}, calls \cpp{requestRestart()} directly if an exception is thrown.
-\item Removed \cpp{Grid::on_step_fail}
 \end{itemize}
+\item Removed: \cpp{Grid::on_step_fail}, \cpp{MULTITHREAD_UNAVAILABLE}
 \end{itemize} 
 \textbf{26 August 2026}:  Initial release of DRAGON v1.0
 
