@@ -301,6 +301,7 @@ void verify_IO_size_assert();
 
 //MARK: DRAGONWING
 void verify_WING(bool output = true);
+//Memory Management
 void verify_WING_alloc_prim_dimensions();
 void verify_WING_alloc_flux_dimensions();
 void verify_WING_alloc_vec3_dimensions();
@@ -309,6 +310,15 @@ void verify_WING_arrayguard_get();
 void verify_WING_double_release();
 void verify_WING_scope_release();
 void verify_WING_array_purge_survival();
+//Atomics
+void verify_WING_fbcount_no_op();
+void verify_WING_fbcount_reset();
+void verify_WING_fbcount_single_no_throw();
+void verify_WING_fbcount_single_over_throw();
+void verify_WING_fbcount_cumulative_throw();
+//Multithreading
+
+
 }
 
 

@@ -47,6 +47,29 @@ void DRAGON_Test::verify_WING(bool output){
     if (output) std::cout << "Passed\n";
     if (output) std::cout << "All Memory Management Tests Passed.\n\n";
 
+    
+    
+    if (output) std::cout << "DRAGONWING (Atomics):\n";
+    if (output) std::cout << "- Reset: ";
+    verify_WING_fbcount_reset();
+    if (output) std::cout << "Passed\n";
+    if (output) std::cout << "- Zero op: ";
+    verify_WING_fbcount_no_op();
+    if (output) std::cout << "Passed\n";
+    if (output) std::cout << "- Single weight<=threshold doesn't throw: ";
+    verify_WING_fbcount_single_no_throw();
+    if (output) std::cout << "Passed\n";
+    if (output) std::cout << "- Single weight>threshold does throw: ";
+    verify_WING_fbcount_single_over_throw();
+    if (output) std::cout << "Passed\n";
+    if (output) std::cout << "- Cumulative calls throw: ";
+    verify_WING_fbcount_cumulative_throw();
+    if (output) std::cout << "Passed\n";
+
+    if (output) std::cout << "All Atomics Tests Passed.\n\n";
+    
+    
+    
     if (output) std::cout << "DRAGONWING (Multithreading):\n";
     
     if (output) std::cout << "All Multithreading Tests Passed.\n\n";
