@@ -14,20 +14,31 @@ namespace DRAGONWING::Config{
 #define REUSE_AUX_GRIDS //Reuse Auxiliary Grids instead of reallocating them each time
 
 
-//This controls the number of grids allowed to be in phase 1 of the unsplit update simultaneously
+//phase_1_max_threads controls the number of grids allowed to be in phase 1 of the unsplit update simultaneously
 //Phase 1 is computation heavy and may use over a dozen auxiliary grids per grid
 //A smaller number uses less memory, a larger number is faster (to a point)
 //If you are worried about memory, a good starting point for this parameter is typically to match the number of cores on your machine
+#ifndef TESTMODE //The test mode value is set later, and is smaller than you typically want
 constexpr int phase_1_max_threads = -1; //Use a nonpositive number means that there is no limit
-
-
+#endif
 
 
 
 //Enable this if for some reason you need to compile DRAGON for a system without multithreading support
 //#define MULTITHREAD_UNAVAILABLE
 
+
+
+
+
+
+
+//******************************************************************//
+//*DO NOT TOUCH anything below this line (but feel free to read it)*//
+//******************************************************************//
+
+#ifdef TESTMODE
+constexpr int phase_1_max_threads = 5; //Deliberately set low for testing
+#endif
 }
-
-
 #endif
