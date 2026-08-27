@@ -29,7 +29,7 @@ vec3 make_tagged_A(double tag){
 static std::string filename = "TEMP__TESTING_+_HOPEFULY__USR_DOZNT__NAME-A_FILE_THIS"; //Try to pick a file name that the user isn't going to have ont heir disk.
 
 void DRAGON_Test::verify_HOARD(bool output){
-    if (output) std::cout << "File I/O:\n";
+    if (output) std::cout << "DRAGONHOARD (File I/O):\n";
     if (output) std::cout << "- 1D Restart: ";
     verify_IO1D();
     if (output) std::cout << "Passed\n";
