@@ -298,6 +298,18 @@ void verify_IO3D();
 void verify_IO_dim_assert();
 void verify_IO_size_assert();
 
+
+//MARK: DRAGONWING
+void verify_WING(bool output = true);
+void verify_WING_alloc_prim_dimensions();
+void verify_WING_alloc_flux_dimensions();
+void verify_WING_alloc_vec3_dimensions();
+void verify_WING_array_reuse();
+void verify_WING_arrayguard_get();
+void verify_WING_double_release();
+void verify_WING_scope_release();
+void verify_WING_array_purge_survival();
 }
+
 
 #endif /* Testing_hpp */

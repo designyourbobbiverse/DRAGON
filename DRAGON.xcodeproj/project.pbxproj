@@ -111,6 +111,8 @@
 				Core/Riemann/Roe_Tests.cpp,
 				Core/TVD_Tests.cpp,
 				Infrastructure/HOARD_Tests.cpp,
+				Infrastructure/WING/WING_Memory_Tests.cpp,
+				Infrastructure/WING/WING_Tests_Main.cpp,
 				Testing.cpp,
 			);
 			target = F77A715B2FB415A5006C2776 /* DRAGON_TESTS */;
