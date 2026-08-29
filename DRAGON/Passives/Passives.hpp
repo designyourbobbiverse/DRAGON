@@ -48,7 +48,7 @@ public:
     const double& operator[](int i, std::string key) const;
     
     
-    PassiveArray1D& advected(const ExtendedArray1D<ConservativeState>& F, const FluidArray1D& w_old, const FluidArray1D& w_new);
+    PassiveArray1D& advected(const ExtendedArray1D<ConservativeState>& F, const FluidArray1D& w_old, const FluidArray1D& w_new, double dt_dx);
 };
 
 struct PassiveArray2D: public PassiveArray{
@@ -69,7 +69,7 @@ public:
     double& operator[](int i, int j, std::string key);
     const double& operator[](int i, int j, std::string key) const;
     
-    PassiveArray2D& advected(const FluxArray2D& F_X, const FluxArray2D& F_Y, const FluidArray2D& w_old, const FluidArray2D& w_new);
+    PassiveArray2D& advected(const FluxArray2D& F_X, const FluxArray2D& F_Y, const FluidArray2D& w_old, const FluidArray2D& w_new, double dt_dx, double dt_dy);
 
 };
 
@@ -90,7 +90,7 @@ public:
     double& operator[](int i, int j, int k, std::string key);
     const double& operator[](int i, int j, int k, std::string key) const;
     
-    PassiveArray3D& advected(const FluxArray3D& F_X, const FluxArray3D& F_Y, const FluxArray3D& F_Z, const FluidArray3D& w_old, const FluidArray3D& w_new);
+    PassiveArray3D& advected(const FluxArray3D& F_X, const FluxArray3D& F_Y, const FluxArray3D& F_Z, const FluidArray3D& w_old, const FluidArray3D& w_new, double dt_dx, double dt_dy, double dt_dz);
 
 };
 
