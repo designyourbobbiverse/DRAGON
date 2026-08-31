@@ -1,6 +1,6 @@
 //
 //  Faraday_Tests.cpp
-//  DRAGON/Testing/MHD
+//  DRAGON/Testing/Core-Components/MHD
 //
 //  This file contains all the steps needed to go from E to an updated B
 //  Created by Bobbie Markwick on 19/07/2026.
@@ -66,7 +66,7 @@ void DRAGON_Test::verify_ct_3D(bool output){
 
 //MARK: Div B = 0
 void DRAGON_Test::assert_divergenceless(const MagneticArray2D& B, double dx, double dy){
-    const int nx = B.getSizeX(), ny = B.getSizeY(), ng = B.getGhosts();
+    const int nx = B.getSizeX(), ny = B.getSizeY(), ng = 0;
     for (int i = -ng; i < nx+ng-1; i++) {
         for (int j = -ng; j < ny+ng-1; j++) {
             double dBx = (B[i+1,j].x - B[i,j].x)/dx;

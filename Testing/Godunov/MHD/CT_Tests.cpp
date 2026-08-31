@@ -1,6 +1,6 @@
 //
 //  CT_Tests.cpp
-//  DRAGON/Testing/MHD
+//  DRAGON/Testing/Godunov/MHD
 //
 //  Created by Bobbie Markwick on 25/06/2026.
 //
@@ -19,8 +19,6 @@ using namespace DRAGON_Test;
 
 //MARK: Stationary Field
 void DRAGON_Test::verify_ct_stationary_2D(){
-    return;
-    
     double dx = _pi/5;
     Grid2D grid(10,10,dx,dx, 2), expected(10,10,dx,dx, 2);
     double p0 = 5.0;
