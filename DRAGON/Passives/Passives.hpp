@@ -22,11 +22,11 @@ struct PassiveArray{
 protected:
     std::map<std::string, std::size_t> keys;
 public:
-    double& lookup(PassiveSet& q, const std::string key) const;
-    const double& lookup(const PassiveSet& q, const std::string key) const;
+    double& lookup(PassiveSet& q, const std::string& key) const;
+    const double& lookup(const PassiveSet& q, const std::string& key) const;
 
-    virtual void add(std::string key) = 0;
-    virtual void remove(std::string key) = 0;
+    virtual void add(const std::string& key) = 0;
+    virtual std::size_t remove(const std::string& key); //Returns index of removed key
     std::size_t count() const;
 };
 
@@ -37,15 +37,15 @@ public:
     PassiveArray1D(int nx, int g=1): q(nx, g) {}
     void clone(const PassiveArray1D& arr);
 
-    void add(std::string key) override;
-    void remove(std::string key) override;
+    void add(const std::string& key) override;
+    std::size_t remove(const std::string& key) override;
     
     PassiveSet& operator[](int i);
     const PassiveSet& operator[](int i) const;
     double& operator[](int i, int n);
     const double& operator[](int i, int n) const;
-    double& operator[](int i, std::string key);
-    const double& operator[](int i, std::string key) const;
+    double& operator[](int i, const std::string& key);
+    const double& operator[](int i, const std::string& key) const;
     
     
     PassiveArray1D& advected(const ExtendedArray1D<ConservativeState>& F, const FluidArray1D& w_old, const FluidArray1D& w_new, double dt_dx);
@@ -58,16 +58,16 @@ public:
     PassiveArray2D(int nx, int ny, int g=1): q(nx, ny, g) {}
     void clone(const PassiveArray2D& arr);
 
-    void add(std::string key) override;
-    void remove(std::string key) override;
+    void add(const std::string& key) override;
+    std::size_t remove(const std::string& key) override;
 
     
     PassiveSet& operator[](int i, int j);
     const PassiveSet& operator[](int i, int j) const;
     double& operator[](int i, int j, int n);
     const double& operator[](int i, int j, int n) const;
-    double& operator[](int i, int j, std::string key);
-    const double& operator[](int i, int j, std::string key) const;
+    double& operator[](int i, int j, const std::string& key);
+    const double& operator[](int i, int j, const std::string& key) const;
     
     PassiveArray2D& advected(const FluxArray2D& F_X, const FluxArray2D& F_Y, const FluidArray2D& w_old, const FluidArray2D& w_new, double dt_dx, double dt_dy);
 
@@ -80,15 +80,15 @@ public:
     PassiveArray3D(int nx, int ny, int nz, int g=1): q(nx, ny, nz, g) {}
     void clone(const PassiveArray3D& arr);
 
-    void add(std::string key) override;
-    void remove(std::string key) override;
+    void add(const std::string& key) override;
+    std::size_t remove(const std::string& key) override;
 
     PassiveSet& operator[](int i, int j, int k);
     const PassiveSet& operator[](int i, int j, int k) const;
     double& operator[](int i, int j, int k, int n);
     const double& operator[](int i, int j, int k, int n) const;
-    double& operator[](int i, int j, int k, std::string key);
-    const double& operator[](int i, int j, int k, std::string key) const;
+    double& operator[](int i, int j, int k, const std::string& key);
+    const double& operator[](int i, int j, int k, const std::string& key) const;
     
     PassiveArray3D& advected(const FluxArray3D& F_X, const FluxArray3D& F_Y, const FluxArray3D& F_Z, const FluidArray3D& w_old, const FluidArray3D& w_new, double dt_dx, double dt_dy, double dt_dz);
 

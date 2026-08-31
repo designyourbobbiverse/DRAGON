@@ -11,8 +11,8 @@ using namespace DRAGON;
 const double advect_tol = 1e-18;
 
 //MARK: Access
-double& PassiveArray::lookup(PassiveSet& q, const std::string key) const { return q[keys.at(key)]; }
-const double& PassiveArray::lookup(const PassiveSet& q, const std::string key) const { return q[keys.at(key)]; }
+double& PassiveArray::lookup(PassiveSet& q, const std::string& key) const { return q[keys.at(key)]; }
+const double& PassiveArray::lookup(const PassiveSet& q, const std::string& key) const { return q[keys.at(key)]; }
 std::size_t PassiveArray::count() const { return keys.size(); }
 
 //Get all the scalars in a given cell
@@ -30,12 +30,12 @@ const double& PassiveArray2D::operator[](int i, int j, int n) const { return q[i
 double& PassiveArray3D::operator[](int i, int j, int k, int n){ return q[i,j,k][n]; }
 const double& PassiveArray3D::operator[](int i, int j, int k, int n) const { return q[i,j,k][n]; }
 //Get the scalar assocaited with "key" in a given cell
-double& PassiveArray1D::operator[](int i, std::string key){ return lookup(q[i], key); }
-const double& PassiveArray1D::operator[](int i, std::string key) const { return lookup(q[i], key); }
-double& PassiveArray2D::operator[](int i, int j, std::string key){ return lookup(q[i,j], key); }
-const double& PassiveArray2D::operator[](int i, int j, std::string key) const { return lookup(q[i,j], key); }
-double& PassiveArray3D::operator[](int i, int j, int k, std::string key){ return lookup(q[i,j,k], key); }
-const double& PassiveArray3D::operator[](int i, int j, int k, std::string key) const { return lookup(q[i,j,k], key); }
+double& PassiveArray1D::operator[](int i, const std::string& key){ return lookup(q[i], key); }
+const double& PassiveArray1D::operator[](int i, const std::string& key) const { return lookup(q[i], key); }
+double& PassiveArray2D::operator[](int i, int j, const std::string& key){ return lookup(q[i,j], key); }
+const double& PassiveArray2D::operator[](int i, int j, const std::string& key) const { return lookup(q[i,j], key); }
+double& PassiveArray3D::operator[](int i, int j, int k, const std::string& key){ return lookup(q[i,j,k], key); }
+const double& PassiveArray3D::operator[](int i, int j, int k, const std::string& key) const { return lookup(q[i,j,k], key); }
 
 
 //MARK: Cloning
@@ -55,7 +55,7 @@ void PassiveArray3D::clone(const PassiveArray3D& arr){
 
 
 //MARK: Adding Scalars
-void PassiveArray1D::add(std::string key){
+void PassiveArray1D::add(const std::string& key){
     if(keys.contains(key)) return; //scalar already exists
     keys[key] = count();
     const int nx = q.getSize(), g = q.getGhosts();
@@ -63,7 +63,7 @@ void PassiveArray1D::add(std::string key){
         q[i].push_back(0);
     }
 }
-void PassiveArray2D::add(std::string key){
+void PassiveArray2D::add(const std::string& key){
     if(keys.contains(key)) return; //scalar already exists
     keys[key] = count();
     const int nx = q.getSizeX(), ny = q.getSizeY(), g = q.getGhosts();
@@ -73,7 +73,7 @@ void PassiveArray2D::add(std::string key){
         }
     }
 }
-void PassiveArray3D::add(std::string key){
+void PassiveArray3D::add(const std::string& key){
     if(keys.contains(key)) return; //scalar already exists
     keys[key] = count();
     const int nx = q.getSizeX(), ny = q.getSizeY(), nz = q.getSizeZ(), g = q.getGhosts();
@@ -88,32 +88,42 @@ void PassiveArray3D::add(std::string key){
 
 
 //MARK: Removing Scalars
-void PassiveArray1D::remove(std::string key){
-    if(!keys.contains(key)) return; //scalar doesn't exist
+std::size_t PassiveArray::remove(const std::string& key){
+    if(!keys.contains(key)) return  -1; //scalar doesn't exist
     auto idx = keys[key];
     keys.erase(key);
+    for (auto& [key, val]: keys) { //Decrement anything greater than idx
+        if(val > idx) val--;
+    }
+    return idx;
+}
+std::size_t PassiveArray1D::remove(const std::string& key){
+    if(!keys.contains(key)) return -1; //scalar doesn't exist
+    auto idx = PassiveArray::remove(key);
     
     const int nx = q.getSize(), g = q.getGhosts();
     for (int i=-g; i<nx+g; i++) {
         q[i].erase(q[i].begin() + idx);
     }
-}
-void PassiveArray2D::remove(std::string key){
-    if(!keys.contains(key)) return; //scalar doesn't exist
-    auto idx = keys[key];
-    keys.erase(key);
     
+    return idx;
+}
+std::size_t PassiveArray2D::remove(const std::string& key){
+    if(!keys.contains(key)) return  -1; //scalar doesn't exist
+    auto idx = PassiveArray::remove(key);
+
     const int nx = q.getSizeX(), ny = q.getSizeY(), g = q.getGhosts();
     for (int i=-g; i<nx+g; i++) {
         for (int j=-g; j<ny+g; j++) {
             q[i,j].erase(q[i,j].begin()+idx);
         }
     }
+    
+    return idx;
 }
-void PassiveArray3D::remove(std::string key){
-    if(!keys.contains(key)) return; //scalar doesn't exist
-    auto idx = keys[key];
-    keys.erase(key);
+std::size_t PassiveArray3D::remove(const std::string& key){
+    if(!keys.contains(key)) return  -1; //scalar doesn't exist
+    auto idx = PassiveArray::remove(key);
     
     const int nx = q.getSizeX(), ny = q.getSizeY(), nz = q.getSizeZ(), g = q.getGhosts();
     for (int i=-g; i<nx+g; i++) {
@@ -123,6 +133,8 @@ void PassiveArray3D::remove(std::string key){
             }
         }
     }
+    
+    return idx;
 }
 
 //MARK: Advection
@@ -134,13 +146,13 @@ PassiveArray1D& PassiveArray1D::advected(const ExtendedArray1D<ConservativeState
     advected.clone(*this);
     //Convert to conservative
     for(int i=-g; i<nx; i++){
-        for(int n = 0; n < count(); n++){
+        for(unsigned int n = 0; n < count(); n++){
             advected[i,n] *= w_old[i].rho;
         }
     }
     //Apply fluxes
     for(int i=-g; i<nx; i++){
-        for(int n = 0; n < count(); n++){
+        for(unsigned int n = 0; n < count(); n++){
             auto f = F[i].rho * dt_dx;
             if(F[i].rho > advect_tol) { //Left to Right
                 advected[i,n] += f * q[i-1][n];
@@ -153,7 +165,7 @@ PassiveArray1D& PassiveArray1D::advected(const ExtendedArray1D<ConservativeState
     }
     //Convert to primitive
     for(int i=-g; i<nx; i++){
-        for(int n = 0; n < count(); n++){
+        for(unsigned int n = 0; n < count(); n++){
             advected[i,n] /= w_new[i].rho;
         }
     }
@@ -165,17 +177,17 @@ PassiveArray2D& PassiveArray2D::advected(const FluxArray2D& F_X, const FluxArray
     auto& advected = *(new PassiveArray2D(nx, ny, g));
     advected.clone(*this);
     //Convert to conservative
-    for(int i=-g; i<nx; i++){
+    for(int i=-g; i<nx+g; i++){
         for (int j=-g; j<ny+g; j++) {
-            for(int n = 0; n < count(); n++){
+            for(unsigned int n = 0; n < count(); n++){
                 advected[i,j,n] *= w_old[i,j].rho;
             }
         }
     }
     //Apply fluxes
-    for(int i=-g; i<nx; i++){
+    for(int i=-g; i<nx+g; i++){
         for (int j=-g; j<ny+g; j++) {
-            for(int n = 0; n < count(); n++){
+            for(unsigned int n = 0; n < count(); n++){
                 //X fluxes
                 double fx = F_X[i,j].rho * dt_dx;
                 if(F_X[i,j].rho > advect_tol) { //Left to Right
@@ -198,9 +210,9 @@ PassiveArray2D& PassiveArray2D::advected(const FluxArray2D& F_X, const FluxArray
         }
     }
     //Convert to primitive
-    for(int i=-g; i<nx; i++){
+    for(int i=-g; i<nx+g; i++){
         for (int j=-g; j<ny+g; j++) {
-            for(int n = 0; n < count(); n++){
+            for(unsigned int n = 0; n < count(); n++){
                 advected[i,j,n] /= w_new[i,j].rho;
             }
         }
@@ -216,19 +228,19 @@ PassiveArray3D& PassiveArray3D::advected(const FluxArray3D& F_X, const FluxArray
     for(int i=-g; i<nx; i++){
         for (int j=-g; j<ny+g; j++) {
             for (int k=-g; k<nz+g; k++) {
-                for(int n = 0; n < count(); n++){
+                for(unsigned int n = 0; n < count(); n++){
                     advected[i,j,k,n] *= w_old[i,j,k].rho;
                 }
             }
         }
     }
     //Apply fluxes
-    for(int i=-g; i<nx; i++){
-        for (int j=-g; j<ny+g; j++) {
-            for (int k=-g; k<nz+g; k++) {
-                for(int n = 0; n < count(); n++){
+    for(int i=-g+1; i<nx+g; i++){
+        for (int j=-g+1; j<ny+g; j++) {
+            for (int k=-g+1; k<nz+g; k++) {
+                for(unsigned int n = 0; n < count(); n++){
                     //X fluxes
-                    auto fx = F_X[i,j,k].rho * dt_dx;
+                    double fx = F_X[i,j,k].rho * dt_dx;
                     if(F_X[i,j,k].rho > advect_tol) { //Left to Right
                         advected[i,j,k,n] += fx * q[i-1,j,k][n];
                         advected[i-1,j,k,n] -= fx * q[i-1,j,k][n];
@@ -237,7 +249,7 @@ PassiveArray3D& PassiveArray3D::advected(const FluxArray3D& F_X, const FluxArray
                         advected[i-1,j,k,n] -= fx * q[i,j,k][n];
                     }
                     //Y fluxes
-                    auto fy = F_Y[i,j,k].rho * dt_dy;
+                    double fy = F_Y[i,j,k].rho * dt_dy;
                     if(F_Y[i,j,k].rho > advect_tol) { //Left to Right
                         advected[i,j,k,n] += fy * q[i,j-1,k][n];
                         advected[i,j-1,k,n] -= fy * q[i,j-1,k][n];
@@ -246,7 +258,7 @@ PassiveArray3D& PassiveArray3D::advected(const FluxArray3D& F_X, const FluxArray
                         advected[i,j-1,k,n] -= fy * q[i,j,k][n];
                     }
                     //Z fluxes
-                    auto fz = F_Z[i,j,k].rho * dt_dz;
+                    double fz = F_Z[i,j,k].rho * dt_dz;
                     if(F_Z[i,j,k].rho > advect_tol) { //Left to Right
                         advected[i,j,k,n] += fz * q[i,j,k-1][n];
                         advected[i,j,k-1,n] -= fz * q[i,j,k-1][n];
@@ -262,7 +274,7 @@ PassiveArray3D& PassiveArray3D::advected(const FluxArray3D& F_X, const FluxArray
     for(int i=-g; i<nx; i++){
         for (int j=-g; j<ny+g; j++) {
             for (int k=-g; k<nz+g; k++) {
-                for(int n = 0; n < count(); n++){
+                for(unsigned int n = 0; n < count(); n++){
                     advected[i,j,k,n] /= w_new[i,j,k].rho;
                 }
             }
