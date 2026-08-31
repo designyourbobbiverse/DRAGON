@@ -139,72 +139,72 @@ std::size_t PassiveArray3D::remove(const std::string& key){
 
 //MARK: Advection
 
-PassiveArray1D& PassiveArray1D::advected(const ExtendedArray1D<ConservativeState>& F, const FluidArray1D& w_old, const FluidArray1D& w_new, double dt_dx){
+std::unique_ptr<PassiveArray1D> PassiveArray1D::advected(const ExtendedArray1D<ConservativeState>& F, const FluidArray1D& w_old, const FluidArray1D& w_new, double dt_dx){
     const int nx = q.getSize(), g = q.getGhosts();
     //Make a copy
-    auto& advected = *(new PassiveArray1D(nx, g));
-    advected.clone(*this);
+    auto advected = std::make_unique<PassiveArray1D>(nx, g);
+    advected->clone(*this);
     //Convert to conservative
-    for(int i=-g; i<nx; i++){
+    for(int i=-g; i<nx+g; i++){
         for(unsigned int n = 0; n < count(); n++){
-            advected[i,n] *= w_old[i].rho;
+            (*advected)[i,n] *= w_old[i].rho;
         }
     }
     //Apply fluxes
-    for(int i=-g; i<nx; i++){
+    for(int i=-g+1; i<nx+g; i++){
         for(unsigned int n = 0; n < count(); n++){
             auto f = F[i].rho * dt_dx;
             if(F[i].rho > advect_tol) { //Left to Right
-                advected[i,n] += f * q[i-1][n];
-                advected[i-1,n] -= f * q[i-1][n];
+                (*advected)[i,n] += f * q[i-1][n];
+                (*advected)[i-1,n] -= f * q[i-1][n];
             } else if(F[i].rho < -advect_tol){ //Right to Left
-                advected[i,n] += f * q[i][n];
-                advected[i-1,n] -= f * q[i][n];
+                (*advected)[i,n] += f * q[i][n];
+                (*advected)[i-1,n] -= f * q[i][n];
             }
         }
     }
     //Convert to primitive
-    for(int i=-g; i<nx; i++){
+    for(int i=-g; i<nx+g; i++){
         for(unsigned int n = 0; n < count(); n++){
-            advected[i,n] /= w_new[i].rho;
+            (*advected)[i,n] /= w_new[i].rho;
         }
     }
     return advected;
 }
-PassiveArray2D& PassiveArray2D::advected(const FluxArray2D& F_X, const FluxArray2D& F_Y, const FluidArray2D& w_old, const FluidArray2D& w_new, double dt_dx, double dt_dy){
+std::unique_ptr<PassiveArray2D> PassiveArray2D::advected(const FluxArray2D& F_X, const FluxArray2D& F_Y, const FluidArray2D& w_old, const FluidArray2D& w_new, double dt_dx, double dt_dy){
     const int nx = q.getSizeX(), ny = q.getSizeY(), g = q.getGhosts();
     //Make a copy
-    auto& advected = *(new PassiveArray2D(nx, ny, g));
-    advected.clone(*this);
+    auto advected = std::make_unique<PassiveArray2D>(nx, ny, g);
+    advected->clone(*this);
     //Convert to conservative
     for(int i=-g; i<nx+g; i++){
         for (int j=-g; j<ny+g; j++) {
             for(unsigned int n = 0; n < count(); n++){
-                advected[i,j,n] *= w_old[i,j].rho;
+                (*advected)[i,j,n] *= w_old[i,j].rho;
             }
         }
     }
     //Apply fluxes
-    for(int i=-g; i<nx+g; i++){
-        for (int j=-g; j<ny+g; j++) {
+    for(int i=-g+1; i<nx+g; i++){
+        for (int j=-g+1; j<ny+g; j++) {
             for(unsigned int n = 0; n < count(); n++){
                 //X fluxes
                 double fx = F_X[i,j].rho * dt_dx;
                 if(F_X[i,j].rho > advect_tol) { //Left to Right
-                    advected[i,j,n] += fx * q[i-1,j][n];
-                    advected[i-1,j,n] -= fx * q[i-1,j][n];
+                    (*advected)[i,j,n] += fx * q[i-1,j][n];
+                    (*advected)[i-1,j,n] -= fx * q[i-1,j][n];
                 } else if(F_X[i,j].rho < -advect_tol){ //Right to Left
-                    advected[i,j,n] += fx * q[i,j][n];
-                    advected[i-1,j,n] -= fx * q[i,j][n];
+                    (*advected)[i,j,n] += fx * q[i,j][n];
+                    (*advected)[i-1,j,n] -= fx * q[i,j][n];
                 }
                 //Y fluxes
                 double fy = F_Y[i,j].rho * dt_dy;
                 if(F_Y[i,j].rho > advect_tol) { //Left to Right
-                    advected[i,j,n] += fy * q[i,j-1][n];
-                    advected[i,j-1,n] -= fy * q[i,j-1][n];
+                    (*advected)[i,j,n] += fy * q[i,j-1][n];
+                    (*advected)[i,j-1,n] -= fy * q[i,j-1][n];
                 } else if(F_Y[i,j].rho < -advect_tol){ //Right to Left
-                    advected[i,j,n] += fy * q[i,j][n];
-                    advected[i,j-1,n] -= fy * q[i,j][n];
+                    (*advected)[i,j,n] += fy * q[i,j][n];
+                    (*advected)[i,j-1,n] -= fy * q[i,j][n];
                 }
             }
         }
@@ -213,23 +213,23 @@ PassiveArray2D& PassiveArray2D::advected(const FluxArray2D& F_X, const FluxArray
     for(int i=-g; i<nx+g; i++){
         for (int j=-g; j<ny+g; j++) {
             for(unsigned int n = 0; n < count(); n++){
-                advected[i,j,n] /= w_new[i,j].rho;
+                (*advected)[i,j,n] /= w_new[i,j].rho;
             }
         }
     }
     return advected;
 }
-PassiveArray3D& PassiveArray3D::advected(const FluxArray3D& F_X, const FluxArray3D& F_Y, const FluxArray3D& F_Z, const FluidArray3D& w_old, const FluidArray3D& w_new, double dt_dx, double dt_dy, double dt_dz){
+std::unique_ptr<PassiveArray3D> PassiveArray3D::advected(const FluxArray3D& F_X, const FluxArray3D& F_Y, const FluxArray3D& F_Z, const FluidArray3D& w_old, const FluidArray3D& w_new, double dt_dx, double dt_dy, double dt_dz){
     const int nx = q.getSizeX(), ny = q.getSizeY(), nz = q.getSizeZ(), g = q.getGhosts();
     //Make a copy
-    auto& advected = *(new PassiveArray3D(nx, ny, nz, g));
-    advected.clone(*this);
+    auto advected = std::make_unique<PassiveArray3D>(nx, ny, nz, g);
+    advected->clone(*this);
     //Convert to conservative
-    for(int i=-g; i<nx; i++){
+    for(int i=-g; i<nx+g; i++){
         for (int j=-g; j<ny+g; j++) {
             for (int k=-g; k<nz+g; k++) {
                 for(unsigned int n = 0; n < count(); n++){
-                    advected[i,j,k,n] *= w_old[i,j,k].rho;
+                    (*advected)[i,j,k,n] *= w_old[i,j,k].rho;
                 }
             }
         }
@@ -242,40 +242,40 @@ PassiveArray3D& PassiveArray3D::advected(const FluxArray3D& F_X, const FluxArray
                     //X fluxes
                     double fx = F_X[i,j,k].rho * dt_dx;
                     if(F_X[i,j,k].rho > advect_tol) { //Left to Right
-                        advected[i,j,k,n] += fx * q[i-1,j,k][n];
-                        advected[i-1,j,k,n] -= fx * q[i-1,j,k][n];
+                        (*advected)[i,j,k,n] += fx * q[i-1,j,k][n];
+                        (*advected)[i-1,j,k,n] -= fx * q[i-1,j,k][n];
                     } else if(F_X[i,j,k].rho < -advect_tol){ //Right to Left
-                        advected[i,j,k,n] += fx * q[i,j,k][n];
-                        advected[i-1,j,k,n] -= fx * q[i,j,k][n];
+                        (*advected)[i,j,k,n] += fx * q[i,j,k][n];
+                        (*advected)[i-1,j,k,n] -= fx * q[i,j,k][n];
                     }
                     //Y fluxes
                     double fy = F_Y[i,j,k].rho * dt_dy;
                     if(F_Y[i,j,k].rho > advect_tol) { //Left to Right
-                        advected[i,j,k,n] += fy * q[i,j-1,k][n];
-                        advected[i,j-1,k,n] -= fy * q[i,j-1,k][n];
+                        (*advected)[i,j,k,n] += fy * q[i,j-1,k][n];
+                        (*advected)[i,j-1,k,n] -= fy * q[i,j-1,k][n];
                     } else if(F_Y[i,j,k].rho < -advect_tol){ //Right to Left
-                        advected[i,j,k,n] += fy * q[i,j,k][n];
-                        advected[i,j-1,k,n] -= fy * q[i,j,k][n];
+                        (*advected)[i,j,k,n] += fy * q[i,j,k][n];
+                        (*advected)[i,j-1,k,n] -= fy * q[i,j,k][n];
                     }
                     //Z fluxes
                     double fz = F_Z[i,j,k].rho * dt_dz;
                     if(F_Z[i,j,k].rho > advect_tol) { //Left to Right
-                        advected[i,j,k,n] += fz * q[i,j,k-1][n];
-                        advected[i,j,k-1,n] -= fz * q[i,j,k-1][n];
+                        (*advected)[i,j,k,n] += fz * q[i,j,k-1][n];
+                        (*advected)[i,j,k-1,n] -= fz * q[i,j,k-1][n];
                     } else if(F_Z[i,j,k].rho < -advect_tol){ //Right to Left
-                        advected[i,j,k,n] += fz * q[i,j,k][n];
-                        advected[i,j,k-1,n] -= fz * q[i,j,k][n];
+                        (*advected)[i,j,k,n] += fz * q[i,j,k][n];
+                        (*advected)[i,j,k-1,n] -= fz * q[i,j,k][n];
                     }
                 }
             }
         }
     }
     //Convert to primitive
-    for(int i=-g; i<nx; i++){
+    for(int i=-g; i<nx+g; i++){
         for (int j=-g; j<ny+g; j++) {
             for (int k=-g; k<nz+g; k++) {
                 for(unsigned int n = 0; n < count(); n++){
-                    advected[i,j,k,n] /= w_new[i,j,k].rho;
+                    (*advected)[i,j,k,n] /= w_new[i,j,k].rho;
                 }
             }
         }
