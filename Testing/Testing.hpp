@@ -303,7 +303,16 @@ void verify_passive_scalar_add_2D();
 void verify_passive_scalar_remove_2D();
 void verify_passive_scalar_add_3D();
 void verify_passive_scalar_remove_3D();
-
+//Advection
+void verify_passive_scalar_zero_flux_1D();
+void verify_passive_scalar_zero_flux_2D();
+void verify_passive_scalar_zero_flux_3D();
+void verify_passive_scalar_uniform_1D();
+void verify_passive_scalar_uniform_2D();
+void verify_passive_scalar_uniform_3D();
+void verify_passive_scalar_conserve_1D();
+void verify_passive_scalar_conserve_2D();
+void verify_passive_scalar_conserve_3D();
 
 //MARK: DRAGONHOARD
 void verify_HOARD(bool output = true);

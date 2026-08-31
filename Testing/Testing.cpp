@@ -32,6 +32,7 @@ int main(){
     verify_ct_3D();
     std::cout << "All Constrained Transport Update Tests passed.\n\n";
     #endif
+    verify_passive_scalars();
     
     //Godunov Scheme
     verify_godunov_1D();
