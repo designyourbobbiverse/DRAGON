@@ -158,11 +158,11 @@ void DRAGON_Test::verify_passive_scalar_remove_1D(){
     }
 }
 void DRAGON_Test::verify_passive_scalar_add_2D(){
-    PassiveArray2D q{3,3,2};
+    PassiveArray2D q{3,4,2};
 
     q.add("One");
     for(int i=-2; i<3+2; i++){
-        for(int j=-2; j<3+2; j++){
+        for(int j=-2; j<4+2; j++){
             auto& val = q[i,j,"One"];
             assert(val == 0.0);
             val = 1.0;
@@ -170,7 +170,7 @@ void DRAGON_Test::verify_passive_scalar_add_2D(){
     }
     q.add("Two");
     for(int i=-2; i<3+2; i++){
-        for(int j=-2; j<3+2; j++){
+        for(int j=-2; j<4+2; j++){
             auto p = q[i,j];
             assert(p.size() == 2);
             auto v1 = q.lookup(p, "One"), v2 = q.lookup(p, "Two");
@@ -180,13 +180,13 @@ void DRAGON_Test::verify_passive_scalar_add_2D(){
     }
 }
 void DRAGON_Test::verify_passive_scalar_remove_2D(){
-    PassiveArray2D q{3,3,2};
+    PassiveArray2D q{3,4,2};
 
     q.add("One");
     q.add("Two");
     q.add("Three");
     for(int i=-2; i<3+2; i++){
-        for(int j=-2; j<3+2; j++){
+        for(int j=-2; j<4+2; j++){
             q[i,j,"One"]   = 1.0;
             q[i,j,"Two"]   = 2.0;
             q[i,j,"Three"] = 3.0;
@@ -194,7 +194,7 @@ void DRAGON_Test::verify_passive_scalar_remove_2D(){
     }
     q.remove("Two");
     for(int i=-2; i<3+2; i++){
-        for(int j=-2; j<3+2; j++){
+        for(int j=-2; j<4+2; j++){
             auto p = q[i,j];
             assert(p.size() == 2);
             assert(q.lookup(p, "One")   == 1.0);
@@ -203,12 +203,12 @@ void DRAGON_Test::verify_passive_scalar_remove_2D(){
     }
 }
 void DRAGON_Test::verify_passive_scalar_add_3D(){
-    PassiveArray3D q{3,3,3,2};
+    PassiveArray3D q{3,4,5,2};
 
     q.add("One");
     for(int i=-2; i<3+2; i++){
-        for(int j=-2; j<3+2; j++){
-            for(int k=-2; k<3+2; k++){
+        for(int j=-2; j<4+2; j++){
+            for(int k=-2; k<5+2; k++){
                 auto& val = q[i,j,k,"One"];
                 assert(val == 0.0);
                 val = 1.0;
@@ -217,8 +217,8 @@ void DRAGON_Test::verify_passive_scalar_add_3D(){
     }
     q.add("Two");
     for(int i=-2; i<3+2; i++){
-        for(int j=-2; j<3+2; j++){
-            for(int k=-2; k<3+2; k++){
+        for(int j=-2; j<4+2; j++){
+            for(int k=-2; k<5+2; k++){
                 auto p = q[i,j,k];
                 assert(p.size() == 2);
                 auto v1 = q.lookup(p, "One"), v2 = q.lookup(p, "Two");
@@ -229,14 +229,14 @@ void DRAGON_Test::verify_passive_scalar_add_3D(){
     }
 }
 void DRAGON_Test::verify_passive_scalar_remove_3D(){
-    PassiveArray3D q{3,3,3,2};
+    PassiveArray3D q{3,4,5,2};
 
     q.add("One");
     q.add("Two");
     q.add("Three");
     for(int i=-2; i<3+2; i++){
-        for(int j=-2; j<3+2; j++){
-            for(int k=-2; k<3+2; k++){
+        for(int j=-2; j<4+2; j++){
+            for(int k=-2; k<5+2; k++){
                 q[i,j,k,"One"]   = 1.0;
                 q[i,j,k,"Two"]   = 2.0;
                 q[i,j,k,"Three"] = 3.0;
@@ -245,8 +245,8 @@ void DRAGON_Test::verify_passive_scalar_remove_3D(){
     }
     q.remove("Two");
     for(int i=-2; i<3+2; i++){
-        for(int j=-2; j<3+2; j++){
-            for(int k=-2; k<3+2; k++){
+        for(int j=-2; j<4+2; j++){
+            for(int k=-2; k<5+2; k++){
                 auto p = q[i,j,k];
                 assert(p.size() == 2);
                 assert(q.lookup(p, "One")   == 1.0);
