@@ -289,6 +289,21 @@ void verify_ct_3D(bool output = true);
 
 #endif
 
+//MARK: Passive Scalars
+void verify_passive_scalars(bool output = true);
+//Key Management
+void verify_passive_scalar_add();
+void verify_passive_scalar_remove();
+void verify_passive_scalar_no_op();
+void verify_passive_scalar_bad_lookup();
+//1D/2D/3D add/remove
+void verify_passive_scalar_add_1D();
+void verify_passive_scalar_remove_1D();
+void verify_passive_scalar_add_2D();
+void verify_passive_scalar_remove_2D();
+void verify_passive_scalar_add_3D();
+void verify_passive_scalar_remove_3D();
+
 
 //MARK: DRAGONHOARD
 void verify_HOARD(bool output = true);

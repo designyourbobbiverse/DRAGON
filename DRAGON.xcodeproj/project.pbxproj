@@ -98,6 +98,7 @@
 				"Core-Components/FluidElement_Tests.cpp",
 				"Core-Components/Grid_Tests.cpp",
 				"Core-Components/MHD/Faraday_tests.cpp",
+				"Core-Components/Passive_Tests.cpp",
 				"Core-Components/Riemann/HLL_Tests.cpp",
 				"Core-Components/Riemann/Riemann_Exact_Tests.cpp",
 				"Core-Components/Riemann/Riemann_Tests.cpp",
