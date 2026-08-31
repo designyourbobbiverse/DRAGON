@@ -313,6 +313,9 @@ void verify_passive_scalar_uniform_3D();
 void verify_passive_scalar_conserve_1D();
 void verify_passive_scalar_conserve_2D();
 void verify_passive_scalar_conserve_3D();
+void verify_passive_scalar_dir_1D();
+void verify_passive_scalar_dir_2D();
+void verify_passive_scalar_dir_3D();
 
 //MARK: DRAGONHOARD
 void verify_HOARD(bool output = true);

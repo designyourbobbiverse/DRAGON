@@ -47,6 +47,9 @@ void DRAGON_Test::verify_passive_scalars(bool output){
     if (output) std::cout << "\t- Conservation Test: ";
     verify_passive_scalar_conserve_1D();
     if (output) std::cout << "Passed\n";
+    if (output) std::cout << "\t- Direction Test: ";
+    verify_passive_scalar_dir_1D();
+    if (output) std::cout << "Passed\n";
 
     if (output) std::cout << "- 2D:\n";
     if (output) std::cout << "\t- Adding Scalars: ";
@@ -64,6 +67,9 @@ void DRAGON_Test::verify_passive_scalars(bool output){
     if (output) std::cout << "\t- Conservation Test: ";
     verify_passive_scalar_conserve_2D();
     if (output) std::cout << "Passed\n";
+    if (output) std::cout << "\t- Direction Test: ";
+    verify_passive_scalar_dir_2D();
+    if (output) std::cout << "Passed\n";
 
     if (output) std::cout << "- 3D:\n";
     if (output) std::cout << "\t- Adding Scalars: ";
@@ -80,6 +86,9 @@ void DRAGON_Test::verify_passive_scalars(bool output){
     if (output) std::cout << "Passed\n";
     if (output) std::cout << "\t- Conservation Test: ";
     verify_passive_scalar_conserve_3D();
+    if (output) std::cout << "Passed\n";
+    if (output) std::cout << "\t- Direction Test: ";
+    verify_passive_scalar_dir_3D();
     if (output) std::cout << "Passed\n";
 
 
@@ -599,5 +608,124 @@ void DRAGON_Test::verify_passive_scalar_conserve_3D(){
     //Assert conservation
     assert(m1 == m1_);
     assert(m2 == m2_);
+}
+
+//MARK: Direction Test
+void DRAGON_Test::verify_passive_scalar_dir_1D(){
+    PassiveArray1D q{3,1};
+    ExtendedArray1D<ConservativeState> F_X{4,1}, F_Y{3,1};
+    FluidArray1D w{3,1};
+
+    q.add("One");
+    q.add("Two");
+    for(int i=-1; i<3+1; i++){
+        q[i,"One"]   =  (i== 1) ? 1 : 0;
+        q[i,"Two"]   = (i== 2) ? 1 : 0;
+        
+        w[i].rho = (rand()%10000) * 1e-2;
+        
+        F_X[i].rho = 1e-6 * (rand()%1000);
+    }
+    auto q_R = q.advected(F_X, w, w, 1.0);
+    
+    for(int i=-1; i<3+1; i++){
+        F_X[i].rho *= -1;
+    }
+    auto q_L = q.advected(F_X, w, w, 1.0);
+
+    for(int i=-1; i<3+1; i++){
+        auto p_L = (*q_L)[i], p_R = (*q_R)[i];
+        if (i<1) assert(p_R[0] == 0);
+        if (i>1) assert(p_L[0] == 0);
+        if (i<2) assert(p_R[1] == 0);
+        if (i>2) assert(p_L[1] == 0);
+    }
+}
+void DRAGON_Test::verify_passive_scalar_dir_2D(){
+    PassiveArray2D q{3,4,1};
+    FluxArray2D F_X{4,4,1}, F_Y{3,5,1};
+    FluidArray2D w{3,4,1};
+
+    q.add("One");
+    q.add("Two");
+    for(int i=-1; i<3+1; i++){
+        for(int j=-1; j<4+1; j++){
+            q[i,j,"One"]   =  (i== 1 && j == 1) ? 1 : 0;
+            q[i,j,"Two"]   = (i== 2 && j == 2) ? 1 : 0;
+            
+            w[i,j].rho = (rand()%10000) * 1e-2;
+            
+            F_X[i,j].rho = 1e-6 * (rand()%1000);
+            F_Y[i,j].rho = 1e-6 * (rand()%1000);
+        }
+    }
+    auto q_R = q.advected(F_X, F_Y, w, w, 1.0, 0.5);
+    
+    for(int i=-1; i<3+1; i++){
+        for(int j=-1; j<4+1; j++){
+            F_X[i,j].rho *= -1;
+            F_Y[i,j].rho *= -1;
+        }
+    }
+    auto q_L = q.advected(F_X, F_Y, w, w, 1.0, 0.5);
+
+
+    for(int i=-1; i<3+1; i++){
+        for(int j=-1; j<4+1; j++){
+            auto p_L = (*q_L)[i,j], p_R = (*q_R)[i,j];
+            if (i<1 || j < 1) assert(p_R[0] == 0);
+            if (i>1 || j > 1) assert(p_L[0] == 0);
+            if (i<2 || j < 2) assert(p_R[1] == 0);
+            if (i>2 || j > 2) assert(p_L[1] == 0);
+        }
+    }
+}
+void DRAGON_Test::verify_passive_scalar_dir_3D(){
+    PassiveArray3D q{3,4,5,1};
+    FluxArray3D F_X{4,4,5,1}, F_Y{3,5,5,1}, F_Z{3,4,6,1};
+    FluidArray3D w{3,4,5,1};
+
+    q.add("One");
+    q.add("Two");
+    for(int i=-1; i<3+1; i++){
+        for(int j=-1; j<4+1; j++){
+            for(int k=-1; k<5+1; k++){
+                q[i,j,k,"One"]   =  (i== 1 && j == 1 && k == 1) ? 1 : 0;
+                q[i,j,k,"Two"]   = (i== 2 && j == 2 && k == 2) ? 1 : 0;
+                
+                w[i,j,k].rho = (rand()%10000) * 1e-2;
+                
+                F_X[i,j,k].rho = 1e-6 * (rand()%1000);
+                F_Y[i,j,k].rho = 1e-6 * (rand()%1000);
+                F_Z[i,j,k].rho = 1e-6 * (rand()%1000);
+            }
+        }
+    }
+    auto q_R = q.advected(F_X, F_Y, F_Z, w, w, 1.0, 0.5, 0.2);
+    
+    for(int i=-1; i<3+1; i++){
+        for(int j=-1; j<4+1; j++){
+            for(int k=-1; k<5+1; k++){
+                F_X[i,j,k].rho *= -1;
+                F_Y[i,j,k].rho *= -1;
+                F_Z[i,j,k].rho *= -1;
+            }
+        }
+    }
+    auto q_L = q.advected(F_X, F_Y, F_Z, w, w, 1.0, 0.5, 0.2);
+
+
+    for(int i=-1; i<3+1; i++){
+        for(int j=-1; j<4+1; j++){
+            for(int k=-1; k<5+1; k++){
+                auto p_L = (*q_L)[i,j,k], p_R = (*q_R)[i,j,k];
+                
+                if (i<1 || j < 1 || k < 1) assert(p_R[0] == 0);
+                if (i>1 || j > 1 || k > 1) assert(p_L[0] == 0);
+                if (i<2 || j < 2 || k < 2) assert(p_R[1] == 0);
+                if (i>2 || j > 2 || k > 2) assert(p_L[1] == 0);
+            }
+        }
+    }
 }
 
