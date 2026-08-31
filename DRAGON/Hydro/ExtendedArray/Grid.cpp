@@ -20,7 +20,7 @@ static int validGhosts(int g){
 #endif
 }
 
-Grid1D::Grid1D(int s_, double dx_, int g_): w(s_, validGhosts(g_)), dx(dx_){ }
+Grid1D::Grid1D(int s_, double dx_, int g_): w(s_, validGhosts(g_)), dx(dx_), q(s_, 1) { }
 PrimitiveState& Grid1D::operator[](int k){ return w[k]; }
 const PrimitiveState& Grid1D::operator[](int k) const { return w[k]; }
 int Grid1D::getSize() const { return w.getSize(); }
@@ -30,7 +30,7 @@ Grid2D::Grid2D(int nx_, int ny_, double dx_, double dy_, int g_):  w(nx_, ny_,va
     #ifdef MHD //B lives on a staggered grid, needs one more face than the body
     B(nx_+1, ny_+1,w.getGhosts()),
     #endif
-    dx(dx_), dy(dy_){ }
+    dx(dx_), dy(dy_), q(nx_, ny_, 1) { }
 PrimitiveState& Grid2D::operator[](int i, int j){ return w[i,j]; }
 const PrimitiveState& Grid2D::operator[](int i, int j) const { return w[i,j]; }
 int Grid2D::getSizeX() const { return w.getSizeX(); }
@@ -42,7 +42,7 @@ Grid3D::Grid3D(int nx_, int ny_, int nz_, double dx_, double dy_, double dz_, in
     #ifdef MHD //B lives on a staggered grid, needs one more face than the body
     B(nx_+1, ny_+1, nz_+1, w.getGhosts()),
     #endif
-    dx(dx_), dy(dy_), dz(dz_){ }
+    dx(dx_), dy(dy_), dz(dz_), q(nx_, ny_, nz_, 1){ }
 PrimitiveState& Grid3D::operator[](int i, int j, int k){ return w[i,j,k]; }
 const PrimitiveState& Grid3D::operator[](int i, int j, int k) const { return w[i,j,k]; }
 int Grid3D::getSizeX() const { return w.getSizeX(); }

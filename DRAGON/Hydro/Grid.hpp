@@ -11,6 +11,7 @@
 
 #include "Hydro/ExtendedArray/ArrayTypes.hpp"   //For ExtendedArray, PrimitiveState
 #include "Boundary/Boundary.hpp"                //For Boundary::BoundaryList
+#include "Passives/Passives.hpp"                //For Passives
 
 #include "Config.h" //For enabling or disabling MHD declarations
 
@@ -40,6 +41,7 @@ public:
 class Grid1D: public Grid{
 protected:
     ExtendedArray1D<PrimitiveState> w;
+    PassiveArray1D q;
 public:
     double dx; //Phsyical scale of a grid unit
     
@@ -53,6 +55,9 @@ public:
     const PrimitiveState& operator[](int k) const;
     int getSize() const, getGhosts() const;
     
+    PassiveArray1D& passives(){return q;}
+    const PassiveArray1D& passives() const {return q;}
+    
     //Advance forward in time
     void split_step(double dt) override;
     void unsplit_step(double dt) override;
@@ -64,6 +69,7 @@ protected:
     #ifdef MHD
     ExtendedArray2D<vec3> B;//B fields on the faces
     #endif
+    PassiveArray2D q;
 public:
     double dx, dy;
     
@@ -77,12 +83,13 @@ public:
     PrimitiveState& operator[](int i,int j);
     const PrimitiveState& operator[](int i,int j) const;
     int getSizeX() const, getSizeY() const, getGhosts() const;
-    #ifdef MHD
-    //Access Edge Magnetic potentials. Only Az is used in 2D
-    //A[i,j] is on the corner w[i-1/2,j-1/2]
+    #ifdef MHD //Face-normal magnetic fields
     ExtendedArray2D<vec3>& _B(){return B;}
     const ExtendedArray2D<vec3>& _B() const {return B;}
     #endif
+    //Passive Scalars
+    PassiveArray2D& passives(){return q;}
+    const PassiveArray2D& passives() const {return q;}
     
     //Advance Forward in time
     void split_step(double dt) override;
@@ -106,6 +113,7 @@ protected:
     #ifdef MHD
     ExtendedArray3D<vec3> B;//B fields on the faces
     #endif
+    PassiveArray3D q;
 public:
     double dx, dy, dz;
     
@@ -119,12 +127,13 @@ public:
     PrimitiveState& operator[](int i,int j,int k);
     const PrimitiveState& operator[](int i,int j,int k) const;
     int getSizeX() const, getSizeY() const, getSizeZ() const, getGhosts() const;
-    #ifdef MHD
-    //Access Edge Magnetic potentials.
-    //A[i,j,k] is the corner w[i-1/2,j-1/2,k-1/2] to each of the 3 adjacent corners of w[i,j,k]
+    #ifdef MHD//Face-normal magnetic fields
     ExtendedArray3D<vec3>& _B(){return B;}
     const ExtendedArray3D<vec3>& _B() const {return B;}
     #endif
+    //Passive Scalars
+    PassiveArray3D& passives(){return q;}
+    const PassiveArray3D& passives() const {return q;}
     
     //Advance Forward in time
     void split_step(double dt) override;
