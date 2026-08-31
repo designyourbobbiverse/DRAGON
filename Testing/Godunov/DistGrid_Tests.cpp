@@ -41,11 +41,16 @@ void DRAGON_Test::verify_god_dist_grid_2D(){
     DistGrid2D dgrid(32,32,1.0, 1.0, 4);
     grid.boundary = Periodic();
     dgrid.boundary = Periodic();
+    grid.passives().add("Test");
+    dgrid.passives().add("Test");
     
     for (int i = 0; i <= grid.getSizeX(); i++) {
         for (int j = 0; j <= grid.getSizeY(); j++) {
             grid[i,j] = make_state(1.0+0.1*i+0.1*j, 1.0+0.1*i, 1.0-0.1*j, 0.1*i*j, 10.0-0.1*i+0.1*j);
             dgrid[i,j] = grid[i,j];
+            
+            grid.passives()[i,j,"Test"] = 10.0-0.1*i+0.1*j;
+            dgrid.passives()[i,j,"Test"] = grid.passives()[i,j,"Test"];
         }
     }
     
@@ -55,6 +60,7 @@ void DRAGON_Test::verify_god_dist_grid_2D(){
     for (int i = 0; i < grid.getSizeX(); i++) {
         for (int j = 0; j < grid.getSizeY(); j++) {
             expect_close(grid[i,j], dgrid[i,j], 1e-26);
+            approx(grid.passives()[i,j,"Test"],  dgrid.passives()[i,j,"Test"], 1e-26);
         }
     }
 }
@@ -64,6 +70,8 @@ void DRAGON_Test::verify_god_dist_grid_2D_MHD(){
     DistGrid2D dgrid(32,32,1.0, 1.0);
     grid.boundary = Periodic();
     dgrid.boundary = Periodic();
+    grid.passives().add("Test");
+    dgrid.passives().add("Test");
     
     for (int i = 0; i <= grid.getSizeX(); i++) {
         for (int j = 0; j <= grid.getSizeY(); j++) {
@@ -73,6 +81,9 @@ void DRAGON_Test::verify_god_dist_grid_2D_MHD(){
             
             dgrid[i,j] = grid[i,j];
             dgrid._B()[i,j] = grid._B()[i,j];
+            
+            grid.passives()[i,j,"Test"] = 10.0-0.1*i+0.1*j;
+            dgrid.passives()[i,j,"Test"] = grid.passives()[i,j,"Test"];
         }
     }
     grid.advance(1.0);
@@ -82,6 +93,7 @@ void DRAGON_Test::verify_god_dist_grid_2D_MHD(){
         for (int j = 0; j <= grid.getSizeY(); j++) {
             expect_close(grid[i,j], dgrid[i,j], 1e-26);
             expect_close(grid._B()[i,j], dgrid._B()[i,j], 1e-26);
+            approx(grid.passives()[i,j,"Test"],  dgrid.passives()[i,j,"Test"], 1e-26);
         }
     }
 }
@@ -92,12 +104,17 @@ void DRAGON_Test::verify_god_dist_grid_3D(){
     DistGrid3D dgrid(16,16,16, 1.0,1.0,1.0,4);
     grid.boundary = Periodic();
     dgrid.boundary = Periodic();
+    grid.passives().add("Test");
+    dgrid.passives().add("Test");
     
     for (int i = 0; i < grid.getSizeX(); i++) {
         for (int j = 0; j < grid.getSizeY(); j++) {
             for (int k = 0; k < grid.getSizeZ(); k++) {
                 grid[i,j,k] = make_state(1.0+0.1*i+0.1*j, 1.0+0.1*i, 1.0-0.1*j, 0.1*k, 10.0-0.1*i+0.1*j-0.1*k);
                 dgrid[i,j,k] = grid[i,j,k];
+                
+                grid.passives()[i,j,k,"Test"] = 10.0-0.1*i+0.1*j;
+                dgrid.passives()[i,j,k,"Test"] = grid.passives()[i,j,k,"Test"];
             }
         }
     }
@@ -109,6 +126,7 @@ void DRAGON_Test::verify_god_dist_grid_3D(){
         for (int j = 0; j < grid.getSizeY(); j++) {
             for (int k = 0; k < grid.getSizeZ(); k++) {
                 expect_close(grid[i,j,k], dgrid[i,j,k], 1e-26);
+                approx(grid.passives()[i,j,k,"Test"],  dgrid.passives()[i,j,k,"Test"], 1e-26);
             }
         }
     }
@@ -120,6 +138,8 @@ void DRAGON_Test::verify_god_dist_grid_3D_MHD(){
     DistGrid3D dgrid(16,16,16,1.0, 1.0,1.0,3);
     grid.boundary = Periodic();
     dgrid.boundary = Periodic();
+    grid.passives().add("Test");
+    dgrid.passives().add("Test");
     
     for (int i = 0; i <= grid.getSizeX(); i++) {
         for (int j = 0; j <= grid.getSizeY(); j++) {
@@ -129,6 +149,9 @@ void DRAGON_Test::verify_god_dist_grid_3D_MHD(){
                 grid._B()[i,j,k] = vec3{0.1, -0.2, -0.3};
                 dgrid[i,j,k] = grid[i,j,k];
                 dgrid._B()[i,j,k] = grid._B()[i,j,k];
+                
+                grid.passives()[i,j,k,"Test"] = 10.0-0.1*i+0.1*j;
+                dgrid.passives()[i,j,k,"Test"] = grid.passives()[i,j,k,"Test"];
             }
         }
     }
@@ -141,6 +164,7 @@ void DRAGON_Test::verify_god_dist_grid_3D_MHD(){
             for (int k = 0; k <= grid.getSizeZ(); k++) {
                 expect_close(grid[i,j,k], dgrid[i,j,k], 1e-26);
                 expect_close(grid._B()[i,j,k], dgrid._B()[i,j,k], 1e-26);
+                approx(grid.passives()[i,j,k,"Test"],  dgrid.passives()[i,j,k,"Test"], 1e-26);
             }
         }
     }
