@@ -96,7 +96,6 @@ void Grid2D::unsplit_step(double dt){
         __Elec.release();
     CT::computeBodyFields(_B, _w);
     #endif
-        __fluxes.release();
 
     //Verify Physicality of solution
     for (int i=0; i<nx; i++) {
@@ -105,6 +104,10 @@ void Grid2D::unsplit_step(double dt){
                 throw std::runtime_error(std::format("Unphysical state would be produced at ({},{})",i,j));
         }
     }
+    
+    //Passive Scalar Advection
+    auto _q = q.advected(F_X, F_Y, w, _w, dt_dx, dt_dy);
+        __fluxes.release();
         
     //Wait for any parallel grids to finish
     DRAGONWING::reportCheckpoint1();
@@ -115,6 +118,7 @@ void Grid2D::unsplit_step(double dt){
     #ifdef MHD
     B.clone(_B, false);
     #endif
+    q.clone(*_q);
     
 }
 
@@ -200,6 +204,10 @@ void Grid3D::unsplit_step(double dt){
         }
     }
     
+    //Passive Scalar Advection
+    auto _q = q.advected(F_X, F_Y, F_Z, w, _w, dt_dx, dt_dy, dt_dz);
+        __fluxes.release();
+    
     //Wait for any parallel grids to finish
     DRAGONWING::reportCheckpoint1();
     if (!DRAGONWING::waitForCheckpoint1()) return;
@@ -209,4 +217,5 @@ void Grid3D::unsplit_step(double dt){
     #ifdef MHD
     B.clone(_B, false);
     #endif
+    q.clone(*_q);
 }
