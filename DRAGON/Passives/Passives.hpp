@@ -35,6 +35,7 @@ public:
 struct PassiveArray1D: public PassiveArray{
 private:
     ExtendedArray1D<PassiveSet> q;
+    friend class DistGrid1D; //For syncing keys between parent/child
 public:
     PassiveArray1D(int nx, int g=1): q(nx, g) {}
     void clone(const PassiveArray1D& arr);
@@ -56,6 +57,7 @@ public:
 struct PassiveArray2D: public PassiveArray{
 private:
     ExtendedArray2D<PassiveSet> q;
+    friend class DistGrid2D; //For syncing keys between parent/child
 public:
     PassiveArray2D(int nx, int ny, int g=1): q(nx, ny, g) {}
     void clone(const PassiveArray2D& arr);
@@ -78,6 +80,7 @@ public:
 struct PassiveArray3D: public PassiveArray{
 private:
     ExtendedArray3D<PassiveSet> q;
+    friend class DistGrid3D; //For syncing keys between parent/child
 public:
     PassiveArray3D(int nx, int ny, int nz, int g=1): q(nx, ny, nz, g) {}
     void clone(const PassiveArray3D& arr);

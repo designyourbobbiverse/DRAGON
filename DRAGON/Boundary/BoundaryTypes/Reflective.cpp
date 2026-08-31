@@ -19,6 +19,8 @@ Boundary::Reflective::Reflective(std::string s, bool corners) : Reflective(face_
 //Set each ghost to be a reflection of the cell which is opposite the boundary from it
 void Boundary::Reflective::apply(Grid1D& grid){
     int ng = grid.getGhosts();
+    auto& q = grid.passives();
+
     if (faces & X_negative) {
         for (int g = 1; g <= ng; g++) {
             grid[-g] = grid[g-1];
@@ -28,6 +30,7 @@ void Boundary::Reflective::apply(Grid1D& grid){
             grid[-g].B.x *= -1;
             #endif
         }
+        q[-1] = q[0]; //Copy passives (only first ghost)
     }
     if (faces & X_positive) {
         int nx = grid.getSize();
@@ -39,6 +42,7 @@ void Boundary::Reflective::apply(Grid1D& grid){
             grid[nx-1+g].B.x *= -1;
             #endif
         }
+        q[nx] = q[nx-1]; //Copy passives (only first ghost)
     }
 }
 
@@ -49,6 +53,7 @@ void Boundary::Reflective::apply(Grid2D& grid){
     int i0 = (corners ? -ng : 0), in = (corners ? nx + ng : nx);
     int j0 = i0, jn = (corners ? ny + ng : ny);
 
+    auto& q = grid.passives();
 
     if (faces & X_negative) {
         for (int j = j0 ; j < jn; j++) {
@@ -60,6 +65,7 @@ void Boundary::Reflective::apply(Grid2D& grid){
                 grid[-g,j].B.x *= -1;
                 #endif
             }
+            if (j >= -1 && j <= ny) q[-1,j] = q[0,j]; //Copy passives (only first ghost)
         }
     }
     if (faces & X_positive) {
@@ -72,6 +78,7 @@ void Boundary::Reflective::apply(Grid2D& grid){
                 grid[nx-1+g,j].B.x *= -1;
                 #endif
             }
+            if (j >= -1 && j <= ny) q[nx,j] = q[nx-1,j]; //Copy passives (only first ghost)
         }
     }
     if (faces & Y_negative) {
@@ -84,6 +91,7 @@ void Boundary::Reflective::apply(Grid2D& grid){
                 grid[i,-g].B.y *= -1;
                 #endif
             }
+            if (i >= -1 && i <= nx) q[i,-1] = q[i,0]; //Copy passives (only first ghost)
         }
     }
     if (faces & Y_positive) {
@@ -96,6 +104,7 @@ void Boundary::Reflective::apply(Grid2D& grid){
                 grid[i,ny-1+g].B.y *= -1;
                 #endif
             }
+            if (i >= -1 && i <= nx) q[i,ny] = q[i,ny-1]; //Copy passives (only first ghost)
         }
     }
 //MARK: 2D MHD
@@ -148,6 +157,7 @@ void Boundary::Reflective::apply(Grid3D& grid){
     int j0 = i0, jn = (corners ? ny + ng : ny);
     int k0 = i0, kn = (corners ? nz + ng : nz);
 
+    auto& q = grid.passives();
 
     if (faces & X_negative) {
         for (int j = j0 ; j < jn; j++) {
@@ -160,6 +170,8 @@ void Boundary::Reflective::apply(Grid3D& grid){
                     grid[-g,j,k].B.x *= -1;
                     #endif
                 }
+                if (j >= -1 && j <= ny && k >= -1 && k <= nz)
+                    q[-1,j,k] = q[0,j,k]; //Copy passives (only first ghost)
             }
         }
     }
@@ -174,6 +186,8 @@ void Boundary::Reflective::apply(Grid3D& grid){
                     grid[nx-1+g,j,k].B.x *= -1;
                     #endif
                 }
+                if (j >= -1 && j <= ny && k >= -1 && k <= nz)
+                    q[nx,j,k] = q[nx-1,j,k]; //Copy passives (only first ghost)
             }
         }
     }
@@ -188,6 +202,8 @@ void Boundary::Reflective::apply(Grid3D& grid){
                     grid[i,-g,k].B.y *= -1;
                     #endif
                 }
+                if (i >= -1 && i <= nx && k >= -1 && k <= nz)
+                    q[i,-1,k] = q[i,0,k]; //Copy passives (only first ghost)
             }
         }
     }
@@ -202,6 +218,8 @@ void Boundary::Reflective::apply(Grid3D& grid){
                     grid[i,ny-1+g,k].B.y *= -1;
                     #endif
                 }
+                if (i >= -1 && i <= nx && k >= -1 && k <= nz)
+                    q[i,ny,k] = q[i,ny-1,k]; //Copy passives (only first ghost)
             }
         }
     }
@@ -216,6 +234,8 @@ void Boundary::Reflective::apply(Grid3D& grid){
                     grid[i,j,-g].B.z *= -1;
                     #endif
                 }
+                if (i >= -1 && i <= nx && j >= -1 && j <= ny)
+                    q[i,j,-1] = q[i,j,0]; //Copy passives (only first ghost)
             }
         }
     }
@@ -230,6 +250,8 @@ void Boundary::Reflective::apply(Grid3D& grid){
                     grid[i,j,nz-1+g].B.z *= -1;
                     #endif
                 }
+                if (i >= -1 && i <= nx && j >= -1 && j <= ny)
+                    q[i,j,nz] = q[i,j,nz-1]; //Copy passives (only first ghost)
             }
         }
     }
