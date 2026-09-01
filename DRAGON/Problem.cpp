@@ -45,7 +45,8 @@ vec3 Problem::initialMagneticPotential(double x, double y, double z){
 void Problem::completeProblemInit(Grid& problem){
     MyGrid& grid = *dynamic_cast<MyGrid*>(&problem);
     //Here you can do any initialization not covered by initialFluidState and initialMagneticPotential
-    
+    //For example, you can initialise passive scalars here
+
 }
 
 
