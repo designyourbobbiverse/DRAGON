@@ -33,7 +33,7 @@ key_Ax = key_A + "/x";
 key_Ay = key_A + "/y";
 key_Az = key_A + "/z";
 
-key_passive = "/passive";
+key_passive = "/passive/";
 
 #Metadata
 key_fmt = "format_version";

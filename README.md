@@ -226,13 +226,13 @@ For 2D problems, pass one or more field keys:
 ```bash
 python -m DRAGONGAZE.GAZE2D rho p E By
 ```
-Valid 2D keys are rho, vx, vy, vz, Bx, By, Bz, p, and E.
+Valid 2D keys are rho, vx, vy, vz, Bx, By, Bz, p, E, or any passive scalar.
 
 For 3D problems, pass one or more field keys, and optionally specify which pair(s) of axes you want ploted
 ```bash
 python -m DRAGONGAZE.GAZE3D rho E-xz E-xy By-xz
 ```
-Valid 3D keys are rho, vx, vy, vz, Bx, By, Bz, p, and E (same as 2D).  Valid axis options are xy, xz, and yz. A key may be specified more than once to specify multiple axis options, or the axis option can be omitted to plot all 3.
+Valid 3D keys are rho, vx, vy, vz, Bx, By, Bz, p, E, or any passive scalar (same as 2D).  Valid axis options are xy, xz, and yz. A key may be specified more than once to specify multiple axis options, or the axis option can be omitted to plot all 3.
 
 Currently, 3D only supports plotting midplane slices.
 

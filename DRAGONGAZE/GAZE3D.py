@@ -89,7 +89,7 @@ def plotField(data, n, dx, dy, dz, rng, key, dim):
     ax = fig.add_axes([left_px / fig_w_px, bottom_px / fig_h_px, ax_w_px / fig_w_px, ax_h_px / fig_h_px])
 
     #Scale logarithmically or linearly
-    if log_plots[key]:
+    if key in log_plots and log_plots[key]:
         arr = np.maximum(_data, rng[0])
         norm=LogNorm(vmin = rng[0], vmax = rng[1])
     else:
@@ -100,7 +100,7 @@ def plotField(data, n, dx, dy, dz, rng, key, dim):
         arr,
         origin="lower",
         interpolation="nearest",
-        cmap = cmaps[key],
+        cmap = cmaps[key] if key in cmaps else cmaps["default"],
         extent = extent,
         norm=norm
     )
@@ -114,7 +114,8 @@ def plotField(data, n, dx, dy, dz, rng, key, dim):
     elif dim == 2:
         ax.set_xlabel(x_label)
         ax.set_ylabel(y_label)
-    ax.set_title(f"{titles[key]} [t = {t:.4f}{time_unit}]")
+    if key in titles: ax.set_title(f"{titles[key]} [t = {t:.4f}{time_unit}]")
+    else: ax.set_title(f"{key} [t = {t:.4f}{time_unit}]")
     fig.suptitle(plot_title, fontsize=22, y=0.96)
     #Colour Bar
     cbar_left_px = left_px + ax_w_px + 20

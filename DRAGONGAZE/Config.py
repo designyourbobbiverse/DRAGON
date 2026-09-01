@@ -105,7 +105,8 @@ cmaps = {
     "Bx": "seismic",
     "By": "seismic",
     "Bz": "seismic",
-    "Bmag": "plasma"
+    "Bmag": "plasma",
+    "default": "viridis"
 }
 
 #If true, plots this quantity logarithmically (via LogNorm/semilogy). If false, plots it linearly.
