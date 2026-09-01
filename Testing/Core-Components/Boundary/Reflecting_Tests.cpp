@@ -68,6 +68,8 @@ void DRAGON_Test::verify_boundary_reflective_1D(){
     expect_close(grid[-1], w);
     w = grid[1]; reflectX1D(w);
     expect_close(grid[-2], w);
+    auto p1 = grid.passives()[-1,"Test"], p2 = grid.passives()[0,"Test"];
+    assert(p1 == p2);
     //Single face filling: Right
     fill_1D(grid);
     Reflective("X+").apply(grid);
@@ -75,6 +77,8 @@ void DRAGON_Test::verify_boundary_reflective_1D(){
     expect_close(grid[4], w);
     w = grid[2]; reflectX1D(w);
     expect_close(grid[5], w);
+    auto p3 = grid.passives()[4,"Test"], p4 = grid.passives()[3,"Test"];
+    assert(p3 == p4);
 }
 
 //MARK: Reflecting - 2D
@@ -113,6 +117,10 @@ void DRAGON_Test::verify_boundary_reflective_2D(){
         assert((grid._B()[4,j].x == grid._B()[2,j].x));
         assert((grid._B()[3,j].y == -grid._B()[2,j].y));
         #endif
+        auto p1 = grid.passives()[-1,j,"Test"], p2 = grid.passives()[0,j,"Test"];
+        assert(p1 == p2);
+        auto p3 = grid.passives()[3,j,"Test"], p4 = grid.passives()[2,j,"Test"];
+        assert(p3 == p4);
     }
     //No corners = no corners
     expect_close(grid[-1,-1],G);
@@ -134,6 +142,10 @@ void DRAGON_Test::verify_boundary_reflective_2D(){
         assert((grid._B()[i,4].x == -grid._B()[i,3].x));
         assert((grid._B()[i,5].y == grid._B()[i,3].y));
         #endif
+        auto p1 = grid.passives()[i,-1,"Test"], p2 = grid.passives()[i,0,"Test"];
+        assert(p1 == p2);
+        auto p3 = grid.passives()[i,4,"Test"], p4 = grid.passives()[i,3,"Test"];
+        assert(p3 == p4);
     }
     //Corner
     fill_2D(grid);
@@ -189,6 +201,10 @@ void DRAGON_Test::verify_boundary_reflective_3D(){
             assert((grid._B()[3,j,k].y == -grid._B()[2,j,k].y));
             assert((grid._B()[3,j,k].z == -grid._B()[2,j,k].z));
             #endif
+            auto p1 = grid.passives()[-1,j,k,"Test"], p2 = grid.passives()[0,j,k,"Test"];
+            assert(p1 == p2);
+            auto p3 = grid.passives()[3,j,k,"Test"], p4 = grid.passives()[2,j,k,"Test"];
+            assert(p3 == p4);
         }
     }
     //Y
@@ -211,6 +227,10 @@ void DRAGON_Test::verify_boundary_reflective_3D(){
             assert((grid._B()[i,5,k].y == grid._B()[i,3,k].y));
             assert((grid._B()[i,4,k].z == -grid._B()[i,3,k].z));
             #endif
+            auto p1 = grid.passives()[i,-1,k,"Test"], p2 = grid.passives()[i,0,k,"Test"];
+            assert(p1 == p2);
+            auto p3 = grid.passives()[i,4,k,"Test"], p4 = grid.passives()[i,3,k,"Test"];
+            assert(p3 == p4);
         }
     }
     //Z
@@ -233,6 +253,10 @@ void DRAGON_Test::verify_boundary_reflective_3D(){
             assert((grid._B()[i,j,5].y == -grid._B()[i,j,4].y));
             assert((grid._B()[i,j,6].z == grid._B()[i,j,4].z));
             #endif
+            auto p1 = grid.passives()[i,j,-1,"Test"], p2 = grid.passives()[i,j,0,"Test"];
+            assert(p1 == p2);
+            auto p3 = grid.passives()[i,j,5,"Test"], p4 = grid.passives()[i,j,4,"Test"];
+            assert(p3 == p4);
         }
     }
     //No corners = no corners

@@ -51,9 +51,12 @@ const PrimitiveState G = make_tagged_state(-666);
 
 
 void fill_1D(Grid1D& grid){
+    grid.passives().add("Test");
+
     double s = 1.0 / grid.getSize();
     for (int i = 0; i < grid.getSize(); i++) {
         grid[i] = make_tagged_state(i*s);
+        grid.passives()[i,"Test"] = i;
     }
     for (int g = 1; g <= grid.getGhosts(); g++) {
         grid[-g] = G;
@@ -61,6 +64,8 @@ void fill_1D(Grid1D& grid){
     }
 }
 void fill_2D(Grid2D& grid){
+    grid.passives().add("Test");
+    
     double s = 1.0 / std::max(grid.getSizeX(), grid.getSizeY());
     for (int i = -grid.getGhosts(); i < grid.getSizeX()+grid.getGhosts(); i++) {
         for (int j = -grid.getGhosts(); j < grid.getSizeY()+grid.getGhosts(); j++) {
@@ -70,6 +75,7 @@ void fill_2D(Grid2D& grid){
     for (int i = 0; i < grid.getSizeX(); i++) {
         for (int j = 0; j < grid.getSizeY(); j++) {
             grid[i, j] = make_tagged_state(i*s + j*s*s);
+            grid.passives()[i,j,"Test"] = i*s + j*s*s;
         }
     }
 #ifdef MHD
@@ -82,6 +88,7 @@ void fill_2D(Grid2D& grid){
     
 }
 void fill_3D(Grid3D& grid){
+    grid.passives().add("Test");
     double s = 1.0 / std::max(std::max(grid.getSizeX(), grid.getSizeY()), grid.getSizeZ());
     for (int i = -grid.getGhosts(); i < grid.getSizeX()+grid.getGhosts(); i++) {
         for (int j = -grid.getGhosts(); j < grid.getSizeY()+grid.getGhosts(); j++) {
@@ -94,6 +101,7 @@ void fill_3D(Grid3D& grid){
         for (int j = 0; j < grid.getSizeY(); j++) {
             for (int k = 0; k < grid.getSizeZ(); k++) {
                 grid[i, j, k] = make_tagged_state(i*s + j*s*s + k*s*s*s + 1);
+                grid.passives()[i,j,k,"Test"] = i*s + j*s*s + k*s*s*s;
             }
         }
     }

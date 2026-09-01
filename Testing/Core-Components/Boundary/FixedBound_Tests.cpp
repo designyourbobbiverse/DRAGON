@@ -77,8 +77,8 @@ void DRAGON_Test::verify_boundary_fixed_2D(){
         expect_close(grid[-1, j], W);
         expect_close(grid[3, j],  W);
         #ifdef MHD
-        approx(grid._B()[-1,j].y, W.B.y);
-        approx(grid._B()[3,j].y, W.B.y);
+        assert(approx(grid._B()[-1,j].y, W.B.y));
+        assert(approx(grid._B()[3,j].y, W.B.y));
         #endif
     }
     //No Corners = No Corners
@@ -90,8 +90,8 @@ void DRAGON_Test::verify_boundary_fixed_2D(){
         expect_close(grid[i,-1], W);
         expect_close(grid[i,4],  W);
         #ifdef MHD
-        approx(grid._B()[i,-1].x, W.B.x);
-        approx(grid._B()[i,4].x, W.B.x);
+        assert(approx(grid._B()[i,-1].x, W.B.x));
+        assert(approx(grid._B()[i,4].x, W.B.x));
         #endif
     }
     //Corner
@@ -112,10 +112,10 @@ void DRAGON_Test::verify_boundary_fixed_3D(){
             expect_close(grid[-1, j,k], W);
             expect_close(grid[3, j,k],  W);
             #ifdef MHD
-            approx(grid._B()[-1,j,k].y, W.B.y);
-            approx(grid._B()[-1,j,k].z, W.B.z);
-            approx(grid._B()[3,j,k].y, W.B.y);
-            approx(grid._B()[3,j,k].z, W.B.z);
+            assert(approx(grid._B()[-1,j,k].y, W.B.y));
+            assert(approx(grid._B()[-1,j,k].z, W.B.z));
+            assert(approx(grid._B()[3,j,k].y, W.B.y));
+            assert(approx(grid._B()[3,j,k].z, W.B.z));
             #endif
         }
     }
@@ -128,12 +128,12 @@ void DRAGON_Test::verify_boundary_fixed_3D(){
             expect_close(grid[i,4, k],  W);
             #ifdef MHD
             if (k + 1 < grid.getSizeZ()) {
-                approx(grid._B()[i,-1,k].x, W.B.x);
-                approx(grid._B()[i,4,k].x, W.B.x);
+                assert(approx(grid._B()[i,-1,k].x, W.B.x));
+                assert(approx(grid._B()[i,4,k].x, W.B.x));
             }
             if (i + 1 < grid.getSizeX()) {
-                approx(grid._B()[i,-1,k].z, W.B.z);
-                approx(grid._B()[i,4,k].z, W.B.z);
+                assert(approx(grid._B()[i,-1,k].z, W.B.z));
+                assert(approx(grid._B()[i,4,k].z, W.B.z));
             }
             #endif
         }
@@ -148,10 +148,10 @@ void DRAGON_Test::verify_boundary_fixed_3D(){
             expect_close(grid[i,j,-1], W);
             expect_close(grid[i,j,5],  W);
             #ifdef MHD
-            approx(grid._B()[i,j,-1].x, W.B.x);
-            approx(grid._B()[i,j,-1].y, W.B.y);
-            approx(grid._B()[i,j,5].x, W.B.x);
-            approx(grid._B()[i,j,5].y, W.B.y);
+            assert(approx(grid._B()[i,j,-1].x, W.B.x));
+            assert(approx(grid._B()[i,j,-1].y, W.B.y));
+            assert(approx(grid._B()[i,j,5].x, W.B.x));
+            assert(approx(grid._B()[i,j,5].y, W.B.y));
             #endif
         }
     }

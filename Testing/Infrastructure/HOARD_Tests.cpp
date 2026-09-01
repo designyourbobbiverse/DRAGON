@@ -67,8 +67,8 @@ void DRAGON_Test::verify_IO1D(){
         expect_close(g[i],  make_tagged_state(i*0.1));
     }
     for(int i = 0; i<5; i++){
-        approx(g.passives()[i,"one"], i*0.1);
-        approx(g.passives()[i,"two"], i*0.2);
+        assert(approx(g.passives()[i,"one"], i*0.1));
+        assert(approx(g.passives()[i,"two"], i*0.2));
     }
     
     //Read
@@ -136,8 +136,8 @@ void DRAGON_Test::verify_IO2D(){
     }
     for (int i = 0; i < 3; i++) {
         for (int j = 0; j < 4; j++) {
-            approx(g.passives()[i,j,"one"], i*0.1 + j*0.01);
-            approx(g.passives()[i,j,"two"], i*0.2 + j*0.02);
+            assert(approx(g.passives()[i,j,"one"], i*0.1 + j*0.01));
+            assert(approx(g.passives()[i,j,"two"], i*0.2 + j*0.02));
         }
     }
     #ifdef MHD
@@ -235,8 +235,8 @@ void DRAGON_Test::verify_IO3D(){
     for (int i = 0; i < 3; i++) {
         for (int j = 0; j < 4; j++) {
             for (int k = 0; k < 5; k++) {
-                approx(g.passives()[i,j,k,"one"], i*0.1 + j*0.01 + k*0.001);
-                approx(g.passives()[i,j,k,"two"], i*0.2 + j*0.02 + k*0.002);
+                assert(approx(g.passives()[i,j,k,"one"], i*0.1 + j*0.01 + k*0.001));
+                assert(approx(g.passives()[i,j,k,"two"], i*0.2 + j*0.02 + k*0.002));
             }
         }
     }

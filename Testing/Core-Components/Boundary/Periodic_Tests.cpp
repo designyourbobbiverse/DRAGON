@@ -43,9 +43,13 @@ void DRAGON_Test::verify_boundary_periodic_1D(){
     //Left
     expect_close(grid[-1], grid[3]);
     expect_close(grid[-2], grid[2]);
+    auto p1 = grid.passives()[-1,"Test"], p2 = grid.passives()[3,"Test"];
+    assert(p1 == p2);
     //Right
     expect_close(grid[4], grid[0]);
     expect_close(grid[5], grid[1]);
+    auto p3 = grid.passives()[4,"Test"], p4 = grid.passives()[0,"Test"];
+    assert(p3 == p4);
 }
 //MARK: Periodic - 2D
 void DRAGON_Test::verify_boundary_periodic_2D(){
@@ -62,6 +66,10 @@ void DRAGON_Test::verify_boundary_periodic_2D(){
         expect_close(grid._B()[3,j], grid._B()[0,j]);
         expect_close(grid._B()[4,j], grid._B()[1,j]);
         #endif
+        auto p1 = grid.passives()[-1,j,"Test"], p2 = grid.passives()[2,j,"Test"];
+        assert(p1 == p2);
+        auto p3 = grid.passives()[0,j,"Test"], p4 = grid.passives()[3,j,"Test"];
+        assert(p3 == p4);
     }
     //Y
     fill_2D(grid);
@@ -74,6 +82,10 @@ void DRAGON_Test::verify_boundary_periodic_2D(){
         expect_close(grid._B()[i,4], grid._B()[i,0]);
         expect_close(grid._B()[i,5], grid._B()[i,1]);
         #endif
+        auto p1 = grid.passives()[i,-1,"Test"], p2 = grid.passives()[i,3,"Test"];
+        assert(p1 == p2);
+        auto p3 = grid.passives()[i,0,"Test"], p4 = grid.passives()[i,4,"Test"];
+        assert(p3 == p4);
     }
     //No corners = no corners
     fill_2D(grid);
@@ -106,6 +118,10 @@ void DRAGON_Test::verify_boundary_periodic_3D(){
             expect_close(grid._B()[4,j,k].y, grid._B()[1,j,k].y);
             expect_close(grid._B()[4,j,k].z, grid._B()[1,j,k].z);
             #endif
+            auto p1 = grid.passives()[-1,j,k,"Test"], p2 = grid.passives()[2,j,k,"Test"];
+            assert(p1 == p2);
+            auto p3 = grid.passives()[0,j,k,"Test"], p4 = grid.passives()[3,j,k,"Test"];
+            assert(p3 == p4);
         }
     }
     //No corners = no corners
@@ -132,6 +148,10 @@ void DRAGON_Test::verify_boundary_periodic_3D(){
             expect_close(grid._B()[i,5,k].y, grid._B()[i,1,k].y);
             expect_close(grid._B()[i,5,k].z, grid._B()[i,1,k].z);
             #endif
+            auto p1 = grid.passives()[i,-1,k,"Test"], p2 = grid.passives()[i,3,k,"Test"];
+            assert(p1 == p2);
+            auto p3 = grid.passives()[i,0,k,"Test"], p4 = grid.passives()[i,4,k,"Test"];
+            assert(p3 == p4);
         }
     }
     //Z
@@ -154,6 +174,10 @@ void DRAGON_Test::verify_boundary_periodic_3D(){
             expect_close(grid._B()[i,j,6].y, grid._B()[i,j,1].y);
             expect_close(grid._B()[i,j,6].z, grid._B()[i,j,1].z);
             #endif
+            auto p1 = grid.passives()[i,j,-1,"Test"], p2 = grid.passives()[i,j,4,"Test"];
+            assert(p1 == p2);
+            auto p3 = grid.passives()[i,j,0,"Test"], p4 = grid.passives()[i,j,5,"Test"];
+            assert(p3 == p4);
         }
     }
     //Corner
