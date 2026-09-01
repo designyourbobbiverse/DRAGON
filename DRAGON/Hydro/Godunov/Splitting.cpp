@@ -23,7 +23,7 @@ using namespace DRAGON;
 
 
 //MARK: Godunov Sweep
-void Godunov::sweep(FluidArray1D& w, double dt_dx){
+void Godunov::sweep(FluidArray1D& w, double dt_dx, FluxArray1D* flux){
     const int size = w.getSize(), ghosts = w.getGhosts();
     //Compute Fluxes
     ConservativeState fL, fR;
@@ -44,8 +44,10 @@ void Godunov::sweep(FluidArray1D& w, double dt_dx){
         //Compute & Apply Flux
         fR = Riemann(_LR, _RL).flux_X(dt_dx);
         w[i] += (fL - fR) * (dt_dx); //Apply flux to cell
+        if (flux) (*flux)[i] = fL;
         fL = fR; //Right flux on this cell must equal Left flux on next cell
     }
+    if (flux) (*flux)[size+ghosts-1] = fL;
     //Compute & Apply the rightmost flux
     _LR = _RR;
     _RL = w[size+ghosts-1];
@@ -58,19 +60,24 @@ void Grid1D::split_step(double dt){ Grid1D::unsplit_step(dt); }
 void Grid1D::unsplit_step(double dt){
     //Do everything on a clone in case we need to restart the step
         auto __w = DRAGONWING::requestPrimitiveArrays(1, w.getSize(), w.getGhosts());
+        auto __f = DRAGONWING::requestFluxArrays(1, w.getSize(), w.getGhosts());
+    FluxArray1D& f = *__f[0];
     FluidArray1D& _w = *__w[0];
     _w.clone(w);
     //Compute the updated states
-    Godunov::sweep(_w, dt/dx);
+    Godunov::sweep(_w, dt/dx, &f);
     //Check physicality before comitting
     for (int i=0; i<w.getSize(); i++) {
         if (!_w[i].isPhysical()) throw std::runtime_error(std::format("Unphysical state would be produced at ({})",i));
     }
+    //Passive Scalars
+    auto _q = q.advected(f, w, _w, dt/dx);
     //If in a domain-composed group, wait for the other grids to finish before committing
     DRAGONWING::reportCheckpoint1();
     if (!DRAGONWING::waitForCheckpoint1()) return; //Only proceed once everyone is done and if nobody had an error
     //Commit updates
     w.clone(_w);
+    q.clone(*_q);
 }
 
 //MARK: 2D Split

@@ -16,6 +16,7 @@ typedef ExtendedArray1D<PrimitiveState> FluidArray1D;
 typedef ExtendedArray2D<PrimitiveState> FluidArray2D;
 typedef ExtendedArray3D<PrimitiveState> FluidArray3D;
 
+typedef ExtendedArray1D<ConservativeState> FluxArray1D;
 typedef ExtendedArray2D<ConservativeState> FluxArray2D;
 typedef ExtendedArray3D<ConservativeState> FluxArray3D;
 

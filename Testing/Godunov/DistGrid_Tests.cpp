@@ -16,22 +16,30 @@ using namespace Boundary;
 void DRAGON_Test::verify_god_dist_grid_1D(){
     Grid1D grid(100, 1.0);
     DistGrid1D dgrid(100, 1.0);
+    
+    grid.boundary = Periodic();
+    dgrid.boundary = Periodic();
+    grid.passives().add("Test");
+    dgrid.passives().add("Test");
+    
     for (int i = 0; i < grid.getSize(); i++) {
         grid[i] = make_state(1.0+0.01*i, 1.0+0.01*i, -0.01*i, 0.01*i, 10.0-0.01*i);
         #ifdef MHD
         grid[i].B = vec3{0, -0.2*i, -0.3*i};
         #endif
         dgrid[i] = grid[i];
+        
+        grid.passives()[i,"Test"] = 10.0-0.1*i;
+        dgrid.passives()[i,"Test"] = grid.passives()[i,"Test"];
     }
         
-    grid.boundary = Periodic();
-    dgrid.boundary = Periodic();
     
     grid.advance(1.0);
     dgrid.advance(1.0);
     
     for (int i = 0; i < grid.getSize(); i++) {
         expect_close(grid[i], dgrid[i], 1e-26);
+        approx(grid.passives()[i,"Test"],  dgrid.passives()[i,"Test"], 1e-26);
     }
 }
 
