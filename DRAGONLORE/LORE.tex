@@ -1186,6 +1186,21 @@ DRAGON supports three different procedures for handling the energy in the CT upd
 The desired option can be selected by setting \cpp{CT_ENERGY_CONSV} in \bash{Config.h}.
 
 
+\section{Passive Scalars} \label{sec:passive}
+
+Passive scalars are quantities which are advected by the fluid but don't feed back into its evolution. Passive scalars have a number of uses, such as tracking chemical composition or the origin of a particular patch of fluid.
+ The governing equation for each passive scalar $q_i$ is
+\begin{equation} \pd{}{t}(\rho q_i)+ \nabla\cdot (\rho \mathbf{v} q_i) = 0 \end{equation}
+At each interface, the flux of each passive scalar is calculated by multiplying the mass flux by $q_i$ from the upwind cell.
+
+To add a passive scalar to your grid, call \cpp{grid.passives().add(key_str)}, where \cpp{key_str} is a string used to identify the name of the scalar. In addition to identifying the scalar within DRAGON, this key is used to denote the scalar within output files and can therefore be used to plot the scalar in DRAGONGAZE. 
+If you no longer need a particular scalar, you can remove it with \cpp{grid.passives().remove(key_str)}. Attempting to add a key which is already there or removing a nonexistent key won't do anything.
+
+The current values of the passive at each cell can be accessed via  \cpp{grid.passives()[i, key_str]}, \cpp{grid.passives()[i,j, key_str]}, or \cpp{grid.passives()[i,j,k, key_str]} as appropriate for the dimension. Alternatively, \cpp{grid.passives()[i]}, \cpp{grid.passives()[i,j]}, or \cpp{grid.passives()[i,j,k]} will return a vector containing all of the passive values at a given cell, which can later be disambiguated by calling \cpp{grid.passives().lookup(passive_vector, key_str)} if needed.
+
+Because passive scalars are by definition passive, only one layer of ghost cells is stored. For outflow and reflective boundaries, each cell in the ghost layer is filled by the immediately adjacent physical cell; for periodic boundaries, the ghost cells instead match the opposite side. 
+Fixed-state boundary conditions don't define how the boundary should behave for passive scalars, you would need to implement that yourself.
+
 
 % ================= DRAGONWING =================
 \chapter{Performance: DRAGONWING}
@@ -2195,7 +2210,7 @@ Full-page versions of the MHD 1D reference plots referenced from \Cref{sec:tests
 \chapter{Version History}
 \textbf{Date TBD}: DRAGON v1.1 introduced the following changes
 \begin{itemize}
-\item Added support for user-defined passive scalars
+\item Added support for user-defined passive scalars (\Cref{sec:passive}).
 \begin{itemize}
 \item Updated Kelvin-Helmholtz example to demonstrate passive scalars as tracers.
 \item Added support for plotting any passive scalar in DRAGONGAZE
