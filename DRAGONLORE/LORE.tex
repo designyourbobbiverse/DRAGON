@@ -114,14 +114,17 @@ DRAGON/                    # repository root
 |   |-- FluidElement/      # primitive/conservative state & arithmetic
 |   |-- Hydro/             # hydrodynamic solver
 |   |   |-- CFL/           # timestep control
+|   |   |-- ExtendedArray/ # multidimensional arrays with ghost cells
 |   |   |-- Godunov/       # split/unsplit driver, flux application
 |   |   |-- Reconstruction/# MUSCL interface-state reconstruction
 |   |   |-- Riemann/       # Exact, HLL, HLLE, HLLC, HLLD, Roe solvers
 |   |-- MHD/               # constrained transport (E-field, Faraday, body fields)
+|   |-- Passives/          # passive scalars 
 |   |-- Refinement/        # domain decomposition (DistGrid)
 |   |-- main/              # program entry point & problem setup
 |   |-- Config.h, Constants.h, Problem.cpp
 |-- DRAGONWING/            # memory management & multithreading
+|   |-- Atomics/           # atomic counters
 |   |-- Memory/            # RAII scratch arrrays
 |   |-- Multithreading/    # multithreading
 |-- DRAGONHOARD/           # HDF5 output & restart I/O
@@ -1561,9 +1564,15 @@ DRAGONGAZE needs \textbf{h5py} and \textbf{Matplotlib} installed (\Cref{sec:depe
 Every command below is run from the directory that contains \bash{DRAGONGAZE/} (e.g.\ the DRAGON repository root), not from inside it -- see \Cref{sec:gaze-developers} for why.
 
 \begin{itemize}
-\item \textbf{1D runs:} run \py{python -m DRAGONGAZE.GAZE1D} for hydrodynamics, or \py{python -m DRAGONGAZE.GAZE1DMHD} for MHD. No arguments are needed -- each produces one multi-panel image per existing frame, combining density, pressure, energy, and velocity (plus, for MHD, the transverse magnetic field components) into a single figure.
-\item \textbf{2D/3D runs:} list the fields to plot on the command line, e.g.\ \py{python -m DRAGONGAZE.GAZE2D rho p Bmag} or \py{python -m DRAGONGAZE.GAZE3D rho Bmag}. Each named field gets its own image per frame. Available field names are \py{rho}, \py{vx}, \py{vy}, \py{vz}, \py{p}, \py{E}, and (MHD builds) \py{Bx}, \py{By}, \py{Bz}, plus \py{Bmag} for the field strength $|\mathbf{B}|$ -- this is computed automatically, so there's no need to request the components separately just to see it.
+\item \textbf{1D runs:} run \bash{python -m DRAGONGAZE.GAZE1D} for hydrodynamics, or \bash{python -m DRAGONGAZE.GAZE1DMHD} for MHD. No arguments are needed -- each produces one multi-panel image per existing frame, combining density, pressure, energy, and velocity (plus, for MHD, the transverse magnetic field components) into a single figure.
+\item \textbf{2D/3D runs:} list the fields to plot on the command line, e.g.\ \py{python -m DRAGONGAZE.GAZE2D rho p Bmag} or \py{python -m DRAGONGAZE.GAZE3D rho Bmag}. Each named field gets its own image per frame. Available field names are \py{rho}, \py{vx}, \py{vy}, \py{vz}, \py{p}, \py{E}, and (MHD builds) \py{Bx}, \py{By}, \py{Bz}, plus \py{Bmag} for the field strength $|\mathbf{B}|$ -- this is computed automatically, so there's no need to request the components separately just to see it. 
+In addition to the above fluid parameters, any passive scalar can also be plotted by its key name.
+
 \item \textbf{3D slices:} a field can optionally be suffixed with an axis pair to pick which mid-plane slice to render, e.g.\ \py{rho-xy}, \py{p-xz}, \py{Bmag-yz} (order doesn't matter -- \py{xy} and \py{yx} give the same slice). A field with no suffix produces all three mid-plane slices. A field can be listed twice to select two of the three possible slices, for example \py{rho-xy rho-xz}.
+
+\item \textbf{Bivariate plots:} to plot two variables as a bivariate heatmap, run \bash{python -m DRAGONGAZE.GAZE2DBi} or \bash{python -m DRAGONGAZE.GAZE3DBi}. These scripts take two and three arguments respectively: the field to be plotted in red, the field to be plotted in blue, and, in 3D, the axis designation (\bash{xy}, \bash{xz}, or \bash{yz}). When both fields are present, the bivariate heatmap will display as magenta, while an absence/minimum of both will be white.
+
+
 \end{itemize}
 
 Images are written into \py{img_dir}, named by field, frame number, and (for 3D) axis pair (e.g.\ \py{density\_frame\_00003.png}, or \py{density\_xy\_frame\_00003.png} for a 3D slice).  A sequence of frames for one field sorts naturally and can be stitched directly into an animation (e.g.\ with \bash{ffmpeg} or \bash{magick}). To keep such an animation from flickering, DRAGONGAZE fixes each field's colour and axis limits once across every existing frame before it starts plotting, rather than rescaling them frame by frame.
@@ -1579,7 +1588,7 @@ Everything about how a plot looks is controlled from \py{Config.py} -- the plott
 \item \py{x_mode}/\py{y_mode}/\py{z_mode} choose where each axis's origin is labelled from -- centred, or at one edge. This is purely cosmetic and never changes the underlying data.
 \item \py{plot_title} sets a title shared across every plot, and \py{time_unit} appends a unit label after the timestamp shown on each plot. DRAGON is unitless by default, so this is left blank unless a specific run has been given physical units.
 \end{itemize}
-
+When plotting passive scalars, you can add the scalar's key to the above dictionaries to control how those plots appear. If no key is provided, DRAGONGAZE will provide default values, and the colormap will be given by \py{cmaps["default"]}.
 
 \section{Additional Information for Developers}
 \label{sec:gaze-developers}
@@ -1846,7 +1855,7 @@ and the (log-scaled) pressure panel shows the sharp several-orders-of-magnitude 
 
 The Kelvin--Helmholtz example sets up a shear layer, following the well-posed construction of \citet{McNallyLyraPassy2012}: a denser right moving band ($\rho_1=2$, $v_x = +V_0$) separated from a lighter left-moving ambient medium ($\rho_2=1, v_x = -V_0$) by two $\tanh$-smoothed interfaces.
 A small, spatially-localized transverse velocity perturbation is seeded at both interfaces -- a $\sin(2\pi\,\mathtt{kmode}\,x)$ pattern windowed by a Gaussian centred on each interface; this gives the shear instability something to grow from rather than waiting on grid noise.
-The perturbation itself is periodic in $x$ (integer \cpp{kmode=2}), so the seeded pattern tiles smoothly even though the outflow boundary condition doesn't enforce it.
+Two passive scalars are used to trace the fluid: one is initialised to 1 in the upper ambient region and 0 everywhere else, and the other likewise in the lower ambient region.
 
 
 \begin{figure}[htbp]
@@ -1862,7 +1871,7 @@ The perturbation itself is periodic in $x$ (integer \cpp{kmode=2}), so the seede
 \includegraphics[width=\textwidth]{../Examples/Hydro/Kelvin-Helmholtz/Outputs/KH_t_2_0.png}
 \caption{$t=2.0$}
 \end{subfigure}
-\caption{Density, showing the growth of the Kelvin--Helmholtz instability.}
+\caption{A heatmap of two tracers, showing the growth of the Kelvin--Helmholtz instability.}
 \label{fig:kh}
 \end{figure}
 
@@ -2186,14 +2195,20 @@ Full-page versions of the MHD 1D reference plots referenced from \Cref{sec:tests
 \chapter{Version History}
 \textbf{Date TBD}: DRAGON v1.1 introduced the following changes
 \begin{itemize}
+\item Added support for user-defined passive scalars
+\begin{itemize}
+\item Updated Kelvin-Helmholtz example to demonstrate passive scalars as tracers.
+\item Added support for plotting any passive scalar in DRAGONGAZE
+\end{itemize}
 \item Added an atomic counter (\Cref{sec:atomics}) which is used to trigger a step restart if too many fallback behaviours have occurred in one advancement.
+\item Added new DRAGONGAZE scripts for making bivariate plots.
 \item Additional unit tests to directly verify DRAGONWING
 \item Streamlined advancement and exception handling for domain-decomposed grids
 \begin{itemize}
 \item New \cpp{Grid::advance_step(dt)} delegates to \cpp{split_step} or \cpp{unsplit_step} as appropriate.
 \item \cpp{launchParallel} now calls \cpp{grid.advance_step} instead of \cpp{grid.advance}, calls \cpp{requestRestart()} directly if an exception is thrown.
-\end{itemize}
 \item Removed: \cpp{Grid::on_step_fail}, \cpp{MULTITHREAD_UNAVAILABLE}
+\end{itemize}
 \end{itemize} 
 \textbf{26 August 2026}:  Initial release of DRAGON v1.0
 
