@@ -13,7 +13,7 @@
 namespace DRAGON::Godunov{
 
 //1D
-void sweep(FluidArray1D& w, double dt_dx, FluxArray1D* flux = nullptr);
+void sweep(FluidArray1D& w, double dt_dx, PassiveArray1D& q);
 
 
 //2D

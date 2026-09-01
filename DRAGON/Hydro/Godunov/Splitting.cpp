@@ -23,36 +23,40 @@ using namespace DRAGON;
 
 
 //MARK: Godunov Sweep
-void Godunov::sweep(FluidArray1D& w, double dt_dx, FluxArray1D* flux){
+void Godunov::sweep(FluidArray1D& w, double dt_dx, PassiveArray1D& q){
     const int size = w.getSize(), ghosts = w.getGhosts();
-    //Compute Fluxes
-    ConservativeState fL, fR;
-    PrimitiveState _LR = w[-ghosts], _RL, _RR;
+    //Buffers for passives
+        auto __w = DRAGONWING::requestPrimitiveArrays(1, w.getSize(), w.getGhosts());
+        auto __f = DRAGONWING::requestFluxArrays(1, w.getSize(), w.getGhosts());
+    FluxArray1D& f = *__f[0];
+    FluidArray1D& _w = *__w[0];
+    _w.clone(w);
     
+    //Compute Fluxes
+    PrimitiveState _LR = w[-ghosts], _RL, _RR;
     //Compute the leftmost flux
     TVD::MUSCL(w[-ghosts], _RL, w[-ghosts+1], _RR, w[-ghosts+2], dt_dx);
-    fL = Riemann(_LR, _RL).flux_X(dt_dx);
-    
-    for (int i=-ghosts+1; i<size+ghosts-1; i++) {
+    f[-ghosts+1] = Riemann(_LR, _RL).flux_X(dt_dx);
+    //Sweep through the array
+    for (int i=-ghosts+2; i<size+ghosts; i++) {
         _LR = _RR;//Move Right state from previous cycle
         //Reconstruct Half-States (if applicable)
-        if (i+2 < size+ghosts) {
-            TVD::MUSCL(w[i], _RL, w[i+1], _RR, w[i+2], dt_dx);
+        if (i+1 < size+ghosts) {
+            TVD::MUSCL(w[i-1], _RL, w[i], _RR, w[i+1], dt_dx);
         } else {
-            _RL = w[i+1];
+            _RL = w[i];
         }
-        //Compute & Apply Flux
-        fR = Riemann(_LR, _RL).flux_X(dt_dx);
-        w[i] += (fL - fR) * (dt_dx); //Apply flux to cell
-        if (flux) (*flux)[i] = fL;
-        fL = fR; //Right flux on this cell must equal Left flux on next cell
+        //ComputeFlux
+        f[i] = Riemann(_LR, _RL).flux_X(dt_dx);
     }
-    if (flux) (*flux)[size+ghosts-1] = fL;
-    //Compute & Apply the rightmost flux
-    _LR = _RR;
-    _RL = w[size+ghosts-1];
-    fR = Riemann(_LR, _RL).flux_X(dt_dx);
-    w[size+ghosts-2] += (fL - fR) * (dt_dx); //Apply flux to cell
+
+    //Apply Flux
+    for (int i=-ghosts+1; i<size+ghosts-1; i++){
+        w[i] += (f[i] - f[i+1]) * dt_dx; //Apply flux to cell
+    }
+    //Advect passives
+    auto _q = q.advected(f, _w, w, dt_dx);
+    q.clone(*_q);
 }
 
 //MARK: 1D Advance
@@ -60,24 +64,23 @@ void Grid1D::split_step(double dt){ Grid1D::unsplit_step(dt); }
 void Grid1D::unsplit_step(double dt){
     //Do everything on a clone in case we need to restart the step
         auto __w = DRAGONWING::requestPrimitiveArrays(1, w.getSize(), w.getGhosts());
-        auto __f = DRAGONWING::requestFluxArrays(1, w.getSize(), w.getGhosts());
-    FluxArray1D& f = *__f[0];
     FluidArray1D& _w = *__w[0];
     _w.clone(w);
+    PassiveArray1D _q(w.getSize(), 1);
+    _q.clone(q);
+    
     //Compute the updated states
-    Godunov::sweep(_w, dt/dx, &f);
+    Godunov::sweep(_w, dt/dx, _q);
     //Check physicality before comitting
     for (int i=0; i<w.getSize(); i++) {
         if (!_w[i].isPhysical()) throw std::runtime_error(std::format("Unphysical state would be produced at ({})",i));
     }
-    //Passive Scalars
-    auto _q = q.advected(f, w, _w, dt/dx);
     //If in a domain-composed group, wait for the other grids to finish before committing
     DRAGONWING::reportCheckpoint1();
     if (!DRAGONWING::waitForCheckpoint1()) return; //Only proceed once everyone is done and if nobody had an error
     //Commit updates
     w.clone(_w);
-    q.clone(*_q);
+    q.clone(_q);
 }
 
 //MARK: 2D Split
@@ -188,13 +191,20 @@ void Grid2D::advanceX(double dt){
     const int nx = w.getSizeX(), ny = w.getSizeY(), ghosts = w.getGhosts();
         auto __B = DRAGONWING::requestPrimitiveArrays(1, nx, ghosts);
     FluidArray1D& _w = *__B[0];
-
+    PassiveArray1D _q {nx, 1};
+    
     for (int j=-ghosts; j<ny+ghosts; j++) {
-        for (int i=-ghosts; i<nx+ghosts; i++) _w[i] = w[i,j]; //Copy to a 1D array
+        for (int i=-ghosts; i<nx+ghosts; i++){ //Copy to a 1D array
+            _w[i] = w[i,j];
+            if(i >= -1 && i <= nx && j >= -1 && j <= ny) _q[i] = q[i,j];
+        }
 
-        Godunov::sweep(_w, dt/dx);
+        Godunov::sweep(_w, dt/dx, _q);
         
-        for (int i=-ghosts; i<nx+ghosts; i++) w[i,j] = _w[i]; //Copy 1D array back to grid
+        for (int i=-ghosts; i<nx+ghosts; i++) { //Copy 1D array back to grid
+            w[i,j] = _w[i];
+            if(i >= -1 && i <= nx && j >= -1 && j <= ny) q[i,j] = _q[i];
+        }
     }
 }
 void Grid2D::advanceY(double dt){
@@ -202,13 +212,20 @@ void Grid2D::advanceY(double dt){
     const int nx = w.getSizeX(), ny = w.getSizeY(), ghosts = w.getGhosts();
         auto __B = DRAGONWING::requestPrimitiveArrays(1, ny, ghosts);
     FluidArray1D& _w = *__B[0];
+    PassiveArray1D _q {ny, 1};
 
     for (int i=-ghosts; i<nx+ghosts; i++) {
-        for (int j=-ghosts; j<ny+ghosts; j++)  _w[j] = w[i,j].swappedXY(); //Dimension swap + copy to a 1D array
+        for (int j=-ghosts; j<ny+ghosts; j++){ //Dimension swap + copy to a 1D array
+            _w[j] = w[i,j].swappedXY();
+            if(i >= -1 && i <= nx && j >= -1 && j <= ny) _q[j] = q[i,j];
+        }
+
+        Godunov::sweep(_w, dt/dx, _q);
         
-        Godunov::sweep(_w, dt/dy);
-        
-        for (int j=-ghosts; j<ny+ghosts; j++)  w[i,j] = _w[j].swappedXY(); //Dimension swap back + copy back to grid
+        for (int j=-ghosts; j<ny+ghosts; j++) { //Dimension swap + copy to a 1D array
+            w[i,j] = _w[j].swappedXY();
+            if(i >= -1 && i <= nx && j >= -1 && j <= ny) q[i,j] = _q[j];
+        }
     }
 }
 
@@ -219,14 +236,21 @@ void Grid3D::advanceX(double dt){
     const int nx = w.getSizeX(), ny = w.getSizeY(), nz = w.getSizeZ(), ghosts = w.getGhosts();
         auto __B = DRAGONWING::requestPrimitiveArrays(1, nx, ghosts);
     FluidArray1D& _w = *__B[0];
+    PassiveArray1D _q {nx, 1};
     
     for (int k=-ghosts; k<nz+ghosts; k++) {
         for (int j=-ghosts; j<ny+ghosts; j++) {
-            for (int i=-ghosts; i<nx+ghosts; i++) _w[i] = w[i,j,k]; //Copy to a 1D array
+            for (int i=-ghosts; i<nx+ghosts; i++){ //Copy to a 1D array
+                _w[i] = w[i,j,k];
+                if(i >= -1 && i <= nx && j >= -1 && j <= ny & k >= -1 && k <= nz) _q[i] = q[i,j,k];
+            }
             
-            Godunov::sweep(_w, dt/dx); //Sweep through the 1D array
+            Godunov::sweep(_w, dt/dx, _q); //Sweep through the 1D array
             
-            for (int i=-ghosts; i<nx+ghosts; i++) w[i,j,k] = _w[i]; //Copy back to grid
+            for (int i=-ghosts; i<nx+ghosts; i++) { //Copy 1D array back to grid
+                w[i,j,k] = _w[i];
+                if(i >= -1 && i <= nx && j >= -1 && j <= ny & k >= -1 && k <= nz) q[i,j,k] = _q[i];
+            }
         }
     }
 }
@@ -236,14 +260,20 @@ void Grid3D::advanceY(double dt){
     const int nx = w.getSizeX(), ny = w.getSizeY(), nz = w.getSizeZ(), ghosts = w.getGhosts();
         auto __B = DRAGONWING::requestPrimitiveArrays(1, ny, ghosts);
     FluidArray1D& _w = *__B[0];
+    PassiveArray1D _q {ny, 1};
 
     for (int k=-ghosts; k<nz+ghosts; k++) {
         for (int i=-ghosts; i<nx+ghosts; i++) {
-            for (int j=-ghosts; j<ny+ghosts; j++) _w[j] = w[i,j,k].swappedXY(); //Dimension swap + copy to a 1D array
+            for (int j=-ghosts; j<ny+ghosts; j++){ //Dimension swap + copy to a 1D array
+                _w[j] = w[i,j,k].swappedXY();
+                if(i >= -1 && i <= nx && j >= -1 && j <= ny & k >= -1 && k <= nz) _q[j] = q[i,j,k];
+            }
+            Godunov::sweep(_w, dt/dy, _q); //Sweep through the 1D array
 
-            Godunov::sweep(_w, dt/dy); //Sweep through the 1D array
-
-            for (int j=-ghosts; j<ny+ghosts; j++) w[i,j,k] = _w[j].swappedXY();  //Dimension swap back + copy back to grid
+            for (int j=-ghosts; j<ny+ghosts; j++) { //Dimension swap + copy to a 1D array
+                w[i,j,k] = _w[j].swappedXY();
+                if(i >= -1 && i <= nx && j >= -1 && j <= ny & k >= -1 && k <= nz) q[i,j,k] = _q[j];
+            }
        }
     }
 }
@@ -252,15 +282,21 @@ void Grid3D::advanceZ(double dt){
     const int nx = w.getSizeX(), ny = w.getSizeY(), nz = w.getSizeZ(), ghosts = w.getGhosts();
         auto __B = DRAGONWING::requestPrimitiveArrays(1, nz, ghosts);
     FluidArray1D& _w = *__B[0];
-
+    PassiveArray1D _q {nz, 1};
     
     for (int i=-ghosts; i<nx+ghosts; i++) {
         for (int j=-ghosts; j<ny+ghosts; j++) {
-            for (int k=-ghosts; k<nz+ghosts; k++) _w[k] = w[i,j,k].swappedXZ(); //Dimension swap + copy to a 1D array
+            for (int k=-ghosts; k<nz+ghosts; k++) { //Dimension swap + copy to a 1D array
+                _w[k] = w[i,j,k].swappedXZ();
+                if(i >= -1 && i <= nx && j >= -1 && j <= ny & k >= -1 && k <= nz) _q[k] = q[i,j,k];
+            }
             
-            Godunov::sweep(_w, dt/dz); //Sweep through the 1D array
+            Godunov::sweep(_w, dt/dz, _q); //Sweep through the 1D array
 
-            for (int k=-ghosts; k<nz+ghosts; k++) w[i,j,k] = _w[k].swappedXZ(); //Dimension swap back + copy back to grid
+            for (int k=-ghosts; k<nz+ghosts; k++) { //Dimension swap + copy to a 1D array
+                w[i,j,k] = _w[k].swappedXZ();
+                if(i >= -1 && i <= nx && j >= -1 && j <= ny & k >= -1 && k <= nz) q[i,j,k] = _q[k];
+            }
        }
     }
 }
