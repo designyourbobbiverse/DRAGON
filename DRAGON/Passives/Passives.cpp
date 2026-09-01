@@ -146,13 +146,11 @@ std::unique_ptr<PassiveArray1D> PassiveArray1D::advected(const ExtendedArray1D<C
     advected->clone(*this);
     //Convert to conservative
     for(int i=-g; i<nx+g; i++){
-        for(unsigned int n = 0; n < count(); n++){
-            (*advected)[i,n] *= w_old[i].rho;
-        }
+        for(auto &x : (*advected)[i]) x *= w_old[i].rho;
     }
     //Apply fluxes
     for(int i=-g+1; i<nx+g; i++){
-        for(unsigned int n = 0; n < count(); n++){
+        for(unsigned int n = 0; n < (*advected)[i].size(); n++){
             auto f = F[i].rho * dt_dx;
             if(F[i].rho > advect_tol) { //Left to Right
                 (*advected)[i,n] += f * q[i-1][n];
@@ -165,9 +163,7 @@ std::unique_ptr<PassiveArray1D> PassiveArray1D::advected(const ExtendedArray1D<C
     }
     //Convert to primitive
     for(int i=-g; i<nx+g; i++){
-        for(unsigned int n = 0; n < count(); n++){
-            (*advected)[i,n] /= w_new[i].rho;
-        }
+        for(auto &x : (*advected)[i]) x /= w_new[i].rho;
     }
     return advected;
 }
@@ -179,15 +175,13 @@ std::unique_ptr<PassiveArray2D> PassiveArray2D::advected(const FluxArray2D& F_X,
     //Convert to conservative
     for(int i=-g; i<nx+g; i++){
         for (int j=-g; j<ny+g; j++) {
-            for(unsigned int n = 0; n < count(); n++){
-                (*advected)[i,j,n] *= w_old[i,j].rho;
-            }
+            for(auto &x : (*advected)[i,j]) x *= w_old[i,j].rho;
         }
     }
     //Apply fluxes
     for(int i=-g+1; i<nx+g; i++){
         for (int j=-g+1; j<ny+g; j++) {
-            for(unsigned int n = 0; n < count(); n++){
+            for(unsigned int n = 0; n < (*advected)[i,j].size(); n++){
                 //X fluxes
                 double fx = F_X[i,j].rho * dt_dx;
                 if(F_X[i,j].rho > advect_tol) { //Left to Right
@@ -212,9 +206,7 @@ std::unique_ptr<PassiveArray2D> PassiveArray2D::advected(const FluxArray2D& F_X,
     //Convert to primitive
     for(int i=-g; i<nx+g; i++){
         for (int j=-g; j<ny+g; j++) {
-            for(unsigned int n = 0; n < count(); n++){
-                (*advected)[i,j,n] /= w_new[i,j].rho;
-            }
+            for(auto &x : (*advected)[i,j]) x /= w_new[i,j].rho;
         }
     }
     return advected;
@@ -228,9 +220,7 @@ std::unique_ptr<PassiveArray3D> PassiveArray3D::advected(const FluxArray3D& F_X,
     for(int i=-g; i<nx+g; i++){
         for (int j=-g; j<ny+g; j++) {
             for (int k=-g; k<nz+g; k++) {
-                for(unsigned int n = 0; n < count(); n++){
-                    (*advected)[i,j,k,n] *= w_old[i,j,k].rho;
-                }
+                for(auto &x : (*advected)[i,j,k]) x *= w_old[i,j,k].rho;
             }
         }
     }
@@ -238,7 +228,7 @@ std::unique_ptr<PassiveArray3D> PassiveArray3D::advected(const FluxArray3D& F_X,
     for(int i=-g+1; i<nx+g; i++){
         for (int j=-g+1; j<ny+g; j++) {
             for (int k=-g+1; k<nz+g; k++) {
-                for(unsigned int n = 0; n < count(); n++){
+                for(unsigned int n = 0; n < (*advected)[i,j,k].size(); n++){
                     //X fluxes
                     double fx = F_X[i,j,k].rho * dt_dx;
                     if(F_X[i,j,k].rho > advect_tol) { //Left to Right
@@ -274,9 +264,7 @@ std::unique_ptr<PassiveArray3D> PassiveArray3D::advected(const FluxArray3D& F_X,
     for(int i=-g; i<nx+g; i++){
         for (int j=-g; j<ny+g; j++) {
             for (int k=-g; k<nz+g; k++) {
-                for(unsigned int n = 0; n < count(); n++){
-                    (*advected)[i,j,k,n] /= w_new[i,j,k].rho;
-                }
+                for(auto &x : (*advected)[i,j,k]) x /= w_new[i,j,k].rho;
             }
         }
     }
