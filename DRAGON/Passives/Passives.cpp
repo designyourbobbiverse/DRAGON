@@ -15,6 +15,12 @@ double& PassiveArray::lookup(PassiveSet& q, const std::string& key) const { retu
 const double& PassiveArray::lookup(const PassiveSet& q, const std::string& key) const { return q[keys.at(key)]; }
 std::size_t PassiveArray::count() const { return keys.size(); }
 
+std::vector<std::string> PassiveArray::key_list() const {
+    std::vector<std::string> k(count());
+    for (auto& [key, val]: keys) k[keys.at(key)] = key;
+    return k;
+}
+
 //Get all the scalars in a given cell
 PassiveSet& PassiveArray1D::operator[](int i){ return q[i]; }
 const PassiveSet& PassiveArray1D::operator[](int i) const { return q[i]; }

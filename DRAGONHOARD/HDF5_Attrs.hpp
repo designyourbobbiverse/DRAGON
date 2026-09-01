@@ -35,6 +35,8 @@ inline const std::string key_Bfx = key_B_face + "/x";
 inline const std::string key_Bfy = key_B_face + "/y";
 inline const std::string key_Bfz = key_B_face + "/z";
 
+inline const std::string key_passives = "/passive";
+
 //Metadata
 inline const std::string key_fmt = "format_version";
 inline const std::string key_wrt_opt = "write_option";

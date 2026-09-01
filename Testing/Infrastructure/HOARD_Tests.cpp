@@ -50,14 +50,25 @@ void DRAGON_Test::verify_HOARD(bool output){
 
 void DRAGON_Test::verify_IO1D(){
     Grid1D g(5, 0.1, 2);
+    g.passives().add("one");
+    g.passives().add("two");
+    
     for (int i = -2; i < 5 + 2; i++) {
         g[i] = make_tagged_state(i*0.1);
+    }
+    for(int i = 0; i<5; i++){
+        g.passives()[i,"one"] = i*0.1;
+        g.passives()[i,"two"] = i*0.2;
     }
 
     DRAGONHOARD::writeToFile(g, 0.666, 666, filename);
     //Write doesn't change grid
     for (int i = -2; i < 5 + 2; i++) {
         expect_close(g[i],  make_tagged_state(i*0.1));
+    }
+    for(int i = 0; i<5; i++){
+        approx(g.passives()[i,"one"], i*0.1);
+        approx(g.passives()[i,"two"], i*0.2);
     }
     
     //Read
@@ -80,16 +91,28 @@ void DRAGON_Test::verify_IO1D(){
     for (int i = -ng; i < 5+ng; i++) {
         expect_close(g[i],  g2[i]);
     }
+    for(int i = 0; i<5; i++){
+        assert(approx(g.passives()[i,"one"], g2.passives()[i,"one"]));
+        assert(approx(g.passives()[i,"two"], g2.passives()[i,"two"]));
+    }
     
 }
 
 void DRAGON_Test::verify_IO2D(){
     Grid2D g(3,4, 0.1,0.2, 2), _g(3,4, 0.1,0.2, 2);
-    
+    g.passives().add("one");
+    g.passives().add("two");
+
     for (int i = -2; i < 3 + 2; i++) {
         for (int j = -2; j < 4 + 2; j++) {
             g[i,j] = make_tagged_state(i*0.1 + j*0.01);
             _g[i,j] = g[i,j];
+        }
+    }
+    for (int i = 0; i < 3; i++) {
+        for (int j = 0; j < 4; j++) {
+            g.passives()[i,j,"one"] = i*0.1 + j*0.01;
+            g.passives()[i,j,"two"] = i*0.2 + j*0.02;
         }
     }
     #ifdef MHD
@@ -108,7 +131,13 @@ void DRAGON_Test::verify_IO2D(){
     for (int i = -2; i < 3 + 2; i++) {
         for (int j = -2; j < 4 + 2; j++) {
             expect_close(g[i,j],  _g[i,j]);
-            
+
+        }
+    }
+    for (int i = 0; i < 3; i++) {
+        for (int j = 0; j < 4; j++) {
+            approx(g.passives()[i,j,"one"], i*0.1 + j*0.01);
+            approx(g.passives()[i,j,"two"], i*0.2 + j*0.02);
         }
     }
     #ifdef MHD
@@ -118,7 +147,7 @@ void DRAGON_Test::verify_IO2D(){
         }
     }
     #endif
-    
+
     //Read
     Grid2D g2(3,4,0.0, 0.0, 2);
 
@@ -145,6 +174,12 @@ void DRAGON_Test::verify_IO2D(){
             expect_close(g[i,j],  g2[i,j], float_rel_tol, 1e-7);
         }
     }
+    for (int i = 0; i < 3; i++) {
+        for (int j = 0; j < 4; j++) {
+            assert(approx(g.passives()[i,j,"one"], g2.passives()[i,j,"one"]));
+            assert(approx(g.passives()[i,j,"two"], g2.passives()[i,j,"two"]));
+        }
+    }
     #ifdef MHD
     for (int i = -ng; i <= 3 + ng; i++) {
         for (int j = -ng; j <= 4 + ng; j++) {
@@ -155,11 +190,22 @@ void DRAGON_Test::verify_IO2D(){
 }
 void DRAGON_Test::verify_IO3D(){
     Grid3D g(3,4,5, 0.1,0.2,0.3, 2), _g(3,4,5, 0.1,0.2,0.3, 2);
+    g.passives().add("one");
+    g.passives().add("two");
+
     for (int i = -2; i < 3 + 2; i++) {
         for (int j = -2; j < 4 + 2; j++) {
             for (int k = -2; k < 5 + 2; k++) {
                 g[i,j,k] = make_tagged_state(i*0.1 + j*0.01 + k*0.001);
                 _g[i,j,k] = g[i,j,k];
+            }
+        }
+    }
+    for (int i = 0; i < 3; i++) {
+        for (int j = 0; j < 4; j++) {
+            for (int k = 0; k < 5; k++) {
+                g.passives()[i,j,k,"one"] = i*0.1 + j*0.01 + k*0.001;
+                g.passives()[i,j,k,"two"] = i*0.2 + j*0.02 + k*0.002;
             }
         }
     }
@@ -186,6 +232,14 @@ void DRAGON_Test::verify_IO3D(){
             }
         }
     }
+    for (int i = 0; i < 3; i++) {
+        for (int j = 0; j < 4; j++) {
+            for (int k = 0; k < 5; k++) {
+                approx(g.passives()[i,j,k,"one"], i*0.1 + j*0.01 + k*0.001);
+                approx(g.passives()[i,j,k,"two"], i*0.2 + j*0.02 + k*0.002);
+            }
+        }
+    }
     #ifdef MHD
     for (int i = -2; i <= 3 + 2; i++) {
         for (int j = -2; j <= 4 + 2; j++) {
@@ -195,7 +249,7 @@ void DRAGON_Test::verify_IO3D(){
         }
     }
     #endif
-    
+
     //Read
     Grid3D g2(3,4,5,0.0, 0.0,0.0, 2);
 
@@ -222,6 +276,14 @@ void DRAGON_Test::verify_IO3D(){
                 g2[i,j,k].B = g[i,j,k].B;
                 #endif
                 expect_close(g[i,j,k],  g2[i,j,k], float_rel_tol, 1e-7);
+            }
+        }
+    }
+    for (int i = 0; i < 3; i++) {
+        for (int j = 0; j < 4; j++) {
+            for (int k = 0; k < 5; k++) {
+                assert(approx(g.passives()[i,j,k,"one"], g2.passives()[i,j,k,"one"]));
+                assert(approx(g.passives()[i,j,k,"two"], g2.passives()[i,j,k,"two"]));
             }
         }
     }

@@ -14,7 +14,6 @@
 #include <string>
 #include "Hydro/ExtendedArray/ArrayTypes.hpp"
 
-
 namespace DRAGON{
 typedef std::vector<double> PassiveSet;
 
@@ -28,6 +27,8 @@ public:
     virtual void add(const std::string& key) = 0;
     virtual std::size_t remove(const std::string& key); //Returns index of removed key
     std::size_t count() const;
+    
+    std::vector<std::string> key_list() const; //For exporting
     
     virtual ~PassiveArray() = default;
 };
