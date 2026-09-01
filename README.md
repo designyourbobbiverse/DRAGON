@@ -243,8 +243,6 @@ DRAGON is an actively developed research code. The current version is suitable f
 
 Todo for v1.1
 - Write documentation for passive scalars
-- Update the Kelvin-Helmholtz example to showcase tracing
-- Update DRAGONGAZE to allow a) plotting of scalars b) 2-channel plots.
 
 Additional features planned for future versions include:
 - Adaptive Mesh Refinement
