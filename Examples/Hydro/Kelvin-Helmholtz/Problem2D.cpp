@@ -38,7 +38,10 @@ constexpr int n = 512;
 Grid& Problem::makeProblem(){
     //Construct your grid object. Don't worry about initial setup, you'll do that later
     auto grid = new MyGrid(n,n, 1.0/n,1.0/n);
-    grid->boundary = Boundary::Outflow();
+    grid->boundary = Boundary::Periodic("X");
+    
+    grid->passives().add("Lower");
+    grid->passives().add("Upper");
     
     return *grid;
 }
@@ -49,8 +52,6 @@ PrimitiveState Problem::initialFluidState(double x, double y, double z){
         //(dx/2,dy/2) corresponds to the [0,0] cell. As such, we need to convert
     PrimitiveState w;
     w.p = p0;
-   
-    
     
     const double s1 = 0.5 * (1.0 + std::tanh((y - y_lower) / a));
     const double s2 = 0.5 * (1.0 + std::tanh((y - y_upper) / a));
@@ -77,6 +78,15 @@ vec3 Problem::initialMagneticPotential(double x, double y, double z){
 void Problem::completeProblemInit(Grid& problem){
     MyGrid& grid = *dynamic_cast<MyGrid*>(&problem);
     //Here you can do any initialization not covered by initialFluidState and initialMagneticPotential
+    //For example, you can initialise passive scalars here
+    
+    for(int i=0; i<grid.getSizeX(); i++){
+        for(int j=0; j<grid.getSizeY(); j++){
+            double y = (j+0.5)*grid.dy;
+            grid.passives()[i,j,"Lower"] = (y <= y_lower ? 1 : 0);
+            grid.passives()[i,j,"Upper"] = (y >= y_upper ? 1 : 0);
+        }
+    }
     
 }
 
