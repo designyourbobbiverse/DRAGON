@@ -191,8 +191,6 @@ void Grid3D::unsplit_step(double dt){
         __Elec.release();
     CT::computeBodyFields(_B, _w);
     #endif
-        __fluxes.release();
-
     
     //Check Physicality
     for (int i=0; i<nx; i++) {
