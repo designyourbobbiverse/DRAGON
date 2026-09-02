@@ -42,7 +42,7 @@ namespace DRAGON::Config{
 
 //Setting fallback_limit will cause an exception to be thrown if too many fallbacks are reported in a given timestep
 //When a fallback behaviour occurs, a counter will be increased by that failure mode's weight. If this brings the threshold to (or above) fallback_limit, the step will restart.
-//If fallback_limit is nonpositive, then all fallback behaviours will apply so long as they successfully salvage a physical end result.
+//If fallback_limit is negative, then all fallback behaviours will apply so long as they successfully salvage a physical end result.
 constexpr int fallback_limit = 0;
 
 //MARK: Riemann Solver
