@@ -31,11 +31,13 @@ def imgFileName1D(n):
     return img_dir + "/" + img_base_filename + "_" + str(n).zfill(5) + ".png"
 
 def imgFileName2D(n, key):
-    return img_dir + "/" + fileprefix[key] + "_" + img_base_filename + "_" + str(n).zfill(5) + ".png"
+    prefix = fileprefix[key] if key in fileprefix else key
+    return img_dir + "/" + prefix + "_" + img_base_filename + "_" + str(n).zfill(5) + ".png"
 
 def imgFileName3D(n, key, axis):
     #axis is the two-letter slice label ("xy"/"xz"/"yz") appended by GAZE3D.py, not necessarily matching command-line order
-    return img_dir + "/" + fileprefix[key] + "_" + axis + "_" + img_base_filename + "_" + str(n).zfill(5) + ".png"
+    prefix = fileprefix[key] if key in fileprefix else key
+    return img_dir + "/" + prefix + "_" + axis + "_" + img_base_filename + "_" + str(n).zfill(5) + ".png"
 
 def fileExists(n):
     #Used by every script to discover how many frames exist: loop n = 0, 1, 2, ... until this returns False
@@ -54,7 +56,8 @@ def readField(n, field):
             By = f[keys["By"]][:]
             Bz = f[keys["Bz"]][:]
             return np.sqrt(Bx**2 + By**2 + Bz**2)
-        return f[keys[field]][:]
+        if field in keys:  return f[keys[field]][:]
+        return f[key_passive + field][:]
     return  []
 
 

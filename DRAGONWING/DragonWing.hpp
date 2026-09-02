@@ -16,7 +16,7 @@ namespace DRAGONWING{
 //MARK: Multithreading
 //Multithreading is done via the ThreadPool class. Important functions:
     //ThreadPool(int n); //Creates a pool with n threads
-    //void* launchParallel(Grid* grid, double dt); //Creates a thread which calls grid->advance(dt, false);
+    //void* launchParallel(Grid* grid, double dt); //Creates a thread which calls grid->advance_step(dt);
     //std::string restartMsg(); //returns (+clears) the error message if something requested a restart.
     //bool waitForCompletion(); //Waits for all threads to finish. Returns false iff anyone requested a restart
 
@@ -49,6 +49,14 @@ ArrayGuard<DRAGON::ExtendedArray3D<DRAGON::vec3>> requestVec3Arrays(int N, int n
 
 void purgeAllBuffers();
 
+
+//MARK: Atomics
+//DRAGONWING provides an atomic counter to be used for tracking fallback behaviours
+//When a fallback behaviour occurs, use reportFallback(weight,threshold) to increase the counter by weight
+//If this causes the counter to exceed the threshold, then an exception will be thrown
+//Call resetFallbacks() after the step completes to reset the counter
+void reportFallback(int weight, int threshold); //Reports a fallback, throws if sum of fallbacks exceeds threshold
+void resetFallbacks();
 }
 
 

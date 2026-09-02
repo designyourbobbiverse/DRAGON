@@ -289,15 +289,67 @@ void verify_ct_3D(bool output = true);
 
 #endif
 
+//MARK: Passive Scalars
+void verify_passive_scalars(bool output = true);
+//Key Management
+void verify_passive_scalar_add();
+void verify_passive_scalar_remove();
+void verify_passive_scalar_no_op();
+void verify_passive_scalar_bad_lookup();
+//1D/2D/3D add/remove
+void verify_passive_scalar_add_1D();
+void verify_passive_scalar_remove_1D();
+void verify_passive_scalar_add_2D();
+void verify_passive_scalar_remove_2D();
+void verify_passive_scalar_add_3D();
+void verify_passive_scalar_remove_3D();
+//Advection
+void verify_passive_scalar_zero_flux_1D();
+void verify_passive_scalar_zero_flux_2D();
+void verify_passive_scalar_zero_flux_3D();
+void verify_passive_scalar_uniform_1D();
+void verify_passive_scalar_uniform_2D();
+void verify_passive_scalar_uniform_3D();
+void verify_passive_scalar_conserve_1D();
+void verify_passive_scalar_conserve_2D();
+void verify_passive_scalar_conserve_3D();
+void verify_passive_scalar_dir_1D();
+void verify_passive_scalar_dir_2D();
+void verify_passive_scalar_dir_3D();
 
-//MARK: I/O
-void verify_IO(bool output = true);
+//MARK: DRAGONHOARD
+void verify_HOARD(bool output = true);
 void verify_IO1D();
 void verify_IO2D();
 void verify_IO3D();
 void verify_IO_dim_assert();
 void verify_IO_size_assert();
 
+
+//MARK: DRAGONWING
+void verify_WING(bool output = true);
+//Memory Management
+void verify_WING_alloc_prim_dimensions();
+void verify_WING_alloc_flux_dimensions();
+void verify_WING_alloc_vec3_dimensions();
+void verify_WING_array_reuse();
+void verify_WING_arrayguard_get();
+void verify_WING_double_release();
+void verify_WING_scope_release();
+void verify_WING_array_purge_survival();
+//Atomics
+void verify_WING_fbcount_no_op();
+void verify_WING_fbcount_reset();
+void verify_WING_fbcount_single_no_throw();
+void verify_WING_fbcount_single_over_throw();
+void verify_WING_fbcount_cumulative_throw();
+//Multithreading
+void verify_WING_restart_message();
+void verify_WING_launchParallel_calls_advance();
+void verify_WING_launchParallel_catches();
+void verify_WING_checkpoints();
+void verify_WING_checkpoints_restart();
 }
+
 
 #endif /* Testing_hpp */

@@ -114,14 +114,17 @@ DRAGON/                    # repository root
 |   |-- FluidElement/      # primitive/conservative state & arithmetic
 |   |-- Hydro/             # hydrodynamic solver
 |   |   |-- CFL/           # timestep control
+|   |   |-- ExtendedArray/ # multidimensional arrays with ghost cells
 |   |   |-- Godunov/       # split/unsplit driver, flux application
 |   |   |-- Reconstruction/# MUSCL interface-state reconstruction
 |   |   |-- Riemann/       # Exact, HLL, HLLE, HLLC, HLLD, Roe solvers
 |   |-- MHD/               # constrained transport (E-field, Faraday, body fields)
+|   |-- Passives/          # passive scalars 
 |   |-- Refinement/        # domain decomposition (DistGrid)
 |   |-- main/              # program entry point & problem setup
 |   |-- Config.h, Constants.h, Problem.cpp
 |-- DRAGONWING/            # memory management & multithreading
+|   |-- Atomics/           # atomic counters
 |   |-- Memory/            # RAII scratch arrrays
 |   |-- Multithreading/    # multithreading
 |-- DRAGONHOARD/           # HDF5 output & restart I/O
@@ -1062,7 +1065,7 @@ The flux is then computed by
 However, the Roe method requires an entropy fix \citep{HartenHyman1983}. This is enabled by \cpp{Harten\_Hyman} in \bash{Config.h}.
 The entropy fix checks whether the left or right acoustic wave is a transonic rarefaction. If this is the case, the offending eigenvalue is replaced by an interpolated value between the fan's bounding speeds before the flux is assembled.
 
-\subsection{Riemann Solver Fallback Behaviour}
+\subsection{Riemann Solver Fallback Behaviour}\label{sec:riemann_fallback}
 
 Most Riemann solvers are not guaranteed to produce physically sound results. DRAGON provides mechanisms to adaptively pivoting to a different solver should one fail.
 One such mechanism is the \cpp{HLLD_PHYSICAL_SAFETY} pathway described in \Cref{sec:HLLD}, which causes the HLLD solver to switch to HLLE in the event that a star state pressure is nonphsyical. 
@@ -1183,6 +1186,21 @@ DRAGON supports three different procedures for handling the energy in the CT upd
 The desired option can be selected by setting \cpp{CT_ENERGY_CONSV} in \bash{Config.h}.
 
 
+\section{Passive Scalars} \label{sec:passive}
+
+Passive scalars are quantities which are advected by the fluid but don't feed back into its evolution. Passive scalars have a number of uses, such as tracking chemical composition or the origin of a particular patch of fluid.
+ The governing equation for each passive scalar $q_i$ is
+\begin{equation} \pd{}{t}(\rho q_i)+ \nabla\cdot (\rho \mathbf{v} q_i) = 0 \end{equation}
+At each interface, the flux of each passive scalar is calculated by multiplying the mass flux by $q_i$ from the upwind cell.
+
+To add a passive scalar to your grid, call \cpp{grid.passives().add(key_str)}, where \cpp{key_str} is a string used to identify the name of the scalar. In addition to identifying the scalar within DRAGON, this key is used to denote the scalar within output files and can therefore be used to plot the scalar in DRAGONGAZE. 
+If you no longer need a particular scalar, you can remove it with \cpp{grid.passives().remove(key_str)}. Attempting to add a key which is already there or removing a nonexistent key won't do anything.
+
+The current values of the passive at each cell can be accessed via  \cpp{grid.passives()[i, key_str]}, \cpp{grid.passives()[i,j, key_str]}, or \cpp{grid.passives()[i,j,k, key_str]} as appropriate for the dimension. Alternatively, \cpp{grid.passives()[i]}, \cpp{grid.passives()[i,j]}, or \cpp{grid.passives()[i,j,k]} will return a vector containing all of the passive values at a given cell, which can later be disambiguated by calling \cpp{grid.passives().lookup(passive_vector, key_str)} if needed.
+
+Because passive scalars are by definition passive, only one layer of ghost cells is stored. For outflow and reflective boundaries, each cell in the ghost layer is filled by the immediately adjacent physical cell; for periodic boundaries, the ghost cells instead match the opposite side. 
+Fixed-state boundary conditions don't define how the boundary should behave for passive scalars, you would need to implement that yourself.
+
 
 % ================= DRAGONWING =================
 \chapter{Performance: DRAGONWING}
@@ -1219,7 +1237,7 @@ If instead \cpp{REUSE_AUX_GRIDS} is disabled, Requests for arrays always allocat
 \section{Multithreading}
 \label{sec:wing-threading}
 
-\cpp{DRAGONWING::ThreadPool} is used by \cpp{DistGrid} (see \Cref{sec:distgrid}) to advance sibling subgrids concurrently, each on its own thread. It is constructed with a fixed thread budget \cpp{N} (one thread per child subgrid); \cpp{launchParallel(grid, dt)} is then called once per child to start \cpp{grid->advance(dt, false)}\footnote{\cpp{grid->advance(dt, false)} bypasses the CFL checks of \Cref{sec:CFL} since these are handled by the parent.} running on a new thread. 
+\cpp{DRAGONWING::ThreadPool} is used by \cpp{DistGrid} (see \Cref{sec:distgrid}) to advance sibling subgrids concurrently, each on its own thread. It is constructed with a fixed thread budget \cpp{N} (one thread per child subgrid); \cpp{launchParallel(grid, dt)} is then called once per child to start \cpp{grid->advance_step(dt)} running on a new thread. 
 
 \subsection{Checkpoint Protocol}
 
@@ -1236,7 +1254,7 @@ Subgrids maintain these synchronisation phases as follows:
 \item  \cpp{DRAGONWING::waitForRelease()} (Optional but recommended).  Since phase 1 typically uses a significant amount of scratch memory,  the user might optionally set  \cpp{DRAGONWING::CONFIG::phase_1_max_threads} in \bash{DRAGONWING_Config.hpp} to limit program's total memory usage. The \cpp{ThreadPool} will track the number of threads currently in phase 1. If the number of threads is already at its limit, the caller will be blocked until another thread either reports completion of phase 1 or requests a step restart. \cpp{waitForRelease()} returns a boolean, which is true if the caller is clear to proceed with phase 1 and false if another subgrid has requested a restart (in which case the calling function should return instead of proceeding).
 \item Do the work of phase 1.
 \begin{enumerate}
-\item If an error occurs, call \cpp{DRAGONWING::requestRestart(error_msg)} to request that all subgrids restart the current step. For the first subgrid to request a step restart, the \cpp{error_msg} string can be accessed via \cpp{ThreadPool.restartMsg()}. Calling \cpp{restartMsg()} will then clear the message.
+\item If an error occurs, throw a \cpp{std::exception}. \cpp{launchParallel}'s exception handler will then call \cpp{DRAGONWING::requestRestart(error_msg)} to request that all subgrids restart the current step. For the first subgrid to request a step restart, the \cpp{error_msg} string can be accessed via \cpp{ThreadPool.restartMsg()}. Calling \cpp{restartMsg()} will then clear the message.
 \end{enumerate}
 \item \cpp{DRAGONWING::reportChckpoint1()}. This informs the local \cpp{ThreadPool} that another subgrid has completed phase 1. This will wake up any threads currenlty blocked in \cpp{waitForRelease()} and will allow one to proceed, or if it is the last function to complete it will wake up all threads blocked by in  the next step
 \item \cpp{DRAGONWING::waitForCheckpoint1()}. This will block the current thread until all subgrids have completed phase 1. This function returns a boolean, which is true if the caller is clear to proceed with phase 2 and false if another subgrid has requested a restart (in which case the calling function should return instead of proceeding).
@@ -1249,6 +1267,9 @@ After all subgrids are launched via \cpp{launchParallel(grid, dt)}, call \cpp{wa
 This will wait until either either all threads have reported completion of phase 2 or any thread has requested a step restart. \cpp{waitForCompletion()} will return true if the step was successful, or false if it needs to be restarted.
 
 %When \cpp{MULTITHREAD_UNAVAILABLE} is defined in \bash{DRAGONWING_Config.hpp}, \cpp{ThreadPool} compiles to single-threaded stub implementations: \cpp{launchParallel} runs the grid's advance synchronously on the calling thread instead of spawning one, and every checkpoint/wait function reduces to a check of the (still-cooperative) abort flag. This lets code written against the \cpp{ThreadPool}/checkpoint API run correctly, if serially, on platforms or configurations without thread support.
+
+
+
 
 
 \section{Domain Decomposition}
@@ -1312,13 +1333,37 @@ Leaf grids (\cpp{children.size() <= 1}) bypass all of this: their \cpp{split\_st
 
 
 
+\section{Atomics}
+\label{sec:atomics}
+
+DRAGONWING is responsible for managing any atomic registers which need to be accessed across multiple threads.
+Currently, there is one such register, which tracks fallback behaviours.
+When \cpp{DRAGONWING::reportFallback(weight,threshold)} is called, the fallback counter is incremented by \cpp{weight}. If this causes the counter to attain a value greater than \cpp{threshold}, an exception will be thrown to trigger a restart of the current step.
+The counter is then reset by calling \cpp{DRAGONWING::resetFallbacks()}.
+
+DRAGON reports fallback in the following cases
+\begin{itemize}
+\item When \cpp{Riemann::verify_and_fallback} (\Cref{sec:riemann_fallback}) detects the initial solution to be unphysical.
+\item When HLLD computes a nonphysical star state and reverts to HLLE
+\item When MUSCL computes a nonphysical interface \& reverts to piecwise-constant reconstruction
+\item If \cpp{CT_CONSV_BETA_GATED} is enabled, when the local plasma beta is less than \cpp{Config::ct_energy_beta} and thermal pressure is protected.
+
+\end{itemize}
+The weights for these fallbacks are defined in DRAGON's \bash{Config.h}: \cpp{Config::fallback_weight_riemann} for the first two cases, \cpp{Config::fallback_weight_MUSCL} for MUSCL falling back to PCM reconstruction,  and \cpp{Config::fallback_weight_ct_beta} for the low-beta guard cases.
+
+Each of the fallback cases will also pass \cpp{Config::fallback_limit} as the threshold for triggering a restart. This limit is the upper bound of the safes zone, it must be \textit{exceeded} to trigger a step restart.
+ Note that \cpp{fallback_limit}  don't take resolution into account; if you are running the same simulation at multiple resolutions, you might consider increasing \cpp{fallback_limit} as resolution increases.
+ % One possible way to do this might be to define your resolution in a separate header file that gets imported by both \bash{Config.h} and \bash{Problem.cpp}, and calculating \cpp{fallback_limit} based on the resolution.
 
 
-
-
-
-
-
+As an example, if we use
+\begin{lstlisting}[language=C++]
+constexpr int fallback_limit = 6;
+constexpr int fallback_weight_riemann = 3;
+constexpr int fallback_weight_MUSCL = 4;
+constexpr int fallback_weight_ct_beta = 0;
+\end{lstlisting}
+then a restart will be triggered after three Riemann solver fallbacks, two MUSCL fallbacks, or one of each (plasma-beta fallbacks will not trigger step restarts in this example).
 
 
 
@@ -1534,9 +1579,15 @@ DRAGONGAZE needs \textbf{h5py} and \textbf{Matplotlib} installed (\Cref{sec:depe
 Every command below is run from the directory that contains \bash{DRAGONGAZE/} (e.g.\ the DRAGON repository root), not from inside it -- see \Cref{sec:gaze-developers} for why.
 
 \begin{itemize}
-\item \textbf{1D runs:} run \py{python -m DRAGONGAZE.GAZE1D} for hydrodynamics, or \py{python -m DRAGONGAZE.GAZE1DMHD} for MHD. No arguments are needed -- each produces one multi-panel image per existing frame, combining density, pressure, energy, and velocity (plus, for MHD, the transverse magnetic field components) into a single figure.
-\item \textbf{2D/3D runs:} list the fields to plot on the command line, e.g.\ \py{python -m DRAGONGAZE.GAZE2D rho p Bmag} or \py{python -m DRAGONGAZE.GAZE3D rho Bmag}. Each named field gets its own image per frame. Available field names are \py{rho}, \py{vx}, \py{vy}, \py{vz}, \py{p}, \py{E}, and (MHD builds) \py{Bx}, \py{By}, \py{Bz}, plus \py{Bmag} for the field strength $|\mathbf{B}|$ -- this is computed automatically, so there's no need to request the components separately just to see it.
+\item \textbf{1D runs:} run \bash{python -m DRAGONGAZE.GAZE1D} for hydrodynamics, or \bash{python -m DRAGONGAZE.GAZE1DMHD} for MHD. No arguments are needed -- each produces one multi-panel image per existing frame, combining density, pressure, energy, and velocity (plus, for MHD, the transverse magnetic field components) into a single figure.
+\item \textbf{2D/3D runs:} list the fields to plot on the command line, e.g.\ \py{python -m DRAGONGAZE.GAZE2D rho p Bmag} or \py{python -m DRAGONGAZE.GAZE3D rho Bmag}. Each named field gets its own image per frame. Available field names are \py{rho}, \py{vx}, \py{vy}, \py{vz}, \py{p}, \py{E}, and (MHD builds) \py{Bx}, \py{By}, \py{Bz}, plus \py{Bmag} for the field strength $|\mathbf{B}|$ -- this is computed automatically, so there's no need to request the components separately just to see it. 
+In addition to the above fluid parameters, any passive scalar can also be plotted by its key name.
+
 \item \textbf{3D slices:} a field can optionally be suffixed with an axis pair to pick which mid-plane slice to render, e.g.\ \py{rho-xy}, \py{p-xz}, \py{Bmag-yz} (order doesn't matter -- \py{xy} and \py{yx} give the same slice). A field with no suffix produces all three mid-plane slices. A field can be listed twice to select two of the three possible slices, for example \py{rho-xy rho-xz}.
+
+\item \textbf{Bivariate plots:} to plot two variables as a bivariate heatmap, run \bash{python -m DRAGONGAZE.GAZE2DBi} or \bash{python -m DRAGONGAZE.GAZE3DBi}. These scripts take two and three arguments respectively: the field to be plotted in red, the field to be plotted in blue, and, in 3D, the axis designation (\bash{xy}, \bash{xz}, or \bash{yz}). When both fields are present, the bivariate heatmap will display as magenta, while an absence/minimum of both will be white.
+
+
 \end{itemize}
 
 Images are written into \py{img_dir}, named by field, frame number, and (for 3D) axis pair (e.g.\ \py{density\_frame\_00003.png}, or \py{density\_xy\_frame\_00003.png} for a 3D slice).  A sequence of frames for one field sorts naturally and can be stitched directly into an animation (e.g.\ with \bash{ffmpeg} or \bash{magick}). To keep such an animation from flickering, DRAGONGAZE fixes each field's colour and axis limits once across every existing frame before it starts plotting, rather than rescaling them frame by frame.
@@ -1552,7 +1603,7 @@ Everything about how a plot looks is controlled from \py{Config.py} -- the plott
 \item \py{x_mode}/\py{y_mode}/\py{z_mode} choose where each axis's origin is labelled from -- centred, or at one edge. This is purely cosmetic and never changes the underlying data.
 \item \py{plot_title} sets a title shared across every plot, and \py{time_unit} appends a unit label after the timestamp shown on each plot. DRAGON is unitless by default, so this is left blank unless a specific run has been given physical units.
 \end{itemize}
-
+When plotting passive scalars, you can add the scalar's key to the above dictionaries to control how those plots appear. If no key is provided, DRAGONGAZE will provide default values, and the colormap will be given by \py{cmaps["default"]}.
 
 \section{Additional Information for Developers}
 \label{sec:gaze-developers}
@@ -1819,7 +1870,7 @@ and the (log-scaled) pressure panel shows the sharp several-orders-of-magnitude 
 
 The Kelvin--Helmholtz example sets up a shear layer, following the well-posed construction of \citet{McNallyLyraPassy2012}: a denser right moving band ($\rho_1=2$, $v_x = +V_0$) separated from a lighter left-moving ambient medium ($\rho_2=1, v_x = -V_0$) by two $\tanh$-smoothed interfaces.
 A small, spatially-localized transverse velocity perturbation is seeded at both interfaces -- a $\sin(2\pi\,\mathtt{kmode}\,x)$ pattern windowed by a Gaussian centred on each interface; this gives the shear instability something to grow from rather than waiting on grid noise.
-The perturbation itself is periodic in $x$ (integer \cpp{kmode=2}), so the seeded pattern tiles smoothly even though the outflow boundary condition doesn't enforce it.
+Two passive scalars are used to trace the fluid: one is initialised to 1 in the upper ambient region and 0 everywhere else, and the other likewise in the lower ambient region.
 
 
 \begin{figure}[htbp]
@@ -1835,7 +1886,7 @@ The perturbation itself is periodic in $x$ (integer \cpp{kmode=2}), so the seede
 \includegraphics[width=\textwidth]{../Examples/Hydro/Kelvin-Helmholtz/Outputs/KH_t_2_0.png}
 \caption{$t=2.0$}
 \end{subfigure}
-\caption{Density, showing the growth of the Kelvin--Helmholtz instability.}
+\caption{A heatmap of two tracers, showing the growth of the Kelvin--Helmholtz instability.}
 \label{fig:kh}
 \end{figure}
 
@@ -2156,8 +2207,25 @@ Full-page versions of the MHD 1D reference plots referenced from \Cref{sec:tests
 \label{fig:1d-mhd-ryujones}
 \end{figure}
 
-\chapter{Changelog}
-\textbf{26 August 2026}:  Initial documentation for DRAGON v1.0
+\chapter{Version History}
+\textbf{1 September 2026}: DRAGON v1.1 introduced the following changes
+\begin{itemize}
+\item Added support for user-defined passive scalars (\Cref{sec:passive}).
+\begin{itemize}
+\item Updated Kelvin-Helmholtz example to demonstrate passive scalars as tracers.
+\item Added support for plotting any passive scalar in DRAGONGAZE
+\end{itemize}
+\item Added an atomic counter (\Cref{sec:atomics}) which is used to trigger a step restart if too many fallback behaviours have occurred in one advancement.
+\item Added new DRAGONGAZE scripts for making bivariate plots.
+\item Additional unit tests to directly verify DRAGONWING
+\item Streamlined advancement and exception handling for domain-decomposed grids
+\begin{itemize}
+\item New \cpp{Grid::advance_step(dt)} delegates to \cpp{split_step} or \cpp{unsplit_step} as appropriate.
+\item \cpp{launchParallel} now calls \cpp{grid.advance_step} instead of \cpp{grid.advance}, calls \cpp{requestRestart()} directly if an exception is thrown.
+\item Removed: \cpp{Grid::on_step_fail}, \cpp{MULTITHREAD_UNAVAILABLE}
+\end{itemize}
+\end{itemize} 
+\textbf{26 August 2026}:  Initial release of DRAGON v1.0
 
 % ================= Bibliography =================
 \bibliographystyle{plainnat}

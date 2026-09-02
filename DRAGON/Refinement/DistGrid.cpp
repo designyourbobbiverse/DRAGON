@@ -122,7 +122,10 @@ void DistGrid1D::pushToChildren(){
         //Copy parent data to child
         for (int i = -ng; i < child->getSize() + ng; i++) {
             (*child)[i] = w[i+x_offset];
-            
+        }
+        child->passives().keys = passives().keys;
+        for (int i = -1; i <= child->getSize(); i++) {
+            child->passives()[i] = passives()[i+x_offset];
         }
         child->pushToChildren(); //If children have children, make them sync too
            
@@ -153,6 +156,13 @@ void DistGrid2D::pushToChildren(){
                 }
             }
             #endif
+            child->passives().keys = passives().keys;
+            for (int i = -1; i <= _nx; i++) {
+                for (int j = -1; j <= _ny; j++) {
+                    child->passives()[i,j] = passives()[i+x_offset, j+y_offset];
+                }
+            }
+            
             child->pushToChildren();//If children have children, make them sync too
             
             y_offset += _ny;
@@ -191,6 +201,14 @@ void DistGrid3D::pushToChildren(){
                     }
                 }
                 #endif
+                child->passives().keys = passives().keys;
+                for (int i = -1; i <= _nx; i++) {
+                    for (int j = -1; j <= _ny; j++) {
+                        for (int k = -1; k <= _nz; k++) {
+                            child->passives()[i,j,k] = passives()[i+x_offset, j+y_offset, k+z_offset];
+                        }
+                    }
+                }
                 child->pushToChildren();//If children have children, make them sync too
                 
                 z_offset += _nz;
@@ -212,6 +230,7 @@ void DistGrid1D::loadFromChildren(){
         //Copy child data to parent
         for (int i = 0; i < child->getSize(); i++) {
             w[i+x_offset] = (*child)[i];
+            passives()[i+x_offset] = child->passives()[i];
         }
         x_offset += child->getSize();
     }
@@ -231,6 +250,7 @@ void DistGrid2D::loadFromChildren(){
             for (int i = 0; i < _nx; i++) {
                 for (int j=0; j < _ny; j++) {
                     w[i+x_offset, j+y_offset] = (*child)[i,j];
+                    passives()[i+x_offset, j+y_offset] = child->passives()[i,j];
                 }
             }
             #ifdef MHD//Copy child magnetic fields to parent
@@ -265,6 +285,7 @@ void DistGrid3D::loadFromChildren(){
                     for (int j=0; j < _ny; j++) {
                         for (int k=0; k < _nz; k++) {
                             w[i+x_offset, j+y_offset, k+z_offset] = (*child)[i,j,k];
+                            passives()[i+x_offset, j+y_offset, k+z_offset] = child->passives()[i,j,k];
                         }
                     }
                 }
@@ -341,16 +362,3 @@ void DistGrid3D::unsplit_step(double dt){
     } else { DistGrid::step(dt); }
 }
 
-
-bool DistGrid1D::on_step_fail(const std::exception& e){
-    if (children.size() <= 1 ) return Grid1D::on_step_fail(e);
-    return true; //This is the parent, nobody left to pass the restart responsibility to. Return true to excecute the restart
-}
-bool DistGrid2D::on_step_fail(const std::exception& e){
-    if (children.size() <= 1 ) return Grid2D::on_step_fail(e);
-    return true; //This is the parent,nobody left to pass the restart responsibility to. Return true to excecute the restart
-}
-bool DistGrid3D::on_step_fail(const std::exception& e){
-    if (children.size() <= 1 ) return Grid3D::on_step_fail(e);
-    return true; //This is the parent, nobody left to pass the restart responsibility to. Return true to excecute the restart
-}

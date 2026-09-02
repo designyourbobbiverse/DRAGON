@@ -10,7 +10,7 @@
 #include "DRAGONWING_Config.hpp"
 using namespace DRAGON;
 
-#if defined(REUSE_AUX_GRIDS) && !defined(MULTITHREAD_UNAVAILABLE)
+#if defined(REUSE_AUX_GRIDS)
 //Keep track of all the arrays that have been allocated, and which ones are in use
 #include <vector>
 template <class T> struct ArrayItem{ T* array; bool active; };

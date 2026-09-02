@@ -17,6 +17,7 @@
 #include "Config.h"     //For #ifdef MHD
 #include <stdexcept>    //For file read errors
 #include <format>       //For error formatting
+#include <iostream>     //For std::cerr
 using namespace DRAGON;
 
 //MARK: Helpers
@@ -103,6 +104,19 @@ void DRAGONHOARD::loadFromFile(Grid1D& grid, double& t, int& cycle, const std::s
     grid.dx = readDoubleAttribute(file, key_dx);
     t = readDoubleAttribute(file, key_time);
     cycle = readIntAttribute(file, key_cyc);
+         
+    std::vector<std::string> q_keys;
+    std::vector<std::vector<double>> q_vals;
+    try{
+        H5::Group passiveGroup = file.openGroup(key_passives);
+        hsize_t n = passiveGroup.getNumObjs();
+        for (hsize_t i = 0; i < n; i++) {
+            std::string key = passiveGroup.getObjnameByIdx(i);
+            grid.passives().add(key);
+            q_keys.push_back(key);
+            q_vals.push_back(readArray(file, key_passives + "/" + key));
+        }
+    } catch(...) { std::cerr << "Unable to load passive scalars\n"; }
     
     const int write_opt = readIntAttribute(file, key_wrt_opt);
     
@@ -113,6 +127,7 @@ void DRAGONHOARD::loadFromFile(Grid1D& grid, double& t, int& cycle, const std::s
     std::vector<double> By = mhd ? readArray(file, key_By) : std::vector<double>();
     std::vector<double> Bz = mhd ? readArray(file, key_Bz) : std::vector<double>();
     #endif
+    
     for (int i = i0; i<in; i++) {
         size_t n = (i-i0);
         grid[i].rho = rho[n];
@@ -123,6 +138,9 @@ void DRAGONHOARD::loadFromFile(Grid1D& grid, double& t, int& cycle, const std::s
             grid[i].B = {0,0,0};
         }
         #endif
+        for(int m=0; m<q_keys.size(); m++){
+            grid.passives()[i, q_keys[m]] = q_vals[m][n];
+        }
     }
     
     if (write_opt & HDF5_WRITE_PRIMITIVE) { //Load from Primitive Variables
@@ -186,6 +204,19 @@ void DRAGONHOARD::loadFromFile(Grid2D& grid, double& t, int& cycle, const std::s
     t = readDoubleAttribute(file, key_time);
     cycle = readIntAttribute(file, key_cyc);
     
+    std::vector<std::string> q_keys;
+    std::vector<std::vector<double>> q_vals;
+    try{
+        H5::Group passiveGroup = file.openGroup(key_passives);
+        hsize_t n = passiveGroup.getNumObjs();
+        for (hsize_t i = 0; i < n; i++) {
+            std::string key = passiveGroup.getObjnameByIdx(i);
+            grid.passives().add(key);
+            q_keys.push_back(key);
+            q_vals.push_back(readArray(file, key_passives + "/" + key));
+        }
+    } catch(...) { std::cerr << "Unable to load passive scalars\n"; }
+    
     const int write_opt = readIntAttribute(file, key_wrt_opt);
     
     //Write-option-indepependent values
@@ -211,6 +242,9 @@ void DRAGONHOARD::loadFromFile(Grid2D& grid, double& t, int& cycle, const std::s
                 grid[i,j].B = {0,0,0};
             }
             #endif
+            for(int m=0; m<q_keys.size(); m++){
+                grid.passives()[i,j, q_keys[m]] = q_vals[m][n];
+            }
         }
     }
     #ifdef MHD
@@ -225,6 +259,7 @@ void DRAGONHOARD::loadFromFile(Grid2D& grid, double& t, int& cycle, const std::s
         }
     }
     #endif
+    
     
     if (write_opt & HDF5_WRITE_PRIMITIVE) { //Load from Primitive Variables
         std::vector<double> p = readArray(file, key_p);
@@ -294,6 +329,19 @@ void DRAGONHOARD::loadFromFile(Grid3D& grid, double& t, int& cycle, const std::s
     t = readDoubleAttribute(file, key_time);
     cycle = readIntAttribute(file, key_cyc);
     
+    std::vector<std::string> q_keys;
+    std::vector<std::vector<double>> q_vals;
+    try{
+        H5::Group passiveGroup = file.openGroup(key_passives);
+        hsize_t n = passiveGroup.getNumObjs();
+        for (hsize_t i = 0; i < n; i++) {
+            std::string key = passiveGroup.getObjnameByIdx(i);
+            grid.passives().add(key);
+            q_keys.push_back(key);
+            q_vals.push_back(readArray(file, key_passives + "/" + key));
+        }
+    } catch(...) { std::cerr << "Unable to load passive scalars\n"; }
+    
     const int write_opt = readIntAttribute(file, key_wrt_opt);
 
     //Write-option-indepependent values
@@ -320,6 +368,9 @@ void DRAGONHOARD::loadFromFile(Grid3D& grid, double& t, int& cycle, const std::s
                     grid[i,j,k].B = {0,0,0};
                 }
                 #endif
+                for(int m=0; m<q_keys.size(); m++){
+                    grid.passives()[i,j,k, q_keys[m]] = q_vals[m][n];
+                }
             }
         }
     }

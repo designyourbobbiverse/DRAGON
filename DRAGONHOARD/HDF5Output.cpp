@@ -181,6 +181,13 @@ void DRAGONHOARD::writeToFile(Grid1D& grid, double t, int cycle, const std::stri
     std::vector<double> By(size);
     std::vector<double> Bz(size);
     #endif
+    
+    std::vector<std::string> q_keys = grid.passives().key_list();
+    std::vector<std::vector<double>> q(q_keys.size());
+    for (int m=0; m<q_keys.size(); m++){
+        q[m].resize(size);
+    }
+    
     for (int i = i0; i<in; i++) {
         PrimitiveState w = grid[i];
         size_t n = i-i0;
@@ -206,6 +213,10 @@ void DRAGONHOARD::writeToFile(Grid1D& grid, double t, int cycle, const std::stri
         By[n] = w.B.y;
         Bz[n] = w.B.z;
         #endif
+        for (int m=0; m<q_keys.size(); m++){
+            q[m][n] = grid.passives()[i,q_keys[m]];
+        }
+        
     }
     
     //Write Grid
@@ -233,6 +244,10 @@ void DRAGONHOARD::writeToFile(Grid1D& grid, double t, int cycle, const std::stri
     writeArray(file, key_By, By, in-i0);
     writeArray(file, key_Bz, Bz, in-i0);
     #endif
+    file.createGroup(key_passives);
+    for (int m=0; m<q_keys.size();m++){
+        writeArray(file, key_passives + "/" + q_keys[m], q[m], in-i0);
+    }
 
 }
 
@@ -307,6 +322,12 @@ void DRAGONHOARD::writeToFile(Grid2D& grid, double t, int cycle, const std::stri
     std::vector<double> Bfy(size_B);
     std::vector<double> Bfz(size_B);
     #endif
+    std::vector<std::string> q_keys = grid.passives().key_list();
+    std::vector<std::vector<double>> q(q_keys.size());
+    for (int m=0; m<q_keys.size(); m++){
+        q[m].resize(size);
+    }
+    
     for (int i = i0; i<in; i++) {
         for (int j=j0; j<jn; j++) {
             PrimitiveState w = grid[i,j];
@@ -333,6 +354,9 @@ void DRAGONHOARD::writeToFile(Grid2D& grid, double t, int cycle, const std::stri
             By[n] = w.B.y;
             Bz[n] = w.B.z;
             #endif
+            for (int m=0; m<q_keys.size(); m++){
+                q[m][n] = grid.passives()[i,j,q_keys[m]];
+            }
         }
     }
     #ifdef MHD
@@ -378,6 +402,10 @@ void DRAGONHOARD::writeToFile(Grid2D& grid, double t, int cycle, const std::stri
     writeArray(file, key_Bfy, Bfy, in+1-i0, jn+1-j0);
     writeArray(file, key_Bfz, Bfz, in+1-i0, jn+1-j0);
     #endif
+    file.createGroup(key_passives);
+    for (int m=0; m<q_keys.size();m++){
+        writeArray(file, key_passives + "/" + q_keys[m], q[m], in-i0, jn-j0);
+    }
 
 }
 
@@ -454,6 +482,12 @@ void DRAGONHOARD::writeToFile(Grid3D& grid, double t, int cycle, const std::stri
     std::vector<double> Bfy(size_B);
     std::vector<double> Bfz(size_B);
     #endif
+    std::vector<std::string> q_keys = grid.passives().key_list();
+    std::vector<std::vector<double>> q(q_keys.size());
+    for (int m=0; m<q_keys.size(); m++){
+        q[m].resize(size);
+    }
+    
     for (int i = i0; i<in; i++) {
         for (int j=j0; j<jn; j++) {
             for (int k=k0; k<kn; k++) {
@@ -481,6 +515,9 @@ void DRAGONHOARD::writeToFile(Grid3D& grid, double t, int cycle, const std::stri
                 By[n] = w.B.y;
                 Bz[n] = w.B.z;
                 #endif
+                for (int m=0; m<q_keys.size(); m++){
+                    q[m][n] = grid.passives()[i,j,k,q_keys[m]];
+                }
             }
         }
     }
@@ -529,6 +566,10 @@ void DRAGONHOARD::writeToFile(Grid3D& grid, double t, int cycle, const std::stri
     writeArray(file, key_Bfy, Bfy, in+1-i0, jn+1-j0, kn+1-k0);
     writeArray(file, key_Bfz, Bfz, in+1-i0, jn+1-j0, kn+1-k0);
     #endif
+    file.createGroup(key_passives);
+    for (int m=0; m<q_keys.size();m++){
+        writeArray(file, key_passives + "/" + q_keys[m], q[m], in-i0, jn-j0, kn-k0);
+    }
 }
 
 

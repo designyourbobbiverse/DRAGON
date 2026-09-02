@@ -1,0 +1,578 @@
+//
+//  FluidElement_Tests.cpp
+//  DRAGON/Testing/Core-Components
+//
+//  Created by Bobbie Markwick on 12/05/2026.
+//
+
+#include "Testing.hpp"
+#include "FluidElement/FluidElement.hpp"
+
+#include <cmath>        //For std::abs, sqrt, pow
+#include <algorithm>    //For std::max
+#include "Constants.h"  //For _gamma, _pi
+#include <iostream>     //For std::cout
+
+using namespace DRAGON_Test;
+
+
+void DRAGON_Test::verify_fluid_element(bool output){
+    if (output) std::cout << "Fluid Arithmetic: \n";
+    if (output) std::cout << "- Element Construction: ";
+    verify_constructors();
+    if (output) std::cout << "Passed\n";
+    if (output) std::cout << "- Form Conversion: ";
+    verify_conversion();
+    if (output) std::cout << "Passed\n";
+    if (output) std::cout << "- Wave Speeds: ";
+    verify_enthalpy();
+    verify_wavespeeds();
+    if (output) std::cout << "Passed\n";
+    if (output) std::cout << "- Physicality: ";
+    verify_physicality();
+    if (output) std::cout << "Passed\n";
+    if (output) std::cout << "- Axis Swaps: ";
+    verify_swaps_P();
+    verify_swaps_C();
+    if (output) std::cout << "Passed\n";
+    if (output) std::cout << "- Addition: ";
+    verify_add();
+    if (output) std::cout << "Passed\n";
+    if (output) std::cout << "- Subtraction: ";
+    verify_sub();
+    if (output) std::cout << "Passed\n";
+    if (output) std::cout << "- Multiplication: ";
+    verify_mult();
+    if (output) std::cout << "Passed\n";
+    if (output) std::cout << "- Division: ";
+    verify_div();
+    if (output) std::cout << "Passed\n";
+    if (output) std::cout << "- Flux Calculation: ";
+    verify_flux();
+    if (output) std::cout << "Passed\n";
+    if (output) std::cout << "- Flux Addition: ";
+    verify_flux_add();
+    if (output) std::cout << "Passed\n";
+    if (output) std::cout << "All Fluid Arithmetic Tests Passed.\n\n";
+}
+
+
+PrimitiveState DRAGON_Test::make_state(double rho, double vx, double vy, double vz, double p){
+    PrimitiveState W;
+    W.rho = rho;
+    W.v.x = vx;
+    W.v.y = vy;
+    W.v.z = vz;
+    W.p = p;
+#ifdef MHD
+    W.B = {0,0,0};
+#endif
+    return W;
+}
+
+#ifdef MHD
+PrimitiveState DRAGON_Test::make_mhd_state(double rho, double vx,double vy,double vz, double p, double Bx,double By,double Bz){
+    PrimitiveState W = make_state(rho, vx, vy, vz, p);
+    W.B = {Bx, By, Bz};
+    return W;
+}
+#endif
+
+
+//MARK: Close enough
+bool DRAGON_Test::approx(double a, double b, double rel, double abs){
+    return std::abs(a - b) <= abs + rel * std::max(std::abs(a), std::abs(b));
+}
+void DRAGON_Test::expect_close(const vec3& a, const vec3& b, double rel, double abs){
+    assert(approx(a.x,  b.x,  rel, abs));
+    assert(approx(a.y,  b.y,  rel, abs));
+    assert(approx(a.z,  b.z,  rel, abs));
+}
+void DRAGON_Test::expect_close(const ConservativeState& a, const ConservativeState& b, double rel, double abs){
+    assert(approx(a.rho, b.rho, rel, abs));
+    assert(approx(a.E,   b.E,   rel, abs));
+    expect_close(a.mom, b.mom, rel, abs);
+#ifdef MHD
+    expect_close(a.B, b.B, rel, abs);
+#endif
+}
+void DRAGON_Test::expect_close(const PrimitiveState& a, const PrimitiveState& b, double rel, double abs){
+    assert(approx(a.rho, b.rho, rel, abs));
+    assert(approx(a.p, b.p,   rel, abs));
+    expect_close(a.v, b.v, rel, abs);
+#ifdef MHD
+    expect_close(a.B, b.B, rel, abs);
+#endif
+}
+
+
+//MARK: Data Structure Verification
+void DRAGON_Test::verify_constructors(){
+    PrimitiveState W;
+    assert(W.rho == 0);
+    assert(W.v.x == 0);
+    assert(W.v.y == 0);
+    assert(W.v.z == 0);
+    assert(W.p == 0);
+#ifdef MHD
+    assert(W.B.x == 0);
+    assert(W.B.y == 0);
+    assert(W.B.z == 0);
+#endif
+
+    ConservativeState U;
+    assert(U.rho == 0);
+    assert(U.mom.x == 0);
+    assert(U.mom.y == 0);
+    assert(U.mom.z == 0);
+    assert(U.E == 0);
+#ifdef MHD
+    assert(U.B.x == 0);
+    assert(U.B.y == 0);
+    assert(U.B.z == 0);
+#endif
+}
+
+//MARK: Physics Verification
+void DRAGON_Test::verify_conversion(){
+    PrimitiveState W = make_state(2.0, 3.0, 4.0, 0.0, 10.0);
+
+    ConservativeState U(W);
+
+    assert(approx(U.rho, 2.0));
+    assert(approx(U.mom.x, 6.0));
+    assert(approx(U.mom.y, 8.0));
+    assert(approx(U.mom.z, 0.0));
+    assert(approx(U.E, 40.0));
+    assert(approx(U.pressure(), 10.0));
+    
+    PrimitiveState W2(U);
+    expect_close(W, W2);
+    
+#ifdef MHD
+    W.B = {1.0,2.0,3.0};
+
+    ConservativeState U2(W);
+
+    assert(approx(U2.rho, 2.0));
+    assert(approx(U2.mom.x, 6.0));
+    assert(approx(U2.mom.y, 8.0));
+    assert(approx(U2.mom.z, 0.0));
+    assert(approx(U2.E, 40.0 + (14.0)/(8*_pi) ));
+    assert(approx(U2.pressure(), 10.0));
+    
+    PrimitiveState W3(U2);
+    expect_close(W, W3);
+#endif
+}
+
+void DRAGON_Test::verify_flux(){
+    PrimitiveState W = make_state(2.0, 3.0, 4.0, 5.0, 10.0);
+
+    ConservativeState U(W);
+    ConservativeState F = U.flux();
+
+    assert(approx(F.rho, 6.0));
+    assert(approx(F.mom.x, 28.0));  // rho v.x^2 + p = 2*9 + 10
+    assert(approx(F.mom.y, 24.0));  // rho v.x v.y = 2*3*4
+    assert(approx(F.mom.z, 30.0));  // rho v.x v.z = 2*3*5
+    assert(approx(F.E, W.v.x * (U.E + W.p)));
+    
+#ifdef MHD
+    W.B = {1.0,2.0,3.0};
+    F = W.flux();
+
+    assert(approx(F.rho, 6.0));
+    assert(approx(F.mom.x, 28.0 + 12*_1_8pi ));  // rho v.x^2 + p = 2*9 + 10
+    assert(approx(F.mom.y, 24.0 - 2*_1_4pi));  // rho v.x v.y = 2*3*4
+    assert(approx(F.mom.z, 30.0- 3*_1_4pi));  // rho v.x v.z = 2*3*5
+    assert(approx(F.B.x, 0));
+    assert(approx(F.B.y, W.v.x * W.B.y - W.v.y * W.B.x));
+    assert(approx(F.B.z, W.v.x * W.B.z - W.v.z * W.B.x));
+
+    assert(approx(F.E, W.v.x * (W.energy() + W.p + (W.B*W.B)*_1_8pi) - W.v * (W.B.x * W.B)*_1_4pi ));
+
+#endif
+}
+void DRAGON_Test::verify_enthalpy(){
+    PrimitiveState W = make_state(2.0, 3.0, 4.0, 0.0, 10.0);
+    
+    assert(approx(W.enthalpy(), 25.0));
+#ifdef MHD
+    W.B = {1.0,2.0,3.0};
+    assert(approx(W.enthalpy(), 25.0 + (14.0)*_1_8pi ));
+#endif
+}
+
+void DRAGON_Test::verify_wavespeeds(){
+    PrimitiveState W = make_state(2.0, 3.0, 4.0, 0.0, 10.0);
+    
+    assert(approx(W.cs(), std::sqrt(_gamma * 5.0)));
+#ifdef MHD
+    W.B = {1,2,3};
+    assert(approx(W.c_alfven(), std::sqrt(14*_1_8pi) ));
+    double c2 = _gamma * 5.0, a2 = 14*_1_8pi, ax2 = _1_8pi ;
+    assert(approx(W.c_fast_max(), std::sqrt((c2+a2)/2 + std::sqrt(std::pow(c2+a2,2)/4 - ax2*c2))  ));
+
+#endif
+    
+}
+
+void DRAGON_Test::verify_physicality(){
+    PrimitiveState W = make_state(1.0, 2.0, -3.0, 4.0, 5.0);
+#ifdef MHD
+    W.B = {0.1, 0.2, 0.3};
+#endif
+    assert(W.isPhysical());
+
+    PrimitiveState badW = W;
+    badW.rho = 0.0;
+    assert(!badW.isPhysical());
+    badW = W;
+    badW.rho = -1.0;
+    assert(!badW.isPhysical());
+    badW = W;
+    badW.p = 0.0;
+    assert(!badW.isPhysical());
+    badW = W;
+    badW.p = -1.0;
+    assert(!badW.isPhysical());
+    badW = W;
+    badW.v.y = NAN;
+    assert(!badW.isPhysical());
+#ifdef MHD
+    badW = W;
+    badW.B.z = INFINITY;
+    assert(!badW.isPhysical());
+#endif
+
+    ConservativeState U(W);
+    assert(U.isFinite());
+    assert(U.isPhysical());
+
+    ConservativeState badU = U;
+    badU.rho = -1.0;
+    assert(badU.isFinite());
+    assert(!badU.isPhysical());
+    badU = U;
+    badU.E = NAN;
+    assert(!badU.isFinite());
+    assert(!badU.isPhysical());
+    badU = U;
+    badU.E = 0.0;
+    assert(badU.isFinite());
+    assert(!badU.isPhysical());
+#ifdef MHD
+    badU = U;
+    badU.B.x = NAN;
+    assert(!badU.isFinite());
+    assert(!badU.isPhysical());
+#endif
+}
+
+//MARK: Dimension Swaps
+//Primitive
+void DRAGON_Test::verify_swaps_P(){
+    PrimitiveState W = make_state(2.0, 1.0, 2.0, 3.0, 10.0);
+#ifdef MHD
+    W.B = {1.0,2.0,3.0};
+#endif
+    
+    PrimitiveState XY = W.swappedXY();
+    assert(approx(XY.v.x, 2));
+    assert(approx(XY.v.y, 1));
+    assert(approx(XY.v.z, 3));
+#ifdef MHD
+    assert(approx(XY.B.x, 2));
+    assert(approx(XY.B.y, 1));
+    assert(approx(XY.B.z, 3));
+#endif
+
+    PrimitiveState XZ = W.swappedXZ();
+    assert(approx(XZ.v.x, 3));
+    assert(approx(XZ.v.y, 2));
+    assert(approx(XZ.v.z, 1));
+#ifdef MHD
+    assert(approx(XZ.B.x, 3));
+    assert(approx(XZ.B.y, 2));
+    assert(approx(XZ.B.z, 1));
+#endif
+    
+    PrimitiveState YZ = W.swappedYZ();
+    assert(approx(YZ.v.x, 1));
+    assert(approx(YZ.v.y, 3));
+    assert(approx(YZ.v.z, 2));
+#ifdef MHD
+    assert(approx(YZ.B.x, 1));
+    assert(approx(YZ.B.y, 3));
+    assert(approx(YZ.B.z, 2));
+#endif
+    
+    //Original Unchanged
+    assert(approx(W.v.x, 1));
+    assert(approx(W.v.y, 2));
+    assert(approx(W.v.z, 3));
+#ifdef MHD
+    assert(approx(W.B.x, 1));
+    assert(approx(W.B.y, 2));
+    assert(approx(W.B.z, 3));
+#endif
+}
+
+//Conservative
+void DRAGON_Test::verify_swaps_C(){
+    ConservativeState U;
+    U.mom = {1,2,3};
+#ifdef MHD
+    U.B = {1,2,3};
+#endif
+    
+    ConservativeState _XY = U.swappedXY();
+    assert(approx(_XY.mom.x, 2));
+    assert(approx(_XY.mom.y, 1));
+    assert(approx(_XY.mom.z, 3));
+#ifdef MHD
+    assert(approx(_XY.B.x, 2));
+    assert(approx(_XY.B.y, 1));
+    assert(approx(_XY.B.z, 3));
+#endif
+    
+    ConservativeState _XZ = U.swappedXZ();
+    assert(approx(_XZ.mom.x, 3));
+    assert(approx(_XZ.mom.y, 2));
+    assert(approx(_XZ.mom.z, 1));
+#ifdef MHD
+    assert(approx(_XZ.B.x, 3));
+    assert(approx(_XZ.B.y, 2));
+    assert(approx(_XZ.B.z, 1));
+#endif
+
+    ConservativeState _YZ = U.swappedYZ();
+    assert(approx(_YZ.mom.x, 1));
+    assert(approx(_YZ.mom.y, 3));
+    assert(approx(_YZ.mom.z, 2));
+#ifdef MHD
+    assert(approx(_YZ.B.x, 1));
+    assert(approx(_YZ.B.y, 3));
+    assert(approx(_YZ.B.z, 2));
+#endif
+    
+    //Original Unchanged
+    assert(approx(U.mom.x, 1));
+    assert(approx(U.mom.y, 2));
+    assert(approx(U.mom.z, 3));
+#ifdef MHD
+    assert(approx(U.B.x, 1));
+    assert(approx(U.B.y, 2));
+    assert(approx(U.B.z, 3));
+#endif
+}
+
+
+
+//MARK: Arithemtic
+
+void DRAGON_Test::verify_add(){
+    ConservativeState A;
+    A.rho = 1; A.mom.x = 2; A.mom.y = 3; A.mom.z = 4; A.E = 5;
+#ifdef MHD
+    A.B = {1,2,3};
+#endif
+    ConservativeState _A = A;
+
+    ConservativeState B;
+    B.rho = 10; B.mom.x = 20; B.mom.y = 30; B.mom.z = 40; B.E = 50;
+#ifdef MHD
+    B.B = {0.1,0.2,0.3};
+#endif
+    ConservativeState _B = B;
+
+    ConservativeState C = A + B;
+    assert(approx(C.rho, 11));
+    assert(approx(C.mom.x, 22));
+    assert(approx(C.mom.y, 33));
+    assert(approx(C.mom.z, 44));
+    assert(approx(C.E, 55));
+#ifdef MHD
+    assert(approx(C.B.x, 1.1));
+    assert(approx(C.B.y, 2.2));
+    assert(approx(C.B.z, 3.3));
+#endif
+
+    expect_close(A, _A);   // original unchanged
+    expect_close(B, _B);  // original unchanged
+    
+    A += B;
+    assert(approx(A.rho, 11));
+    assert(approx(A.mom.x, 22));
+    assert(approx(A.mom.y, 33));
+    assert(approx(A.mom.z, 44));
+    assert(approx(A.E, 55));
+#ifdef MHD
+    assert(approx(A.B.x, 1.1));
+    assert(approx(A.B.y, 2.2));
+    assert(approx(A.B.z, 3.3));
+#endif
+    
+}
+void DRAGON_Test::verify_sub(){
+    ConservativeState A;
+    A.rho = 1; A.mom.x = 2; A.mom.y = 3; A.mom.z = 4; A.E = 5;
+#ifdef MHD
+    A.B = {1,2,3};
+#endif
+    ConservativeState _A = A;
+
+    ConservativeState B;
+    B.rho = 10; B.mom.x = 20; B.mom.y = 30; B.mom.z = 40; B.E = 50;
+#ifdef MHD
+    B.B = {0.1,0.2,0.3};
+#endif
+    ConservativeState _B = B;
+    
+    ConservativeState C = B - A;
+    assert(approx(C.rho, 9));
+    assert(approx(C.mom.x, 18));
+    assert(approx(C.mom.y, 27));
+    assert(approx(C.mom.z, 36));
+    assert(approx(C.E, 45));
+#ifdef MHD
+    assert(approx(C.B.x, -0.9));
+    assert(approx(C.B.y, -1.8));
+    assert(approx(C.B.z, -2.7));
+#endif
+    
+    expect_close(A, _A);   // original unchanged
+    expect_close(B, _B);  // original unchanged
+    
+    B -= A;
+    assert(approx(B.rho, 9));
+    assert(approx(B.mom.x, 18));
+    assert(approx(B.mom.y, 27));
+    assert(approx(B.mom.z, 36));
+    assert(approx(B.E, 45));
+#ifdef MHD
+    assert(approx(B.B.x, -0.9));
+    assert(approx(B.B.y, -1.8));
+    assert(approx(B.B.z, -2.7));
+#endif
+}
+void DRAGON_Test::verify_mult(){
+    ConservativeState A;
+    A.rho = 1; A.mom.x = 2; A.mom.y = 3; A.mom.z = 4; A.E = 5;
+#ifdef MHD
+    A.B = {1,2,3};
+#endif
+    ConservativeState _A = A;
+
+    double k = 2;
+    
+    ConservativeState C = k * A;
+    assert(approx(C.rho, 2));
+    assert(approx(C.mom.x, 4));
+    assert(approx(C.mom.y, 6));
+    assert(approx(C.mom.z, 8));
+    assert(approx(C.E, 10));
+#ifdef MHD
+    assert(approx(C.B.x, 2));
+    assert(approx(C.B.y, 4));
+    assert(approx(C.B.z, 6));
+#endif
+    
+    C = A * k;
+    assert(approx(C.rho, 2));
+    assert(approx(C.mom.x, 4));
+    assert(approx(C.mom.y, 6));
+    assert(approx(C.mom.z, 8));
+    assert(approx(C.E, 10));
+#ifdef MHD
+    assert(approx(C.B.x, 2));
+    assert(approx(C.B.y, 4));
+    assert(approx(C.B.z, 6));
+#endif
+    
+    expect_close(A, _A);   // original unchanged
+    
+    A *= k;
+    assert(approx(A.rho, 2));
+    assert(approx(A.mom.x, 4));
+    assert(approx(A.mom.y, 6));
+    assert(approx(A.mom.z, 8));
+    assert(approx(A.E, 10));
+#ifdef MHD
+    assert(approx(A.B.x, 2));
+    assert(approx(A.B.y, 4));
+    assert(approx(A.B.z, 6));
+#endif
+    assert(approx(k,2));  // original unchanged
+}
+
+void DRAGON_Test::verify_div(){
+    ConservativeState A;
+    A.rho = 1; A.mom.x = 2; A.mom.y = 3; A.mom.z = 4; A.E = 5;
+#ifdef MHD
+    A.B = {1,2,3};
+#endif
+    ConservativeState _A = A;
+
+    double k = 2;
+    
+    ConservativeState C = A / k;
+    assert(approx(C.rho, 0.5));
+    assert(approx(C.mom.x, 1.0));
+    assert(approx(C.mom.y, 1.5));
+    assert(approx(C.mom.z, 2.0));
+    assert(approx(C.E, 2.5));
+#ifdef MHD
+    assert(approx(C.B.x, 0.5));
+    assert(approx(C.B.y, 1));
+    assert(approx(C.B.z, 1.5));
+#endif
+    
+    expect_close(A, _A);   // original unchanged
+    
+    A /= k;
+    assert(approx(A.rho, 0.5));
+    assert(approx(A.mom.x, 1.0));
+    assert(approx(A.mom.y, 1.5));
+    assert(approx(A.mom.z, 2.0));
+    assert(approx(A.E, 2.5));
+    
+#ifdef MHD
+    assert(approx(A.B.x, 0.5));
+    assert(approx(A.B.y, 1));
+    assert(approx(A.B.z, 1.5));
+#endif
+    assert(approx(k,2));  // original unchanged
+
+}
+void DRAGON_Test::verify_flux_add(){
+    PrimitiveState W= make_state(1.0, 2.0, 3.0, 4.0, 10.0);
+#ifdef MHD
+    W.B = {0.1,0.2,0.3};
+#endif
+    ConservativeState U0(W);
+
+    ConservativeState dU;
+    dU.rho = 0.1;
+    dU.mom.x  = 0.2;
+    dU.mom.y  = 0.3;
+    dU.mom.z  = 0.4;
+    dU.E   = 0.5;
+#ifdef MHD
+    dU.B.x  = 0.6;
+    dU.B.y  = 0.7;
+    dU.B.z  = 0.8;
+#endif
+
+    W += dU;
+
+    ConservativeState U1(W);
+    ConservativeState expected = U0 + dU;
+
+    assert(approx(U1.rho, expected.rho));
+    assert(approx(U1.mom.x,  expected.mom.x));
+    assert(approx(U1.mom.y,  expected.mom.y));
+    assert(approx(U1.mom.z,  expected.mom.z));
+    assert(approx(U1.E,   expected.E));
+}

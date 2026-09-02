@@ -14,32 +14,34 @@ using namespace DRAGON;
 int main(){
     
     auto start = std::chrono::system_clock::now();
-
+    //Data structures
     verify_fluid_element();
-    
     verify_grid();
     verify_boundary();
-    verify_IO();
     
+    //Infrastructure Layers
+    verify_WING();
+    verify_HOARD();
+
+    //Numerical Sub-algorithms
     verify_riemann();
     verify_tvd();
     verify_cfl();
-
     #ifdef MHD
     verify_ct_2D();
     verify_ct_3D();
     std::cout << "All Constrained Transport Update Tests passed.\n\n";
     #endif
+    verify_passive_scalars();
     
+    //Godunov Scheme
     verify_godunov_1D();
     verify_godunov_2D_Split();
     verify_godunov_2D_Unsplit();
     verify_godunov_3D_Split();
     verify_godunov_3D_Unsplit();
     std::cout << "All Godunov Scheme tests passed.\n\n";
-    
 
-    
     std::cout << "All tests passed.\n";
     
     double clock_time = std::chrono::duration<double>(std::chrono::system_clock::now() - start).count();

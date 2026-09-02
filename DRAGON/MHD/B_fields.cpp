@@ -14,6 +14,8 @@
 
 #include "Config.h"
 #include "Constants.h" //For _pi, _1_8pi
+
+#include "DragonWing.hpp" //For fallback reporting
 using namespace DRAGON;
 
 #ifdef MHD
@@ -94,27 +96,27 @@ void computeBodyField(const MagneticArray3D& B, FluidArray3D& w, int i, int j, i
 //One way to avoid this is to keep thermal energy (instead of total energy) fixed during the CT update.
 //This is a numerical-stability vs physical-realism tradeoff, controlled in Config.h
 bool shouldProtectThermal(const PrimitiveState& w){
+    auto gate = [&]{
+        if (w.p <= Config::ct_energy_beta * (w.B * w.B * _1_8pi)) {
+                DRAGONWING::reportFallback(Config::fallback_weight_ct_beta, Config::fallback_limit);
+            return true;
+        } else {
+            return false;
+        }
+    };
     #if CT_ENERGY_CONSV == CHOOSE_RUNTIME || defined(TESTMODE)
     switch (Config::CT_energy_choice) {
-        case CT_CONSV_TOTAL_E: return false;
-        case CT_CONSV_THERMAL: return true;
-        case CT_CONSV_BETA_GATED: {
-            double B2 = (w.B * w.B);
-            if (B2 == 0) return false;
-            double beta = w.p / (_1_8pi * w.B*w.B);
-            return beta <= Config::ct_energy_beta;
-        }
-        default: return false;
+    case CT_CONSV_TOTAL_E: return false;
+    case CT_CONSV_THERMAL: return true;
+    case CT_CONSV_BETA_GATED: return gate();
+    default: return false;
     }
     #elif CT_ENERGY_CONSV == CT_CONSV_TOTAL_E
     return false;
     #elif CT_ENERGY_CONSV == CT_CONSV_THERMAL
     return true;
     #elif CT_CONSV_BETA_GATED
-    double B2 = (w.B * w.B);
-    if (B2 == 0) return false;
-    double beta = 8*_pi*w.p / (w.B*w.B);
-    return beta <= Config::ct_energy_beta;
+    return gate();
     #endif
 }
 }

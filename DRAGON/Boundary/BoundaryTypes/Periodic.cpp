@@ -22,10 +22,14 @@ Boundary::Periodic::Periodic(std::string s, bool corners) : Periodic(face_mask(s
 void Boundary::Periodic::apply(Grid1D& grid){
     if ((faces & X) == 0) return;
     int ng = grid.getGhosts(), nx = grid.getSize();
+    auto& q = grid.passives();
     for (int g = 1; g <= ng; g++) {
         grid[-g] = grid[nx-g];
         grid[nx-1+g] = grid[g-1];
     }
+    //Copy passives (only first ghost)
+    q[-1] = q[nx-1];
+    q[nx] = q[0];
 }
 
 //MARK: 2D
@@ -35,11 +39,18 @@ void Boundary::Periodic::apply(Grid2D& grid){
     int i0 = (corners ? -ng : 0), in = (corners ? nx + ng : nx);
     int j0 = i0, jn = (corners ? ny + ng : ny);
 
+    auto& q = grid.passives();
+
     if (faces & X) {
         for (int j = j0 ; j < jn; j++) {
             for (int g = 1; g <= ng; g++) {
                 grid[-g,j] = grid[nx-g,j];
                 grid[nx-1+g,j] = grid[g-1,j];
+            }
+            //Copy passives (only first ghost)
+            if (j >= -1 && j <= ny){
+                q[-1,j] = q[nx-1,j];
+                q[nx,j] = q[0,j];
             }
         }
     }
@@ -48,6 +59,11 @@ void Boundary::Periodic::apply(Grid2D& grid){
             for (int g = 1; g <= ng; g++) {
                 grid[i,-g] = grid[i,ny-g];
                 grid[i,ny-1+g] = grid[i,g-1];
+            }
+            //Copy passives (only first ghost)
+            if (i >= -1 && i <= nx){
+                q[i,-1] = q[i,ny-1];
+                q[i,ny] = q[i,0];
             }
         }
     }
@@ -79,6 +95,8 @@ void Boundary::Periodic::apply(Grid3D& grid){
     int i0 = (corners ? -ng : 0), in = (corners ? nx + ng : nx);
     int j0 = i0, jn = (corners ? ny + ng : ny);
     int k0 = i0, kn = (corners ? nz + ng : nz);
+    
+    auto& q = grid.passives();
 
     if (faces & X) {
         for (int j = j0 ; j < jn; j++) {
@@ -86,6 +104,11 @@ void Boundary::Periodic::apply(Grid3D& grid){
                 for (int g = 1; g <= ng; g++) {
                     grid[-g,j,k] = grid[nx-g,j,k];
                     grid[nx-1+g,j,k] = grid[g-1,j,k];
+                }
+                //Copy passives (only first ghost)
+                if (j >= -1 && j <= ny && k >= -1 && k <= nz){
+                    q[-1,j,k] = q[nx-1,j,k];
+                    q[nx,j,k] = q[0,j,k];
                 }
             }
         }
@@ -97,6 +120,11 @@ void Boundary::Periodic::apply(Grid3D& grid){
                     grid[i,-g,k] = grid[i,ny-g,k];
                     grid[i,ny-1+g,k] = grid[i,g-1,k];
                 }
+                //Copy passives (only first ghost)
+                if (i >= -1 && i <= nx && k >= -1 && k <= nz){
+                    q[i,-1,k] = q[i,ny-1,k];
+                    q[i,ny,k] = q[i,0,k];
+                }
             }
         }
     }
@@ -106,6 +134,11 @@ void Boundary::Periodic::apply(Grid3D& grid){
                 for (int g = 1; g <= ng; g++) {
                     grid[i,j,-g] = grid[i,j,nz-g];
                     grid[i,j,nz-1+g] = grid[i,j,g-1];
+                }
+                //Copy passives (only first ghost)
+                if (i >= -1 && i <= nx && j >= -1 && j <= ny){
+                    q[i,j,-1] = q[i,j,nz-1];
+                    q[i,j,nz] = q[i,j,0];
                 }
             }
         }

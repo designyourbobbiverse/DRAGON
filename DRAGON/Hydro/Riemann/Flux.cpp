@@ -9,6 +9,7 @@
 
 #include "Config.h"
 
+#include "DragonWing.hpp" //For reporting fallbacks
 #include <stdexcept> //For error messages
 using namespace DRAGON;
 
@@ -80,6 +81,8 @@ void Riemann::verify_and_fallback(ConservativeState& flux, double dt_dx){
     dt_dx *= Config::riemann_fallback_param;//Scale time by the desired amount
     //Check whether both states would still be physical after update
     if ((L - flux*dt_dx).isPhysical() &&  (R+flux*dt_dx).isPhysical()) return;
+        //Report that we need to use a different Riemann solver
+        DRAGONWING::reportFallback(Config::fallback_weight_riemann, Config::fallback_limit);
     #ifdef RIEMANN_FALLBACK_TRY_HLLE
     //If not, try HLLE
     flux = HLLE();
