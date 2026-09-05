@@ -43,6 +43,8 @@ public:
         return *this;
     }
     
+    size_t count(){ return sources.size(); }
+    
     
     //MARK: Append
     //Add an element to the end of the list

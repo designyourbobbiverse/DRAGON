@@ -308,13 +308,17 @@ void Grid3D::advanceZ(double dt){
     }
 }
 //MARK: Source Term Sweeps
-void Grid1D::advanceSource(double dt, Source::SourceTerm &source, bool ghosts){
+void Grid1D::advanceSource(double dt, Source::SourceList &source, bool ghosts){
+    if(source.count() == 0) return;
+    
     const int nx = getSize(), g = ghosts ? getGhosts() : 0;
     for(int i=-g; i<nx+g; i++){
         w[i] += source.integrate(dt, w[i]);
     }
 }
-void Grid2D::advanceSource(double dt, Source::SourceTerm &source, bool ghosts){
+void Grid2D::advanceSource(double dt, Source::SourceList &source, bool ghosts){
+    if(source.count() == 0) return;
+    
     const int nx = getSizeX(), ny = getSizeY(), g = ghosts ? getGhosts() : 0;
     for(int i=-g; i<nx+g; i++){
         for(int j=-g; j<ny+g; j++){
@@ -322,7 +326,9 @@ void Grid2D::advanceSource(double dt, Source::SourceTerm &source, bool ghosts){
         }
     }
 }
-void Grid3D::advanceSource(double dt, Source::SourceTerm &source, bool ghosts){
+void Grid3D::advanceSource(double dt, Source::SourceList &source, bool ghosts){
+    if(source.count() == 0) return;
+    
     const int nx = getSizeX(), ny = getSizeY(), nz = getSizeZ(), g = ghosts ? getGhosts() : 0;
     for(int i=-g; i<nx+g; i++){
         for(int j=-g; j<ny+g; j++){
