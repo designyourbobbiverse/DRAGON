@@ -15,6 +15,10 @@
 #include <type_traits> //std::decay_t
 
 namespace DRAGON::Boundary {
+template<class T> concept BoundaryElement = //Can't put lists inside of lists (this keeps everything well-defined)
+    !std::derived_from<std::decay_t<T>, BoundaryList> && std::derived_from<std::decay_t<T>, GhostFill>;
+
+
 class BoundaryList : public GhostFill {
 private:
     std::vector<std::unique_ptr<GhostFill>>  boundaries;
@@ -99,32 +103,35 @@ private:
         stale = false;//Reset complete
     }
 };
-
+}
 
 //MARK: + Operators
-template<BoundaryElement A, BoundaryElement B> BoundaryList operator+(A&& a, B&& b){
-    BoundaryList result;
+template<DRAGON::Boundary::BoundaryElement A, DRAGON::Boundary::BoundaryElement B> DRAGON::Boundary::BoundaryList operator+(A&& a, B&& b){
+    DRAGON::Boundary::BoundaryList result;
     result.append(std::forward<A>(a));
     result.append(std::forward<B>(b));
     return result;
 }
-template<BoundaryElement B> BoundaryList operator+(BoundaryList lhs, B&& rhs){ lhs += rhs; return lhs; }
-template<BoundaryElement B> BoundaryList& operator+=(BoundaryList& lhs, B&& rhs){
+template<DRAGON::Boundary::BoundaryElement B> DRAGON::Boundary::BoundaryList operator+(DRAGON::Boundary::BoundaryList lhs, B&& rhs){ lhs += rhs; return lhs; }
+template<DRAGON::Boundary::BoundaryElement B> DRAGON::Boundary::BoundaryList& operator+=(DRAGON::Boundary::BoundaryList& lhs, B&& rhs){
     lhs.append(std::forward<B>(rhs));
     return lhs;
 }
-template<BoundaryElement A> BoundaryList operator+(A&& lhs, BoundaryList rhs){
+template<DRAGON::Boundary::BoundaryElement A> DRAGON::Boundary::BoundaryList operator+(A&& lhs, DRAGON::Boundary::BoundaryList rhs){
     rhs.prepend(std::forward<A>(lhs));
     return rhs;
 }
-inline BoundaryList operator+(BoundaryList lhs, BoundaryList rhs) { lhs += std::move(rhs); return lhs; }
-inline BoundaryList& operator+=(BoundaryList& lhs, BoundaryList rhs){
+inline DRAGON::Boundary::BoundaryList& operator+=(DRAGON::Boundary::BoundaryList& lhs, DRAGON::Boundary::BoundaryList rhs){
     lhs.append(std::move(rhs));
+    return lhs;
+}
+inline DRAGON::Boundary::BoundaryList operator+(DRAGON::Boundary::BoundaryList lhs, DRAGON::Boundary::BoundaryList rhs) {
+    lhs += std::move(rhs);
     return lhs;
 }
 
 
-}
+
 
 #else
 #warning BoundaryList.hpp appears to have been included accidentally. Typically, you want to include Boundary.h instead.

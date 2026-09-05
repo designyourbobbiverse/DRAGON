@@ -11,8 +11,6 @@
 
 #include "GhostFill.hpp"
 
-#include <concepts> //For BoundaryElement template
-#include <type_traits> //For BoundaryElement template
 #include <string> //For face initialization
 #include "FluidElement/FluidElement.hpp" //For Boundary::fixed
 
@@ -21,18 +19,16 @@ namespace DRAGON::Boundary{
 //MARK: Boundary Composition
 //The conditions will be applied in order, with later conditions overriding prior conditions for overlapping cells
 //Outflow(missing_faces) will be added at the beginning if any faces are missing.
-class BoundaryList;
-template<class T> concept BoundaryElement = //Can't put lists inside of lists (this keeps everything well-defined)
-    !std::derived_from<std::decay_t<T>, BoundaryList> && std::derived_from<std::decay_t<T>, GhostFill>;
-
-//Addition operators
-template<BoundaryElement A, BoundaryElement B> BoundaryList operator+(A&& a, B&& b); //List = Element + Element
-template<BoundaryElement B> BoundaryList operator+(BoundaryList a, B&& b); //List = List + Element
-template<BoundaryElement B> BoundaryList& operator+=(BoundaryList& lhs, B&& rhs); //List += Element
-template<BoundaryElement A> BoundaryList operator+(A&& a, BoundaryList b); //List = Element + List
-inline BoundaryList operator+(BoundaryList a, BoundaryList b); //List = List + List
-inline BoundaryList& operator+=(BoundaryList& lhs, BoundaryList rhs); //List += List
-//List = List and List = Element are also defined within the BoundaryList class
+class BoundaryList; //See BoundaryList.hpp
+//Supported Addition and Assignment operators
+//List = Element + Element (Element is any GhostFill that isn't also another List)
+//List = List + Element
+//List += Element
+//List = Element + List
+//List = List + List
+//List += List
+//List = List
+//List = Element
 
 
 //MARK: Faces
