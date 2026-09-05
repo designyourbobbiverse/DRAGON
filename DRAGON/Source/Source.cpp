@@ -11,9 +11,10 @@
 #include "Constants.h"  //For gamma
 
 using namespace DRAGON;
+using namespace Source;
 
 //MARK: Integration
-ConservativeState Source::integrate(double dt, const PrimitiveState& w0, double t0){
+ConservativeState SourceTerm::integrate(double dt, const PrimitiveState& w0, double t0){
     #if SRC_SPLIT_INTEGRATION == CHOOSE_RUNTIME
     switch (Config::src_integration_choice) {
     case RK2: return rk2(dt, w0, t0);
@@ -27,12 +28,12 @@ ConservativeState Source::integrate(double dt, const PrimitiveState& w0, double 
     #endif
    
 }
-ConservativeState Source::rk2(double dt, const PrimitiveState& w0, double t0){
+ConservativeState SourceTerm::rk2(double dt, const PrimitiveState& w0, double t0){
     ConservativeState k1 = source_density(w0, t0);
     ConservativeState k2 = source_density(w0 + k1*dt, t0 + dt);
     return (k1+k2)/2;
 }
-ConservativeState Source::rk4(double dt, const PrimitiveState& w0, double t0){
+ConservativeState SourceTerm::rk4(double dt, const PrimitiveState& w0, double t0){
     ConservativeState k1 = source_density(w0, t0);
     ConservativeState k2 = source_density(w0 + 0.5*k1*dt, t0 + 0.5*dt);
     ConservativeState k3 = source_density(w0 + 0.5*k2*dt, t0 + 0.5*dt);
@@ -58,12 +59,16 @@ ConservativeState MomentumSource::source_density(const PrimitiveState &w, double
 }
 ConservativeState MassSource::source_density(const PrimitiveState &w, double t){
     double S_rho = density(w,t);
+    vec3 v = velocity(w, t);
     
     ConservativeState S{};
     S.rho = S_rho;
-    S.mom = S_rho * w.v;
-    S.E = S_rho * (thermal_energy(w, t) +  0.5 * w.v*w.v);
+    S.mom = S_rho * v;
+    S.E = S_rho * (thermal_energy(w, t) +  0.5*v*v);
     return S;
+}
+vec3 MassSource::velocity(const PrimitiveState& w, double t){
+    return w.v;
 }
 double MassSource::thermal_energy(const PrimitiveState &w, double t){
     return w.p/((_gamma-1) * w.rho);
