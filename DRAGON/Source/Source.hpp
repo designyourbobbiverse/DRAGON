@@ -24,7 +24,22 @@ public:
     ConservativeState integrate(double dt, const PrimitiveState& w0, double t0=0); //Chooses RK2 vs RK4 based on Config.h
     ConservativeState rk2(double dt, const PrimitiveState& w0, double t0=0);
     ConservativeState rk4(double dt, const PrimitiveState& w0, double t0=0);
+    
+    virtual ~SourceTerm() = default;
 };
+
+//MARK: Source Aggregation
+//Contains a list of sources, computes source_density by adding all of the different sources together
+class SourceList; //See SourceList.hpp
+//Supported Addition and Assignment operators
+//List = Element + Element (Element is any SourceTerm that isn't also another SourceList)
+//List = List + Element
+//List += Element
+//List = Element + List
+//List = List + List
+//List += List
+//List = List
+//List = Element
 
 
 //MARK: Source Types
@@ -60,5 +75,9 @@ public:
 }
 
 
+
+//Keep the implmentation of SourceList in a separate file
+#define SOURCE_LIST_HPP
+#include "SourceList.hpp"
 
 #endif
