@@ -31,14 +31,14 @@ ConservativeState SourceTerm::integrate(double dt, const PrimitiveState& w0, dou
 ConservativeState SourceTerm::rk2(double dt, const PrimitiveState& w0, double t0){
     ConservativeState k1 = source_density(w0, t0);
     ConservativeState k2 = source_density(w0 + k1*dt, t0 + dt);
-    return (k1+k2)/2;
+    return (k1 + k2) / 2.0;
 }
 ConservativeState SourceTerm::rk4(double dt, const PrimitiveState& w0, double t0){
     ConservativeState k1 = source_density(w0, t0);
     ConservativeState k2 = source_density(w0 + 0.5*k1*dt, t0 + 0.5*dt);
     ConservativeState k3 = source_density(w0 + 0.5*k2*dt, t0 + 0.5*dt);
     ConservativeState k4 = source_density(w0 + k3*dt, t0 + dt);
-    return (k1 + 2*k2 + 2*k3 + k4)/6.0;
+    return (k1 + 2*k2 + 2*k3 + k4) / 6.0;
 }
 
 
