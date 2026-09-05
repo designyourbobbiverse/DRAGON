@@ -26,7 +26,6 @@ ConservativeState SourceTerm::integrate(double dt, const PrimitiveState& w0, dou
     #elif SRC_SPLIT_INTEGRATION == RK4
     return rk4(dt, w0, t0);
     #endif
-   
 }
 ConservativeState SourceTerm::rk2(double dt, const PrimitiveState& w0, double t0){
     ConservativeState k1 = source_density(w0, t0);
