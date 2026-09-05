@@ -62,7 +62,9 @@ ConservativeState MassSource::source_density(const PrimitiveState &w, double t){
     ConservativeState S{};
     S.rho = S_rho;
     S.mom = S_rho * w.v;
-    S.E = S_rho * (_G_Gm1 * w.p/w.rho +  0.5 * w.v*w.v);
+    S.E = S_rho * (thermal_energy(w, t) +  0.5 * w.v*w.v);
     return S;
 }
-
+double MassSource::thermal_energy(const PrimitiveState &w, double t){
+    return w.p/((_gamma-1) * w.rho);
+}
