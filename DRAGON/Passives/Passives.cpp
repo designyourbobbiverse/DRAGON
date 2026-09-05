@@ -144,7 +144,10 @@ std::size_t PassiveArray3D::remove(const std::string& key){
 }
 
 //MARK: Advection
-
+void PassiveArray1D::advect(const ExtendedArray1D<ConservativeState>& F, const FluidArray1D& w_old, const FluidArray1D& w_new, double dt_dx){
+    auto _q = advected(F, w_old, w_new, dt_dx);
+    clone(*_q);
+}
 std::unique_ptr<PassiveArray1D> PassiveArray1D::advected(const ExtendedArray1D<ConservativeState>& F, const FluidArray1D& w_old, const FluidArray1D& w_new, double dt_dx){
     const int nx = q.getSize(), g = q.getGhosts();
     //Make a copy
@@ -172,6 +175,10 @@ std::unique_ptr<PassiveArray1D> PassiveArray1D::advected(const ExtendedArray1D<C
         for(auto &x : (*advected)[i]) x /= w_new[i].rho;
     }
     return advected;
+}
+void  PassiveArray2D::advect(const FluxArray2D& F_X, const FluxArray2D& F_Y, const FluidArray2D& w_old, const FluidArray2D& w_new, double dt_dx, double dt_dy){
+    auto _q = advected(F_X, F_Y, w_old, w_new, dt_dx, dt_dy);
+    clone(*_q);
 }
 std::unique_ptr<PassiveArray2D> PassiveArray2D::advected(const FluxArray2D& F_X, const FluxArray2D& F_Y, const FluidArray2D& w_old, const FluidArray2D& w_new, double dt_dx, double dt_dy){
     const int nx = q.getSizeX(), ny = q.getSizeY(), g = q.getGhosts();
@@ -216,6 +223,10 @@ std::unique_ptr<PassiveArray2D> PassiveArray2D::advected(const FluxArray2D& F_X,
         }
     }
     return advected;
+}
+void PassiveArray3D::advect(const FluxArray3D& F_X, const FluxArray3D& F_Y, const FluxArray3D& F_Z, const FluidArray3D& w_old, const FluidArray3D& w_new, double dt_dx, double dt_dy, double dt_dz){
+    auto _q = advected(F_X, F_Y, F_Z, w_old, w_new, dt_dx, dt_dy, dt_dz);
+    clone(*_q);
 }
 std::unique_ptr<PassiveArray3D> PassiveArray3D::advected(const FluxArray3D& F_X, const FluxArray3D& F_Y, const FluxArray3D& F_Z, const FluidArray3D& w_old, const FluidArray3D& w_new, double dt_dx, double dt_dy, double dt_dz){
     const int nx = q.getSizeX(), ny = q.getSizeY(), nz = q.getSizeZ(), g = q.getGhosts();

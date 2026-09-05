@@ -33,7 +33,7 @@ using namespace Godunov;
 // 8) Commit the update
 
 
-//MARK: Unsplit Step Wrapper
+//MARK: Unsplit Step Main
 
 void Grid2D::unsplit_step(double dt){
     const int nx = w.getSizeX(), ny = w.getSizeY(), ghosts = w.getGhosts();
@@ -46,8 +46,9 @@ void Grid2D::unsplit_step(double dt){
     
     //Do math
     _w.advanceSource(dt/2, sources);
+    boundary.apply(_w); //reapply boundary after source terms
     _w.advanceXY(dt);
-    _w.advanceSource(dt/2, sources, false);
+    _w.advanceSource(dt/2, sources, false); //Don't need ghosts on round 2
     
     //Verify Physicality of solution
     for (int i=0; i<nx; i++) {
@@ -82,6 +83,7 @@ void Grid3D::unsplit_step(double dt){
     
     //Do math
     _w.advanceSource(dt/2, sources);
+    boundary.apply(_w); //reapply boundary after source terms
     _w.advanceXYZ(dt);
     _w.advanceSource(dt/2, sources, false);
     
@@ -150,10 +152,8 @@ void Grid2D::advanceXY(double dt){
         auto __w = DRAGONWING::requestPrimitiveArrays(1,nx, ny, ghosts); //Auto-releases when the function terminates
     FluidArray2D& _w = *__w[0];
     applyFluxes(w, _w, F_X, F_Y, dt_dx, dt_dy);
-    //Passive Scalar Advection
-    auto _q = q.advected(F_X, F_Y, w, _w, dt_dx, dt_dy);
+    q.advect(F_X, F_Y, w, _w, dt_dx, dt_dy); //Passive Scalar Advection
     w.clone(_w);
-    q.clone(*_q);
         __w.release();
 
 
@@ -221,10 +221,8 @@ void Grid3D::advanceXYZ(double dt){
         auto __w = DRAGONWING::requestPrimitiveArrays(1, nx, ny, nz, ghosts); //Auto-releases when the function terminates
     FluidArray3D& _w = *__w[0];
     applyFluxes(w, _w, F_X, F_Y, F_Z, dt_dx, dt_dy, dt_dz);
-    //Passive Scalar Advection
-    auto _q = q.advected(F_X, F_Y, F_Z, w, _w, dt_dx, dt_dy, dt_dz);
+    q.advect(F_X, F_Y, F_Z, w, _w, dt_dx, dt_dy, dt_dz); //Passive Scalar Advection
     w.clone(_w);
-    q.clone(*_q);
         __w.release();
     
     //Preliminary CT Update

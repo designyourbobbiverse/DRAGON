@@ -55,9 +55,7 @@ void Godunov::sweep(FluidArray1D& w, double dt_dx, PassiveArray1D& q){
     for (int i=-ghosts+1; i<size+ghosts-1; i++){
         w[i] += (f[i] - f[i+1]) * dt_dx; //Apply flux to cell
     }
-    //Advect passives
-    auto _q = q.advected(f, _w, w, dt_dx);
-    q.clone(*_q);
+    q.advect(f, _w, w, dt_dx);
 }
 
 //MARK: 1D Advance
