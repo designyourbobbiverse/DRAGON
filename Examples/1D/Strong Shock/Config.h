@@ -79,7 +79,7 @@ constexpr int fallback_weight_riemann = 0; //The fallback reporting weight for R
 constexpr double final_time = 0.012;
 constexpr double dt = 0.012;
 
-constexpr double cfl_coeff = 0.3; //The Coefficient used together with the above to determine the maximum timestep size
+constexpr double cfl_coeff = 0.3; //The coefficient used together with the above to determine the maximum timestep size
 constexpr double timestep_tolerance = 1e-14; //Timesteps smaller than this are treated as zero
 
 //Courant, Friedrichs, and Lewy (1928). https://doi.org/10.1007/BF01448839
@@ -102,10 +102,17 @@ constexpr double timestep_tolerance = 1e-14; //Timesteps smaller than this are t
     constexpr int fallback_weight_MUSCL = 0;//The fallback reporting weight for MUSCL->constant fallbacks.
         //More specifically, the  ratio fallback_limit/fallback_weight_MUSCL gives the maximum number of cells which can fall back to constant reconstruction before a restart is triggered, assuming no other fallbacks.
 
+//MARK: Source Terms
+    #define RK2 0
+    #define RK4 1
+#define SRC_SPLIT_INTEGRATION RK2
 
 //MARK: Performance
 
-constexpr int core_count = 16; //Helps the Root level grid decide how many children to split into
+//Helps the Root level grid decide how many children to split into.
+//The actual number of threads may exceed this number in order to keep the domains closer to cubical.
+//For systems with limited memory, you may want to make this even larger, see DRAGONWING's Config file for detials
+constexpr int core_count = 16;
 
 
 //******************************************************************//
@@ -126,6 +133,9 @@ inline int cfl_choice = CFL_ADD;
 #endif
 #if CT_ENERGY_CONSV == CHOOSE_RUNTIME || defined(TESTMODE)
 inline int CT_energy_choice = CT_CONSV_TOTAL_E;
+#endif
+#if SRC_SPLIT_INTEGRATION == CHOOSE_RUNTIME || defined(TESTMODE)
+inline int src_integration_choice = RK2;
 #endif
 }
 

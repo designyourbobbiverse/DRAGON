@@ -1,0 +1,68 @@
+//
+//  Source.cpp
+//  DRAGON/Source
+//
+//  Created by Bobbie Markwick on 04/09/2026.
+//
+
+#include "Source.hpp"
+
+#include "Config.h"     //For integration scheme
+#include "Constants.h"  //For gamma
+
+using namespace DRAGON;
+
+//MARK: Integration
+ConservativeState Source::integrate(double dt, const PrimitiveState& w0, double t0){
+    #if SRC_SPLIT_INTEGRATION == CHOOSE_RUNTIME
+    switch (Config::src_integration_choice) {
+    case RK2: return rk2(dt, w0, t0);
+    case RK4: return rk4(dt, w0, t0);
+    default: return rk2(dt, w0, t0);
+    }
+    #elif SRC_SPLIT_INTEGRATION == RK2
+    return rk2(dt, w0, t0);
+    #elif SRC_SPLIT_INTEGRATION == RK4
+    return rk4(dt, w0, t0);
+    #endif
+   
+}
+ConservativeState Source::rk2(double dt, const PrimitiveState& w0, double t0){
+    ConservativeState k1 = source_density(w0, t0);
+    ConservativeState k2 = source_density(w0 + k1*dt, t0 + dt);
+    return (k1+k2)/2;
+}
+ConservativeState Source::rk4(double dt, const PrimitiveState& w0, double t0){
+    ConservativeState k1 = source_density(w0, t0);
+    ConservativeState k2 = source_density(w0 + 0.5*k1*dt, t0 + 0.5*dt);
+    ConservativeState k3 = source_density(w0 + 0.5*k2*dt, t0 + 0.5*dt);
+    ConservativeState k4 = source_density(w0 + k3*dt, t0 + dt);
+    return (k1 + 2*k2 + 2*k3 + k4)/6.0;
+}
+
+
+
+//MARK: Energy/Force/Mass Types
+ConservativeState EnergySource::source_density(const PrimitiveState &w, double t){
+    ConservativeState S{};
+    S.E = energy(w,t);
+    return S;
+}
+ConservativeState MomentumSource::source_density(const PrimitiveState &w, double t){
+    vec3 f = force(w,t);
+
+    ConservativeState S{};
+    S.mom = f;
+    S.E = w.v * f;
+    return S;
+}
+ConservativeState MassSource::source_density(const PrimitiveState &w, double t){
+    double S_rho = density(w,t);
+    
+    ConservativeState S{};
+    S.rho = S_rho;
+    S.mom = S_rho * w.v;
+    S.E = S_rho * (_G_Gm1 * w.p/w.rho +  0.5 * w.v*w.v);
+    return S;
+}
+

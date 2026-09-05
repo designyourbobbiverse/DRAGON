@@ -99,6 +99,10 @@ constexpr double timestep_tolerance = 1e-14; //Timesteps smaller than this are t
     constexpr int fallback_weight_MUSCL = 0;//The fallback reporting weight for MUSCL->constant fallbacks.
         //More specifically, the  ratio fallback_limit/fallback_weight_MUSCL gives the maximum number of cells which can fall back to constant reconstruction before a restart is triggered, assuming no other fallbacks.
 
+//MARK: Source Terms
+    #define RK2 0
+    #define RK4 1
+#define SRC_SPLIT_INTEGRATION RK2
 
 //MARK: Performance
 
@@ -125,6 +129,9 @@ inline int cfl_choice = CFL_ADD;
 #endif
 #if CT_ENERGY_CONSV == CHOOSE_RUNTIME || defined(TESTMODE)
 inline int CT_energy_choice = CT_CONSV_TOTAL_E;
+#endif
+#if SRC_SPLIT_INTEGRATION == CHOOSE_RUNTIME || defined(TESTMODE)
+inline int src_integration_choice = RK2;
 #endif
 }
 
