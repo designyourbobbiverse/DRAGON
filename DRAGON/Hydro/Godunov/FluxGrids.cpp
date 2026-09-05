@@ -27,12 +27,12 @@ void Godunov::applyFluxes(const FluidArray2D& w, FluidArray2D& _w, const FluxArr
     for (int i=-g; i<nx+g; i++) {
         for (int j=-g; j<ny+g; j++) {
             //Convert to conservative, add all the fluxes, then convert back to primitive
-            ConservativeState U(w[i,j]);
-            U += dt_dx * (F_X[i,j] - F_X[i+1,j]);
-            U += dt_dy * (F_Y[i,j] - F_Y[i,j+1]);
-            _w[i,j] = U;
-
-            if (!U.isFinite()) throw std::runtime_error(std::format("\tNaN state would be produced at ({},{})\n",i,j));
+            ConservativeState dU{};
+            dU += dt_dx * (F_X[i,j] - F_X[i+1,j]);
+            dU += dt_dy * (F_Y[i,j] - F_Y[i,j+1]);
+            if (!dU.isFinite()) throw std::runtime_error(std::format("\tNaN state would be produced at ({},{})\n",i,j));
+            
+            _w[i,j] += dU;
         }
     }
 }
@@ -44,13 +44,14 @@ void Godunov::applyFluxes(const FluidArray3D& w, FluidArray3D& _w, const FluxArr
         for (int j=-g; j<ny+g; j++) {
             for (int k=-g; k<nz+g; k++) {
                 //Convert to conservative, add all the fluxes, then convert back to primitive
-                ConservativeState U(w[i,j,k]);
-                U += dt_dx * (F_X[i,j,k] - F_X[i+1,j,k]);
-                U += dt_dy * (F_Y[i,j,k] - F_Y[i,j+1,k]);
-                U += dt_dz * (F_Z[i,j,k] - F_Z[i,j,k+1]);
-                _w[i,j,k] = U;
-
-                if (!U.isFinite()) throw std::runtime_error(std::format("\tNaN state would be produced at ({},{},{})\n",i,j,k));
+                ConservativeState dU{};
+                dU += dt_dx * (F_X[i,j,k] - F_X[i+1,j,k]);
+                dU += dt_dy * (F_Y[i,j,k] - F_Y[i,j+1,k]);
+                dU += dt_dz * (F_Z[i,j,k] - F_Z[i,j,k+1]);
+                if (!dU.isFinite())
+                    throw std::runtime_error(std::format("\tNaN state would be produced at ({},{},{})\n",i,j,k));
+                
+                _w[i,j,k] += dU;
             }
         }
     }

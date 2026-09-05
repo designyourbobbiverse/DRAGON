@@ -157,9 +157,20 @@ ConservativeState ConservativeState::flux(vec3 v) const {
 }
 
 PrimitiveState& operator+=(PrimitiveState &W, const ConservativeState &dU){
-    ConservativeState U(W);
-    U += dU;
-    W = PrimitiveState(U);
+    //Do this manually to mitigate effects round-tripping
+    PrimitiveState W_ = W;
+    W.rho += dU.rho;
+    double dE_ = 0.5 * dU.rho * (W_.v * W_.v);
+    //Momentum
+    vec3 dv =  (dU.mom - W.v * dU.rho) / W.rho;
+    W.v += dv;
+    dE_ += W.rho * (W.v - 0.5*dv) * dv;
+    //Magnetic Fields
+    #ifdef MHD
+    W.B += dU.B;
+    dE_ += (W.B - 0.5 * dU.B) * dU.B * _1_4pi;
+    #endif
+    W.p += (_gamma-1) * (dU.E  - dE_);
     return W;
 }
 
