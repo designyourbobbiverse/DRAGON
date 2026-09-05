@@ -83,10 +83,13 @@ template<DRAGON::Source::SourceType A, DRAGON::Source::SourceType B>  DRAGON::So
     return result;
 }
 template<DRAGON::Source::SourceType B> DRAGON::Source::SourceList& operator+=(DRAGON::Source::SourceList& lhs, B&& rhs){
-    append(std::forward<B>(rhs));
+    lhs.append(std::forward<B>(rhs));
     return lhs;
 }
-template<DRAGON::Source::SourceType B> DRAGON::Source::SourceList operator+(DRAGON::Source::SourceList lhs, B&& rhs){ lhs += rhs; return lhs; }
+template<DRAGON::Source::SourceType B> DRAGON::Source::SourceList operator+(DRAGON::Source::SourceList lhs, B&& rhs){
+    lhs += rhs;
+    return lhs;
+}
 template<DRAGON::Source::SourceType A> DRAGON::Source::SourceList operator+(A&& lhs, DRAGON::Source::SourceList rhs){
     rhs.prepend(std::forward<A>(lhs));
     return rhs;
