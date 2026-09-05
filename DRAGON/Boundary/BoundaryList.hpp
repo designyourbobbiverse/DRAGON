@@ -112,7 +112,6 @@ template<DRAGON::Boundary::BoundaryElement A, DRAGON::Boundary::BoundaryElement 
     result.append(std::forward<B>(b));
     return result;
 }
-template<DRAGON::Boundary::BoundaryElement B> DRAGON::Boundary::BoundaryList operator+(DRAGON::Boundary::BoundaryList lhs, B&& rhs){ lhs += rhs; return lhs; }
 template<DRAGON::Boundary::BoundaryElement B> DRAGON::Boundary::BoundaryList& operator+=(DRAGON::Boundary::BoundaryList& lhs, B&& rhs){
     lhs.append(std::forward<B>(rhs));
     return lhs;
@@ -121,6 +120,8 @@ template<DRAGON::Boundary::BoundaryElement A> DRAGON::Boundary::BoundaryList ope
     rhs.prepend(std::forward<A>(lhs));
     return rhs;
 }
+template<DRAGON::Boundary::BoundaryElement B> DRAGON::Boundary::BoundaryList operator+(DRAGON::Boundary::BoundaryList lhs, B&& rhs){ lhs += rhs; return lhs; }
+
 inline DRAGON::Boundary::BoundaryList& operator+=(DRAGON::Boundary::BoundaryList& lhs, DRAGON::Boundary::BoundaryList rhs){
     lhs.append(std::move(rhs));
     return lhs;
