@@ -12,6 +12,7 @@
 #include "Hydro/ExtendedArray/ArrayTypes.hpp"   //For ExtendedArray, PrimitiveState
 #include "Boundary/Boundary.hpp"                //For Boundary::BoundaryList
 #include "Passives/Passives.hpp"                //For Passives
+#include "Source/Source.hpp"                    //For Source Terms
 
 #include "Config.h" //For enabling or disabling MHD declarations
 
@@ -33,8 +34,11 @@ public:
     #endif
     
     //Boundary
-    Boundary::BoundaryList boundary = Boundary::BoundaryList();
+    Boundary::BoundaryList boundary{};
     virtual ~Grid() = default;
+    
+    //Source Terms
+    Source::SourceList sources{};
 };
 
 
@@ -61,6 +65,8 @@ public:
     //Advance forward in time
     void split_step(double dt) override;
     void unsplit_step(double dt) override;
+protected:
+    void advanceSource(double dt, Source::SourceTerm& source, bool ghosts=true); //Single split step in source terms
 };
 
 class Grid2D: public Grid{
@@ -102,6 +108,7 @@ protected:
     
     void advanceX(double dt); //Advance a single split step in X
     void advanceY(double dt); //Advance a single split step in Y
+    void advanceSource(double dt, Source::SourceTerm& source, bool ghosts=true); //Single split step in source terms
     #ifdef MHD
     void computeBodyAveragedFields(const ExtendedArray2D<vec3>& B);
     #endif
@@ -147,6 +154,7 @@ protected:
     void advanceX(double dt); //Advance a single split step in X
     void advanceY(double dt); //Advance a single split step in Y
     void advanceZ(double dt); //Advance a single split step in Z
+    void advanceSource(double dt, Source::SourceTerm& source, bool ghosts=true); //Single split step in source terms
     #ifdef MHD
     void computeBodyAveragedFields(const ExtendedArray3D<vec3>& B);
     #endif
