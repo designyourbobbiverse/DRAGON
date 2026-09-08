@@ -6,12 +6,48 @@
 //
 
 #include "Source.hpp"
+#include "Grid.hpp" //Grid::advanceSource
+
 
 #include "Config.h"     //For integration scheme
 #include "Constants.h"  //For gamma
 
 using namespace DRAGON;
 using namespace Source;
+
+
+//MARK: Grid::advanceSource
+ void Grid1D::advanceSource(double dt, bool ghosts){
+     if(sources.count() == 0) return;
+     
+     const int nx = getSize(), g = ghosts ? getGhosts() : 0;
+     for(int i=-g; i<nx+g; i++){
+         w[i] += sources.integrate(dt, w[i]);
+     }
+ }
+ void Grid2D::advanceSource(double dt, bool ghosts){
+     if(sources.count() == 0) return;
+     
+     const int nx = getSizeX(), ny = getSizeY(), g = ghosts ? getGhosts() : 0;
+     for(int i=-g; i<nx+g; i++){
+         for(int j=-g; j<ny+g; j++){
+             w[i,j] +=  sources.integrate(dt, w[i,j]);
+         }
+     }
+ }
+ void Grid3D::advanceSource(double dt, bool ghosts){
+     if(sources.count() == 0) return;
+     
+     const int nx = getSizeX(), ny = getSizeY(), nz = getSizeZ(), g = ghosts ? getGhosts() : 0;
+     for(int i=-g; i<nx+g; i++){
+         for(int j=-g; j<ny+g; j++){
+             for(int k=-g; k<nz+g; k++){
+                 w[i,j,k] +=  sources.integrate(dt, w[i,j,k]);
+             }
+         }
+     }
+ }
+
 
 //MARK: Integration
 ConservativeState SourceTerm::integrate(double dt, const PrimitiveState& w0, double t0){
