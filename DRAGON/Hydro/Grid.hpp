@@ -39,6 +39,8 @@ public:
     
     //Source Terms
     Source::SourceList sources{};
+protected:
+    virtual void advanceSource(double dt, bool ghosts=true) = 0; //Single split step in source terms
 };
 
 
@@ -65,6 +67,8 @@ public:
     //Advance forward in time
     void split_step(double dt) override;
     void unsplit_step(double dt) override;
+protected:
+    void advanceSource(double dt, bool ghosts=true) override; //Single split step in source terms
 };
 
 class Grid2D: public Grid{
@@ -106,7 +110,7 @@ protected:
     
     void advanceX(double dt); //Advance a single split step in X
     void advanceY(double dt); //Advance a single split step in Y
-    void advanceXY(double dt); //Advection portion of a single unsplit step
+    void advanceSource(double dt, bool ghosts=true) override; //Single split step in source terms
     #ifdef MHD
     void computeBodyAveragedFields(const ExtendedArray2D<vec3>& B);
     #endif
@@ -152,7 +156,7 @@ protected:
     void advanceX(double dt); //Advance a single split step in X
     void advanceY(double dt); //Advance a single split step in Y
     void advanceZ(double dt); //Advance a single split step in Z
-    void advanceXYZ(double dt); //Advection portion of a single unsplit step
+    void advanceSource(double dt, bool ghosts=true) override; //Single split step in source terms
     #ifdef MHD
     void computeBodyAveragedFields(const ExtendedArray3D<vec3>& B);
     #endif

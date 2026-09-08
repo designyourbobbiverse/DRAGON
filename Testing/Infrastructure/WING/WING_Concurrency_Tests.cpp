@@ -51,6 +51,8 @@ public:
         
     }
     
+    void advanceSource(double dt, bool ghosts = true) override {}
+    
 };
 class OrderTestGrid: public Grid {
 public:
@@ -80,7 +82,7 @@ public:
         DRAGONWING::reportCheckpoint2();
         
     }
-    
+    void advanceSource(double dt, bool ghosts = true) override {}
 };
 
 

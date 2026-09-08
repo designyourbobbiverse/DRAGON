@@ -9,56 +9,9 @@
 
 #include "Config.h"     //For integration scheme
 #include "Constants.h"  //For gamma
-#include "Grid.hpp"
 
 using namespace DRAGON;
 using namespace Source;
-
-//MARK: Source Term Sweeps
-void SourceTerm::apply(Grid& grid, double dt, bool ghosts){
-    Grid3D* grid3D = dynamic_cast<Grid3D*>(&grid);
-    if (grid3D) {
-        apply(*grid3D, dt, ghosts);
-        return;
-    }
-    Grid2D* grid2D = dynamic_cast<Grid2D*>(&grid);
-    if (grid2D) {
-        apply(*grid2D, dt, ghosts);
-        return;
-    }
-    Grid1D* grid1D = dynamic_cast<Grid1D*>(&grid);
-    if (grid1D) {
-        apply(*grid1D, dt, ghosts);
-        return;
-    }
-}
-
-void SourceTerm::apply(Grid1D& grid, double dt, bool ghosts){
-    const int nx = grid.getSize(), g = ghosts ? grid.getGhosts() : 0;
-    for(int i=-g; i<nx+g; i++){
-        grid[i] += integrate(dt, grid[i]);
-    }
-    
-}
-void SourceTerm::apply(Grid2D& grid, double dt, bool ghosts){
-    const int nx = grid.getSizeX(), ny = grid.getSizeY(), g = ghosts ? grid.getGhosts() : 0;
-    for(int i=-g; i<nx+g; i++){
-        for(int j=-g; j<ny+g; j++){
-            grid[i,j] += integrate(dt, grid[i,j]);
-        }
-    }
-}
-void SourceTerm::apply(Grid3D& grid, double dt, bool ghosts){
-    const int nx = grid.getSizeX(), ny = grid.getSizeY(), nz = grid.getSizeZ(), g = ghosts ? grid.getGhosts() : 0;
-    for(int i=-g; i<nx+g; i++){
-        for(int j=-g; j<ny+g; j++){
-            for(int k=-g; k<nz+g; k++){
-                grid[i,j,k] += integrate(dt, grid[i,j,k]);
-            }
-        }
-    }
-}
-
 
 //MARK: Integration
 ConservativeState SourceTerm::integrate(double dt, const PrimitiveState& w0, double t0){
@@ -119,5 +72,3 @@ vec3 MassSource::velocity(const PrimitiveState& w, double t){
 double MassSource::thermal_energy(const PrimitiveState &w, double t){
     return w.p/((_gamma-1) * w.rho);
 }
-
-

@@ -23,7 +23,11 @@ class SourceList : public SourceTerm {
 private:
     std::vector<std::unique_ptr<SourceTerm>>  sources;
 public:
-   
+    ConservativeState source_density(const PrimitiveState &w, double t) override {
+        ConservativeState S{};
+        for(auto& s: sources) S += s->source_density(w,t);
+        return S;
+    }
     
     //MARK: Construction
     template<SourceType... Ss> SourceList(Ss&&... ss) {
@@ -38,27 +42,8 @@ public:
         append(std::forward<S>(s));
         return *this;
     }
-    size_t count(){ return sources.size(); }
     
-    //MARK: Application
-    ConservativeState source_density(const PrimitiveState &w, double t) override {
-        ConservativeState S{};
-        for(auto& s: sources) S += s->source_density(w,t);
-        return S;
-    }
-    //Optimisation: if count==0, return immediately
-    void apply(Grid1D& grid, double dt, bool ghosts = true) override {
-        if(count() == 0) return;
-        SourceTerm::apply(grid, dt, ghosts);
-    }
-    void apply(Grid2D& grid, double dt, bool ghosts = true) override {
-        if(count() == 0) return;
-        SourceTerm::apply(grid, dt, ghosts);
-    }
-    void apply(Grid3D& grid, double dt, bool ghosts = true) override {
-        if(count() == 0) return;
-        SourceTerm::apply(grid, dt, ghosts);
-    }
+    size_t count(){ return sources.size(); }
     
     
     //MARK: Append
