@@ -23,6 +23,7 @@ public:
     void advance_step(double dt); //Calls split_step or unsplit_step in accordance with Config.h
     virtual void split_step(double dt) = 0; //Should advance all dimensnions by dt
     virtual void unsplit_step(double dt) = 0;
+    virtual void source_step(double dt);
     
     //Advance the grid by time dt. If check_cfl is true, the timestep will be CFL-limited and looped if necessary
     void advance(double dt, bool check_cfl=true); //Calls advance_split/advance_unsplit as determined in Config.h
@@ -39,10 +40,7 @@ public:
     
     //Source Terms
     Source::SourceList sources{};
-    
 protected:
-    virtual void advanceSource(double dt, bool ghosts=true) = 0; //Single split step in source terms
-    
     //Step restart
     virtual void backup() {}
     virtual void restore() {}
@@ -77,7 +75,6 @@ public:
     void unsplit_step(double dt) override;
     
 protected:
-    void advanceSource(double dt, bool ghosts=true) override; //Single split step in source terms
     //Step restart
     void backup() override;
     void restore() override;
@@ -127,7 +124,6 @@ protected:
     
     void advanceX(double dt); //Advance a single split step in X
     void advanceY(double dt); //Advance a single split step in Y
-    void advanceSource(double dt, bool ghosts=true) override; //Single split step in source terms
     #ifdef MHD
     void computeBodyAveragedFields(const ExtendedArray2D<vec3>& B);
     #endif
@@ -181,7 +177,6 @@ protected:
     void advanceX(double dt); //Advance a single split step in X
     void advanceY(double dt); //Advance a single split step in Y
     void advanceZ(double dt); //Advance a single split step in Z
-    void advanceSource(double dt, bool ghosts=true) override; //Single split step in source terms
     #ifdef MHD
     void computeBodyAveragedFields(const ExtendedArray3D<vec3>& B);
     #endif

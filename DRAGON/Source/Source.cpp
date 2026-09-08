@@ -6,7 +6,7 @@
 //
 
 #include "Source.hpp"
-#include "Grid.hpp" //Grid::advanceSource
+#include "Grid.hpp" //Grid::source_step
 
 
 #include "Config.h"     //For integration scheme
@@ -16,33 +16,48 @@ using namespace DRAGON;
 using namespace Source;
 
 
-//MARK: Grid::advanceSource
- void Grid1D::advanceSource(double dt, bool ghosts){
-     if(sources.count() == 0) return;
-     
-     const int nx = getSize(), g = ghosts ? getGhosts() : 0;
-     for(int i=-g; i<nx+g; i++){
-         w[i] += sources.integrate(dt, w[i]);
-     }
- }
- void Grid2D::advanceSource(double dt, bool ghosts){
-     if(sources.count() == 0) return;
-     
-     const int nx = getSizeX(), ny = getSizeY(), g = ghosts ? getGhosts() : 0;
-     for(int i=-g; i<nx+g; i++){
-         for(int j=-g; j<ny+g; j++){
-             w[i,j] +=  sources.integrate(dt, w[i,j]);
+//MARK: Grid Sweep
+void Grid::source_step(double dt){
+    if(sources.count() > 0) sources.advance(*this, dt);
+}
+void SourceTerm::advance(Grid& grid, double dt){
+    Grid3D* grid3D = dynamic_cast<Grid3D*>(&grid);
+    if (grid3D) {
+        advance(*grid3D, dt);
+        return;
+    }
+    Grid2D* grid2D = dynamic_cast<Grid2D*>(&grid);
+    if (grid2D) {
+        advance(*grid2D, dt);
+        return;
+    }
+    Grid1D* grid1D = dynamic_cast<Grid1D*>(&grid);
+    if (grid1D) {
+        advance(*grid1D, dt);
+        return;
+    }
+}
+
+void SourceTerm::advance(Grid1D& w, double dt){
+    const int nx = w.getSize();
+    for(int i=0; i<nx; i++){
+        w[i] += integrate(dt, w[i]);
+    }
+}
+void SourceTerm::advance(Grid2D& w, double dt){
+     const int nx = w.getSizeX(), ny = w.getSizeY();
+     for(int i=0; i<nx; i++){
+         for(int j=0; j<ny; j++){
+             w[i,j] +=  integrate(dt, w[i,j]);
          }
      }
  }
- void Grid3D::advanceSource(double dt, bool ghosts){
-     if(sources.count() == 0) return;
-     
-     const int nx = getSizeX(), ny = getSizeY(), nz = getSizeZ(), g = ghosts ? getGhosts() : 0;
-     for(int i=-g; i<nx+g; i++){
-         for(int j=-g; j<ny+g; j++){
-             for(int k=-g; k<nz+g; k++){
-                 w[i,j,k] +=  sources.integrate(dt, w[i,j,k]);
+void SourceTerm::advance(Grid3D& w, double dt){
+     const int nx = w.getSizeX(), ny = w.getSizeY(), nz = w.getSizeZ();
+     for(int i=0; i<nx; i++){
+         for(int j=0; j<ny; j++){
+             for(int k=0; k<nz; k++){
+                 w[i,j,k] +=  integrate(dt, w[i,j,k]);
              }
          }
      }

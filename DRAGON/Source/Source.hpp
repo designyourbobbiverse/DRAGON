@@ -11,6 +11,13 @@
 
 
 #include "FluidElement/FluidElement.hpp"
+namespace DRAGON{
+class Grid;
+class Grid1D;
+class Grid2D;
+class Grid3D;
+}
+
 
 namespace DRAGON::Source{
 
@@ -24,6 +31,12 @@ public:
     ConservativeState integrate(double dt, const PrimitiveState& w0, double t0=0); //Chooses RK2 vs RK4 based on Config.h
     ConservativeState rk2(double dt, const PrimitiveState& w0, double t0=0);
     ConservativeState rk4(double dt, const PrimitiveState& w0, double t0=0);
+    
+    //Sweep integration over grid
+    void advance(Grid& grid, double dt);
+    void advance(Grid1D& grid, double dt);
+    void advance(Grid2D& grid, double dt);
+    void advance(Grid3D& grid, double dt);
     
     virtual ~SourceTerm() = default;
 };

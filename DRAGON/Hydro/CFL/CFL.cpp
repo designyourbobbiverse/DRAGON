@@ -176,9 +176,10 @@ void Grid::advance_split(double dt, bool check_cfl){
         do{
             DRAGONWING::resetFallbacks();
             try{
-                advanceSource(t1/2);
+                source_step(t1/2);
+                boundary.apply(*this);
                 split_step(t1);
-                advanceSource(t1/2);
+                source_step(t1/2);
                 break; //Successful, end the step-attempt loop
             } catch(const std::exception &exc) { //A restart was requested (e.g. unphysical cell update)
                 restore();
@@ -206,10 +207,10 @@ void Grid::advance_unsplit(double dt, bool check_cfl){
         do{
             DRAGONWING::resetFallbacks();
             try{
-                advanceSource(t1/2);
+                source_step(t1/2);
                 boundary.apply(*this);
                 unsplit_step(t1);
-                advanceSource(t1/2, false);
+                source_step(t1/2);
                 break; //Successful, end the step-attempt loop
             } catch(const std::exception &exc) { //A restart was requested (e.g. unphysical cell update)
                 restore();
