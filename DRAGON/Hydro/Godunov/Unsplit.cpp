@@ -33,88 +33,13 @@ using namespace Godunov;
 // 8) Commit the update
 
 
-//MARK: Unsplit Step Main
+//MARK: 2D Unsplit Step
 
 void Grid2D::unsplit_step(double dt){
     const int nx = w.getSizeX(), ny = w.getSizeY(), ghosts = w.getGhosts();
-    
-    if (!DRAGONWING::waitForRelease()) return; //On memory-constrained systems, wait until it's our turn
-    Grid2D _w(nx, ny, dx, dy, ghosts);
-    _w.w.clone(w);
-    _w.B.clone(B);
-    _w.q.clone(q);
-    
-    //Do math
-    _w.advanceSource(dt/2, sources);
-    boundary.apply(_w); //reapply boundary after source terms
-    _w.advanceXY(dt);
-    _w.advanceSource(dt/2, sources, false); //Don't need ghosts on round 2
-    
-    //Verify Physicality of solution
-    for (int i=0; i<nx; i++) {
-        for (int j=0; j<ny; j++) {
-            if (!_w[i,j].isPhysical())
-                throw std::runtime_error(std::format("Unphysical state would be produced at ({},{})",i,j));
-        }
-    }
-    
-    //Wait for any parallel grids to finish
-    DRAGONWING::reportCheckpoint1();
-    if (!DRAGONWING::waitForCheckpoint1()) return;
-    
-    //Commit updates
-    w.clone(_w.w, false);
-    #ifdef MHD
-    B.clone(_w.B, false);
-    #endif
-    q.clone(_w.q);
-}
-
-void Grid3D::unsplit_step(double dt){
-    const int nx = w.getSizeX(), ny = w.getSizeY(), nz = w.getSizeZ(), ghosts = w.getGhosts();
-    
-    if (!DRAGONWING::waitForRelease()) return; //On memory-constrained systems, wait until it's our turn
-    Grid3D _w(nx, ny, nz, dx, dy, dz, ghosts);
-    _w.w.clone(w);
-    #ifdef MHD
-    _w.B.clone(B);
-    #endif
-    _w.q.clone(q);
-    
-    //Do math
-    _w.advanceSource(dt/2, sources);
-    boundary.apply(_w); //reapply boundary after source terms
-    _w.advanceXYZ(dt);
-    _w.advanceSource(dt/2, sources, false);
-    
-    //Verify Physicality of solution
-    for (int i=0; i<nx; i++) {
-        for (int j=0; j<ny; j++) {
-            for (int k=0; k<nz; k++) {
-                if (!_w[i,j,k].isPhysical())
-                    throw std::runtime_error(std::format("Unphysical state would be produced at ({},{},{})",i,j,k));
-            }
-        }
-    }
-    
-    //Wait for any parallel grids to finish
-    DRAGONWING::reportCheckpoint1();
-    if (!DRAGONWING::waitForCheckpoint1()) return;
-    
-    //Commit updates
-    w.clone(_w.w, false);
-    #ifdef MHD
-    B.clone(_w.B, false);
-    #endif
-    q.clone(_w.q);
-}
-
-
-//MARK: 2D Unsplit Advection
-
-void Grid2D::advanceXY(double dt){
-    const int nx = w.getSizeX(), ny = w.getSizeY(), ghosts = w.getGhosts();
     const double dt_dx = dt/dx, dt_dy = dt/dy;
+    
+    if (!DRAGONWING::waitForRelease()) return; //On memory-constrained systems, we might have to wait until it's our turn
     
     //Compute Interface States
         auto __half_states = DRAGONWING::requestPrimitiveArrays(4, nx, ny, ghosts);
@@ -152,10 +77,6 @@ void Grid2D::advanceXY(double dt){
         auto __w = DRAGONWING::requestPrimitiveArrays(1,nx, ny, ghosts); //Auto-releases when the function terminates
     FluidArray2D& _w = *__w[0];
     applyFluxes(w, _w, F_X, F_Y, dt_dx, dt_dy);
-    q.advect(F_X, F_Y, w, _w, dt_dx, dt_dy); //Passive Scalar Advection
-    w.clone(_w);
-        __w.release();
-
 
     //Preliminary CT Update
     #ifdef MHD
@@ -168,17 +89,47 @@ void Grid2D::advanceXY(double dt){
         __E_half.release();
     #endif
     //Update B
-    CT::Faraday(E, B, dt_dx, dt_dy);
+        auto __B = DRAGONWING::requestVec3Arrays(1, nx+1, ny+1, ghosts); //Auto-releases when the function terminates
+    MagneticArray2D& _B = *__B[0]; //Done with _E_half, reuse it
+    _B.clone(B);
+    CT::Faraday(E, _B, dt_dx, dt_dy);
         __Elec.release();
-    CT::computeBodyFields(B, w);
+    CT::computeBodyFields(_B, _w);
     #endif
+
+    //Verify Physicality of solution
+    for (int i=0; i<nx; i++) {
+        for (int j=0; j<ny; j++) {
+            if (!_w[i,j].isPhysical())
+                throw std::runtime_error(std::format("Unphysical state would be produced at ({},{})",i,j));
+        }
+    }
+    
+    //Passive Scalar Advection
+    auto _q = q.advected(F_X, F_Y, w, _w, dt_dx, dt_dy);
+        __fluxes.release();
+        
+    //Wait for any parallel grids to finish
+    DRAGONWING::reportCheckpoint1();
+    if (!DRAGONWING::waitForCheckpoint1()) return;
+    
+    //Commit flux updates
+    w.clone(_w, false);
+    #ifdef MHD
+    B.clone(_B, false);
+    #endif
+    q.clone(*_q);
+    
 }
 
-//MARK: 3D Unsplit Advection
-void Grid3D::advanceXYZ(double dt){
+//MARK: 3D Unsplit Step
+
+void Grid3D::unsplit_step(double dt){
     const int nx = w.getSizeX(), ny = w.getSizeY(), nz = w.getSizeZ(), ghosts = w.getGhosts();
     const double dt_dx = dt/dx, dt_dy = dt/dy, dt_dz = dt/dz;
     
+    if (!DRAGONWING::waitForRelease()) return; //On memory-constrained systems, we might have to wait until it's our turn.
+
     //Compute Half States
         auto __half_states = DRAGONWING::requestPrimitiveArrays(6, nx, ny, nz, ghosts);
     FluidArray3D& _xL = *__half_states[0];
@@ -221,9 +172,6 @@ void Grid3D::advanceXYZ(double dt){
         auto __w = DRAGONWING::requestPrimitiveArrays(1, nx, ny, nz, ghosts); //Auto-releases when the function terminates
     FluidArray3D& _w = *__w[0];
     applyFluxes(w, _w, F_X, F_Y, F_Z, dt_dx, dt_dy, dt_dz);
-    q.advect(F_X, F_Y, F_Z, w, _w, dt_dx, dt_dy, dt_dz); //Passive Scalar Advection
-    w.clone(_w);
-        __w.release();
     
     //Preliminary CT Update
     #ifdef MHD
@@ -236,8 +184,36 @@ void Grid3D::advanceXYZ(double dt){
         __E_half.release();
     #endif
     //Update B
-    CT::Faraday(E, B, dt_dx, dt_dy, dt_dz);
+        auto __B = DRAGONWING::requestVec3Arrays(1, nx+1, ny+1, nz+1, ghosts); //Auto-releases when the function terminates
+    MagneticArray3D& _B = *__B[0]; //Done with _E_half, reuse it
+    _B.clone(B);
+    CT::Faraday(E, _B, dt_dx, dt_dy, dt_dz);
         __Elec.release();
-    CT::computeBodyFields(B, w);
+    CT::computeBodyFields(_B, _w);
     #endif
+    
+    //Check Physicality
+    for (int i=0; i<nx; i++) {
+        for (int j=0; j<ny; j++) {
+            for (int k=0; k<nz; k++) {
+                if (!_w[i,j,k].isPhysical())
+                    throw std::runtime_error(std::format("Unphysical state would be produced at ({},{},{})",i,j,k));
+            }
+        }
+    }
+    
+    //Passive Scalar Advection
+    auto _q = q.advected(F_X, F_Y, F_Z, w, _w, dt_dx, dt_dy, dt_dz);
+        __fluxes.release();
+    
+    //Wait for any parallel grids to finish
+    DRAGONWING::reportCheckpoint1();
+    if (!DRAGONWING::waitForCheckpoint1()) return;
+    
+    //Commit Flux updates
+    w.clone(_w, false);
+    #ifdef MHD
+    B.clone(_B, false);
+    #endif
+    q.clone(*_q);
 }

@@ -15,7 +15,6 @@
 
 #include "Config.h"
 #include <algorithm>      //For std::max
-#include <cmath>          //For std::abs
 #include "DragonWing.hpp" //For memory management & synchornization
 #include <utility>        //For std::move
 #include <stdexcept>      //For exception throwing
@@ -55,23 +54,23 @@ void Godunov::sweep(FluidArray1D& w, double dt_dx, PassiveArray1D& q){
     for (int i=-ghosts+1; i<size+ghosts-1; i++){
         w[i] += (f[i] - f[i+1]) * dt_dx; //Apply flux to cell
     }
-    q.advect(f, _w, w, dt_dx);
+    //Advect passives
+    auto _q = q.advected(f, _w, w, dt_dx);
+    q.clone(*_q);
 }
 
 //MARK: 1D Advance
 void Grid1D::split_step(double dt){ Grid1D::unsplit_step(dt); }
 void Grid1D::unsplit_step(double dt){
     //Do everything on a clone in case we need to restart the step
-    Grid1D _w(w.getSize(), dx, w.getGhosts());
-    _w.w.clone(w);
+        auto __w = DRAGONWING::requestPrimitiveArrays(1, w.getSize(), w.getGhosts());
+    FluidArray1D& _w = *__w[0];
+    _w.clone(w);
     PassiveArray1D _q(w.getSize(), 1);
     _q.clone(q);
     
     //Compute the updated states
-    _w.advanceSource(dt/2, sources);
-    Godunov::sweep(_w.w, dt/dx, _q);
-    _w.advanceSource(dt/2, sources, false); //Don't need to evolve ghosts on the secound round
-    
+    Godunov::sweep(_w, dt/dx, _q);
     //Check physicality before comitting
     for (int i=0; i<w.getSize(); i++) {
         if (!_w[i].isPhysical()) throw std::runtime_error(std::format("Unphysical state would be produced at ({})",i));
@@ -80,7 +79,7 @@ void Grid1D::unsplit_step(double dt){
     DRAGONWING::reportCheckpoint1();
     if (!DRAGONWING::waitForCheckpoint1()) return; //Only proceed once everyone is done and if nobody had an error
     //Commit updates
-    w.clone(_w.w);
+    w.clone(_w);
     q.clone(_q);
 }
 
@@ -93,7 +92,6 @@ void Grid2D::split_step(double dt){
     _w.sweep_step = sweep_step;
     
     try{//Advance (Strang Split), alternating which step comes first to reduce directional bias
-        _w.advanceSource(dt/2, sources);
         if (_w.sweep_step++ % 2 == 0) {
             _w.advanceX(dt/2);
             _w.advanceY(dt);
@@ -103,7 +101,6 @@ void Grid2D::split_step(double dt){
             _w.advanceX(dt);
             _w.advanceY(dt/2);
         }
-        _w.advanceSource(dt/2, sources, false);
     } catch (...) {
         boundary = std::move(_w.boundary);
         throw;
@@ -127,7 +124,6 @@ void Grid3D::split_step(double dt){
     _w.sweep_step = sweep_step;
 
     try{//Advance (Strang Split), rotating step orders to reduce directional bias
-        _w.advanceSource(dt/2, sources);
         switch (_w.sweep_step++ % 6) {
         case 0: //Cyclic XYZ
             _w.advanceX(dt/2);
@@ -172,7 +168,6 @@ void Grid3D::split_step(double dt){
             _w.advanceY(dt/2);
             break;
         }
-        _w.advanceSource(dt/2, sources, false);
     } catch (...) {
         boundary = std::move(_w.boundary);
         throw;
@@ -303,36 +298,5 @@ void Grid3D::advanceZ(double dt){
                 if(i >= -1 && i <= nx && j >= -1 && j <= ny & k >= -1 && k <= nz) q[i,j,k] = _q[k];
             }
        }
-    }
-}
-//MARK: Source Term Sweeps
-void Grid1D::advanceSource(double dt, Source::SourceList &source, bool ghosts){
-    if(source.count() == 0) return;
-    
-    const int nx = getSize(), g = ghosts ? getGhosts() : 0;
-    for(int i=-g; i<nx+g; i++){
-        w[i] += source.integrate(dt, w[i]);
-    }
-}
-void Grid2D::advanceSource(double dt, Source::SourceList &source, bool ghosts){
-    if(source.count() == 0) return;
-    
-    const int nx = getSizeX(), ny = getSizeY(), g = ghosts ? getGhosts() : 0;
-    for(int i=-g; i<nx+g; i++){
-        for(int j=-g; j<ny+g; j++){
-            w[i,j] +=  source.integrate(dt, w[i,j]);
-        }
-    }
-}
-void Grid3D::advanceSource(double dt, Source::SourceList &source, bool ghosts){
-    if(source.count() == 0) return;
-    
-    const int nx = getSizeX(), ny = getSizeY(), nz = getSizeZ(), g = ghosts ? getGhosts() : 0;
-    for(int i=-g; i<nx+g; i++){
-        for(int j=-g; j<ny+g; j++){
-            for(int k=-g; k<nz+g; k++){
-                w[i,j,k] +=  source.integrate(dt, w[i,j,k]);
-            }
-        }
     }
 }
