@@ -11,6 +11,12 @@
 
 
 #include "FluidElement/FluidElement.hpp"
+namespace DRAGON{
+class Grid;
+class Grid1D;
+class Grid2D;
+class Grid3D;
+}
 
 namespace DRAGON::Source{
 
@@ -26,6 +32,12 @@ public:
     ConservativeState rk4(double dt, const PrimitiveState& w0, double t0=0);
     
     virtual ~SourceTerm() = default;
+    
+    //Advance the grid by time dt, split in the source term
+    void apply(Grid& grid, double dt, bool ghosts = true);
+    virtual void apply(Grid1D& grid, double dt, bool ghosts = true);
+    virtual void apply(Grid2D& grid, double dt, bool ghosts = true);
+    virtual void apply(Grid3D& grid, double dt, bool ghosts = true);
 };
 
 //MARK: Source Aggregation

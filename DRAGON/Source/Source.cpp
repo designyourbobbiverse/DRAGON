@@ -9,9 +9,56 @@
 
 #include "Config.h"     //For integration scheme
 #include "Constants.h"  //For gamma
+#include "Grid.hpp"
 
 using namespace DRAGON;
 using namespace Source;
+
+//MARK: Source Term Sweeps
+void SourceTerm::apply(Grid& grid, double dt, bool ghosts){
+    Grid3D* grid3D = dynamic_cast<Grid3D*>(&grid);
+    if (grid3D) {
+        apply(*grid3D, dt, ghosts);
+        return;
+    }
+    Grid2D* grid2D = dynamic_cast<Grid2D*>(&grid);
+    if (grid2D) {
+        apply(*grid2D, dt, ghosts);
+        return;
+    }
+    Grid1D* grid1D = dynamic_cast<Grid1D*>(&grid);
+    if (grid1D) {
+        apply(*grid1D, dt, ghosts);
+        return;
+    }
+}
+
+void SourceTerm::apply(Grid1D& grid, double dt, bool ghosts){
+    const int nx = grid.getSize(), g = ghosts ? grid.getGhosts() : 0;
+    for(int i=-g; i<nx+g; i++){
+        grid[i] += integrate(dt, grid[i]);
+    }
+    
+}
+void SourceTerm::apply(Grid2D& grid, double dt, bool ghosts){
+    const int nx = grid.getSizeX(), ny = grid.getSizeY(), g = ghosts ? grid.getGhosts() : 0;
+    for(int i=-g; i<nx+g; i++){
+        for(int j=-g; j<ny+g; j++){
+            grid[i,j] += integrate(dt, grid[i,j]);
+        }
+    }
+}
+void SourceTerm::apply(Grid3D& grid, double dt, bool ghosts){
+    const int nx = grid.getSizeX(), ny = grid.getSizeY(), nz = grid.getSizeZ(), g = ghosts ? grid.getGhosts() : 0;
+    for(int i=-g; i<nx+g; i++){
+        for(int j=-g; j<ny+g; j++){
+            for(int k=-g; k<nz+g; k++){
+                grid[i,j,k] += integrate(dt, grid[i,j,k]);
+            }
+        }
+    }
+}
+
 
 //MARK: Integration
 ConservativeState SourceTerm::integrate(double dt, const PrimitiveState& w0, double t0){
@@ -74,40 +121,3 @@ double MassSource::thermal_energy(const PrimitiveState &w, double t){
 }
 
 
-//MARK: Source Term Sweeps
-
-/*
- 
-
- void Grid1D::advanceSource(double dt, Source::SourceList &source, bool ghosts){
-     if(source.count() == 0) return;
-     
-     const int nx = getSize(), g = ghosts ? getGhosts() : 0;
-     for(int i=-g; i<nx+g; i++){
-         w[i] += source.integrate(dt, w[i]);
-     }
- }
- void Grid2D::advanceSource(double dt, Source::SourceList &source, bool ghosts){
-     if(source.count() == 0) return;
-     
-     const int nx = getSizeX(), ny = getSizeY(), g = ghosts ? getGhosts() : 0;
-     for(int i=-g; i<nx+g; i++){
-         for(int j=-g; j<ny+g; j++){
-             w[i,j] +=  source.integrate(dt, w[i,j]);
-         }
-     }
- }
- void Grid3D::advanceSource(double dt, Source::SourceList &source, bool ghosts){
-     if(source.count() == 0) return;
-     
-     const int nx = getSizeX(), ny = getSizeY(), nz = getSizeZ(), g = ghosts ? getGhosts() : 0;
-     for(int i=-g; i<nx+g; i++){
-         for(int j=-g; j<ny+g; j++){
-             for(int k=-g; k<nz+g; k++){
-                 w[i,j,k] +=  source.integrate(dt, w[i,j,k]);
-             }
-         }
-     }
- }
-
- */
