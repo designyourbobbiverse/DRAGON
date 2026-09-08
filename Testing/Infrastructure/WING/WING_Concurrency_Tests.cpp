@@ -9,6 +9,7 @@
 #include "DragonWing.hpp"
 
 #include "Hydro/Grid.hpp" //To make a dummy grid
+#include "Source/Source.hpp" //To make a dummy source
 
 #include <vector>   //Execution order tests
 #include <mutex>    //To make the execution order tests threadsafe
@@ -50,9 +51,6 @@ public:
         
         
     }
-    
-    void advanceSource(double dt, bool ghosts = true) override {}
-    
 };
 class OrderTestGrid: public Grid {
 public:
@@ -82,17 +80,29 @@ public:
         DRAGONWING::reportCheckpoint2();
         
     }
-    void advanceSource(double dt, bool ghosts = true) override {}
 };
 
+class TestSource: public Source::SourceTerm {
+public:
+    bool shouldThrow = false;
+    ConservativeState source_density(const PrimitiveState& w, double t) override {
+        if(shouldThrow) throw std::runtime_error("(x2)");
+        auto u = ConservativeState();
+        u.mom.x = -thread_num / 3.14;
+        u.mom.y = 1.0;
+        return u;
+    }
+    
+    
+};
 
 //MARK: Launch Parallel
-void DRAGON_Test::verify_WING_launchParallel_calls_advance(){
+void DRAGON_Test::verify_WING_advectParallel_calls_advance(){
     SingleTestGrid grid{};
     thread_num++;//Make this thread look different from the others
     
     auto tp = DRAGONWING::ThreadPool(1);
-    tp.launchParallel(&grid, 3.14);
+    tp.advectParallel(&grid, 3.14);
     bool succ = tp.waitForCompletion();
     
     assert(grid.didCall);
@@ -100,18 +110,45 @@ void DRAGON_Test::verify_WING_launchParallel_calls_advance(){
     assert(grid.dt == 3.14);
     assert(succ);
 }
-void DRAGON_Test::verify_WING_launchParallel_catches(){
+
+void DRAGON_Test::verify_WING_sourceParallel_calls_advance(){
+    auto grid = Grid1D(1,1.0);
+    grid[0].rho = 1.0;
+    grid[0].v.x = thread_num++;
+    grid[0].v.y = 0;
+    TestSource src{};
+    
+    auto tp = DRAGONWING::ThreadPool(0);
+    tp.sourceParallel(&src, &grid, 3.14);
+    bool succ = tp.waitForCompletion();
+    
+    assert(grid[0].v.x != 0); //Different thread
+    assert(grid[0].v.y == 3.14); //Source applied properly
+    assert(succ);
+}
+void DRAGON_Test::verify_WING_advectParallel_catches(){
     SingleTestGrid grid{};
     grid.shouldThrow = true;
     
     auto tp = DRAGONWING::ThreadPool(1);
-    tp.launchParallel(&grid, 3.14);
+    tp.advectParallel(&grid, 3.14);
     bool succ = tp.waitForCompletion();
     
     assert(!succ);
     std::cout << tp.restartMsg();
 }
-
+void DRAGON_Test::verify_WING_sourceParallel_catches(){
+    auto grid = Grid1D(1,1.0);
+    TestSource src{};
+    src.shouldThrow = true;
+    
+    auto tp = DRAGONWING::ThreadPool(1);
+    tp.sourceParallel(&src, &grid, 3.14);
+    bool succ = tp.waitForCompletion();
+    
+    assert(!succ);
+    std::cout << tp.restartMsg();
+}
 
 //MARK: Restart Message
 void DRAGON_Test::verify_WING_restart_message(){

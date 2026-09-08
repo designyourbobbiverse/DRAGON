@@ -73,11 +73,13 @@ void DRAGON_Test::verify_WING(bool output){
     if (output) std::cout << "- Clear Restart Message: ";
     verify_WING_restart_message();
     if (output) std::cout << "\n"; //This particular test should print out Passed itself.
-    if (output) std::cout << "- Launch parallel: ";
-    verify_WING_launchParallel_calls_advance();
+    if (output) std::cout << "- Parallel Launch: ";
+    verify_WING_advectParallel_calls_advance();
+    verify_WING_sourceParallel_calls_advance();
     if (output) std::cout << "Passed\n";
     if (output) std::cout << "- Error catch: ";
-    verify_WING_launchParallel_catches();
+    verify_WING_advectParallel_catches();
+    verify_WING_sourceParallel_catches();
     if (output) std::cout << "\n"; //This particular test should print out Passed itself.
     if (output) std::cout << "- Checkpoints: ";
     verify_WING_checkpoints();

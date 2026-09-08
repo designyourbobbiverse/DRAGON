@@ -345,8 +345,10 @@ void verify_WING_fbcount_single_over_throw();
 void verify_WING_fbcount_cumulative_throw();
 //Multithreading
 void verify_WING_restart_message();
-void verify_WING_launchParallel_calls_advance();
-void verify_WING_launchParallel_catches();
+void verify_WING_advectParallel_calls_advance();
+void verify_WING_advectParallel_catches();
+void verify_WING_sourceParallel_calls_advance();
+void verify_WING_sourceParallel_catches();
 void verify_WING_checkpoints();
 void verify_WING_checkpoints_restart();
 }

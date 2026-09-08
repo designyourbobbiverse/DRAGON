@@ -9,7 +9,10 @@
 #define ThreadPool_hpp
 
 #include <string>   //For error messages
-namespace DRAGON{ class Grid;}
+namespace DRAGON{
+class Grid;
+namespace Source{ class SourceTerm; }
+}
 
 #include "DRAGONWING_Config.hpp"
 #include <thread>             //Execute tasks in parallel
@@ -20,6 +23,7 @@ namespace DRAGON{ class Grid;}
 namespace DRAGONWING{
 struct ThreadArgs{ //The things a thread needs to know to do its work
     DRAGON::Grid* grid; //The subgrid this thread is supposed to run on
+    DRAGON::Source::SourceTerm* src; //If applicable, the source terms to be applied
     double dt; //The time the subgrid is supposed to advance by
 };
 }
@@ -45,8 +49,10 @@ private:
     
 public:
     ThreadPool(int N): nthreads(N){} //Create a pool with room for n threads
-    void* launchParallel(DRAGON::Grid* grid, double dt); //Execute grid->advance_step(dt) on a new thread in the pool
-    
+    void* advectParallel(DRAGON::Grid* grid, double dt); //Execute grid->advance_step(dt) on a new thread in the pool
+    void* sourceParallel(DRAGON::Source::SourceTerm* sources, DRAGON::Grid* grid, double dt, bool ghosts=true); //Execute sources->advance(grid,dt,ghosts) on a new thread in the pool
+    void* launchParallel(DRAGON::Grid* grid, double dt) { return advectParallel(grid,dt); } //Deprecated, will be removed in v2.0
+
     //Error Handling
     void requestRestart(std::string msg = ""); //Something went wrong, request a restart
     std::string restartMsg(); //The message reported by the first thread to call requestRestart()

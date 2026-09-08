@@ -10,7 +10,7 @@
 #include "DRAGONWING_Config.hpp"
 
 #include "Hydro/Grid.hpp"   //For grid.advance()
-
+#include "Source/Source.hpp"//For source.advance()
 #include <iostream>         //For std::cerr
 
 //MARK: Threadpool access
@@ -41,8 +41,8 @@ bool DRAGONWING::waitForCheckpoint1(){
 }
 
 //MARK: Thread launching
-void* DRAGONWING::ThreadPool::launchParallel(DRAGON::Grid* grid, double dt){
-    args.push_back({grid,dt}); //Set up the thread arguments (grid + dt)
+void* DRAGONWING::ThreadPool::advectParallel(DRAGON::Grid* grid, double dt){
+    args.push_back({grid, nullptr, dt}); //Set up the thread arguments (grid + dt)
     ThreadArgs* thread_args = &args.back();
     
     try {
@@ -50,6 +50,26 @@ void* DRAGONWING::ThreadPool::launchParallel(DRAGON::Grid* grid, double dt){
             current_thread_pool = this; //Give the thread access to the pool
             try{
                 thread_args->grid->advance_step(thread_args->dt); //Do the actual work
+            } catch (const std::exception &exc) {
+                requestRestart(exc.what());
+            }
+        });
+    } catch (const std::system_error&) {
+        std::cerr << "Failed to create thread\n";
+        args.pop_back();
+        return nullptr;
+    }
+    return &threads.back();
+}
+void* DRAGONWING::ThreadPool::sourceParallel(DRAGON::Source::SourceTerm* source, DRAGON::Grid* grid, double dt, bool ghosts){
+    args.push_back({grid,source, dt}); //Set up the thread arguments (grid + dt)
+    ThreadArgs* thread_args = &args.back();
+    
+    try {
+        threads.emplace_back([thread_args, this]{//Run the code on a new thread
+            current_thread_pool = this; //Give the thread access to the pool
+            try{
+                thread_args->src->advance(*(thread_args->grid), thread_args->dt); //Do the actual work
             } catch (const std::exception &exc) {
                 requestRestart(exc.what());
             }

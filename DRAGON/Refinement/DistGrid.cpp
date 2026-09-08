@@ -311,7 +311,21 @@ void DistGrid3D::loadFromChildren(){
 template <typename T> void DistGrid<T>::step(double dt){
     pushToChildren();
     DRAGONWING::ThreadPool pool(static_cast<int>(children.size()));
-    for (auto& child : children) pool.launchParallel(child.get(), dt);
+    for (auto& child : children) pool.advectParallel(child.get(), dt);
+    bool success = pool.waitForCompletion(); //Wait for children to finish
+    if (!success) { //If we failed, throw an exception to trigger a step restart
+        throw std::runtime_error(pool.restartMsg());
+    }
+    //Copy Back
+    loadFromChildren();
+}
+
+template <typename T> void DistGrid<T>::source_step(Source::SourceList* sources, double dt){
+    if(sources->count() == 0) return;
+    
+    pushToChildren();
+    DRAGONWING::ThreadPool pool(static_cast<int>(children.size()));
+    for (auto& child : children) pool.sourceParallel(sources, child.get(), dt);
     bool success = pool.waitForCompletion(); //Wait for children to finish
     if (!success) { //If we failed, throw an exception to trigger a step restart
         throw std::runtime_error(pool.restartMsg());
@@ -335,6 +349,14 @@ void DistGrid1D::unsplit_step(double dt){
         return;
     } else { DistGrid::step(dt); }
 }
+void DistGrid1D::source_step(double dt) {
+    if (children.size() <= 1 ) {
+        Grid1D::source_step(dt);
+        DRAGONWING::reportCheckpoint2();
+    } else { DistGrid::source_step(&sources, dt); }
+}
+
+
 void DistGrid2D::split_step(double dt){
     if (children.size() <= 1 ) {
         Grid2D::split_step(dt);
@@ -348,6 +370,13 @@ void DistGrid2D::unsplit_step(double dt){
         return;
     } else { DistGrid::step(dt); }
 }
+void DistGrid2D::source_step(double dt) {
+    if (children.size() <= 1 ) {
+        Grid2D::source_step(dt);
+        DRAGONWING::reportCheckpoint2();
+    } else { DistGrid::source_step(&sources, dt); }
+}
+
 
 void DistGrid3D::split_step(double dt){
     if (children.size() <= 1 ) {
@@ -361,4 +390,9 @@ void DistGrid3D::unsplit_step(double dt){
         DRAGONWING::reportCheckpoint2();
     } else { DistGrid::step(dt); }
 }
-
+void DistGrid3D::source_step(double dt) {
+    if (children.size() <= 1 ) {
+        Grid3D::source_step(dt);
+        DRAGONWING::reportCheckpoint2();
+    } else { DistGrid::source_step(&sources, dt); }
+}
