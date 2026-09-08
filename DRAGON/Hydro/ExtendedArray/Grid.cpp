@@ -20,17 +20,17 @@ static int validGhosts(int g){
 #endif
 }
 
-Grid1D::Grid1D(int s_, double dx_, int g_): w(s_, validGhosts(g_)), dx(dx_), q(s_, 1) { }
+Grid1D::Grid1D(int s_, double dx_, int g_): w(s_, validGhosts(g_)), w__(s_, validGhosts(g_)), dx(dx_), q(s_, 1), q__(s_, 1)  { }
 PrimitiveState& Grid1D::operator[](int k){ return w[k]; }
 const PrimitiveState& Grid1D::operator[](int k) const { return w[k]; }
 int Grid1D::getSize() const { return w.getSize(); }
 int Grid1D::getGhosts() const { return w.getGhosts(); }
 
-Grid2D::Grid2D(int nx_, int ny_, double dx_, double dy_, int g_):  w(nx_, ny_,validGhosts(g_)),
+Grid2D::Grid2D(int nx_, int ny_, double dx_, double dy_, int g_):  w(nx_, ny_,validGhosts(g_)), w__(nx_, ny_,validGhosts(g_)),
     #ifdef MHD //B lives on a staggered grid, needs one more face than the body
-    B(nx_+1, ny_+1,w.getGhosts()),
+    B(nx_+1, ny_+1,w.getGhosts()), B__(nx_+1, ny_+1,w.getGhosts()),
     #endif
-    dx(dx_), dy(dy_), q(nx_, ny_, 1) { }
+    dx(dx_), dy(dy_), q(nx_, ny_, 1), q__(nx_, ny_, 1) { }
 PrimitiveState& Grid2D::operator[](int i, int j){ return w[i,j]; }
 const PrimitiveState& Grid2D::operator[](int i, int j) const { return w[i,j]; }
 int Grid2D::getSizeX() const { return w.getSizeX(); }
@@ -38,14 +38,55 @@ int Grid2D::getSizeY() const { return w.getSizeY(); }
 int Grid2D::getGhosts() const { return w.getGhosts(); }
 
 
-Grid3D::Grid3D(int nx_, int ny_, int nz_, double dx_, double dy_, double dz_, int g_): w(nx_, ny_, nz_, validGhosts(g_)) ,
+Grid3D::Grid3D(int nx_, int ny_, int nz_, double dx_, double dy_, double dz_, int g_): w(nx_, ny_, nz_, validGhosts(g_)), w__(nx_, ny_,nz_, validGhosts(g_)),
     #ifdef MHD //B lives on a staggered grid, needs one more face than the body
-    B(nx_+1, ny_+1, nz_+1, w.getGhosts()),
+    B(nx_+1, ny_+1, nz_+1, w.getGhosts()), B__(nx_+1, ny_+1, nz_+1, w.getGhosts()),
     #endif
-    dx(dx_), dy(dy_), dz(dz_), q(nx_, ny_, nz_, 1){ }
+    dx(dx_), dy(dy_), dz(dz_), q(nx_, ny_, nz_, 1), q__(nx_, ny_, nz_, 1){ }
 PrimitiveState& Grid3D::operator[](int i, int j, int k){ return w[i,j,k]; }
 const PrimitiveState& Grid3D::operator[](int i, int j, int k) const { return w[i,j,k]; }
 int Grid3D::getSizeX() const { return w.getSizeX(); }
 int Grid3D::getSizeY() const { return w.getSizeY(); }
 int Grid3D::getSizeZ() const { return w.getSizeZ(); }
 int Grid3D::getGhosts() const { return w.getGhosts(); }
+
+
+
+
+void Grid1D::backup(){
+    w__.clone(w);
+    q__.clone(q);
+}
+void Grid2D::backup(){
+    w__.clone(w);
+    q__.clone(q);
+    #ifdef MHD
+    B__.clone(B);
+    #endif
+}
+void Grid3D::backup(){
+    w__.clone(w);
+    q__.clone(q);
+    #ifdef MHD
+    B__.clone(B);
+    #endif
+}
+
+void Grid1D::restore(){
+    w.clone(w__);
+    q.clone(q__);
+}
+void Grid2D::restore(){
+    w.clone(w__);
+    q.clone(q__);
+    #ifdef MHD
+    B.clone(B__);
+    #endif
+}
+void Grid3D::restore(){
+    w.clone(w__);
+    q.clone(q__);
+    #ifdef MHD
+    B.clone(B__);
+    #endif
+}

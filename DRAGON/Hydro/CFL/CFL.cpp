@@ -172,6 +172,7 @@ void Grid::advance_split(double dt, bool check_cfl){
         //CFL Time Constraint
         double t1 = check_cfl ? std::min(dt,CFL::cfl_time(*this)) : dt;
         //Advance
+        backup();
         do{
             DRAGONWING::resetFallbacks();
             try{
@@ -180,6 +181,7 @@ void Grid::advance_split(double dt, bool check_cfl){
                 advanceSource(t1/2);
                 break; //Successful, end the step-attempt loop
             } catch(const std::exception &exc) { //A restart was requested (e.g. unphysical cell update)
+                restore();
                 std::cout<<"\t"<<exc.what()<<"\n";
                 //We weren't successful, halve the timestep and try again
                 t1 *= 0.5;
@@ -200,14 +202,17 @@ void Grid::advance_unsplit(double dt, bool check_cfl){
         //CFL Time Constraint
         double t1 = check_cfl ? std::min(dt,CFL::cfl_time(*this)) : dt;
         //Advance
+        backup();
         do{
             DRAGONWING::resetFallbacks();
             try{
                 advanceSource(t1/2);
+                boundary.apply(*this);
                 unsplit_step(t1);
-                advanceSource(t1/2);
+                advanceSource(t1/2, false);
                 break; //Successful, end the step-attempt loop
             } catch(const std::exception &exc) { //A restart was requested (e.g. unphysical cell update)
+                restore();
                 std::cout<<"\t"<<exc.what()<<"\n";
                 //We weren't successful, halve the timestep and try again
                 t1 *= 0.5;

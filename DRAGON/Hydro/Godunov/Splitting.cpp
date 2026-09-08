@@ -62,126 +62,83 @@ void Godunov::sweep(FluidArray1D& w, double dt_dx, PassiveArray1D& q){
 //MARK: 1D Advance
 void Grid1D::split_step(double dt){ Grid1D::unsplit_step(dt); }
 void Grid1D::unsplit_step(double dt){
-    //Do everything on a clone in case we need to restart the step
-        auto __w = DRAGONWING::requestPrimitiveArrays(1, w.getSize(), w.getGhosts());
-    FluidArray1D& _w = *__w[0];
-    _w.clone(w);
-    PassiveArray1D _q(w.getSize(), 1);
-    _q.clone(q);
-    
     //Compute the updated states
-    Godunov::sweep(_w, dt/dx, _q);
+    Godunov::sweep(w, dt/dx, q);
     //Check physicality before comitting
     for (int i=0; i<w.getSize(); i++) {
-        if (!_w[i].isPhysical()) throw std::runtime_error(std::format("Unphysical state would be produced at ({})",i));
+        if (!w[i].isPhysical()) throw std::runtime_error(std::format("Unphysical state would be produced at ({})",i));
     }
-    //If in a domain-composed group, wait for the other grids to finish before committing
-    DRAGONWING::reportCheckpoint1();
-    if (!DRAGONWING::waitForCheckpoint1()) return; //Only proceed once everyone is done and if nobody had an error
-    //Commit updates
-    w.clone(_w);
-    q.clone(_q);
 }
 
 //MARK: 2D Split
 void Grid2D::split_step(double dt){
-    //Clone in case of failure
-    Grid2D _w(w.getSizeX(),getSizeY(), dx, dy, getGhosts());
-    _w.w.clone(w);
-    _w.boundary = std::move(boundary);
-    _w.sweep_step = sweep_step;
-    
-    try{//Advance (Strang Split), alternating which step comes first to reduce directional bias
-        if (_w.sweep_step++ % 2 == 0) {
-            _w.advanceX(dt/2);
-            _w.advanceY(dt);
-            _w.advanceX(dt/2);
-        } else {
-            _w.advanceY(dt/2);
-            _w.advanceX(dt);
-            _w.advanceY(dt/2);
-        }
-    } catch (...) {
-        boundary = std::move(_w.boundary);
-        throw;
+    //Advance (Strang Split), alternating which step comes first to reduce directional bias
+    if (sweep_step % 2 == 0) {
+        advanceX(dt/2);
+        advanceY(dt);
+        advanceX(dt/2);
+    } else {
+        advanceY(dt/2);
+        advanceX(dt);
+        advanceY(dt/2);
     }
+    
     //If in a domain-composed group, wait for the other grids to finish before committing
     DRAGONWING::reportCheckpoint1();
-    if (!DRAGONWING::waitForCheckpoint1()) {
-        boundary = std::move(_w.boundary);
-        return; //Somebody had an error, have to restart
-    }
-    w.clone(_w.w);
-    sweep_step = _w.sweep_step;
-    boundary = std::move(_w.boundary);
+    if (!DRAGONWING::waitForCheckpoint1()) return; //Somebody had an error, need to restart
+    sweep_step++; //Advance the sweep counter after the sweep is successful
 }
 //MARK: 3D Split
 void Grid3D::split_step(double dt){
-    //Clone in case of failure
-    Grid3D _w(w.getSizeX(),getSizeY(), getSizeZ(), dx, dy, dz, getGhosts());
-    _w.w.clone(w);
-    _w.boundary = std::move(boundary);
-    _w.sweep_step = sweep_step;
-
-    try{//Advance (Strang Split), rotating step orders to reduce directional bias
-        switch (_w.sweep_step++ % 6) {
-        case 0: //Cyclic XYZ
-            _w.advanceX(dt/2);
-            _w.advanceY(dt/2);
-            _w.advanceZ(dt);
-            _w.advanceY(dt/2);
-            _w.advanceX(dt/2);
-            break;
-        case 1: //Cyclic ZXY
-            _w.advanceZ(dt/2);
-            _w.advanceX(dt/2);
-            _w.advanceY(dt);
-            _w.advanceX(dt/2);
-            _w.advanceZ(dt/2);
-            break;
-        case 2: //Cyclic YZX
-            _w.advanceY(dt/2);
-            _w.advanceZ(dt/2);
-            _w.advanceX(dt);
-            _w.advanceZ(dt/2);
-            _w.advanceY(dt/2);
-            break;
-        case 3: //Anticyclic ZYX
-            _w.advanceZ(dt/2);
-            _w.advanceY(dt/2);
-            _w.advanceX(dt);
-            _w.advanceY(dt/2);
-            _w.advanceZ(dt/2);
-            break;
-        case 4: //Anticyclic XZY
-            _w.advanceX(dt/2);
-            _w.advanceZ(dt/2);
-            _w.advanceY(dt);
-            _w.advanceZ(dt/2);
-            _w.advanceX(dt/2);
-            break;
-        case 5: //Anticyclic YXZ
-            _w.advanceY(dt/2);
-            _w.advanceX(dt/2);
-            _w.advanceZ(dt);
-            _w.advanceX(dt/2);
-            _w.advanceY(dt/2);
-            break;
-        }
-    } catch (...) {
-        boundary = std::move(_w.boundary);
-        throw;
+    //Advance (Strang Split), rotating step orders to reduce directional bias
+    switch (sweep_step % 6) {
+    case 0: //Cyclic XYZ
+        advanceX(dt/2);
+        advanceY(dt/2);
+        advanceZ(dt);
+        advanceY(dt/2);
+        advanceX(dt/2);
+        break;
+    case 1: //Cyclic ZXY
+        advanceZ(dt/2);
+        advanceX(dt/2);
+        advanceY(dt);
+        advanceX(dt/2);
+        advanceZ(dt/2);
+        break;
+    case 2: //Cyclic YZX
+        advanceY(dt/2);
+        advanceZ(dt/2);
+        advanceX(dt);
+        advanceZ(dt/2);
+        advanceY(dt/2);
+        break;
+    case 3: //Anticyclic ZYX
+        advanceZ(dt/2);
+        advanceY(dt/2);
+        advanceX(dt);
+        advanceY(dt/2);
+        advanceZ(dt/2);
+        break;
+    case 4: //Anticyclic XZY
+        advanceX(dt/2);
+        advanceZ(dt/2);
+        advanceY(dt);
+        advanceZ(dt/2);
+        advanceX(dt/2);
+        break;
+    case 5: //Anticyclic YXZ
+        advanceY(dt/2);
+        advanceX(dt/2);
+        advanceZ(dt);
+        advanceX(dt/2);
+        advanceY(dt/2);
+        break;
     }
     //If in a domain-composed group, wait for the other grids to finish before committing
     DRAGONWING::reportCheckpoint1();
-    if (!DRAGONWING::waitForCheckpoint1()) {
-        boundary = std::move(_w.boundary);
-        return; //Somebody had an error, have to restart
-    }
-    //Commit updates
-    w.clone(_w.w);
-    sweep_step = _w.sweep_step;
-    boundary = std::move(_w.boundary);
+    if (!DRAGONWING::waitForCheckpoint1())  return; //Somebody had an error, need to restart
+    sweep_step++; //Advance the sweep counter after the sweep is successful
 }
 
 

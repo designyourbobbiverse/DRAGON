@@ -39,8 +39,13 @@ public:
     
     //Source Terms
     Source::SourceList sources{};
+    
 protected:
     virtual void advanceSource(double dt, bool ghosts=true) = 0; //Single split step in source terms
+    
+    //Step restart
+    virtual void backup() {}
+    virtual void restore() {}
 };
 
 
@@ -48,6 +53,9 @@ class Grid1D: public Grid{
 protected:
     ExtendedArray1D<PrimitiveState> w;
     PassiveArray1D q;
+private: //Backup copies
+    ExtendedArray1D<PrimitiveState> w__;
+    PassiveArray1D q__;
 public:
     double dx; //Phsyical scale of a grid unit
     
@@ -67,8 +75,12 @@ public:
     //Advance forward in time
     void split_step(double dt) override;
     void unsplit_step(double dt) override;
+    
 protected:
     void advanceSource(double dt, bool ghosts=true) override; //Single split step in source terms
+    //Step restart
+    void backup() override;
+    void restore() override;
 };
 
 class Grid2D: public Grid{
@@ -78,6 +90,12 @@ protected:
     ExtendedArray2D<vec3> B;//B fields on the faces
     #endif
     PassiveArray2D q;
+private: //Backup data
+    ExtendedArray2D<PrimitiveState> w__;
+    #ifdef MHD
+    ExtendedArray2D<vec3> B__;
+    #endif
+    PassiveArray2D q__;
 public:
     double dx, dy;
     
@@ -94,6 +112,7 @@ public:
     #ifdef MHD //Face-normal magnetic fields
     ExtendedArray2D<vec3>& _B(){return B;}
     const ExtendedArray2D<vec3>& _B() const {return B;}
+    void initialize_B_fields() override;
     #endif
     //Passive Scalars
     PassiveArray2D& passives(){return q;}
@@ -102,9 +121,7 @@ public:
     //Advance Forward in time
     void split_step(double dt) override;
     void unsplit_step(double dt) override;
-    #ifdef MHD
-    void initialize_B_fields() override;
-    #endif
+    
 protected:
     int sweep_step = 0;
     
@@ -114,6 +131,9 @@ protected:
     #ifdef MHD
     void computeBodyAveragedFields(const ExtendedArray2D<vec3>& B);
     #endif
+    //Step restart
+    void backup() override;
+    void restore() override;
 };
 
 class Grid3D: public Grid{
@@ -123,6 +143,12 @@ protected:
     ExtendedArray3D<vec3> B;//B fields on the faces
     #endif
     PassiveArray3D q;
+private: //Backup data
+    ExtendedArray3D<PrimitiveState> w__;
+    #ifdef MHD
+    ExtendedArray3D<vec3> B__;
+    #endif
+    PassiveArray3D q__;
 public:
     double dx, dy, dz;
     
@@ -139,6 +165,7 @@ public:
     #ifdef MHD//Face-normal magnetic fields
     ExtendedArray3D<vec3>& _B(){return B;}
     const ExtendedArray3D<vec3>& _B() const {return B;}
+    void initialize_B_fields() override;
     #endif
     //Passive Scalars
     PassiveArray3D& passives(){return q;}
@@ -147,9 +174,7 @@ public:
     //Advance Forward in time
     void split_step(double dt) override;
     void unsplit_step(double dt) override;
-    #ifdef MHD
-    void initialize_B_fields() override;
-    #endif
+
 protected:
     int sweep_step = 0;
     
@@ -160,6 +185,9 @@ protected:
     #ifdef MHD
     void computeBodyAveragedFields(const ExtendedArray3D<vec3>& B);
     #endif
+    //Step restart
+    void backup() override;
+    void restore() override;
 };
 }
 
