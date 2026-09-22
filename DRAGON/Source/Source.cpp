@@ -23,7 +23,7 @@ void Grid::source_step(double dt, bool stiff_only){
     else sources.advance(*this, dt);
 }
 
-void SourceTerm::advance(Grid& grid, double dt){
+void SourceTerm::advance(Grid& grid, double dt) const {
     Grid3D* grid3D = dynamic_cast<Grid3D*>(&grid);
     if (grid3D) {
         advance(*grid3D, dt);
@@ -41,13 +41,13 @@ void SourceTerm::advance(Grid& grid, double dt){
     }
 }
 
-void SourceTerm::advance(Grid1D& w, double dt){
+void SourceTerm::advance(Grid1D& w, double dt) const {
     const int nx = w.getSize();
     for(int i=0; i<nx; i++){
         w[i] += integrate(dt, w[i]);
     }
 }
-void SourceTerm::advance(Grid2D& w, double dt){
+void SourceTerm::advance(Grid2D& w, double dt) const {
      const int nx = w.getSizeX(), ny = w.getSizeY();
      for(int i=0; i<nx; i++){
          for(int j=0; j<ny; j++){
@@ -55,7 +55,7 @@ void SourceTerm::advance(Grid2D& w, double dt){
          }
      }
  }
-void SourceTerm::advance(Grid3D& w, double dt){
+void SourceTerm::advance(Grid3D& w, double dt) const {
      const int nx = w.getSizeX(), ny = w.getSizeY(), nz = w.getSizeZ();
      for(int i=0; i<nx; i++){
          for(int j=0; j<ny; j++){
@@ -68,7 +68,7 @@ void SourceTerm::advance(Grid3D& w, double dt){
 
 
 //MARK: Integration
-ConservativeState SourceTerm::integrate(double dt, const PrimitiveState& w0, double t0){
+ConservativeState SourceTerm::integrate(double dt, const PrimitiveState& w0, double t0) const {
     #if SRC_SPLIT_INTEGRATION == CHOOSE_RUNTIME
     switch (Config::src_integration_choice) {
     case RK2: return rk2(dt, w0, t0);
@@ -81,12 +81,12 @@ ConservativeState SourceTerm::integrate(double dt, const PrimitiveState& w0, dou
     return rk4(dt, w0, t0);
     #endif
 }
-ConservativeState SourceTerm::rk2(double dt, const PrimitiveState& w0, double t0){
+ConservativeState SourceTerm::rk2(double dt, const PrimitiveState& w0, double t0) const {
     ConservativeState k1 = source_density(w0, t0);
     ConservativeState k2 = source_density(w0 + k1*dt, t0 + dt);
     return (k1 + k2) * dt / 2.0;
 }
-ConservativeState SourceTerm::rk4(double dt, const PrimitiveState& w0, double t0){
+ConservativeState SourceTerm::rk4(double dt, const PrimitiveState& w0, double t0) const {
     ConservativeState k1 = source_density(w0, t0);
     ConservativeState k2 = source_density(w0 + 0.5*k1*dt, t0 + 0.5*dt);
     ConservativeState k3 = source_density(w0 + 0.5*k2*dt, t0 + 0.5*dt);
@@ -97,12 +97,12 @@ ConservativeState SourceTerm::rk4(double dt, const PrimitiveState& w0, double t0
 
 
 //MARK: Energy/Force/Mass Types
-ConservativeState EnergySource::source_density(const PrimitiveState &w, double t){
+ConservativeState EnergySource::source_density(const PrimitiveState &w, double t) const {
     ConservativeState S{};
     S.E = energy(w,t);
     return S;
 }
-ConservativeState MomentumSource::source_density(const PrimitiveState &w, double t){
+ConservativeState MomentumSource::source_density(const PrimitiveState &w, double t) const {
     vec3 f = force(w,t);
 
     ConservativeState S{};
@@ -110,7 +110,7 @@ ConservativeState MomentumSource::source_density(const PrimitiveState &w, double
     S.E = w.v * f;
     return S;
 }
-ConservativeState MassSource::source_density(const PrimitiveState &w, double t){
+ConservativeState MassSource::source_density(const PrimitiveState &w, double t) const {
     double S_rho = density(w,t);
     vec3 v = velocity(w, t);
     
@@ -120,9 +120,9 @@ ConservativeState MassSource::source_density(const PrimitiveState &w, double t){
     S.E = S_rho * (thermal_energy(w, t) +  0.5*v*v);
     return S;
 }
-vec3 MassSource::velocity(const PrimitiveState& w, double t){
+vec3 MassSource::velocity(const PrimitiveState& w, double t) const {
     return w.v;
 }
-double MassSource::thermal_energy(const PrimitiveState &w, double t){
+double MassSource::thermal_energy(const PrimitiveState &w, double t) const {
     return w.p/((_gamma-1) * w.rho);
 }

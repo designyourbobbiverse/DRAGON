@@ -25,24 +25,24 @@ namespace DRAGON::Source{
 class SourceTerm{
 public:
     //This function should return the source terms (in conservative form)
-    virtual ConservativeState source_density(const PrimitiveState& w, double t) = 0;
+    virtual ConservativeState source_density(const PrimitiveState& w, double t) const = 0;
     
     //Integrate the source term ODE over dt, starting from initial (w0, t0)
-    ConservativeState integrate(double dt, const PrimitiveState& w0, double t0=0); //Chooses RK2 vs RK4 based on Config.h
-    ConservativeState rk2(double dt, const PrimitiveState& w0, double t0=0);
-    ConservativeState rk4(double dt, const PrimitiveState& w0, double t0=0);
+    ConservativeState integrate(double dt, const PrimitiveState& w0, double t0=0) const ; //Chooses RK2 vs RK4 based on Config.h
+    ConservativeState rk2(double dt, const PrimitiveState& w0, double t0=0) const ;
+    ConservativeState rk4(double dt, const PrimitiveState& w0, double t0=0) const ;
     
     //Sweep integration over grid
-    void advance(Grid& grid, double dt);
-    void advance(Grid1D& grid, double dt);
-    void advance(Grid2D& grid, double dt);
-    void advance(Grid3D& grid, double dt);
+    void advance(Grid& grid, double dt) const ;
+    void advance(Grid1D& grid, double dt) const ;
+    void advance(Grid2D& grid, double dt) const ;
+    void advance(Grid3D& grid, double dt) const ;
     
     
     //Tells DRAGON whether this source term is stiff
     //Stiff term integration is always split to the advection step
     //Non-stiff terms are integrated as part of unsplit advection, or split in advection
-    virtual bool isStiff() { return false; }
+    virtual bool isStiff() const { return false; }
     
     virtual ~SourceTerm() = default;
 };
@@ -70,24 +70,24 @@ class SourceList; //See SourceList.hpp
 //Assumes the injected mass is comoving and in thermal equilibrium with the fluid
 class MassSource: public SourceTerm{
 public:
-    virtual double density(const PrimitiveState& w, double t) = 0; //Provide the source term for the rho component
-    virtual vec3 velocity(const PrimitiveState& w, double t); //Override this if the source isn't comoving with the fluid
-    virtual double thermal_energy(const PrimitiveState& w, double t); //Override this if the source isn't in thermal equilibrium with the fluid
-    virtual ConservativeState source_density(const PrimitiveState& w, double t) override;
+    virtual double density(const PrimitiveState& w, double t)  const = 0; //Provide the source term for the rho component
+    virtual vec3 velocity(const PrimitiveState& w, double t) const ; //Override this if the source isn't comoving with the fluid
+    virtual double thermal_energy(const PrimitiveState& w, double t) const ; //Override this if the source isn't in thermal equilibrium with the fluid
+    virtual ConservativeState source_density(const PrimitiveState& w, double t) const override;
 };
 
 //Momentum Sources for net forces
 //Provide the force vector, energy term f*v will be added automatically
 class MomentumSource: public SourceTerm{
 public:
-    virtual vec3 force(const PrimitiveState& w, double t) = 0; //Provide the source term for the rho*v component
-    virtual ConservativeState source_density(const PrimitiveState& w, double t) override;
+    virtual vec3 force(const PrimitiveState& w, double t) const  = 0; //Provide the source term for the rho*v component
+    virtual ConservativeState source_density(const PrimitiveState& w, double t) const override;
 };
 //Energy Sources for adding (or removing) energy via isotropic transfer
 class EnergySource: public SourceTerm{
 public:
-    virtual double energy(const PrimitiveState& w, double t) = 0; //Provide the source term fro the E component
-    ConservativeState source_density(const PrimitiveState& w, double t) override;
+    virtual double energy(const PrimitiveState& w, double t) const = 0; //Provide the source term fro the E component
+    ConservativeState source_density(const PrimitiveState& w, double t) const override;
 };
 
 

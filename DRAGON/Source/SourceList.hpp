@@ -23,7 +23,7 @@ class SourceList : public SourceTerm {
 private:
     std::vector<std::unique_ptr<SourceTerm>>  sources;
 public:
-    ConservativeState source_density(const PrimitiveState &w, double t) override {
+    ConservativeState source_density(const PrimitiveState &w, double t) const override {
         ConservativeState S{};
         for(auto& s: sources) S += s->source_density(w,t);
         return S;
@@ -78,12 +78,12 @@ public:
     //MARK: Stiff and Non-Stiff grouping
     class SourceSublist: public SourceTerm {
     private:
-        std::vector<std::unique_ptr<SourceTerm>>* sources;
+        const std::vector<std::unique_ptr<SourceTerm>>* sources;
         bool stiff = false;
     public:
-        SourceSublist(std::vector<std::unique_ptr<SourceTerm>>* sources_, bool stiff_): sources(sources_), stiff(stiff_) {}
+        SourceSublist(const std::vector<std::unique_ptr<SourceTerm>>* sources_, bool stiff_): sources(sources_), stiff(stiff_) {}
         
-        ConservativeState source_density(const PrimitiveState &w, double t) override {
+        ConservativeState source_density(const PrimitiveState &w, double t) const override {
             ConservativeState S{};
             for(auto& s: *sources){
                 if (s->isStiff() == stiff) S += s->source_density(w,t);
@@ -92,8 +92,8 @@ public:
         }
     };
     
-    SourceSublist stiff_terms(){ return SourceSublist(&sources, true); }
-    SourceSublist non_stiff_terms(){ return SourceSublist(&sources, false); }
+    SourceSublist stiff_terms() const { return SourceSublist(&sources, true); }
+    SourceSublist non_stiff_terms() const { return SourceSublist(&sources, false); }
 
     
 };
