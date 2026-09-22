@@ -70,6 +70,7 @@ void* DRAGONWING::ThreadPool::sourceParallel(DRAGON::Source::SourceTerm* source,
             current_thread_pool = this; //Give the thread access to the pool
             try{
                 thread_args->src->advance(*(thread_args->grid), thread_args->dt); //Do the actual work
+                reportCheckpoint2();
             } catch (const std::exception &exc) {
                 requestRestart(exc.what());
             }
