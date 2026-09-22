@@ -27,7 +27,7 @@ protected:
     virtual void pushToChildren() = 0;
     //Advance Forward in time
     void step(double dt);
-    void source_step(Source::SourceList* src, double dt);
+    void source_step(Source::SourceTerm* src, double dt);
 };
 
 
@@ -41,7 +41,7 @@ struct DistGrid1D: public Grid1D, public DistGrid<DistGrid1D>{
     //Advance Forward in time
     void split_step(double dt) override;
     void unsplit_step(double dt) override;
-    void source_step(double dt) override;
+    void source_step(double dt, bool stiff_only = false) override;
 
 private:
     int ncx; //The number of children we have
@@ -61,7 +61,8 @@ struct DistGrid2D: public Grid2D, public DistGrid<DistGrid2D>{
     //Advance Forward in time
     void split_step(double dt) override;
     void unsplit_step(double dt) override;
-    void source_step(double dt) override;
+    void source_step(double dt, bool stiff_only = false) override;
+
 private:
     int ncx, ncy;//The number of children we have in each dimension
     double size_x, size_y;//Total physical size of the Grid
@@ -81,7 +82,8 @@ struct DistGrid3D: public Grid3D, public DistGrid<DistGrid3D>{
     //Advance Forward in time
     void split_step(double dt) override;
     void unsplit_step(double dt) override;
-    void source_step(double dt) override;
+    void source_step(double dt, bool stiff_only = false) override;
+
 private:
     int ncx, ncy, ncz;//The number of children we have in each dimension
     double size_x, size_y, size_z; //The total width of the grid

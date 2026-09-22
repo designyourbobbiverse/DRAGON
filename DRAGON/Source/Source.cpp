@@ -17,9 +17,12 @@ using namespace Source;
 
 
 //MARK: Grid Sweep
-void Grid::source_step(double dt){
-    if(sources.count() > 0) sources.advance(*this, dt);
+void Grid::source_step(double dt, bool stiff_only){
+    if(sources.count() == 0) return;
+    if (stiff_only) sources.stiff_terms().advance(*this, dt);
+    else sources.advance(*this, dt);
 }
+
 void SourceTerm::advance(Grid& grid, double dt){
     Grid3D* grid3D = dynamic_cast<Grid3D*>(&grid);
     if (grid3D) {

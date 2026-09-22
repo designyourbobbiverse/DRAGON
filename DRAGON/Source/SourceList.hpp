@@ -73,7 +73,31 @@ public:
     //Remove all elements from the list
     void clear(){ sources.clear(); }
     
+
+
+    //MARK: Stiff and Non-Stiff grouping
+    class SourceSublist: public SourceTerm {
+    private:
+        std::vector<std::unique_ptr<SourceTerm>>* sources;
+        bool stiff = false;
+    public:
+        SourceSublist(std::vector<std::unique_ptr<SourceTerm>>* sources_, bool stiff_): sources(sources_), stiff(stiff_) {}
+        
+        ConservativeState source_density(const PrimitiveState &w, double t) override {
+            ConservativeState S{};
+            for(auto& s: *sources){
+                if (s->isStiff() == stiff) S += s->source_density(w,t);
+            }
+            return S;
+        }
+    };
+    
+    SourceSublist stiff_terms(){ return SourceSublist(&sources, true); }
+    SourceSublist non_stiff_terms(){ return SourceSublist(&sources, false); }
+
+    
 };
+
 }
 
 

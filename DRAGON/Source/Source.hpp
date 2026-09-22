@@ -38,6 +38,12 @@ public:
     void advance(Grid2D& grid, double dt);
     void advance(Grid3D& grid, double dt);
     
+    
+    //Tells DRAGON whether this source term is stiff
+    //Stiff term integration is always split to the advection step
+    //Non-stiff terms are integrated as part of unsplit advection, or split in advection
+    virtual bool isStiff() { return false; }
+    
     virtual ~SourceTerm() = default;
 };
 

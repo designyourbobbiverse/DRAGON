@@ -320,9 +320,7 @@ template <typename T> void DistGrid<T>::step(double dt){
     loadFromChildren();
 }
 
-template <typename T> void DistGrid<T>::source_step(Source::SourceList* sources, double dt){
-    if(sources->count() == 0) return;
-    
+template <typename T> void DistGrid<T>::source_step(Source::SourceTerm* sources, double dt){
     pushToChildren();
     DRAGONWING::ThreadPool pool(static_cast<int>(children.size()));
     for (auto& child : children) pool.sourceParallel(sources, child.get(), dt);
@@ -349,11 +347,16 @@ void DistGrid1D::unsplit_step(double dt){
         return;
     } else { DistGrid::step(dt); }
 }
-void DistGrid1D::source_step(double dt) {
+void DistGrid1D::source_step(double dt, bool stiff_only) {
     if (children.size() <= 1 ) {
-        Grid1D::source_step(dt);
+        Grid1D::source_step(dt, stiff_only);
         DRAGONWING::reportCheckpoint2();
-    } else { DistGrid::source_step(&sources, dt); }
+    } else if(stiff_only) {
+        auto s = sources.stiff_terms();
+        DistGrid::source_step(&s, dt);
+    } else {
+        DistGrid::source_step(&sources, dt);
+    }
 }
 
 
@@ -370,11 +373,18 @@ void DistGrid2D::unsplit_step(double dt){
         return;
     } else { DistGrid::step(dt); }
 }
-void DistGrid2D::source_step(double dt) {
+void DistGrid2D::source_step(double dt, bool stiff_only) {
+    if(sources.count() == 0) return;
+
     if (children.size() <= 1 ) {
-        Grid2D::source_step(dt);
+        Grid2D::source_step(dt, stiff_only);
         DRAGONWING::reportCheckpoint2();
-    } else { DistGrid::source_step(&sources, dt); }
+    } else if(stiff_only) {
+        auto s = sources.stiff_terms();
+        DistGrid::source_step(&s, dt);
+    } else {
+        DistGrid::source_step(&sources, dt);
+    }
 }
 
 
@@ -390,9 +400,16 @@ void DistGrid3D::unsplit_step(double dt){
         DRAGONWING::reportCheckpoint2();
     } else { DistGrid::step(dt); }
 }
-void DistGrid3D::source_step(double dt) {
+void DistGrid3D::source_step(double dt, bool stiff_only) {
+    if(sources.count() == 0) return;
+
     if (children.size() <= 1 ) {
-        Grid3D::source_step(dt);
+        Grid3D::source_step(dt, stiff_only);
         DRAGONWING::reportCheckpoint2();
-    } else { DistGrid::source_step(&sources, dt); }
+    } else if(stiff_only) {
+        auto s = sources.stiff_terms();
+        DistGrid::source_step(&s, dt);
+    } else {
+        DistGrid::source_step(&sources, dt);
+    }
 }

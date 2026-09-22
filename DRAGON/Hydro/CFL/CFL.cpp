@@ -207,10 +207,10 @@ void Grid::advance_unsplit(double dt, bool check_cfl){
         do{
             DRAGONWING::resetFallbacks();
             try{
-                source_step(t1/2);
+                source_step(t1/2, true); //Only stiff terms are strang-split
                 boundary.apply(*this);
                 unsplit_step(t1);
-                source_step(t1/2);
+                source_step(t1/2, true);
                 break; //Successful, end the step-attempt loop
             } catch(const std::exception &exc) { //A restart was requested (e.g. unphysical cell update)
                 restore();
