@@ -83,6 +83,8 @@ public:
     public:
         SourceSublist(const std::vector<std::unique_ptr<SourceTerm>>* sources_, bool stiff_): sources(sources_), stiff(stiff_) {}
         
+        bool isStiff() const override { return stiff; }
+        
         ConservativeState source_density(const PrimitiveState &w, double t) const override {
             ConservativeState S{};
             for(auto& s: *sources){
