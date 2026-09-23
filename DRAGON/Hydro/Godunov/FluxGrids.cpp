@@ -30,7 +30,7 @@ void Godunov::applyFluxes(const FluidArray2D& w, FluidArray2D& _w, const FluxArr
             ConservativeState dU{};
             dU += dt_dx * (F_X[i,j] - F_X[i+1,j]);
             dU += dt_dy * (F_Y[i,j] - F_Y[i,j+1]);
-            dU += source.source_density(wref[i,j], dt);
+            dU += dt * source.source_density(wref[i,j], dt);
             
             if (!dU.isFinite()) throw std::runtime_error(std::format("\tNaN state would be produced at ({},{})\n",i,j));
             
@@ -50,7 +50,7 @@ void Godunov::applyFluxes(const FluidArray3D& w, FluidArray3D& _w, const FluxArr
                 dU += dt_dx * (F_X[i,j,k] - F_X[i+1,j,k]);
                 dU += dt_dy * (F_Y[i,j,k] - F_Y[i,j+1,k]);
                 dU += dt_dz * (F_Z[i,j,k] - F_Z[i,j,k+1]);
-                dU += source.source_density(wref[i,j,k], dt);
+                dU += dt * source.source_density(wref[i,j,k], dt);
                 
                 if (!dU.isFinite())
                     throw std::runtime_error(std::format("\tNaN state would be produced at ({},{},{})\n",i,j,k));
