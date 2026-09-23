@@ -20,7 +20,7 @@ using namespace DRAGON;
 
 
 //MARK: Flux Application
-void Godunov::applyFluxes(const FluidArray2D& w, FluidArray2D& _w, const FluxArray2D& F_X, const FluxArray2D& F_Y,  double dt_dx, double dt_dy,  int g){
+void Godunov::applyFluxes(const FluidArray2D& w, FluidArray2D& _w, const FluxArray2D& F_X, const FluxArray2D& F_Y,   const Source::SourceTerm& source, const FluidArray2D& wref, double dt_dx, double dt_dy, double dt, int g){
     const int nx = w.getSizeX(), ny = w.getSizeY();
     _w.clone(w);
     
@@ -30,13 +30,15 @@ void Godunov::applyFluxes(const FluidArray2D& w, FluidArray2D& _w, const FluxArr
             ConservativeState dU{};
             dU += dt_dx * (F_X[i,j] - F_X[i+1,j]);
             dU += dt_dy * (F_Y[i,j] - F_Y[i,j+1]);
+            dU += source.source_density(wref[i,j], dt);
+            
             if (!dU.isFinite()) throw std::runtime_error(std::format("\tNaN state would be produced at ({},{})\n",i,j));
             
             _w[i,j] += dU;
         }
     }
 }
-void Godunov::applyFluxes(const FluidArray3D& w, FluidArray3D& _w, const FluxArray3D& F_X, const FluxArray3D& F_Y, const FluxArray3D& F_Z, double dt_dx, double dt_dy, double dt_dz, int g){
+void Godunov::applyFluxes(const FluidArray3D& w, FluidArray3D& _w, const FluxArray3D& F_X, const FluxArray3D& F_Y, const FluxArray3D& F_Z, const Source::SourceTerm& source, const FluidArray3D& wref, double dt_dx, double dt_dy, double dt_dz,  double dt, int g){
     const int nx = w.getSizeX(), ny = w.getSizeY(), nz = w.getSizeZ();
     _w.clone(w);
     
@@ -48,6 +50,8 @@ void Godunov::applyFluxes(const FluidArray3D& w, FluidArray3D& _w, const FluxArr
                 dU += dt_dx * (F_X[i,j,k] - F_X[i+1,j,k]);
                 dU += dt_dy * (F_Y[i,j,k] - F_Y[i,j+1,k]);
                 dU += dt_dz * (F_Z[i,j,k] - F_Z[i,j,k+1]);
+                dU += source.source_density(wref[i,j,k], dt);
+                
                 if (!dU.isFinite())
                     throw std::runtime_error(std::format("\tNaN state would be produced at ({},{},{})\n",i,j,k));
                 
@@ -146,6 +150,8 @@ void Godunov::computeHalfStates_X(FluidArray2D& _L, const Grid2D& _W,  FluidArra
         _L[-g,j] = _W[-g,j]; _R[-g,j] = _W[-g,j];
         _L[nx-1+g,j] = _W[nx-1+g,j]; _R[nx-1+g,j] = _W[nx-1+g,j];
     }
+    //Source Terms
+    halfStateSources(_L, _W, _R, dt*0.5);
     #ifdef MHD
     CT::copyFaceFields_X(_L, B, _R);
     #endif
@@ -175,6 +181,8 @@ void Godunov::computeHalfStates_Y(FluidArray2D& _L, const Grid2D& _W,  FluidArra
         _L[i,-g] = _W[i,-g]; _R[i,-g] = _W[i,-g];
         _L[i,ny-1+g] = _W[i,ny-1+g]; _R[i,ny-1+g] = _W[i,ny-1+g];
     }
+    //Source Terms
+    halfStateSources(_L, _W, _R, dt*0.5);
     #ifdef MHD
     CT::copyFaceFields_Y(_L, B, _R);
     #endif
@@ -207,6 +215,8 @@ void Godunov::computeHalfStates_X(FluidArray3D& _L, const Grid3D& _W, FluidArray
             _L[nx-1+g,j,k] = _W[nx-1+g,j,k]; _R[nx-1+g,j,k] = _W[nx-1+g,j,k];
         }
     }
+    //Source Terms
+    halfStateSources(_L, _W, _R, dt*0.5);
     #ifdef MHD
     CT::copyFaceFields_X(_L, B, _R);
     #endif
@@ -241,6 +251,9 @@ void Godunov::computeHalfStates_Y(FluidArray3D& _L, const Grid3D& _W, FluidArray
             _L[i,ny-1+g,k] = _W[i,ny-1+g,k]; _R[i,ny-1+g,k] = _W[i,ny-1+g,k];
         }
     }
+    
+    //Source Terms
+    halfStateSources(_L, _W, _R, dt*0.5);
     #ifdef MHD
     CT::copyFaceFields_Y(_L, B, _R);
     #endif
@@ -275,7 +288,40 @@ void Godunov::computeHalfStates_Z(FluidArray3D& _L, const Grid3D& _W, FluidArray
             _L[i,j,nz-1+g] = _W[i,j,nz-1+g]; _R[i,j,nz-1+g] = _W[i,j,nz-1+g];
         }
     }
+    //Source Terms
+    halfStateSources(_L, _W, _R, dt*0.5);
     #ifdef MHD
     CT::copyFaceFields_Z(_L, B, _R);
     #endif
+}
+
+//Source terms on the half states
+void Godunov::halfStateSources(FluidArray2D& _L, const Grid2D& _W,  FluidArray2D& _R, double dt_2){
+    if (_W.sources.count() == 0) return;
+    const int nx = _W.getSizeX(), ny = _W.getSizeY(), g = _W.getGhosts();
+    const auto sources = _W.sources.non_stiff_terms();
+    
+    for (int i=-g; i<nx+g; i++) {
+        for (int j=-g; j<ny+g; j++) {
+            auto S = sources.source_density(_W[i,j], dt_2) * dt_2;
+            _L[i,j] += S;
+            _R[i,j] += S;
+        }
+    }
+}
+
+void Godunov::halfStateSources(FluidArray3D& _L, const Grid3D& _W,  FluidArray3D& _R, double dt_2){
+    if (_W.sources.count() == 0) return;
+    const int nx = _W.getSizeX(), ny = _W.getSizeY(), nz = _W.getSizeZ(), g = _W.getGhosts();
+    const auto sources = _W.sources.non_stiff_terms();
+    
+    for (int i=-g; i<nx+g; i++) {
+        for (int j=-g; j<ny+g; j++) {
+            for (int k=-g; k<nz+g; k++) {
+                auto S = sources.source_density(_W[i,j,k], dt_2) * dt_2;
+                _L[i,j,k] += S;
+                _R[i,j,k] += S;
+            }
+        }
+    }
 }

@@ -27,48 +27,21 @@ using namespace DRAGON;
 
 #ifdef MHD
 //MARK: CTU MHD 6-Solve (3D)
-void Godunov::ctu_sweep_MHD(FluidArray3D& _xL, FluidArray3D& _xR, FluidArray3D& _yL, FluidArray3D& _yR, FluidArray3D& _zL, FluidArray3D& _zR, const MagneticArray3D &B, const FluidArray3D& w, MagneticArray3D& E, double dt_dx, double dt_dy, double dt_dz){
-    const int nx = _xL.getSizeX(), ny = _xL.getSizeY(), nz = _xL.getSizeZ(), g = _xL.getGhosts();
-
-    //Preliminary Fluxes
-        auto __fluxes = DRAGONWING::requestFluxArrays(3, nx, ny, nz, g);
-    FluxArray3D& F_X = *__fluxes[0];
-    FluxArray3D& F_Y = *__fluxes[1];
-    FluxArray3D& F_Z = *__fluxes[2];
-    computeFlux_X(_xL, _xR, F_X, -1, nx+1, -2, ny+2, -2, nz+2, dt_dx);
-    computeFlux_Y(_yL, _yR, F_Y, -2, nx+2, -1, ny+1, -2, nz+2, dt_dy);
-    computeFlux_Z(_zL, _zR, F_Z, -2, nx+2, -2, ny+2, -1, nz+1, dt_dz);
-    
-    //Preliminary CT Update
-        auto __mags = DRAGONWING::requestVec3Arrays(2, nx+1, ny+1, nz+1, g);
-    MagneticArray3D &_B = *__mags[0], &E0 = *__mags[1];
-    //Compute E
-    CT::computeElectric(E0, F_X, F_Y, F_Z,1);
-    CT::bodyElectric(w, E,1); //Use Ehalf for Eref since we don't need it yet
-    CT::upwindElectric(E0, F_X, F_Y, F_Z, E,1);
-    //Compute B
-    _B.clone(B);
-    CT::Faraday(E0, _B, 0.5*dt_dx, 0.5*dt_dy, 0.5*dt_dz, 1);
-    //Construct Ehalf
-        auto __whalf = DRAGONWING::requestPrimitiveArrays(1, nx, ny, nz, g);
-    auto& whalf = *__whalf[0];
-    applyFluxes(w, whalf, F_X, F_Y, F_Z, 0.5*dt_dx, 0.5*dt_dy, 0.5*dt_dz, 1);
-    CT::computeBodyFields(_B, whalf);
-    CT::bodyElectric(whalf, E);
-        __whalf.release();
+void Godunov::ctu_sweep_MHD(FluidArray3D& _xL, FluidArray3D& _xR, FluidArray3D& _yL, FluidArray3D& _yR, FluidArray3D& _zL, FluidArray3D& _zR, const FluxArray3D& F_X, const FluxArray3D& F_Y, const FluxArray3D& F_Z, const MagneticArray3D& Ehalf, const MagneticArray3D &Bhalf,   const FluidArray3D& w0, const MagneticArray3D &B0, double dt_dx, double dt_dy, double dt_dz){
+    const int nx = _xL.getSizeX(), ny = _xL.getSizeY(), nz = _xL.getSizeZ();
     
     //CTU corrections
     for (int i=-1; i<nx+1; i++) {
         for (int j=-1; j<ny+1; j++) {
             for (int k=-1; k<nz+1; k++) {
-                double dBx = (B[i+1,j,k].x - B[i,j,k].x) * dt_dx;
-                double dBy = (B[i,j+1,k].y - B[i,j,k].y) * dt_dy;
-                double dBz = (B[i,j,k+1].z - B[i,j,k].z) * dt_dz;
+                double dBx = (B0[i+1,j,k].x - B0[i,j,k].x) * dt_dx;
+                double dBy = (B0[i,j+1,k].y - B0[i,j,k].y) * dt_dy;
+                double dBz = (B0[i,j,k+1].z - B0[i,j,k].z) * dt_dz;
                 
 
                 ConservativeState uL, uR;
                 
-                auto& W = w[i,j,k];
+                auto& W = w0[i,j,k];
                 
                 //Fluxes for the hydro components
                 auto corr =  0.5 * ((F_Y[i,j,k] - F_Y[i,j+1,k]) * dt_dy + (F_Z[i,j,k] - F_Z[i,j,k+1]) * dt_dz);
@@ -78,13 +51,13 @@ void Godunov::ctu_sweep_MHD(FluidArray3D& _xL, FluidArray3D& _xR, FluidArray3D& 
                 double lim_z = TVD::minmod(-dBy, dBx);
                 //corr.mom += _1_8pi * dBx * W.B; //Our MUSCL implemenation makes the momentum correction (GS08-51) unnecessary (& wrong)
                 corr.E += _1_8pi * (W.B.y * W.v.y * lim_y + W.B.z * W.v.z * lim_z); //But we do need the energy correction (GS08-52)
-                corr.B.y = -0.25 * dt_dz * (E0[i,j,k+1].x - E0[i,j,k].x + E0[i,j+1,k+1].x - E0[i,j+1,k].x) + 0.5 * W.v.y * lim_y;
-                corr.B.z = 0.25 * dt_dy * (E0[i,j+1,k].x - E0[i,j,k].x + E0[i,j+1,k+1].x - E0[i,j,k+1].x) + 0.5 * W.v.z * lim_z;
+                corr.B.y = -0.25 * dt_dz * (Ehalf[i,j,k+1].x - Ehalf[i,j,k].x + Ehalf[i,j+1,k+1].x - Ehalf[i,j+1,k].x) + 0.5 * W.v.y * lim_y;
+                corr.B.z = 0.25 * dt_dy * (Ehalf[i,j+1,k].x - Ehalf[i,j,k].x + Ehalf[i,j+1,k+1].x - Ehalf[i,j,k+1].x) + 0.5 * W.v.z * lim_z;
                 //Apply fluxes, copy normal B's at Faces
                 uL = _xL[i,j,k] + corr;
                 uR = _xR[i,j,k] + corr;
-                uL.B.x = _B[i,j,k].x;
-                uR.B.x = _B[i+1,j,k].x;
+                uL.B.x = Bhalf[i,j,k].x;
+                uR.B.x = Bhalf[i+1,j,k].x;
                 _xL[i,j,k] = uL; _xR[i,j,k] = uR;
 
                 //Fluxes for the hydro components
@@ -95,13 +68,13 @@ void Godunov::ctu_sweep_MHD(FluidArray3D& _xL, FluidArray3D& _xR, FluidArray3D& 
                 lim_z = TVD::minmod(-dBx, dBy);
                 //corr.mom += _1_8pi * dBy * W.B; //Our MUSCL implemenation makes the momentum correction (GS08-51) unnecessary (& wrong)
                 corr.E += _1_8pi * (W.B.x * W.v.x * lim_x + W.B.z * W.v.z * lim_z); //But we do need the energy correction (GS08-52)
-                corr.B.x = 0.25 * dt_dz * (E0[i,j,k+1].y - E0[i,j,k].y + E0[i+1,j,k+1].y - E0[i+1,j,k].y) + 0.5 * W.v.x * lim_x;
-                corr.B.z = -0.25 * dt_dx * (E0[i+1,j,k].y - E0[i,j,k].y + E0[i+1,j,k+1].y - E0[i,j,k+1].y) + 0.5 * W.v.z * lim_z;
+                corr.B.x = 0.25 * dt_dz * (Ehalf[i,j,k+1].y - Ehalf[i,j,k].y + Ehalf[i+1,j,k+1].y - Ehalf[i+1,j,k].y) + 0.5 * W.v.x * lim_x;
+                corr.B.z = -0.25 * dt_dx * (Ehalf[i+1,j,k].y - Ehalf[i,j,k].y + Ehalf[i+1,j,k+1].y - Ehalf[i,j,k+1].y) + 0.5 * W.v.z * lim_z;
                 //Apply fluxes, copy normal B's at Faces
                 uL = _yL[i,j,k] + corr;
                 uR = _yR[i,j,k] + corr;
-                uL.B.y = _B[i,j,k].y;
-                uR.B.y = _B[i,j+1,k].y;
+                uL.B.y = Bhalf[i,j,k].y;
+                uR.B.y = Bhalf[i,j+1,k].y;
                 _yL[i,j,k] = uL; _yR[i,j,k] = uR;
                 
                 //Fluxes
@@ -112,13 +85,13 @@ void Godunov::ctu_sweep_MHD(FluidArray3D& _xL, FluidArray3D& _xR, FluidArray3D& 
                 lim_y = TVD::minmod(-dBx, dBz);
                 //corr.mom += _1_8pi * dBz * W.B; //Our MUSCL implemenation makes the momentum correction (GS08-51) unnecessary (& wrong)
                 corr.E += _1_8pi * (W.B.x * W.v.x * lim_x + W.B.y * W.v.y * lim_y); //But we do need the energy correction (GS08-52)
-                corr.B.x =  -0.25 * dt_dy * (E0[i,j+1,k].z - E0[i,j,k].z + E0[i+1,j+1,k].z - E0[i+1,j,k].z) + 0.5 * W.v.x * lim_x;
-                corr.B.y =  0.25 * dt_dx * (E0[i+1,j,k].z - E0[i,j,k].z + E0[i+1,j+1,k].z - E0[i,j+1,k].z) + 0.5 * W.v.y * lim_y;
+                corr.B.x =  -0.25 * dt_dy * (Ehalf[i,j+1,k].z - Ehalf[i,j,k].z + Ehalf[i+1,j+1,k].z - Ehalf[i+1,j,k].z) + 0.5 * W.v.x * lim_x;
+                corr.B.y =  0.25 * dt_dx * (Ehalf[i+1,j,k].z - Ehalf[i,j,k].z + Ehalf[i+1,j+1,k].z - Ehalf[i,j+1,k].z) + 0.5 * W.v.y * lim_y;
                 //Apply fluxes, copy normal B's at Faces
                 uL = _zL[i,j,k] + corr;
                 uR = _zR[i,j,k] + corr;
-                uL.B.z = _B[i,j,k].z;
-                uR.B.z = _B[i,j,k+1].z;
+                uL.B.z = Bhalf[i,j,k].z;
+                uR.B.z = Bhalf[i,j,k+1].z;
                 _zL[i,j,k] = uL; _zR[i,j,k] = uR;
             }
         }
@@ -126,44 +99,18 @@ void Godunov::ctu_sweep_MHD(FluidArray3D& _xL, FluidArray3D& _xR, FluidArray3D& 
 }
 
 //MARK: CTU MHD 4-Solve (2D)
-void Godunov::ctu_sweep_MHD(FluidArray2D& _xL, FluidArray2D& _xR, FluidArray2D& _yL, FluidArray2D& _yR,  const MagneticArray2D &B, const FluidArray2D& w, MagneticArray2D& E, double dt_dx, double dt_dy){
-    const int nx = _xL.getSizeX(), ny = _xL.getSizeY(), g = _xL.getGhosts();
-
-    //Preliminary Fluxes
-        auto __fluxes = DRAGONWING::requestFluxArrays(2, nx, ny, g);
-    FluxArray2D& F_X = *__fluxes[0];
-    FluxArray2D& F_Y = *__fluxes[1];
-    computeFlux_X(_xL, _xR, F_X, -1, nx+1, -2, ny+2, dt_dx);
-    computeFlux_Y(_yL, _yR, F_Y, -2, nx+2, -1, ny+1, dt_dy);
-    
-    //Preliminary CT Update
-        auto __mags = DRAGONWING::requestVec3Arrays(2, nx+1, ny+1, g);
-    MagneticArray2D &_B = *__mags[0], &E0 = *__mags[1];
-    //Compute E
-    CT::computeElectric(E0, F_X, F_Y, 1);
-    CT::bodyElectric(w, E,1); //Use Ehalf for Eref since we don't need it yet
-    CT::upwindElectric(E0, F_X, F_Y, E,1);
-    //Compute B
-    _B.clone(B);
-    CT::Faraday(E0, _B, 0.5*dt_dx, 0.5*dt_dy,1);
-    //Construct Ehalf
-        auto __whalf = DRAGONWING::requestPrimitiveArrays(1, nx, ny,g);
-    auto& whalf = *__whalf[0];
-    applyFluxes(w, whalf, F_X, F_Y, 0.5*dt_dx, 0.5*dt_dy, 1);
-    CT::computeBodyFields(_B, whalf);
-    CT::bodyElectric(whalf, E);
-        __whalf.release();
-    
+void Godunov::ctu_sweep_MHD(FluidArray2D& _xL, FluidArray2D& _xR, FluidArray2D& _yL, FluidArray2D& _yR, const FluxArray2D& F_X, const FluxArray2D& F_Y, const MagneticArray2D& Ehalf, const MagneticArray2D &Bhalf,   const FluidArray2D& w0, const MagneticArray2D &B0, double dt_dx, double dt_dy){
+    const int nx = _xL.getSizeX(), ny = _xL.getSizeY();
     
     //CTU Corrections
     for (int i=-1; i<nx+1; i++) {
         for (int j=-1; j<ny+1; j++) {
-            double dBx = (B[i+1,j].x - B[i,j].x) * dt_dx;
-            double dBy = (B[i,j+1].y - B[i,j].y) * dt_dy;
+            double dBx = (B0[i+1,j].x - B0[i,j].x) * dt_dx;
+            double dBy = (B0[i,j+1].y - B0[i,j].y) * dt_dy;
 
             ConservativeState uL, uR;
             
-            auto& W = w[i,j];
+            auto& W = w0[i,j];
             
             //Fluxes
             auto corr =  0.5 * (F_Y[i,j] - F_Y[i,j+1]) * dt_dy;
@@ -172,12 +119,12 @@ void Godunov::ctu_sweep_MHD(FluidArray2D& _xL, FluidArray2D& _xR, FluidArray2D& 
             double lim_z = TVD::minmod(-dBy, dBx);
             //corr.mom +=  _1_8pi * dBx * W.B;
             corr.E += _1_8pi * (W.B.z * W.v.z * lim_z);
-            corr.B.z = 0.5 * dt_dy * (E0[i,j+1].x - E0[i,j].x) + 0.5 * W.v.z * lim_z;
+            corr.B.z = 0.5 * dt_dy * (Ehalf[i,j+1].x - Ehalf[i,j].x) + 0.5 * W.v.z * lim_z;
             //Apply Fluxes & Face Fields
             uL = _xL[i,j] + corr;
             uR = _xR[i,j] + corr;
-            uL.B.x = _B[i,j].x;
-            uR.B.x = _B[i+1,j].x;
+            uL.B.x = Bhalf[i,j].x;
+            uR.B.x = Bhalf[i+1,j].x;
             _xL[i,j] = uL; _xR[i,j] = uR;
 
             //Fluxes
@@ -187,28 +134,20 @@ void Godunov::ctu_sweep_MHD(FluidArray2D& _xL, FluidArray2D& _xR, FluidArray2D& 
             lim_z = TVD::minmod(-dBx, dBy);
             //corr.mom +=  _1_8pi * dBy * W.B;
             corr.E +=  _1_8pi * (W.B.z * W.v.z * lim_z);
-            corr.B.z = -0.5 * dt_dx * (E0[i+1,j].y - E0[i,j].y) + 0.5 * W.v.z * lim_z;
+            corr.B.z = -0.5 * dt_dx * (Ehalf[i+1,j].y - Ehalf[i,j].y) + 0.5 * W.v.z * lim_z;
             //Apply Fluxes & Face Fields
             uL = _yL[i,j] + corr;
             uR = _yR[i,j] + corr;
-            uL.B.y = _B[i,j].y;
-            uR.B.y = _B[i,j+1].y;
+            uL.B.y = Bhalf[i,j].y;
+            uR.B.y = Bhalf[i,j+1].y;
             _yL[i,j] = uL; _yR[i,j] = uR;
         }
     }
 }
+
 #else
 //MARK: CTU 2D Hydro
-void Godunov::ctu_sweep_hydro(FluidArray2D& _xL, FluidArray2D& _xR, FluidArray2D& _yL, FluidArray2D& _yR, double dt_dx, double dt_dy){
-    const int nx = _xL.getSizeX(), ny = _yL.getSizeY(), ghosts = _xL.getGhosts();
-    //Compute preliminary Fluxes
-        auto __fluxes = DRAGONWING::requestFluxArrays(2, nx, ny, ghosts);
-    auto& F_X = *__fluxes[0];
-    auto& F_Y = *__fluxes[1];
-    computeFlux_X(_xL, _xR, F_X, 0, nx, -1, ny+1, dt_dx);
-    computeFlux_Y(_yL, _yR, F_Y, -1, nx+1, 0, ny, dt_dy);
-    
-    //Correct states
+void Godunov::ctu_sweep_hydro(FluidArray2D& _xL, FluidArray2D& _xR, FluidArray2D& _yL, FluidArray2D& _yR, FluxArray3D& F_X, FluxArray3D& F_Y, double dt_dx, double dt_dy){
     correctState(_xL, _xR, F_Y, (0.5*dt_dy), 1);
     correctState(_yL, _yR, F_X, (0.5*dt_dx), 0);
 }
@@ -216,22 +155,14 @@ void Godunov::ctu_sweep_hydro(FluidArray2D& _xL, FluidArray2D& _xR, FluidArray2D
 
 //MARK: CTU Hydro 12-Solve (3D)
 //See Gardiner and Stone (2008) section 5.1
-void Godunov::ctu_sweep_hydro(FluidArray3D& _xL, FluidArray3D& _xR, FluidArray3D& _yL, FluidArray3D& _yR, FluidArray3D& _zL, FluidArray3D& _zR, double dt_dx, double dt_dy, double dt_dz){
+void Godunov::ctu_sweep_hydro(FluidArray3D& _xL, FluidArray3D& _xR, FluidArray3D& _yL, FluidArray3D& _yR, FluidArray3D& _zL, FluidArray3D& _zR, FluxArray3D& F_X, FluxArray3D& F_Y, FluxArray3D& F_Z, double dt_dx, double dt_dy, double dt_dz){
     const int nx = _xL.getSizeX(), ny = _xL.getSizeY(), nz = _xL.getSizeZ(), ghosts = _xL.getGhosts();
-    
-        auto __fluxes = DRAGONWING::requestFluxArrays(5, nx, ny, nz, ghosts);
-    FluxArray3D& F_X = *__fluxes[0];
-    FluxArray3D& F_Y = *__fluxes[1];
-    FluxArray3D& F_Z = *__fluxes[2];
-    //Compute preliminary face fluxes
-    computeFlux_X(_xL, _xR, F_X, 0, nx, -1, ny+1, -1, nz+1, dt_dx);
-    computeFlux_Y(_yL, _yR, F_Y, -1, nx+1, 0, ny, -1, nz+1, dt_dy);
-    computeFlux_Z(_zL, _zR, F_Z, -1, nx+1, -1, ny+1, 0, nz, dt_dz);
         
     //Compute Edge-correct the fluxes
-    FluxArray3D& F_Xz = *__fluxes[3];
+        auto __fluxes = DRAGONWING::requestFluxArrays(2, nx, ny, nz, ghosts);
+    FluxArray3D& F_Xz = *__fluxes[0];
     computeCTUFlux_X(_xL, _xR, F_Z, F_Xz, dt_dx, (dt_dz/3.0), 2);
-    FluxArray3D& F_Yz = *__fluxes[4];
+    FluxArray3D& F_Yz = *__fluxes[1];
     computeCTUFlux_Y(_yL, _yR, F_Z, F_Yz, dt_dy, (dt_dz/3.0), 2);
 
     FluxArray3D& F_Xy = F_Z; //F_Z isn't used again before it gets recomputed, so we can resue it here

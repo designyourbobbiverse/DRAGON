@@ -43,7 +43,7 @@ public:
         return *this;
     }
     
-    size_t count(){ return sources.size(); }
+    size_t count() const { return sources.size(); }
     
     
     //MARK: Append
