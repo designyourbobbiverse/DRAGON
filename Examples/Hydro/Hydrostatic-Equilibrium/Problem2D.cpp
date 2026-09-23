@@ -24,7 +24,7 @@ constexpr int n = 256;
 Grid& Problem::makeProblem(){
     //Construct your grid object. Don't worry about initial setup, you'll do that later
     auto grid = new MyGrid(n/2,n, 1.0/n,1.0/n);
-    grid->boundary = Boundary::Periodic("X") + Boundary::Reflective("Y");
+    grid->boundary = Boundary::Periodic("X") + Boundary::Reflective("Y-");
     
     grid->sources = Source::UniformGravity(0,-g,0);
     

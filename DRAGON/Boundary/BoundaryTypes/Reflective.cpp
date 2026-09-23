@@ -22,6 +22,7 @@ void Boundary::Reflective::apply(Grid1D& grid){
     auto& q = grid.passives();
 
     if (faces & X_negative) {
+        double force = 0;
         for (int g = 1; g <= ng; g++) {
             grid[-g] = grid[g-1];
             grid[-g].v.x *= -1;//Mirror Normal Velocity
@@ -29,11 +30,18 @@ void Boundary::Reflective::apply(Grid1D& grid){
             grid[-g].B *= -1;
             grid[-g].B.x *= -1;
             #endif
+            //Account for any force terms
+            if (grid.sources.count() > 0){
+                force += grid.sources.source_density(grid[-g+1], 0).mom.x;
+                grid[-g].p -= force * grid.dx;
+                force += grid.sources.source_density(grid[g-1], 0).mom.x;
+            }
         }
         q[-1] = q[0]; //Copy passives (only first ghost)
     }
     if (faces & X_positive) {
         int nx = grid.getSize();
+        double force = 0;
         for (int g = 1; g <= ng; g++) {
             grid[nx-1+g] = grid[nx-g];
             grid[nx-1+g].v.x *= -1;//Mirror Normal Velocity
@@ -41,6 +49,12 @@ void Boundary::Reflective::apply(Grid1D& grid){
             grid[nx-1+g].B *= -1;
             grid[nx-1+g].B.x *= -1;
             #endif
+            //Account for any force terms
+            if (grid.sources.count() > 0){
+                force += grid.sources.source_density(grid[nx-2+g], 0).mom.x;
+                grid[nx-1+g].p += force * grid.dx;
+                force += grid.sources.source_density(grid[nx-g], 0).mom.x;
+            }
         }
         q[nx] = q[nx-1]; //Copy passives (only first ghost)
     }
@@ -57,6 +71,7 @@ void Boundary::Reflective::apply(Grid2D& grid){
 
     if (faces & X_negative) {
         for (int j = j0 ; j < jn; j++) {
+            double force = 0;
             for (int g = 1; g <= ng; g++) {
                 grid[-g,j] = grid[g-1,j];
                 grid[-g,j].v.x *= -1;//Mirror Normal Velocity
@@ -64,12 +79,19 @@ void Boundary::Reflective::apply(Grid2D& grid){
                 grid[-g,j].B *= -1;
                 grid[-g,j].B.x *= -1;
                 #endif
+                //Account for any force terms
+                if (grid.sources.count() > 0){
+                    force += grid.sources.source_density(grid[-g+1,j], 0).mom.x;
+                    grid[-g,j].p -= force * grid.dx;
+                    force += grid.sources.source_density(grid[g-1,j], 0).mom.x;
+                }
             }
             if (j >= -1 && j <= ny) q[-1,j] = q[0,j]; //Copy passives (only first ghost)
         }
     }
     if (faces & X_positive) {
         for (int j = j0 ; j < jn; j++) {
+            double force = 0;
             for (int g = 1; g <= ng; g++) {
                 grid[nx-1+g,j] = grid[nx-g,j];
                 grid[nx-1+g,j].v.x *= -1;//Mirror Normal Velocity
@@ -77,12 +99,19 @@ void Boundary::Reflective::apply(Grid2D& grid){
                 grid[nx-1+g,j].B *= -1;
                 grid[nx-1+g,j].B.x *= -1;
                 #endif
+                //Account for any force terms
+                if (grid.sources.count() > 0){
+                    force += grid.sources.source_density(grid[nx-2+g,j], 0).mom.x;
+                    grid[nx-1+g,j].p += force * grid.dx;
+                    force += grid.sources.source_density(grid[nx-g,j], 0).mom.x;
+                }
             }
             if (j >= -1 && j <= ny) q[nx,j] = q[nx-1,j]; //Copy passives (only first ghost)
         }
     }
     if (faces & Y_negative) {
         for (int i = i0 ; i < in; i++) {
+            double force = 0;
             for (int g = 1; g <= ng; g++) {
                 grid[i,-g] = grid[i,g-1];
                 grid[i,-g].v.y *= -1;//Mirror Normal Velocity
@@ -90,12 +119,19 @@ void Boundary::Reflective::apply(Grid2D& grid){
                 grid[i,-g].B *= -1;
                 grid[i,-g].B.y *= -1;
                 #endif
+                //Account for any force terms
+                if (grid.sources.count() > 0){
+                    force += grid.sources.source_density(grid[i,-g+1], 0).mom.y;
+                    grid[i,-g].p -= force * grid.dy;
+                    force += grid.sources.source_density(grid[i,g-1], 0).mom.y;
+                }
             }
             if (i >= -1 && i <= nx) q[i,-1] = q[i,0]; //Copy passives (only first ghost)
         }
     }
     if (faces & Y_positive) {
         for (int i = i0 ; i < in; i++) {
+            double force = 0;
             for (int g = 1; g <= ng; g++) {
                 grid[i,ny-1+g] = grid[i,ny-g];
                 grid[i,ny-1+g].v.y *= -1;//Mirror Normal Velocity
@@ -103,6 +139,12 @@ void Boundary::Reflective::apply(Grid2D& grid){
                 grid[i,ny-1+g].B *= -1;
                 grid[i,ny-1+g].B.y *= -1;
                 #endif
+                //Account for any force terms
+                if (grid.sources.count() > 0){
+                    force += grid.sources.source_density(grid[i,ny-2+g], 0).mom.y;
+                    grid[i,ny-1+g].p += force * grid.dy;
+                    force += grid.sources.source_density(grid[i,ny-g], 0).mom.y;
+                }
             }
             if (i >= -1 && i <= nx) q[i,ny] = q[i,ny-1]; //Copy passives (only first ghost)
         }
@@ -162,6 +204,7 @@ void Boundary::Reflective::apply(Grid3D& grid){
     if (faces & X_negative) {
         for (int j = j0 ; j < jn; j++) {
             for (int k = k0 ; k < kn; k++) {
+                double force = 0;
                 for (int g = 1; g <= ng; g++) {
                     grid[-g,j,k] = grid[g-1,j,k];
                     grid[-g,j,k].v.x *= -1;//Mirror Normal Velocity
@@ -169,6 +212,12 @@ void Boundary::Reflective::apply(Grid3D& grid){
                     grid[-g,j,k].B *= -1;
                     grid[-g,j,k].B.x *= -1;
                     #endif
+                    //Account for any force terms
+                    if (grid.sources.count() > 0){
+                        force += grid.sources.source_density(grid[-g+1,j,k], 0).mom.x;
+                        grid[-g,j,k].p -= force * grid.dx;
+                        force += grid.sources.source_density(grid[g-1,j,k], 0).mom.x;
+                    }
                 }
                 if (j >= -1 && j <= ny && k >= -1 && k <= nz)
                     q[-1,j,k] = q[0,j,k]; //Copy passives (only first ghost)
@@ -178,6 +227,7 @@ void Boundary::Reflective::apply(Grid3D& grid){
     if (faces & X_positive) {
         for (int j = j0 ; j < jn; j++) {
             for (int k = k0 ; k < kn; k++) {
+                double force = 0;
                 for (int g = 1; g <= ng; g++) {
                     grid[nx-1+g,j,k] = grid[nx-g,j,k];
                     grid[nx-1+g,j,k].v.x *= -1;//Mirror Normal Velocity
@@ -185,6 +235,12 @@ void Boundary::Reflective::apply(Grid3D& grid){
                     grid[nx-1+g,j,k].B *= -1;
                     grid[nx-1+g,j,k].B.x *= -1;
                     #endif
+                    //Account for any force terms
+                    if (grid.sources.count() > 0){
+                        force += grid.sources.source_density(grid[nx-2+g,j,k], 0).mom.x;
+                        grid[nx-1+g,j,k].p += force * grid.dx;
+                        force += grid.sources.source_density(grid[nx-g,j,k], 0).mom.x;
+                    }
                 }
                 if (j >= -1 && j <= ny && k >= -1 && k <= nz)
                     q[nx,j,k] = q[nx-1,j,k]; //Copy passives (only first ghost)
@@ -194,6 +250,7 @@ void Boundary::Reflective::apply(Grid3D& grid){
     if (faces & Y_negative) {
         for (int i = i0 ; i < in; i++) {
             for (int k = k0 ; k < kn; k++) {
+                double force = 0;
                 for (int g = 1; g <= ng; g++) {
                     grid[i,-g,k] = grid[i,g-1,k];
                     grid[i,-g,k].v.y *= -1;//Mirror Normal Velocity
@@ -201,6 +258,12 @@ void Boundary::Reflective::apply(Grid3D& grid){
                     grid[i,-g,k].B *= -1;
                     grid[i,-g,k].B.y *= -1;
                     #endif
+                    //Account for any force terms
+                    if (grid.sources.count() > 0){
+                        force += grid.sources.source_density(grid[i,-g+1,k], 0).mom.y;
+                        grid[i,-g,k].p -= force * grid.dy;
+                        force += grid.sources.source_density(grid[i,g-1,k], 0).mom.y;
+                    }
                 }
                 if (i >= -1 && i <= nx && k >= -1 && k <= nz)
                     q[i,-1,k] = q[i,0,k]; //Copy passives (only first ghost)
@@ -210,6 +273,7 @@ void Boundary::Reflective::apply(Grid3D& grid){
     if (faces & Y_positive) {
         for (int i = i0 ; i < in; i++) {
             for (int k = k0 ; k < kn; k++) {
+                double force = 0;
                 for (int g = 1; g <= ng; g++) {
                     grid[i,ny-1+g,k] = grid[i,ny-g,k];
                     grid[i,ny-1+g,k].v.y *= -1;//Mirror Normal Velocity
@@ -217,6 +281,12 @@ void Boundary::Reflective::apply(Grid3D& grid){
                     grid[i,ny-1+g,k].B *= -1;
                     grid[i,ny-1+g,k].B.y *= -1;
                     #endif
+                    //Account for any force terms
+                    if (grid.sources.count() > 0){
+                        force += grid.sources.source_density(grid[i,ny-2+g,k], 0).mom.y;
+                        grid[i,ny-1+g,k].p += force * grid.dy;
+                        force += grid.sources.source_density(grid[i,ny-g,k], 0).mom.y;
+                    }
                 }
                 if (i >= -1 && i <= nx && k >= -1 && k <= nz)
                     q[i,ny,k] = q[i,ny-1,k]; //Copy passives (only first ghost)
@@ -226,6 +296,7 @@ void Boundary::Reflective::apply(Grid3D& grid){
     if (faces & Z_negative) {
         for (int i = i0 ; i < in; i++) {
             for (int j = j0 ; j < jn; j++) {
+                double force = 0;
                 for (int g = 1; g <= ng; g++) {
                     grid[i,j,-g] = grid[i,j,g-1];
                     grid[i,j,-g].v.z *= -1;//Mirror Normal Velocity
@@ -233,6 +304,12 @@ void Boundary::Reflective::apply(Grid3D& grid){
                     grid[i,j,-g].B *= -1;
                     grid[i,j,-g].B.z *= -1;
                     #endif
+                    //Account for any force terms
+                    if (grid.sources.count() > 0){
+                        force += grid.sources.source_density(grid[i,j,-g+1], 0).mom.z;
+                        grid[i,j,-g].p -= force * grid.dz;
+                        force += grid.sources.source_density(grid[i,j,g-1], 0).mom.z;
+                    }
                 }
                 if (i >= -1 && i <= nx && j >= -1 && j <= ny)
                     q[i,j,-1] = q[i,j,0]; //Copy passives (only first ghost)
@@ -242,6 +319,7 @@ void Boundary::Reflective::apply(Grid3D& grid){
     if (faces & Z_positive) {
         for (int i = i0 ; i < in; i++) {
             for (int j = j0 ; j < jn; j++) {
+                double force = 0;
                 for (int g = 1; g <= ng; g++) {
                     grid[i,j,nz-1+g] = grid[i,j,nz-g];
                     grid[i,j,nz-1+g].v.z *= -1;//Mirror Normal Velocity
@@ -249,6 +327,12 @@ void Boundary::Reflective::apply(Grid3D& grid){
                     grid[i,j,nz-1+g].B *= -1;
                     grid[i,j,nz-1+g].B.z *= -1;
                     #endif
+                    //Account for any force terms
+                    if (grid.sources.count() > 0){
+                        force += grid.sources.source_density(grid[i,j,nz-2+g], 0).mom.z;
+                        grid[i,j,nz-1+g].p += force * grid.dz;
+                        force += grid.sources.source_density(grid[i,j,nz-g], 0).mom.z;
+                    }
                 }
                 if (i >= -1 && i <= nx && j >= -1 && j <= ny)
                     q[i,j,nz] = q[i,j,nz-1]; //Copy passives (only first ghost)
