@@ -94,7 +94,7 @@ void Grid2D::unsplit_step(double dt){
     computeFlux_X(_xL, _xR, F_X, 0, nx, -1, ny+1, dt_dx);
     computeFlux_Y(_yL, _yR, F_Y, -1, nx+1, 0, ny, dt_dy);
     #else
-    ctu_sweep_hydro(_xL, _xR, _yL, _yR, _zL, _zR, dt_dx, dt_dy, dt_dz);
+    ctu_sweep_hydro(_xL, _xR, _yL, _yR, F_X, F_Y, dt_dx, dt_dy);
     //Hydro doesn't need transverse fluxes in the first ghost layer
     computeFlux_X(_xL, _xR, F_X, 0, nx, 0, ny, dt_dx);
     computeFlux_Y(_yL, _yR, F_Y, 0, nx, 0, ny, dt_dy);

@@ -147,7 +147,7 @@ void Godunov::ctu_sweep_MHD(FluidArray2D& _xL, FluidArray2D& _xR, FluidArray2D& 
 
 #else
 //MARK: CTU 2D Hydro
-void Godunov::ctu_sweep_hydro(FluidArray2D& _xL, FluidArray2D& _xR, FluidArray2D& _yL, FluidArray2D& _yR, FluxArray3D& F_X, FluxArray3D& F_Y, double dt_dx, double dt_dy){
+void Godunov::ctu_sweep_hydro(FluidArray2D& _xL, FluidArray2D& _xR, FluidArray2D& _yL, FluidArray2D& _yR,  FluxArray2D& F_X, FluxArray2D& F_Y,  double dt_dx, double dt_dy){
     correctState(_xL, _xR, F_Y, (0.5*dt_dy), 1);
     correctState(_yL, _yR, F_X, (0.5*dt_dx), 0);
 }

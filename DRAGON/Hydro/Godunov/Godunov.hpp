@@ -30,7 +30,7 @@ void applyFluxes(const FluidArray2D& w, FluidArray2D& _w, const FluxArray2D& F_X
 #ifdef MHD
 void ctu_sweep_MHD(FluidArray2D& _xL, FluidArray2D& _xR, FluidArray2D& _yL, FluidArray2D& _yR, const FluxArray2D& F_X, const FluxArray2D& F_Y, const MagneticArray2D& Ehalf, const MagneticArray2D &Bhalf,  const FluidArray2D& w0, const MagneticArray2D &B0, double dt_dx, double dt_dy);
 #else
-void ctu_sweep_hydro(FluidArray2D& _xL, FluidArray2D& _xR, FluidArray2D& _yL, FluidArray2D& _yR,  double dt_dx, double dt_dy);
+void ctu_sweep_hydro(FluidArray2D& _xL, FluidArray2D& _xR, FluidArray2D& _yL, FluidArray2D& _yR,  FluxArray2D& F_X, FluxArray2D& F_Y, double dt_dx, double dt_dy);
 void correctState(FluidArray2D& _L, FluidArray2D& _R, const FluxArray2D& F, double dt_dL, int dim);
 #endif
 
