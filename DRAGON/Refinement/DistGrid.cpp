@@ -127,6 +127,7 @@ void DistGrid1D::pushToChildren(){
         for (int i = -1; i <= child->getSize(); i++) {
             child->passives()[i] = passives()[i+x_offset];
         }
+        child->sources = sources.non_stiff_terms();
         child->pushToChildren(); //If children have children, make them sync too
            
         x_offset += child->getSize();
@@ -162,7 +163,7 @@ void DistGrid2D::pushToChildren(){
                     child->passives()[i,j] = passives()[i+x_offset, j+y_offset];
                 }
             }
-            
+            child->sources = sources.non_stiff_terms();
             child->pushToChildren();//If children have children, make them sync too
             
             y_offset += _ny;
@@ -209,6 +210,7 @@ void DistGrid3D::pushToChildren(){
                         }
                     }
                 }
+                child->sources = sources.non_stiff_terms();
                 child->pushToChildren();//If children have children, make them sync too
                 
                 z_offset += _nz;
