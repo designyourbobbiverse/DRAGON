@@ -23,8 +23,9 @@ using namespace DRAGON;
 
 
 //MARK: Godunov Sweep
-void Godunov::sweep(FluidArray1D& w, double dt_dx, PassiveArray1D& q){
+void Godunov::sweep(FluidArray1D& w, const double dt_dx, PassiveArray1D& q, Source::SourceTerm* src, const double dt){
     const int size = w.getSize(), ghosts = w.getGhosts();
+    const double dt_2 = dt*0.5;
     //Buffers for passives
         auto __w = DRAGONWING::requestPrimitiveArrays(1, w.getSize(), w.getGhosts());
         auto __f = DRAGONWING::requestFluxArrays(1, w.getSize(), w.getGhosts());
@@ -46,13 +47,22 @@ void Godunov::sweep(FluidArray1D& w, double dt_dx, PassiveArray1D& q){
         } else {
             _RL = w[i];
         }
+        if (src) {
+            auto S = src->source_density(w[i]) * dt_2;
+            _RL += S;
+            _RR += S;
+        }
         //ComputeFlux
         f[i] = Riemann(_LR, _RL).flux_X(dt_dx);
     }
-
-    //Apply Flux
+    //Apply Flux & Source
     for (int i=-ghosts+1; i<size+ghosts-1; i++){
-        w[i] += (f[i] - f[i+1]) * dt_dx; //Apply flux to cell
+        auto dU = (f[i] - f[i+1]) * dt_dx;
+        if (src)  {
+            auto w_half = w[i] + dU*0.5 + src->source_density(w[i]) * dt_2;
+            dU += src->source_density(w_half) * dt;
+        }
+        w[i] += dU;
     }
     //Advect passives
     auto _q = q.advected(f, _w, w, dt_dx);
@@ -60,8 +70,20 @@ void Godunov::sweep(FluidArray1D& w, double dt_dx, PassiveArray1D& q){
 }
 
 //MARK: 1D Advance
-void Grid1D::split_step(double dt){ Grid1D::unsplit_step(dt); }
 void Grid1D::unsplit_step(double dt){
+    //Compute the updated states
+    if (sources.count() > 0){
+        auto src = sources.sublist(Source::SplitPhase::nonstiff);
+        Godunov::sweep(w, dt/dx, q, &src, dt);
+    } else {
+        Godunov::sweep(w, dt/dx, q);
+    }
+    //Check physicality before comitting
+    for (int i=0; i<w.getSize(); i++) {
+        if (!w[i].isPhysical()) throw std::runtime_error(std::format("Unphysical state would be produced at ({})",i));
+    }
+}
+void Grid1D::split_step(double dt){
     //Compute the updated states
     Godunov::sweep(w, dt/dx, q);
     //Check physicality before comitting
