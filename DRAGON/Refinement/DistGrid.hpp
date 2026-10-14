@@ -41,7 +41,7 @@ struct DistGrid1D: public Grid1D, public DistGrid<DistGrid1D>{
     //Advance Forward in time
     void split_step(double dt) override;
     void unsplit_step(double dt) override;
-    void source_step(double dt, bool stiff_only = false) override;
+    void source_step(double dt, Source::SplitPhase phase) override;
 
 private:
     int ncx; //The number of children we have
@@ -61,7 +61,7 @@ struct DistGrid2D: public Grid2D, public DistGrid<DistGrid2D>{
     //Advance Forward in time
     void split_step(double dt) override;
     void unsplit_step(double dt) override;
-    void source_step(double dt, bool stiff_only = false) override;
+    void source_step(double dt, Source::SplitPhase phase) override;
 
 private:
     int ncx, ncy;//The number of children we have in each dimension
@@ -82,7 +82,7 @@ struct DistGrid3D: public Grid3D, public DistGrid<DistGrid3D>{
     //Advance Forward in time
     void split_step(double dt) override;
     void unsplit_step(double dt) override;
-    void source_step(double dt, bool stiff_only = false) override;
+    void source_step(double dt, Source::SplitPhase phase) override;
 
 private:
     int ncx, ncy, ncz;//The number of children we have in each dimension

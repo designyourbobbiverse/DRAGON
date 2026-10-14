@@ -70,7 +70,7 @@ void Grid2D::unsplit_step(double dt){
     //Calculate half-time state (needed for source terms + constrained transport)
         auto __w_half = DRAGONWING::requestPrimitiveArrays(1, nx, ny,  ghosts);
     FluidArray2D& _w_half = *__w_half[0];
-    applyFluxes(w, _w_half, F_X, F_Y, sources.non_stiff_terms(), w, dt_dx*0.5, dt_dy*0.5, dt*0.5, 1);
+    applyFluxes(w, _w_half, F_X, F_Y, sources.sublist(Source::SplitPhase::nonstiff), w, dt_dx*0.5, dt_dy*0.5, dt*0.5, 1);
 
     #ifdef MHD //Preliminary CT update
         auto __mag_half = DRAGONWING::requestVec3Arrays(2, nx+1, ny+1, ghosts);
@@ -108,7 +108,7 @@ void Grid2D::unsplit_step(double dt){
     //Preliminarily apply all fluxes + sources
         auto __w = DRAGONWING::requestPrimitiveArrays(1, nx, ny, ghosts); //Auto-releases when the function terminates
     FluidArray2D& _w = *__w[0];
-    applyFluxes(w, _w, F_X, F_Y, sources.non_stiff_terms(), _w_half, dt_dx, dt_dy, dt);
+    applyFluxes(w, _w, F_X, F_Y, sources.sublist(Source::SplitPhase::nonstiff), _w_half, dt_dx, dt_dy, dt);
 
     
     //Preliminary CT Update
@@ -195,7 +195,7 @@ void Grid3D::unsplit_step(double dt){
     //Calculate half-time state (needed for source terms + constrained transport)
         auto __w_half = DRAGONWING::requestPrimitiveArrays(1, nx, ny, nz, ghosts);
     FluidArray3D& _w_half = *__w_half[0];
-    applyFluxes(w, _w_half, F_X, F_Y, F_Z, sources.non_stiff_terms(), w, dt_dx*0.5, dt_dy*0.5, dt_dz*0.5, dt*0.5, 1);
+    applyFluxes(w, _w_half, F_X, F_Y, F_Z, sources.sublist(Source::SplitPhase::nonstiff), w, dt_dx*0.5, dt_dy*0.5, dt_dz*0.5, dt*0.5, 1);
     #ifdef MHD //Preliminary CT update
         auto __mag_half = DRAGONWING::requestVec3Arrays(2, nx+1, ny+1, nz+1, ghosts);
     MagneticArray3D &_B_half = *__mag_half[0], &_E = *__mag_half[1];
@@ -234,7 +234,7 @@ void Grid3D::unsplit_step(double dt){
     //Preliminarily apply all fluxes + sources
         auto __w = DRAGONWING::requestPrimitiveArrays(1, nx, ny, nz, ghosts); //Auto-releases when the function terminates
     FluidArray3D& _w = *__w[0];
-    applyFluxes(w, _w, F_X, F_Y, F_Z, sources.non_stiff_terms(), _w_half, dt_dx, dt_dy, dt_dz, dt);
+    applyFluxes(w, _w, F_X, F_Y, F_Z, sources.sublist(Source::SplitPhase::nonstiff), _w_half, dt_dx, dt_dy, dt_dz, dt);
 
     
     //Preliminary CT Update

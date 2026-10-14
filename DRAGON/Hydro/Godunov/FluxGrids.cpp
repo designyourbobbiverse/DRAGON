@@ -299,7 +299,7 @@ void Godunov::computeHalfStates_Z(FluidArray3D& _L, const Grid3D& _W, FluidArray
 void Godunov::halfStateSources(FluidArray2D& _L, const Grid2D& _W,  FluidArray2D& _R, double dt_2){
     if (_W.sources.count() == 0) return;
     const int nx = _W.getSizeX(), ny = _W.getSizeY(), g = _W.getGhosts();
-    const auto sources = _W.sources.non_stiff_terms();
+    const auto sources = _W.sources.sublist(Source::SplitPhase::nonstiff);
     
     for (int i=-g; i<nx+g; i++) {
         for (int j=-g; j<ny+g; j++) {
@@ -313,7 +313,7 @@ void Godunov::halfStateSources(FluidArray2D& _L, const Grid2D& _W,  FluidArray2D
 void Godunov::halfStateSources(FluidArray3D& _L, const Grid3D& _W,  FluidArray3D& _R, double dt_2){
     if (_W.sources.count() == 0) return;
     const int nx = _W.getSizeX(), ny = _W.getSizeY(), nz = _W.getSizeZ(), g = _W.getGhosts();
-    const auto sources = _W.sources.non_stiff_terms();
+    const auto sources = _W.sources.sublist(Source::SplitPhase::nonstiff);
     
     for (int i=-g; i<nx+g; i++) {
         for (int j=-g; j<ny+g; j++) {

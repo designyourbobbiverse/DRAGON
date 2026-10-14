@@ -176,10 +176,12 @@ void Grid::advance_split(double dt, bool check_cfl){
         do{
             DRAGONWING::resetFallbacks();
             try{
-                source_step(t1/2);
+                source_step(t1/2, Source::SplitPhase::stiff_forward);
+                source_step(t1/2, Source::SplitPhase::nonstiff);
                 boundary.apply(*this);
                 split_step(t1);
-                source_step(t1/2);
+                source_step(t1/2, Source::SplitPhase::nonstiff);
+                source_step(t1/2, Source::SplitPhase::stiff_reverse);
                 break; //Successful, end the step-attempt loop
             } catch(const std::exception &exc) { //A restart was requested (e.g. unphysical cell update)
                 restore();
@@ -207,10 +209,10 @@ void Grid::advance_unsplit(double dt, bool check_cfl){
         do{
             DRAGONWING::resetFallbacks();
             try{
-                source_step(t1/2, true); //Only stiff terms are strang-split
+                source_step(t1/2, Source::SplitPhase::stiff_forward);
                 boundary.apply(*this);
-                unsplit_step(t1);
-                source_step(t1/2, true);
+                unsplit_step(t1); //Unsplit handles non-stiff sources inline with advection
+                source_step(t1/2, Source::SplitPhase::stiff_reverse);
                 break; //Successful, end the step-attempt loop
             } catch(const std::exception &exc) { //A restart was requested (e.g. unphysical cell update)
                 restore();

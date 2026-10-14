@@ -17,10 +17,9 @@ using namespace Source;
 
 
 //MARK: Grid Sweep
-void Grid::source_step(double dt, bool stiff_only){
+void Grid::source_step(double dt, SplitPhase phase){
     if(sources.count() == 0) return;
-    if (stiff_only) sources.stiff_terms().advance(*this, dt);
-    else sources.advance(*this, dt);
+    sources.sublist(phase).advance(*this, dt);
 }
 
 void SourceTerm::advance(Grid& grid, double dt) const {

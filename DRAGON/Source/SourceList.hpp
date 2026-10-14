@@ -18,6 +18,12 @@ namespace DRAGON::Source {
 class SourceList;
 template<class S> concept SourceType = std::derived_from<std::decay_t<S>, SourceTerm> && !std::derived_from<std::decay_t<S>, SourceList>;
 
+typedef enum {
+    nonstiff,
+    stiff_forward,
+    stiff_reverse
+} SplitPhase;
+
 
 class SourceList : public SourceTerm {
 private:
@@ -79,24 +85,36 @@ public:
     class SourceSublist: public SourceTerm {
     private:
         const std::vector<std::unique_ptr<SourceTerm>>* sources;
-        bool stiff = false;
+        SplitPhase phase;
     public:
-        SourceSublist(const std::vector<std::unique_ptr<SourceTerm>>* sources_, bool stiff_): sources(sources_), stiff(stiff_) {}
+        SourceSublist(const std::vector<std::unique_ptr<SourceTerm>>* sources_, SplitPhase phase_): sources(sources_), phase(phase_) {}
         
-        bool isStiff() const override { return stiff; }
+        bool isStiff() const override { return phase != nonstiff; }
         
         ConservativeState source_density(const PrimitiveState &w, double t) const override {
             ConservativeState S{};
-            for(auto& s: *sources){
-                if (s->isStiff() == stiff) S += s->source_density(w,t);
+            switch (phase) {
+            case nonstiff:
+                for (auto &s : *sources){
+                    if (!s->isStiff()) S += s->source_density(w,t);
+                }
+                break;
+            case stiff_forward:
+                for (auto it = sources->begin(); it != sources->end(); ++it) {
+                    if ((*it)->isStiff()) S += (*it)->source_density(w,t);
+                }
+                break;
+            case stiff_reverse:
+                for (auto it = sources->rbegin(); it != sources->rend(); ++it) {
+                    if ((*it)->isStiff()) S += (*it)->source_density(w,t);
+                }
+                break;
             }
             return S;
         }
     };
     
-    SourceSublist stiff_terms() const { return SourceSublist(&sources, true); }
-    SourceSublist non_stiff_terms() const { return SourceSublist(&sources, false); }
-
+    SourceSublist sublist(SplitPhase phase) const { return SourceSublist(&sources, phase); }
     
 };
 

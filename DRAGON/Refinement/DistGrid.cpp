@@ -127,7 +127,7 @@ void DistGrid1D::pushToChildren(){
         for (int i = -1; i <= child->getSize(); i++) {
             child->passives()[i] = passives()[i+x_offset];
         }
-        child->sources = sources.non_stiff_terms();
+        child->sources = sources.sublist(Source::SplitPhase::nonstiff);
         child->pushToChildren(); //If children have children, make them sync too
            
         x_offset += child->getSize();
@@ -163,7 +163,7 @@ void DistGrid2D::pushToChildren(){
                     child->passives()[i,j] = passives()[i+x_offset, j+y_offset];
                 }
             }
-            child->sources = sources.non_stiff_terms();
+            child->sources = sources.sublist(Source::SplitPhase::nonstiff);
             child->pushToChildren();//If children have children, make them sync too
             
             y_offset += _ny;
@@ -210,7 +210,7 @@ void DistGrid3D::pushToChildren(){
                         }
                     }
                 }
-                child->sources = sources.non_stiff_terms();
+                child->sources = sources.sublist(Source::SplitPhase::nonstiff);
                 child->pushToChildren();//If children have children, make them sync too
                 
                 z_offset += _nz;
@@ -337,81 +337,77 @@ template <typename T> void DistGrid<T>::source_step(Source::SourceTerm* sources,
 
 //MARK: Subclass Dispatch
 void DistGrid1D::split_step(double dt){
-    if (children.size() <= 1 ) {
+    if (children.size() <= 1) {
         Grid1D::split_step(dt);
         DRAGONWING::reportCheckpoint2();
     } else { DistGrid::step(dt); }
 }
 void DistGrid1D::unsplit_step(double dt){
-    if (children.size() <= 1 ) {
+    if (children.size() <= 1) {
         Grid1D::unsplit_step(dt);
         DRAGONWING::reportCheckpoint2();
         return;
     } else { DistGrid::step(dt); }
 }
-void DistGrid1D::source_step(double dt, bool stiff_only) {
-    if (children.size() <= 1 ) {
-        Grid1D::source_step(dt, stiff_only);
+void DistGrid1D::source_step(double dt, Source::SplitPhase phase) {
+    if(sources.count() == 0) return;
+
+    if (children.size() <= 1) {
+        Grid1D::source_step(dt, phase);
         DRAGONWING::reportCheckpoint2();
-    } else if(stiff_only) {
-        auto s = sources.stiff_terms();
+    }  else {
+        auto s = sources.sublist(phase);
         DistGrid::source_step(&s, dt);
-    } else {
-        DistGrid::source_step(&sources, dt);
     }
 }
 
 
 void DistGrid2D::split_step(double dt){
-    if (children.size() <= 1 ) {
+    if (children.size() <= 1) {
         Grid2D::split_step(dt);
         DRAGONWING::reportCheckpoint2();
     } else { DistGrid::step(dt); }
 }
 void DistGrid2D::unsplit_step(double dt){
-    if (children.size() <= 1 ) {
+    if (children.size() <= 1) {
         Grid2D::unsplit_step(dt);
         DRAGONWING::reportCheckpoint2();
         return;
     } else { DistGrid::step(dt); }
 }
-void DistGrid2D::source_step(double dt, bool stiff_only) {
+void DistGrid2D::source_step(double dt, Source::SplitPhase phase) {
     if(sources.count() == 0) return;
 
-    if (children.size() <= 1 ) {
-        Grid2D::source_step(dt, stiff_only);
+    if (children.size() <= 1) {
+        Grid2D::source_step(dt, phase);
         DRAGONWING::reportCheckpoint2();
-    } else if(stiff_only) {
-        auto s = sources.stiff_terms();
+    }  else {
+        auto s = sources.sublist(phase);
         DistGrid::source_step(&s, dt);
-    } else {
-        DistGrid::source_step(&sources, dt);
     }
 }
 
 
 void DistGrid3D::split_step(double dt){
-    if (children.size() <= 1 ) {
+    if (children.size() <= 1) {
         Grid3D::split_step(dt);
         DRAGONWING::reportCheckpoint2();
     } else {  DistGrid::step(dt); }
 }
 void DistGrid3D::unsplit_step(double dt){
-    if (children.size() <= 1 ) {
+    if (children.size() <= 1) {
         Grid3D::unsplit_step(dt);
         DRAGONWING::reportCheckpoint2();
     } else { DistGrid::step(dt); }
 }
-void DistGrid3D::source_step(double dt, bool stiff_only) {
+void DistGrid3D::source_step(double dt, Source::SplitPhase phase) {
     if(sources.count() == 0) return;
 
-    if (children.size() <= 1 ) {
-        Grid3D::source_step(dt, stiff_only);
+    if (children.size() <= 1) {
+        Grid3D::source_step(dt, phase);
         DRAGONWING::reportCheckpoint2();
-    } else if(stiff_only) {
-        auto s = sources.stiff_terms();
-        DistGrid::source_step(&s, dt);
     } else {
-        DistGrid::source_step(&sources, dt);
+        auto s = sources.sublist(phase);
+        DistGrid::source_step(&s, dt);
     }
 }

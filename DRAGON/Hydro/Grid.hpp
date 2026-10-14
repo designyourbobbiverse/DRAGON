@@ -23,7 +23,7 @@ public:
     void advance_step(double dt); //Calls split_step or unsplit_step in accordance with Config.h
     virtual void split_step(double dt) = 0; //Should advance all dimensnions by dt
     virtual void unsplit_step(double dt) = 0;
-    virtual void source_step(double dt, bool stiff_only = false);
+    virtual void source_step(double dt, Source::SplitPhase phase);
 
     
     //Advance the grid by time dt. If check_cfl is true, the timestep will be CFL-limited and looped if necessary
