@@ -112,6 +112,26 @@ public:
             }
             return S;
         }
+        
+        ConservativeState integrate(double dt, const PrimitiveState& w0, double t0) const override {
+            switch (phase) {
+            case nonstiff: return SourceTerm::integrate(dt, w0, t0);
+            case stiff_forward: {
+                ConservativeState U(w0);
+                for (auto it = sources->begin(); it != sources->end(); ++it) {
+                    if ((*it)->isStiff()) U += (*it)->integrate(dt, U, t0);
+                }
+                return U;
+            }
+            case stiff_reverse: {
+                ConservativeState U(w0);
+                for (auto it = sources->rbegin(); it != sources->rend(); ++it) {
+                    if ((*it)->isStiff()) U += (*it)->integrate(dt, U, t0);
+                }
+                return U;
+            }
+            }
+        }
     };
     
     SourceSublist sublist(SplitPhase phase) const { return SourceSublist(&sources, phase); }

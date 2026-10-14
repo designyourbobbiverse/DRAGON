@@ -25,10 +25,12 @@ namespace DRAGON::Source{
 class SourceTerm{
 public:
     //This function should return the source terms (in conservative form)
-    virtual ConservativeState source_density(const PrimitiveState& w, double t) const = 0;
+    virtual ConservativeState source_density(const PrimitiveState& w, double t=0) const = 0;
     
     //Integrate the source term ODE over dt, starting from initial (w0, t0)
-    ConservativeState integrate(double dt, const PrimitiveState& w0, double t0=0) const ; //Chooses RK2 vs RK4 based on Config.h
+    //Default implementation chooses RK2 vs RK4 based on Config.h
+    //Override to provide manual implicit integration stiff sources
+    virtual ConservativeState integrate(double dt, const PrimitiveState& w0, double t0=0) const ;
     ConservativeState rk2(double dt, const PrimitiveState& w0, double t0=0) const ;
     ConservativeState rk4(double dt, const PrimitiveState& w0, double t0=0) const ;
     
@@ -43,6 +45,7 @@ public:
     //Stiff term integration is always split to the advection step
     //Non-stiff terms are integrated as part of unsplit advection, or split in advection
     virtual bool isStiff() const { return false; }
+    
     
     virtual ~SourceTerm() = default;
 };

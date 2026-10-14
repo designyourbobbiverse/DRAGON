@@ -95,6 +95,7 @@ ConservativeState SourceTerm::rk4(double dt, const PrimitiveState& w0, double t0
 
 
 
+
 //MARK: Energy/Force/Mass Types
 ConservativeState EnergySource::source_density(const PrimitiveState &w, double t) const {
     ConservativeState S{};
