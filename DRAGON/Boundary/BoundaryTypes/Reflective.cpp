@@ -32,9 +32,9 @@ void Boundary::Reflective::apply(Grid1D& grid){
             #endif
             //Account for any force terms
             if (grid.sources.count() > 0){
-                force += grid.sources.source_density(grid[-g+1], 0).mom.x;
+                force += grid.sources.source_density(grid[-g+1]).mom.x;
                 grid[-g].p -= force * grid.dx;
-                force += grid.sources.source_density(grid[g-1], 0).mom.x;
+                force += grid.sources.source_density(grid[g-1]).mom.x;
             }
         }
         q[-1] = q[0]; //Copy passives (only first ghost)
@@ -51,9 +51,9 @@ void Boundary::Reflective::apply(Grid1D& grid){
             #endif
             //Account for any force terms
             if (grid.sources.count() > 0){
-                force += grid.sources.source_density(grid[nx-2+g], 0).mom.x;
+                force += grid.sources.source_density(grid[nx-2+g]).mom.x;
                 grid[nx-1+g].p += force * grid.dx;
-                force += grid.sources.source_density(grid[nx-g], 0).mom.x;
+                force += grid.sources.source_density(grid[nx-g]).mom.x;
             }
         }
         q[nx] = q[nx-1]; //Copy passives (only first ghost)
@@ -81,9 +81,9 @@ void Boundary::Reflective::apply(Grid2D& grid){
                 #endif
                 //Account for any force terms
                 if (grid.sources.count() > 0){
-                    force += grid.sources.source_density(grid[-g+1,j], 0).mom.x;
+                    force += grid.sources.source_density(grid[-g+1,j]).mom.x;
                     grid[-g,j].p -= force * grid.dx;
-                    force += grid.sources.source_density(grid[g-1,j], 0).mom.x;
+                    force += grid.sources.source_density(grid[g-1,j]).mom.x;
                 }
             }
             if (j >= -1 && j <= ny) q[-1,j] = q[0,j]; //Copy passives (only first ghost)
@@ -101,9 +101,9 @@ void Boundary::Reflective::apply(Grid2D& grid){
                 #endif
                 //Account for any force terms
                 if (grid.sources.count() > 0){
-                    force += grid.sources.source_density(grid[nx-2+g,j], 0).mom.x;
+                    force += grid.sources.source_density(grid[nx-2+g,j]).mom.x;
                     grid[nx-1+g,j].p += force * grid.dx;
-                    force += grid.sources.source_density(grid[nx-g,j], 0).mom.x;
+                    force += grid.sources.source_density(grid[nx-g,j]).mom.x;
                 }
             }
             if (j >= -1 && j <= ny) q[nx,j] = q[nx-1,j]; //Copy passives (only first ghost)
@@ -121,9 +121,9 @@ void Boundary::Reflective::apply(Grid2D& grid){
                 #endif
                 //Account for any force terms
                 if (grid.sources.count() > 0){
-                    force += grid.sources.source_density(grid[i,-g+1], 0).mom.y;
+                    force += grid.sources.source_density(grid[i,-g+1]).mom.y;
                     grid[i,-g].p -= force * grid.dy;
-                    force += grid.sources.source_density(grid[i,g-1], 0).mom.y;
+                    force += grid.sources.source_density(grid[i,g-1]).mom.y;
                 }
             }
             if (i >= -1 && i <= nx) q[i,-1] = q[i,0]; //Copy passives (only first ghost)
@@ -141,9 +141,9 @@ void Boundary::Reflective::apply(Grid2D& grid){
                 #endif
                 //Account for any force terms
                 if (grid.sources.count() > 0){
-                    force += grid.sources.source_density(grid[i,ny-2+g], 0).mom.y;
+                    force += grid.sources.source_density(grid[i,ny-2+g]).mom.y;
                     grid[i,ny-1+g].p += force * grid.dy;
-                    force += grid.sources.source_density(grid[i,ny-g], 0).mom.y;
+                    force += grid.sources.source_density(grid[i,ny-g]).mom.y;
                 }
             }
             if (i >= -1 && i <= nx) q[i,ny] = q[i,ny-1]; //Copy passives (only first ghost)
@@ -214,9 +214,9 @@ void Boundary::Reflective::apply(Grid3D& grid){
                     #endif
                     //Account for any force terms
                     if (grid.sources.count() > 0){
-                        force += grid.sources.source_density(grid[-g+1,j,k], 0).mom.x;
+                        force += grid.sources.source_density(grid[-g+1,j,k]).mom.x;
                         grid[-g,j,k].p -= force * grid.dx;
-                        force += grid.sources.source_density(grid[g-1,j,k], 0).mom.x;
+                        force += grid.sources.source_density(grid[g-1,j,k]).mom.x;
                     }
                 }
                 if (j >= -1 && j <= ny && k >= -1 && k <= nz)
@@ -237,9 +237,9 @@ void Boundary::Reflective::apply(Grid3D& grid){
                     #endif
                     //Account for any force terms
                     if (grid.sources.count() > 0){
-                        force += grid.sources.source_density(grid[nx-2+g,j,k], 0).mom.x;
+                        force += grid.sources.source_density(grid[nx-2+g,j,k]).mom.x;
                         grid[nx-1+g,j,k].p += force * grid.dx;
-                        force += grid.sources.source_density(grid[nx-g,j,k], 0).mom.x;
+                        force += grid.sources.source_density(grid[nx-g,j,k]).mom.x;
                     }
                 }
                 if (j >= -1 && j <= ny && k >= -1 && k <= nz)
@@ -260,9 +260,9 @@ void Boundary::Reflective::apply(Grid3D& grid){
                     #endif
                     //Account for any force terms
                     if (grid.sources.count() > 0){
-                        force += grid.sources.source_density(grid[i,-g+1,k], 0).mom.y;
+                        force += grid.sources.source_density(grid[i,-g+1,k]).mom.y;
                         grid[i,-g,k].p -= force * grid.dy;
-                        force += grid.sources.source_density(grid[i,g-1,k], 0).mom.y;
+                        force += grid.sources.source_density(grid[i,g-1,k]).mom.y;
                     }
                 }
                 if (i >= -1 && i <= nx && k >= -1 && k <= nz)
@@ -283,9 +283,9 @@ void Boundary::Reflective::apply(Grid3D& grid){
                     #endif
                     //Account for any force terms
                     if (grid.sources.count() > 0){
-                        force += grid.sources.source_density(grid[i,ny-2+g,k], 0).mom.y;
+                        force += grid.sources.source_density(grid[i,ny-2+g,k]).mom.y;
                         grid[i,ny-1+g,k].p += force * grid.dy;
-                        force += grid.sources.source_density(grid[i,ny-g,k], 0).mom.y;
+                        force += grid.sources.source_density(grid[i,ny-g,k]).mom.y;
                     }
                 }
                 if (i >= -1 && i <= nx && k >= -1 && k <= nz)
@@ -306,9 +306,9 @@ void Boundary::Reflective::apply(Grid3D& grid){
                     #endif
                     //Account for any force terms
                     if (grid.sources.count() > 0){
-                        force += grid.sources.source_density(grid[i,j,-g+1], 0).mom.z;
+                        force += grid.sources.source_density(grid[i,j,-g+1]).mom.z;
                         grid[i,j,-g].p -= force * grid.dz;
-                        force += grid.sources.source_density(grid[i,j,g-1], 0).mom.z;
+                        force += grid.sources.source_density(grid[i,j,g-1]).mom.z;
                     }
                 }
                 if (i >= -1 && i <= nx && j >= -1 && j <= ny)
@@ -329,9 +329,9 @@ void Boundary::Reflective::apply(Grid3D& grid){
                     #endif
                     //Account for any force terms
                     if (grid.sources.count() > 0){
-                        force += grid.sources.source_density(grid[i,j,nz-2+g], 0).mom.z;
+                        force += grid.sources.source_density(grid[i,j,nz-2+g]).mom.z;
                         grid[i,j,nz-1+g].p += force * grid.dz;
-                        force += grid.sources.source_density(grid[i,j,nz-g], 0).mom.z;
+                        force += grid.sources.source_density(grid[i,j,nz-g]).mom.z;
                     }
                 }
                 if (i >= -1 && i <= nx && j >= -1 && j <= ny)

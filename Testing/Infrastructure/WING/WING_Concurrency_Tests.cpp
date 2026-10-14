@@ -85,7 +85,7 @@ public:
 class TestSource: public Source::SourceTerm {
 public:
     bool shouldThrow = false;
-    ConservativeState source_density(const PrimitiveState& w, double t)  const override {
+    ConservativeState source_density(const PrimitiveState& w, double t=0)  const override {
         if(shouldThrow) throw std::runtime_error("(x2)");
         auto u = ConservativeState();
         u.mom.x = -thread_num / 3.14;

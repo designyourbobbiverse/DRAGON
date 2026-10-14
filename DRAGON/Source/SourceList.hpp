@@ -29,7 +29,7 @@ class SourceList : public SourceTerm {
 private:
     std::vector<std::unique_ptr<SourceTerm>>  sources;
 public:
-    ConservativeState source_density(const PrimitiveState &w, double t) const override {
+    ConservativeState source_density(const PrimitiveState &w, double t=0) const override {
         ConservativeState S{};
         for(auto& s: sources) S += s->source_density(w,t);
         return S;
@@ -91,7 +91,7 @@ public:
         
         bool isStiff() const override { return phase != nonstiff; }
         
-        ConservativeState source_density(const PrimitiveState &w, double t) const override {
+        ConservativeState source_density(const PrimitiveState &w, double t=0) const override {
             ConservativeState S{};
             switch (phase) {
             case nonstiff:

@@ -76,7 +76,7 @@ public:
     virtual double density(const PrimitiveState& w, double t)  const = 0; //Provide the source term for the rho component
     virtual vec3 velocity(const PrimitiveState& w, double t) const ; //Override this if the source isn't comoving with the fluid
     virtual double thermal_energy(const PrimitiveState& w, double t) const ; //Override this if the source isn't in thermal equilibrium with the fluid
-    virtual ConservativeState source_density(const PrimitiveState& w, double t) const override;
+    virtual ConservativeState source_density(const PrimitiveState& w, double t=0) const override;
 };
 
 //Momentum Sources for net forces
@@ -84,13 +84,13 @@ public:
 class MomentumSource: public SourceTerm{
 public:
     virtual vec3 force(const PrimitiveState& w, double t) const  = 0; //Provide the source term for the rho*v component
-    virtual ConservativeState source_density(const PrimitiveState& w, double t) const override;
+    virtual ConservativeState source_density(const PrimitiveState& w, double t=0) const override;
 };
 //Energy Sources for adding (or removing) energy via isotropic transfer
 class EnergySource: public SourceTerm{
 public:
     virtual double energy(const PrimitiveState& w, double t) const = 0; //Provide the source term fro the E component
-    ConservativeState source_density(const PrimitiveState& w, double t) const override;
+    ConservativeState source_density(const PrimitiveState& w, double t=0) const override;
 };
 
 

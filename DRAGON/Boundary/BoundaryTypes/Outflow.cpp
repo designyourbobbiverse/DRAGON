@@ -30,7 +30,7 @@ void Boundary::Outflow::apply(Grid1D& grid){
             if (gated && grid[-g].v.x > 0) grid[-g].v.x = 0; //Kill inflows if applicable
             //Account for any force terms
             if (grid.sources.count() > 0){
-                force += grid.sources.source_density(grid[-g+1], 0).mom.x;
+                force += grid.sources.source_density(grid[-g+1]).mom.x;
                 grid[-g].p -= force * grid.dx;
             }
         }
@@ -44,7 +44,7 @@ void Boundary::Outflow::apply(Grid1D& grid){
             if (gated && grid[nx-1+g].v.x < 0) grid[nx-1+g].v.x = 0; //Kill inflows if applicable
             //Account for any force terms
             if (grid.sources.count() > 0){
-                force += grid.sources.source_density(grid[nx-2+g], 0).mom.x;
+                force += grid.sources.source_density(grid[nx-2+g]).mom.x;
                 grid[nx-1+g].p += force * grid.dx;
             }
         }
@@ -70,7 +70,7 @@ void Boundary::Outflow::apply(Grid2D& grid){
                 if (gated && grid[-g,j].v.x > 0) grid[-g,j].v.x = 0; //Kill inflows if applicable
                 //Account for any force terms
                 if (grid.sources.count() > 0){
-                    force += grid.sources.source_density(grid[-g+1,j], 0).mom.x;
+                    force += grid.sources.source_density(grid[-g+1,j]).mom.x;
                     grid[-g,j].p -= force * grid.dx;
                 }
             }
@@ -85,7 +85,7 @@ void Boundary::Outflow::apply(Grid2D& grid){
                 if (gated && grid[nx-1+g,j].v.x < 0) grid[nx-1+g,j].v.x = 0; //Kill inflows if applicable
                 //Account for any force terms
                 if (grid.sources.count() > 0){
-                    force += grid.sources.source_density(grid[nx-2+g,j], 0).mom.x;
+                    force += grid.sources.source_density(grid[nx-2+g,j]).mom.x;
                     grid[nx-1+g,j].p += force * grid.dx;
                 }
             }
@@ -100,7 +100,7 @@ void Boundary::Outflow::apply(Grid2D& grid){
                 if (gated && grid[i,-g].v.y > 0) grid[i,-g].v.y = 0; //Kill inflows if applicable
                 //Account for any force terms
                 if (grid.sources.count() > 0){
-                    force += grid.sources.source_density(grid[i,-g+1], 0).mom.y;
+                    force += grid.sources.source_density(grid[i,-g+1]).mom.y;
                     grid[i,-g].p -= force * grid.dy;
                 }
             }
@@ -115,7 +115,7 @@ void Boundary::Outflow::apply(Grid2D& grid){
                 if (gated && grid[i,ny-1+g].v.y < 0) grid[i,ny-1+g].v.y = 0; //Kill inflows if applicable
                 //Account for any force terms
                 if (grid.sources.count() > 0){
-                    force += grid.sources.source_density(grid[i,ny-2+g], 0).mom.y;
+                    force += grid.sources.source_density(grid[i,ny-2+g]).mom.y;
                     grid[i,ny-1+g].p += force * grid.dy;
                 }
             }
@@ -182,7 +182,7 @@ void Boundary::Outflow::apply(Grid3D& grid){
                     if (gated && grid[-g,j,k].v.x > 0) grid[-g,j,k].v.x = 0; //Kill inflows if applicable
                     //Account for any force terms
                     if (grid.sources.count() > 0){
-                        force += grid.sources.source_density(grid[-g+1,j,k], 0).mom.x;
+                        force += grid.sources.source_density(grid[-g+1,j,k]).mom.x;
                         grid[-g,j,k].p -= force * grid.dx;
                     }
                 }
@@ -200,7 +200,7 @@ void Boundary::Outflow::apply(Grid3D& grid){
                     if (gated && grid[nx-1+g,j,k].v.x < 0) grid[nx-1+g,j,k].v.x = 0; //Kill inflows if applicable
                     //Account for any force terms
                     if (grid.sources.count() > 0){
-                        force += grid.sources.source_density(grid[nx-2+g,j,k], 0).mom.x;
+                        force += grid.sources.source_density(grid[nx-2+g,j,k]).mom.x;
                         grid[nx-1+g,j,k].p += force * grid.dx;
                     }
                 }
@@ -218,7 +218,7 @@ void Boundary::Outflow::apply(Grid3D& grid){
                     if (gated && grid[i,-g,k].v.y > 0) grid[i,-g,k].v.y = 0; //Kill inflows if applicable
                     //Account for any force terms
                     if (grid.sources.count() > 0){
-                        force += grid.sources.source_density(grid[i,-g+1,k], 0).mom.y;
+                        force += grid.sources.source_density(grid[i,-g+1,k]).mom.y;
                         grid[i,-g,k].p -= force * grid.dy;
                     }
                 }
@@ -236,7 +236,7 @@ void Boundary::Outflow::apply(Grid3D& grid){
                     if (gated && grid[i,ny-1+g,k].v.y < 0) grid[i,ny-1+g,k].v.y = 0; //Kill inflows if applicable
                     //Account for any force terms
                     if (grid.sources.count() > 0){
-                        force += grid.sources.source_density(grid[i,ny-2+g,k], 0).mom.y;
+                        force += grid.sources.source_density(grid[i,ny-2+g,k]).mom.y;
                         grid[i,ny-1+g,k].p += force * grid.dy;
                     }
                 }
@@ -254,7 +254,7 @@ void Boundary::Outflow::apply(Grid3D& grid){
                     if (gated && grid[i,j,-g].v.z > 0) grid[i,j,-g].v.z = 0; //Kill inflows if applicable
                     //Account for any force terms
                     if (grid.sources.count() > 0){
-                        force += grid.sources.source_density(grid[i,j,-g+1], 0).mom.z;
+                        force += grid.sources.source_density(grid[i,j,-g+1]).mom.z;
                         grid[i,j,-g].p -= force * grid.dz;
                     }
                 }
@@ -272,7 +272,7 @@ void Boundary::Outflow::apply(Grid3D& grid){
                     if (gated && grid[i,j,nz-1+g].v.z < 0) grid[i,j,nz-1+g].v.z = 0; //Kill inflows if applicable
                     //Account for any force terms
                     if (grid.sources.count() > 0){
-                        force += grid.sources.source_density(grid[i,j,nz-2+g], 0).mom.z;
+                        force += grid.sources.source_density(grid[i,j,nz-2+g]).mom.z;
                         grid[i,j,nz-1+g].p += force * grid.dz;
                     }
                 }

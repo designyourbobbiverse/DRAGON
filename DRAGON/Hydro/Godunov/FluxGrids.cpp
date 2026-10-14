@@ -30,7 +30,7 @@ void Godunov::applyFluxes(const FluidArray2D& w, FluidArray2D& _w, const FluxArr
             ConservativeState dU{};
             dU += dt_dx * (F_X[i,j] - F_X[i+1,j]);
             dU += dt_dy * (F_Y[i,j] - F_Y[i,j+1]);
-            dU += dt * source.source_density(wref[i,j], dt);
+            dU += dt * source.source_density(wref[i,j]);
             
             if (!dU.isFinite()) throw std::runtime_error(std::format("\tNaN state would be produced at ({},{})\n",i,j));
             
@@ -50,7 +50,7 @@ void Godunov::applyFluxes(const FluidArray3D& w, FluidArray3D& _w, const FluxArr
                 dU += dt_dx * (F_X[i,j,k] - F_X[i+1,j,k]);
                 dU += dt_dy * (F_Y[i,j,k] - F_Y[i,j+1,k]);
                 dU += dt_dz * (F_Z[i,j,k] - F_Z[i,j,k+1]);
-                dU += dt * source.source_density(wref[i,j,k], dt);
+                dU += dt * source.source_density(wref[i,j,k]);
                 
                 if (!dU.isFinite())
                     throw std::runtime_error(std::format("\tNaN state would be produced at ({},{},{})\n",i,j,k));
@@ -303,7 +303,7 @@ void Godunov::halfStateSources(FluidArray2D& _L, const Grid2D& _W,  FluidArray2D
     
     for (int i=-g; i<nx+g; i++) {
         for (int j=-g; j<ny+g; j++) {
-            auto S = sources.source_density(_W[i,j], dt_2) * dt_2;
+            auto S = sources.source_density(_W[i,j]) * dt_2;
             _L[i,j] += S;
             _R[i,j] += S;
         }
@@ -318,7 +318,7 @@ void Godunov::halfStateSources(FluidArray3D& _L, const Grid3D& _W,  FluidArray3D
     for (int i=-g; i<nx+g; i++) {
         for (int j=-g; j<ny+g; j++) {
             for (int k=-g; k<nz+g; k++) {
-                auto S = sources.source_density(_W[i,j,k], dt_2) * dt_2;
+                auto S = sources.source_density(_W[i,j,k]) * dt_2;
                 _L[i,j,k] += S;
                 _R[i,j,k] += S;
             }
