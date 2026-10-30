@@ -8,12 +8,13 @@
 #define TVD_hpp
 
 #include "FluidElement/FluidElement.hpp" //For PrimitiveState, vec3
+#include "Source/Source.hpp"            //For Source Terms
 
 const DRAGON::vec3 zero = {0,0,0};
 
 namespace DRAGON::TVD{
 //MUSCL Reconstruction
-void MUSCL(const PrimitiveState& wL, PrimitiveState& _L, const PrimitiveState& wC, PrimitiveState& _R, const PrimitiveState& wR, double dt_dL, const vec3& dB = zero);
+void MUSCL(const PrimitiveState& wL, PrimitiveState& _L, const PrimitiveState& wC, PrimitiveState& _R, const PrimitiveState& wR, double dt_dL, const Source::SourceTerm* src = nullptr, double dt = 0,  const vec3& dB = zero);
 
 //Apply the limiter chosen in Config.h
 PrimitiveState limit(const PrimitiveState& a, const PrimitiveState& b);

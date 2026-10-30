@@ -36,21 +36,16 @@ void Godunov::sweep(FluidArray1D& w, const double dt_dx, PassiveArray1D& q, Sour
     //Compute Fluxes
     PrimitiveState _LR = w[-ghosts], _RL, _RR;
     //Compute the leftmost flux
-    TVD::MUSCL(w[-ghosts], _RL, w[-ghosts+1], _RR, w[-ghosts+2], dt_dx);
+    TVD::MUSCL(w[-ghosts], _RL, w[-ghosts+1], _RR, w[-ghosts+2], dt_dx, src, dt);
     f[-ghosts+1] = Riemann(_LR, _RL).flux_X(dt_dx);
     //Sweep through the array
     for (int i=-ghosts+2; i<size+ghosts; i++) {
         _LR = _RR;//Move Right state from previous cycle
         //Reconstruct Half-States (if applicable)
         if (i+1 < size+ghosts) {
-            TVD::MUSCL(w[i-1], _RL, w[i], _RR, w[i+1], dt_dx);
+            TVD::MUSCL(w[i-1], _RL, w[i], _RR, w[i+1], dt_dx, src, dt);
         } else {
             _RL = w[i];
-        }
-        if (src) {
-            auto S = src->source_density(w[i]) * dt_2;
-            _RL += S;
-            _RR += S;
         }
         //ComputeFlux
         f[i] = Riemann(_LR, _RL).flux_X(dt_dx);

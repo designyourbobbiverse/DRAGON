@@ -16,7 +16,7 @@
 using namespace DRAGON;
 
 //MARK: MUSCL-Hancock
-void TVD::MUSCL(const PrimitiveState& wL, PrimitiveState& _L, const PrimitiveState& wC, PrimitiveState& _R, const PrimitiveState& wR, double dt_dL, const vec3& dB){
+void TVD::MUSCL(const PrimitiveState& wL, PrimitiveState& _L, const PrimitiveState& wC, PrimitiveState& _R, const PrimitiveState& wR, double dt_dL,  const Source::SourceTerm* src, double dt, const vec3& dB){
 #ifdef MUSCL_Hancock
     // Reconstruct a limited primitive-variable slope
     PrimitiveState leftDiff, rightDiff;
@@ -41,19 +41,19 @@ void TVD::MUSCL(const PrimitiveState& wL, PrimitiveState& _L, const PrimitiveSta
     
     //Time half step (MUSCL-Hancock Predictor)
     ConservativeState UL = ConservativeState(_L), UR = ConservativeState(_R);
-    ConservativeState correction = (UR.flux(_R.v) - UL.flux(_L.v)) * (0.5 * dt_dL);
+    ConservativeState correction = (UL.flux(_L.v) - UR.flux(_R.v)) * (0.5 * dt_dL); //Flux Prediction
+    if(src) correction += src->source_density(wC) * (dt*0.5); //User Source Terms
     #ifdef MHD//MHD Source Terms
     //dB.x = (Bx[x+1/2 CT face] - Bx[x-1/2 CT face]) * dt_dL, etc
     const double dBy_ = 0.5 * wC.v.y * (TVD::minmod(dB.x, -dB.y) - dW.B.x * dt_dL);
     const double dBz_ = 0.5 * wC.v.z * (TVD::minmod(dB.x, -dB.z) - dW.B.x * dt_dL);
-
-    correction.B.y -= dBy_;
-    correction.B.z -= dBz_;
-    correction.E   -= _1_4pi * (wC.B.y*dBy_ + wC.B.z*dBz_);   // hold thermal p fixed
+    correction.B.y += dBy_;
+    correction.B.z += dBz_;
+    correction.E   += _1_4pi * (wC.B.y*dBy_ + wC.B.z*dBz_);   // hold thermal p fixed
     #endif
     // Correction is applied in conservative, then automatically converted back to primitive
-    _L = UL - correction;
-    _R = UR - correction;
+    _L = UL + correction;
+    _R = UR + correction;
     
     //Check to make sure this didn't overshoot past positivity limit, fallback to First order if needed
     if (_L.isPhysical() && _R.isPhysical() ) return;

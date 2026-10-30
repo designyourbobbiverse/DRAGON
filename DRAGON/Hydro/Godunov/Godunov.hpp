@@ -19,7 +19,6 @@ void sweep(FluidArray1D& w, const double dt_dx, PassiveArray1D& q, Source::Sourc
 //2D
 void computeHalfStates_X(FluidArray2D& _L, const Grid2D& _W,  FluidArray2D& _R, double dt);
 void computeHalfStates_Y(FluidArray2D& _L, const Grid2D& _W,  FluidArray2D& _R, double dt);
-void halfStateSources(FluidArray2D& _L, const Grid2D& _W,  FluidArray2D& _R, double dt_2);
 
 void computeFlux_X(const FluidArray2D& _L, const FluidArray2D& _R, FluxArray2D& F, int xL, int xR, int yL, int yR, double dt_dx);
 void computeFlux_Y(const FluidArray2D& _L, const FluidArray2D& _R, FluxArray2D& F, int xL, int xR, int yL, int yR, double dt_dy);
@@ -40,7 +39,6 @@ void correctState(FluidArray2D& _L, FluidArray2D& _R, const FluxArray2D& F, doub
 void computeHalfStates_X(FluidArray3D& _L, const Grid3D& _W, FluidArray3D& _R, double dt);
 void computeHalfStates_Y(FluidArray3D& _L, const Grid3D& _W, FluidArray3D& _R, double dt);
 void computeHalfStates_Z(FluidArray3D& _L, const Grid3D& _W, FluidArray3D& _R, double dt);
-void halfStateSources(FluidArray3D& _L, const Grid3D& _W,  FluidArray3D& _R, double dt_2);
 
 
 void computeFlux_X(const FluidArray3D& _L, const FluidArray3D& _R, FluxArray3D& F, int xL, int xR, int yL, int yR, int zL, int zR, double dt_dx);

@@ -130,6 +130,8 @@ void Godunov::computeFlux_Z(const FluidArray3D& _L, const FluidArray3D& _R, Flux
 void Godunov::computeHalfStates_X(FluidArray2D& _L, const Grid2D& _W,  FluidArray2D& _R, double dt){
     const double dt_dx = dt/_W.dx, dt_dy = dt/_W.dy;//Compute once
     const int nx = _W.getSizeX(), ny = _W.getSizeY(), g = _W.getGhosts();
+    const auto sources = _W.sources.sublist(Source::SplitPhase::nonstiff);
+
     #ifdef MHD
     const MagneticArray2D& B = _W._B();
     #endif
@@ -142,7 +144,7 @@ void Godunov::computeHalfStates_X(FluidArray2D& _L, const Grid2D& _W,  FluidArra
             dB.y = (B[i,j+1].y - B[i,j].y) * dt_dy;
             #endif
             auto wL =_W[i-1,j], wR = _W[i+1,j];
-            TVD::MUSCL(wL, _L[i,j], _W[i,j], _R[i,j], wR, dt_dx, dB);
+            TVD::MUSCL(wL, _L[i,j], _W[i,j], _R[i,j], wR, dt_dx, &sources, dt, dB);
         }
     }
     //Leftmost and rightmost ghosts
@@ -150,8 +152,7 @@ void Godunov::computeHalfStates_X(FluidArray2D& _L, const Grid2D& _W,  FluidArra
         _L[-g,j] = _W[-g,j]; _R[-g,j] = _W[-g,j];
         _L[nx-1+g,j] = _W[nx-1+g,j]; _R[nx-1+g,j] = _W[nx-1+g,j];
     }
-    //Source Terms
-    halfStateSources(_L, _W, _R, dt*0.5);
+    
     #ifdef MHD
     CT::copyFaceFields_X(_L, B, _R);
     #endif
@@ -159,6 +160,8 @@ void Godunov::computeHalfStates_X(FluidArray2D& _L, const Grid2D& _W,  FluidArra
 void Godunov::computeHalfStates_Y(FluidArray2D& _L, const Grid2D& _W,  FluidArray2D& _R, double dt){
     const double dt_dx = dt/_W.dx, dt_dy = dt/_W.dy;//Compute once
     const int nx = _W.getSizeX(), ny = _W.getSizeY(), g = _W.getGhosts();
+    const auto sources = _W.sources.sublist(Source::SplitPhase::nonstiff);
+
     #ifdef MHD
     const MagneticArray2D& B = _W._B();
     #endif
@@ -172,7 +175,7 @@ void Godunov::computeHalfStates_Y(FluidArray2D& _L, const Grid2D& _W,  FluidArra
             #endif
             //Swap XY inputs to MUSCL, then swap output back
             auto wL =_W[i,j-1].swappedXY(), wR = _W[i,j+1].swappedXY();
-            TVD::MUSCL(wL, _L[i,j], _W[i,j].swappedXY(), _R[i,j],wR, dt_dy, dB);
+            TVD::MUSCL(wL, _L[i,j], _W[i,j].swappedXY(), _R[i,j],wR, dt_dy, &sources, dt, dB);
             _L[i,j].swapXY(); _R[i,j].swapXY();
         }
     }
@@ -181,8 +184,6 @@ void Godunov::computeHalfStates_Y(FluidArray2D& _L, const Grid2D& _W,  FluidArra
         _L[i,-g] = _W[i,-g]; _R[i,-g] = _W[i,-g];
         _L[i,ny-1+g] = _W[i,ny-1+g]; _R[i,ny-1+g] = _W[i,ny-1+g];
     }
-    //Source Terms
-    halfStateSources(_L, _W, _R, dt*0.5);
     #ifdef MHD
     CT::copyFaceFields_Y(_L, B, _R);
     #endif
@@ -190,6 +191,8 @@ void Godunov::computeHalfStates_Y(FluidArray2D& _L, const Grid2D& _W,  FluidArra
 void Godunov::computeHalfStates_X(FluidArray3D& _L, const Grid3D& _W, FluidArray3D& _R, double dt){
     const double dt_dx = dt/_W.dx, dt_dy = dt/_W.dy, dt_dz = dt/_W.dz;//Compute once
     const int nx = _W.getSizeX(), ny = _W.getSizeY(),nz = _W.getSizeZ(), g = _W.getGhosts();
+    const auto sources = _W.sources.sublist(Source::SplitPhase::nonstiff);
+
     #ifdef MHD
     const MagneticArray3D& B = _W._B();
     #endif
@@ -204,7 +207,7 @@ void Godunov::computeHalfStates_X(FluidArray3D& _L, const Grid3D& _W, FluidArray
                 dB.z = (B[i,j,k+1].z - B[i,j,k].z) * dt_dz;
                 #endif
                 auto wL = _W[i-1,j,k], wR = _W[i+1,j,k];
-                TVD::MUSCL(wL, _L[i,j,k], _W[i,j,k], _R[i,j,k], wR, dt_dx, dB);
+                TVD::MUSCL(wL, _L[i,j,k], _W[i,j,k], _R[i,j,k], wR, dt_dx, &sources, dt, dB);
             }
         }
     }
@@ -215,8 +218,6 @@ void Godunov::computeHalfStates_X(FluidArray3D& _L, const Grid3D& _W, FluidArray
             _L[nx-1+g,j,k] = _W[nx-1+g,j,k]; _R[nx-1+g,j,k] = _W[nx-1+g,j,k];
         }
     }
-    //Source Terms
-    halfStateSources(_L, _W, _R, dt*0.5);
     #ifdef MHD
     CT::copyFaceFields_X(_L, B, _R);
     #endif
@@ -224,6 +225,8 @@ void Godunov::computeHalfStates_X(FluidArray3D& _L, const Grid3D& _W, FluidArray
 void Godunov::computeHalfStates_Y(FluidArray3D& _L, const Grid3D& _W, FluidArray3D& _R, double dt){
     const double dt_dx = dt/_W.dx, dt_dy = dt/_W.dy, dt_dz = dt/_W.dz;//Compute once
     const int nx = _W.getSizeX(), ny = _W.getSizeY(),nz = _W.getSizeZ(), g = _W.getGhosts();
+    const auto sources = _W.sources.sublist(Source::SplitPhase::nonstiff);
+
     #ifdef MHD
     const MagneticArray3D& B = _W._B();
     #endif
@@ -239,7 +242,7 @@ void Godunov::computeHalfStates_Y(FluidArray3D& _L, const Grid3D& _W, FluidArray
                 #endif
                 //Swap XY inputs to MUSCL, then swap output back
                 auto wL =_W[i,j-1,k].swappedXY(), wR = _W[i,j+1,k].swappedXY();
-                TVD::MUSCL(wL, _L[i,j,k], _W[i,j,k].swappedXY(), _R[i,j,k],wR, dt_dy,dB);
+                TVD::MUSCL(wL, _L[i,j,k], _W[i,j,k].swappedXY(), _R[i,j,k],wR, dt_dy, &sources, dt, dB);
                 _L[i,j,k].swapXY(); _R[i,j,k].swapXY();
             }
         }
@@ -251,9 +254,6 @@ void Godunov::computeHalfStates_Y(FluidArray3D& _L, const Grid3D& _W, FluidArray
             _L[i,ny-1+g,k] = _W[i,ny-1+g,k]; _R[i,ny-1+g,k] = _W[i,ny-1+g,k];
         }
     }
-    
-    //Source Terms
-    halfStateSources(_L, _W, _R, dt*0.5);
     #ifdef MHD
     CT::copyFaceFields_Y(_L, B, _R);
     #endif
@@ -261,6 +261,8 @@ void Godunov::computeHalfStates_Y(FluidArray3D& _L, const Grid3D& _W, FluidArray
 void Godunov::computeHalfStates_Z(FluidArray3D& _L, const Grid3D& _W, FluidArray3D& _R, double dt){
     const double dt_dx = dt/_W.dx, dt_dy = dt/_W.dy, dt_dz = dt/_W.dz;//Compute once
     const int nx = _W.getSizeX(), ny = _W.getSizeY(),nz = _W.getSizeZ(), g = _W.getGhosts();
+    const auto sources = _W.sources.sublist(Source::SplitPhase::nonstiff);
+
     #ifdef MHD
     const MagneticArray3D& B = _W._B();
     #endif
@@ -276,7 +278,7 @@ void Godunov::computeHalfStates_Z(FluidArray3D& _L, const Grid3D& _W, FluidArray
                 #endif
                 //Swap XZ inputs to MUSCL, then swap output back
                 auto wL = _W[i,j,k-1].swappedXZ(), wR = _W[i,j,k+1].swappedXZ();
-                TVD::MUSCL(wL, _L[i,j,k], _W[i,j,k].swappedXZ(), _R[i,j,k],wR, dt_dz,dB);
+                TVD::MUSCL(wL, _L[i,j,k], _W[i,j,k].swappedXZ(), _R[i,j,k],wR, dt_dz, &sources, dt, dB);
                 _L[i,j,k].swapXZ(); _R[i,j,k].swapXZ();
             }
         }
@@ -288,40 +290,7 @@ void Godunov::computeHalfStates_Z(FluidArray3D& _L, const Grid3D& _W, FluidArray
             _L[i,j,nz-1+g] = _W[i,j,nz-1+g]; _R[i,j,nz-1+g] = _W[i,j,nz-1+g];
         }
     }
-    //Source Terms
-    halfStateSources(_L, _W, _R, dt*0.5);
     #ifdef MHD
     CT::copyFaceFields_Z(_L, B, _R);
     #endif
-}
-
-//Source terms on the half states
-void Godunov::halfStateSources(FluidArray2D& _L, const Grid2D& _W,  FluidArray2D& _R, double dt_2){
-    if (_W.sources.count() == 0) return;
-    const int nx = _W.getSizeX(), ny = _W.getSizeY(), g = _W.getGhosts();
-    const auto sources = _W.sources.sublist(Source::SplitPhase::nonstiff);
-    
-    for (int i=-g; i<nx+g; i++) {
-        for (int j=-g; j<ny+g; j++) {
-            auto S = sources.source_density(_W[i,j]) * dt_2;
-            _L[i,j] += S;
-            _R[i,j] += S;
-        }
-    }
-}
-
-void Godunov::halfStateSources(FluidArray3D& _L, const Grid3D& _W,  FluidArray3D& _R, double dt_2){
-    if (_W.sources.count() == 0) return;
-    const int nx = _W.getSizeX(), ny = _W.getSizeY(), nz = _W.getSizeZ(), g = _W.getGhosts();
-    const auto sources = _W.sources.sublist(Source::SplitPhase::nonstiff);
-    
-    for (int i=-g; i<nx+g; i++) {
-        for (int j=-g; j<ny+g; j++) {
-            for (int k=-g; k<nz+g; k++) {
-                auto S = sources.source_density(_W[i,j,k]) * dt_2;
-                _L[i,j,k] += S;
-                _R[i,j,k] += S;
-            }
-        }
-    }
 }
