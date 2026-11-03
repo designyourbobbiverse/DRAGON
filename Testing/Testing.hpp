@@ -49,6 +49,7 @@ void verify_add();
 void verify_sub();
 void verify_mult();
 void verify_div();
+void verify_flux_add_zero();
 
 
 

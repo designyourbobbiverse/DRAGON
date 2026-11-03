@@ -12,6 +12,8 @@
 #include <algorithm>    //For std::max
 #include "Constants.h"  //For _gamma, _pi
 #include <iostream>     //For std::cout
+#include <cstdlib>      //For rand()
+
 
 using namespace DRAGON_Test;
 
@@ -52,6 +54,9 @@ void DRAGON_Test::verify_fluid_element(bool output){
     if (output) std::cout << "Passed\n";
     if (output) std::cout << "- Flux Addition: ";
     verify_flux_add();
+    if (output) std::cout << "Passed\n";
+    if (output) std::cout << "- Zero Flux Addition: ";
+    verify_flux_add_zero();
     if (output) std::cout << "Passed\n";
     if (output) std::cout << "All Fluid Arithmetic Tests Passed.\n\n";
 }
@@ -575,4 +580,73 @@ void DRAGON_Test::verify_flux_add(){
     assert(approx(U1.mom.y,  expected.mom.y));
     assert(approx(U1.mom.z,  expected.mom.z));
     assert(approx(U1.E,   expected.E));
+}
+
+
+void DRAGON_Test::verify_flux_add_zero(){
+    for(int i=0; i<1000; i++){
+        PrimitiveState w{};
+        w.rho = (rand()%2000001)*1e-3 - 1e3;
+        w.p = (rand()%2000001)*1e-3 - 1e3;
+        w.v = {(rand()%2000001)*1e-3 - 1e3,(rand()%2000001)*1e-3 - 1e3,(rand()%2000001)*1e-3 - 1e3};
+        #ifdef MHD
+        w.B = {(rand()%2000001)*1e-3 - 1e3,(rand()%2000001)*1e-3 - 1e3,(rand()%2000001)*1e-3 - 1e3};
+        #endif
+        
+        //Density
+        ConservativeState F{};
+        F.rho = 0;
+        F.mom = {(rand()%2000001)*1e-3 - 1e3,(rand()%2000001)*1e-3 - 1e3,(rand()%2000001)*1e-3 - 1e3};
+        F.E = (rand()%2000001)*1e-3 - 1e3;
+        #ifdef MHD
+        F.B = {(rand()%2000001)*1e-3 - 1e3,(rand()%2000001)*1e-3 - 1e3,(rand()%2000001)*1e-3 - 1e3};
+        #endif
+        PrimitiveState w2 = w;
+        w2 += F;
+        assert(w2.rho == w.rho);
+        
+        //Velocity
+        F.mom = {0,0,0};
+        F.E = (rand()%2000001)*1e-3 - 1e3;
+        #ifdef MHD
+        F.B = {(rand()%2000001)*1e-3 - 1e3,(rand()%2000001)*1e-3 - 1e3,(rand()%2000001)*1e-3 - 1e3};
+        #endif
+        w2 = w;
+        w2 += F;
+        assert(w2.rho == w.rho);
+        assert(w2.v.x == w.v.x);
+        assert(w2.v.y == w.v.y);
+        assert(w2.v.z == w.v.z);
+
+        //Magnetic Field
+        #ifdef MHD
+        F.rho = (rand()%2000001)*1e-3 - 1e3;
+        F.mom = {(rand()%2000001)*1e-3 - 1e3,(rand()%2000001)*1e-3 - 1e3,(rand()%2000001)*1e-3 - 1e3};
+        F.E = (rand()%2000001)*1e-3 - 1e3;
+        F.B = {0,0,0};
+        w2 = w;
+        w2 += F;
+        assert(w2.B.x == w.B.x);
+        assert(w2.B.y == w.B.y);
+        assert(w2.B.z == w.B.z);
+        #endif
+        
+        //Adding Zero is exactly identical
+        F.rho = 0;
+        F.E = 0;
+        F.mom = {0,0,0};
+        F.B = {0,0,0};
+        w2 = w;
+        w2 += F;
+        assert(w2.rho == w.rho);
+        assert(w2.v.x == w.v.x);
+        assert(w2.v.y == w.v.y);
+        assert(w2.v.z == w.v.z);
+        assert(w2.p == w.p);
+        #ifdef MHD
+        assert(w2.B.x == w.B.x);
+        assert(w2.B.y == w.B.y);
+        assert(w2.B.z == w.B.z);
+        #endif
+    }
 }
