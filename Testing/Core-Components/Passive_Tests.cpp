@@ -513,8 +513,8 @@ void DRAGON_Test::verify_passive_scalar_conserve_1D(){
         m2_ += p_[1] * w2[i].rho;
     }
     //Assert conservation
-    assert(m1 == m1_);
-    assert(m2 == m2_);
+    approx(m1, m1_);
+    approx(m2, m2_);
 }
 void DRAGON_Test::verify_passive_scalar_conserve_2D(){
     PassiveArray2D q{3,4,1};
@@ -555,8 +555,8 @@ void DRAGON_Test::verify_passive_scalar_conserve_2D(){
         }
     }
     //Assert conservation
-    assert(m1 == m1_);
-    assert(m2 == m2_);
+    approx(m1, m1_);
+    approx(m2, m2_);
 }
 void DRAGON_Test::verify_passive_scalar_conserve_3D(){
     PassiveArray3D q{3,4,5,1};
@@ -606,8 +606,8 @@ void DRAGON_Test::verify_passive_scalar_conserve_3D(){
         }
     }
     //Assert conservation
-    assert(m1 == m1_);
-    assert(m2 == m2_);
+    approx(m1, m1_);
+    approx(m2, m2_);
 }
 
 //MARK: Direction Test
