@@ -1276,16 +1276,20 @@ If instead \cpp{REUSE_AUX_GRIDS} is disabled, Requests for arrays always allocat
 \section{Multithreading}
 \label{sec:wing-threading}
 
-\cpp{DRAGONWING::ThreadPool} is used by \cpp{DistGrid} (see \Cref{sec:distgrid}) to advance sibling subgrids concurrently, each on its own thread. It is constructed with a fixed thread budget \cpp{N} (one thread per child subgrid); \cpp{launchParallel(grid, dt)} is then called once per child to start \cpp{grid->advance_step(dt)} running on a new thread. 
+\cpp{DRAGONWING::ThreadPool} is used by \cpp{DistGrid} (see \Cref{sec:distgrid}) to advance sibling subgrids concurrently, each on its own thread. It is constructed with a fixed thread budget \cpp{N} (one thread per child subgrid);
+To advance by one advection step, \cpp{launchParallel(grid, dt)} is  called once per child to start \cpp{grid->advance_step(dt)} running on a new thread; for strang-split source terms, \cpp{sourceParallel(src,grid,dt)} is called  once per child to start \cpp{src->advance(*grid, dt)}.
+In either case, once advancement of all children has been initiated, call  \cpp{waitForCompletion()} on the \cpp{ThreadPool} to wait for all children to complete their work.
+\cpp{waitForCompletion()} returns \cpp{true} if all children advanced successfully; if \cpp{false} is returned, the step will need to be restarted.
+
 
 \subsection{Checkpoint Protocol}
 
-From a synchronisation standpoint, each-step advancement of a subgrid is divided into two phases:
+From a synchronisation standpoint, each advection-step  advancement of a subgrid is divided into two phases:
 \begin{enumerate}
-\item Each subgrid, computes all updated values and verifies that the solution is physically admissible (steps 1-10 in \Cref{sec:unsplit}). The original array remains in tact so that the step can be restarted if necessary.  In an unsplit update, this phase uses a significant amount of scratch memory.  
+\item Each subgrid computes all updated values and verifies that the solution is physically admissible (steps 1-10 in \Cref{sec:unsplit}). The original array remains in tact so that the step can be restarted if necessary.  In an unsplit advection step, this phase uses a significant amount of scratch memory.  
 \item Each subgrid commits the preliminary update to the base array (step 12 in \Cref{sec:unsplit}).
 \end{enumerate}
-All subgrids must complete phase 1 before any can enter phase 2. This requirement allows any subgrid to request that the step be restarted before the existing data is overwritten.
+All subgrids must complete phase 1 before any can enter phase 2. This requirement allows any subgrid to request that the step be restarted before the existing data is overwritten\footnote{As of version 1.2 this is no longer strictly necessary given the addition of \cpp{Grid::backup} and \cpp{Grid::restore}, but the protocol remains in place for the time being}.
 
 
 Subgrids maintain these synchronisation phases as follows:
@@ -1304,10 +1308,6 @@ The implementations of these functions lives in the \cpp{ThreadPool} class, but 
 
 After all subgrids are launched via \cpp{launchParallel(grid, dt)}, call \cpp{waitForCompletion()} on the same \cpp{ThreadPool} object.
 This will wait until either either all threads have reported completion of phase 2 or any thread has requested a step restart. \cpp{waitForCompletion()} will return true if the step was successful, or false if it needs to be restarted.
-
-%When \cpp{MULTITHREAD_UNAVAILABLE} is defined in \bash{DRAGONWING_Config.hpp}, \cpp{ThreadPool} compiles to single-threaded stub implementations: \cpp{launchParallel} runs the grid's advance synchronously on the calling thread instead of spawning one, and every checkpoint/wait function reduces to a check of the (still-cooperative) abort flag. This lets code written against the \cpp{ThreadPool}/checkpoint API run correctly, if serially, on platforms or configurations without thread support.
-
-
 
 
 
