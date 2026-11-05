@@ -61,7 +61,7 @@ void* DRAGONWING::ThreadPool::advectParallel(DRAGON::Grid* grid, double dt){
     }
     return &threads.back();
 }
-void* DRAGONWING::ThreadPool::sourceParallel(DRAGON::Source::SourceTerm* source, DRAGON::Grid* grid, double dt, bool ghosts){
+void* DRAGONWING::ThreadPool::sourceParallel(DRAGON::Source::SourceTerm* source, DRAGON::Grid* grid, double dt){
     args.push_back({grid,source, dt}); //Set up the thread arguments (grid + dt)
     ThreadArgs* thread_args = &args.back();
     

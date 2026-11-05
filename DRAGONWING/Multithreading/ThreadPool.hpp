@@ -50,7 +50,7 @@ private:
 public:
     ThreadPool(int N): nthreads(N){} //Create a pool with room for n threads
     void* advectParallel(DRAGON::Grid* grid, double dt); //Execute grid->advance_step(dt) on a new thread in the pool
-    void* sourceParallel(DRAGON::Source::SourceTerm* sources, DRAGON::Grid* grid, double dt, bool ghosts=true); //Execute sources->advance(grid,dt,ghosts) on a new thread in the pool
+    void* sourceParallel(DRAGON::Source::SourceTerm* sources, DRAGON::Grid* grid, double dt); //Execute sources->advance(grid,dt,ghosts) on a new thread in the pool
     void* launchParallel(DRAGON::Grid* grid, double dt) { return advectParallel(grid,dt); } //Deprecated, will be removed in v2.0
 
     //Error Handling
