@@ -72,7 +72,7 @@
 % ---------- Title page info ----------
 \title{\textbf{DRAGON}\\ Divergence-Regulation for Adaptive Godunov-Oriented Numerics\\ Literary Overview \& Reference Entries (LORE) Document}
 \author{Bobbie Markwick}
-\date{19 August 2026}
+\date{3 Nov 2026}
 
 \begin{document}
 
@@ -178,8 +178,8 @@ The following fluid arithmetic operations are supported by \cpp{ConservativeStat
 \item Swapping two dimensions as with \cpp{vec3}. This swaps the corresponding components of both \cpp{mom} and \cpp{B}. \cpp{PrimitiveState} also supports this operation directly (using \cpp{v} instead of \cpp{mom}).
 \end{itemize}
 
-Both \cpp{PrimitiveState} and \cpp{ConservativeState} are constructible from the other (\cpp{ConservativeState(PrimitiveState)} and \cpp{PrimitiveState(ConservativeState)}).  This can be done explicitly via the other, and is also done implicitly whenever a \cpp{PrimitiveState} is used in fluid arithmetic. 
-If you need to directly add or subtract the components of two \cpp{PrimitiveState}'s, you will need to do this manually on each component.
+Both \cpp{PrimitiveState} and \cpp{ConservativeState} are constructible from the other (\cpp{ConservativeState(PrimitiveState)} and \cpp{PrimitiveState(ConservativeState)}).  This can be done explicitly, or implicitly whenever a \cpp{PrimitiveState} is used in fluid arithmetic\footnote{The \cpp{PrimitiveState += ConservativeState} operator has a special implementation for improved stability and performance (\Cref{sec:addition}), but is otherwise equivalent to an implicit round-trip conversion.}. If you need to directly add or subtract the components of two \cpp{PrimitiveState}'s, you will need to do this manually on each component.
+
 
 Both types also provide a number of other physically relevant quantities, such as various wave speeds, \cpp{energy()} or \cpp{pressure()} on a primitive or conservative state, and \cpp{flux()} to calculate the fluxes of the governing MHD equations (\ref{eq:MHD}). The \cpp{flux()} function returns the flux in the $x$-direction, and in MHD includes the electric fields from the induction equation as the \cpp{B} components (see \Cref{sec:ct}).  When called from a \cpp{ConservativeState}, \cpp{flux()} can optionally take the velocity \cpp{v} if already known; otherwise \cpp{v} is computed from \cpp{mom} and \cpp{rho}.
 
@@ -369,7 +369,7 @@ However, sometimes omitting some of these spaces can make larger mathematical st
 \chapter{Physical Model \& Numerical Methods}
 \label{ch:physics}
 
-\section{Governing Equations}
+\section{Governing Equations} \label{sec:eq}
 The ideal MHD equations solved by DRAGON are, in conservative form:
 \begin{subequations} \label{eq:MHD}
 \begin{equation} \pd{\rho}{t} + \nabla\cdot (\rho \mathbf{v}) = 0 \end{equation} \label{eq:continuity} 
@@ -381,10 +381,11 @@ subject to the constraint
 \end{subequations}
 Here $\rho$ is mass density, $\mathbf{v}$ the fluid velocity, $\mathbf{B}$ the magnetic field, and $p$ the thermal pressure. 
 $E$ the total energy density
-\begin{equation} E = \frac{p}{\gamma - 1} + \frac{1}{2}\rho \mathbf{v}^2 + \frac{\mathbf{B}^2}{8\pi}, \end{equation}
+\begin{equation} E = \frac{p}{\gamma - 1} + \frac{1}{2}\rho \mathbf{v}^2 + \frac{\mathbf{B}^2}{8\pi}, \label{eq:energy-def}\end{equation}
 where $\gamma$ adiabatic index.
 DRAGON adopts Gaussian (non-rationalized) electromagnetic units, so the magnetic pressure and Lorentz force terms carry an explicit factor of $4\pi$. 
 
+ 
 \section{Initial Conditions} \label{sec:initial}
 In DRAGON, problem initialisation consists of three steps:
 \begin{enumerate}
@@ -543,6 +544,7 @@ Fixed boundaries are fine to use in hydrodynamic problems, but aren't recommende
 The \cpp{Boundary::Ignore} class is a no-op boundary. Generally you should not use this in your problems, but the it is used internally to support domain decomposition.
 
 
+
  \section{Multidimensional Integration Schemes}
  \subsection{Operator-Split (Strang) Update}\label{sec:split}
 
@@ -569,26 +571,34 @@ The unsplit driver (\cpp{Grid::unsplit_step}) advances all
 directions simultaneously in a single conservative update, following
 this sequence:
 \begin{enumerate}
-\item \textbf{MUSCL}: compute preliminary half-step interface states in every direction (\Cref{sec:reconstruction}).
-\item \textbf{CTU}: apply transverse corrections to those interface states (\Cref{sec:ctu}), assuming \cpp{CTU} is enabled in \bash{Config.h}
-\item \textbf{Final fluxes}: solve the Riemann problem at every face using the (possibly CTU-corrected) interface states (\Cref{sec:riemann}).
-\item \textbf{Update hydrodynamic states}: apply the fluxes conservatively to a scratch copy.
-\item \textbf{Constrained Transport}: extract, upwind, and integrate the electric field, then advance the face-noraml $\mathbf B$ and recompute body-centered fields (\Cref{sec:ct}).
-\item \textbf{Physicality check} -- verify every updated cell is physical; if not, throw to trigger a step restart.
-\item \textbf{Synchronization} -- in a domain-decomposed run, wait for all other subgrids to reach the same checkpoint (and confirm none of them failed) before proceeding.
-\item \textbf{Commit} -- copy the scratch states computed by steps 4 and 5 back into the live grid.
+\item \textbf{MUSCL}  (\Cref{sec:reconstruction}): compute preliminary half-step interface states in every direction.
+\item \textbf{Preliminary Fluxes} (\Cref{sec:riemann}): Solve the Riemann problem at every face using the preliminary interface states.
+\item \textbf{Preliminary Sources} (\Cref{ch:source}): Compute the non-stiff source terms $S(w^n_i)$.% at each physical cell $w_i$, plus the first ghost layer.
+\item \textbf{Half-Step Predictor}: Perform steps 7-8 using the preliminary fluxes and sources, with the timestep halved and also including one ghost layer. Store the result to a scratch copy $w^{n+\frac12}$.
+\item \textbf{CTU} (\Cref{sec:ctu}): apply transverse corrections to the interface states from step 1, then recompute the fluxes from step 2. Skip this step if \cpp{CTU} is disabled in \bash{Config.h}
+\item \textbf{Corrected Sources} (\Cref{ch:source}): Recompute the non-stiff source terms at each physical cell, using $w^{n+\frac12}_i$ instead of $w^n_i$ as the inputs.
+\item \textbf{Update Hydrodynamic States}: For each physical cell, apply the final fluxes sources conservatively, storing the result in a scratch copy.
+\item \textbf{Constrained Transport}  (\Cref{sec:ct}): extract, upwind, and integrate the electric field, then advance the face-normal $\mathbf B$ and recompute body-centred fields.
+\item \textbf{Physicality check}: if any updated cell is not physical, throw to trigger a step restart.
+\item \textbf{Passive Scalars} (\Cref{sec:passive}): Use the final mass fluxes to advect passive scalars.
+\item \textbf{Synchronization}: in a domain-decomposed run, wait for all other subgrids to reach the same checkpoint (and confirm none of them failed) before proceeding.
+\item \textbf{Commit}: copy the scratch states computed by steps 7, 8, and 10 back into the live grid.
 \end{enumerate}
 
 
-For the flux application in step 4, \cpp{Godunov::applyFluxes} takes fluxes $F^X, F^Y, F^Z$ through every face of a cell and  updates the conservative
-state before converting back to primitive:
+For the flux application in step 8, \cpp{Godunov::applyFluxes} takes fluxes $F^X, F^Y, F^Z$ through every face of a cell, plus the body source $S$, and applies them as
+\begin{subequations}
 \begin{equation}
-U_{i,j,k}^{n+1} = U_{i,j,k}^{n}
-+ \frac{\Delta t}{\Delta x}\left(F^X_{i-\frac12,j,k} - F^X_{i+\frac12,j,k}\right)
-+ \frac{\Delta t}{\Delta y}\left(F^Y_{i,j-\frac12,k} - F^Y_{i,j+\frac12,k}\right)
-+ \frac{\Delta t}{\Delta z}\left(F^Z_{i,j,k-\frac12} - F^Z_{i,j,k+\frac12}\right),
+U_{i,j,k}^{n+1} = U_{i,j,k}^{n} + \left((\nabla\cdot{\bf F})_{i,j,k} + S_{i,j,k}\right)\Delta t
 \end{equation}
-throwing if any updated cell is non-finite (this is a coarser, cheaper check than the full physicality test applied after the CT update).
+\begin{equation} (\nabla\cdot{\bf F})_{i,j,k}  = 
+\frac{1}{\Delta x}\left(F^X_{i-\frac12,j,k} - F^X_{i+\frac12,j,k}\right)
++ \frac{1}{\Delta y}\left(F^Y_{i,j-\frac12,k} - F^Y_{i,j+\frac12,k}\right)
++ \frac{1}{\Delta z}\left(F^Z_{i,j,k-\frac12} - F^Z_{i,j,k+\frac12}\right) 
+\end{equation}
+\end{subequations}
+The sum $(\nabla\cdot{\bf F})_{i,j,k} + S_{i,j,k}$ is computed as a conservative change, which is then applied via the addition procedure described in \Cref{sec:addition}.
+The update throws if any updated cell is non-finite (this is a coarser, cheaper check than the full physicality test applied after the CT update).
 
 
 
@@ -635,6 +645,7 @@ The \cpp{Grid::advance(dt)} function is responsible for controlling the time adv
 This retry-with-halving behaviour is what lets the physicality checks recover from an occasional bad step (e.g.\ from an overly aggressive CFL coefficient) without aborting the whole simulation, at the cost of re-doing the failed substep at a smaller $\Delta t$.
  
  
+
 
 
 \section{Reconstruction}\label{sec:reconstruction}
@@ -702,18 +713,18 @@ Once $\Delta_i$ is computed, the piecewise-linear interface states are computed 
 \end{equation}
 Note that in code $w_{i+1/2}^{L}$ is generally referred to as \cpp{_xR[i]} and $w_{i+1/2}^{R}$ as \cpp{_xL[i+1]}, denoting them relative to the cells from which they originate rather than the Riemann problem to which they will be passed.
 
-\subsection{Half-Step Time Predictor}
+\subsection{MUSCL-Hancock Time Predictor}
 
-To achieve second-order accuracy in time, the interface states are then advanced by a half time step using the flux difference across the cell,
+To achieve second-order accuracy in time, the interface states are then advanced by a half timestep using the flux difference across the cell,
 \begin{subequations}
 \begin{equation}
- w_{i+1/2}^{L,n+1/2} = w_{i+1/2}^{L} + \frac{\Delta t}{2 \Delta x}\left[ F(w_{i-1/2}^R) - F(w_{i+1/2}^L) \right] +  \frac{\Delta t}{2}S_\mathrm{MHD},
+ w_{i+1/2}^{L,n+1/2} = w_{i+1/2}^{L} + \frac{\Delta t}{2 \Delta x}\left[ F(w_{i-1/2}^R) - F(w_{i+1/2}^L) \right] +  \frac{\Delta t}{2}\left[S(w_i)+S_\mathrm{MHD}\right],
 \end{equation}
 \begin{equation}
- w_{i-1/2}^{R,n+1/2} = w_{i-1/2}^{R} +  \frac{\Delta t}{2 \Delta x}\left[ F(w_{i-1/2}^R) - F(w_{i+1/2}^L)\right] +  \frac{\Delta t}{2}S_\mathrm{MHD}
+ w_{i-1/2}^{R,n+1/2} = w_{i-1/2}^{R} +  \frac{\Delta t}{2 \Delta x}\left[ F(w_{i-1/2}^R) - F(w_{i+1/2}^L)\right] +  \frac{\Delta t}{2}\left[S(w_i)+S_\mathrm{MHD}\right]
 \end{equation}
 \end{subequations}
-where $S_\mathrm{MHD}$ are MHD source terms (see section \ref{sec:MUSCL_MHD_src}).
+where $S(w_i)$ are user-defined source terms (non-stiff only), $S_\mathrm{MHD}$ are MHD source terms (see \Cref{sec:MUSCL_MHD_src}).
 Note that $w_{i+1/2}^{LR}$ are converted from primitive to conservative variables before the above operation, and then converted back to primitive variables when assigned to  $w_{i+1/2}^{LR, n+1/2}$. DRAGON's fluid arithmetic allows this to be done implicitly, though MUSCL does the primitive-to-conservative conversion explicitly to avoid redundant conversion.
 
 If for a given cell the above procedure produces a nonphysical result for $w_{i-1/2}^{R}$ or $w_{i+1/2}^{L}$, then both of these interface states fall back to the first-order reconstruction $w_{i-1/2}^{R} = w_{i+1/2}^{L} = w_i$. The above procedure can also be disabled (in which case first-order reconstruction is always used) by disabling \cpp{MUSCL_Hancock} in \bash{Config.h}, though this isn't recommended.
@@ -728,7 +739,6 @@ When reconstructing MHD states, additional source terms $S_\mathrm{MHD}$ are nee
  \begin{equation} \pd{B_y}{x} = \frac{1}{\Delta y} \left(B^y_{i,j+1/2,k} - B^y_{i,j-1/2,k}\right) \end{equation}
  \begin{equation} \pd{B_z}{x} = \frac{1}{\Delta z} \left(B^z_{i,j,k+1/2} - B^z_{i,j,k-1/2}\right) \end{equation}
  \end{subequations}
- Source terms are also not needed for density and momentum, as these terms do not interact with magnetic field outside of their fluxes.
 For the transverse magnetic field, the source terms are given as \citep{GardinerStone2008}:\footnote{Note that minmod is used regardless of which limiter is used for equation \ref{eq:MUSCL_lim}.
 }. 
 \begin{equation} 
@@ -740,6 +750,8 @@ The energy source term is then given by
 S_\mathrm{MHD}(E) = \frac{\mathbf{B}}{4\pi} \cdot S_\mathrm{MHD}(\mathbf{B}) 
 \end{equation}
 where $\mathbf B$ are taken from $w_i$.
+MHD Source terms are not needed for density and momentum, as these terms do not interact with magnetic field outside of their fluxes.
+
 
 
 
@@ -1091,6 +1103,24 @@ From our own testing we have found that \cpp{HLLD_PHYSICAL_SAFETY} is a more rob
 
 
 
+\section{Conservative Updates to Primitive States} \label{sec:addition}
+
+Several of the methods thus far require implementing an equation of the form $U' = U + \Delta U$, where $U_i$ are states and $\Delta U$ is a change in conserved quantities. However, since states $U$ and $U'$ are often stored in primitive forms $W$ and $W'$, care must be taken to avoid floating point errors from a round-trip conversion.
+Since density and magnetic field are the same in both primitive and conservative form, these quantities can be updated as $\rho' = \rho + \Delta \rho$ and ${\bf B}' = {\bf B} + \Delta {\bf B} $ respectively. 
+To update velocity, we can use
+\begin{equation} {\bf v}' = {\bf v} + \frac{1}{\rho}\left[{\bf f} - {\bf v}\Delta\rho\right]\label{eq:delta-v}\end{equation}
+where $\bf f$ is the change in momentum density $\rho{\bf v}$. If both ${\bf f}$ and $\Delta \rho$ are zero, then $\bf v$ will be exactly unchanged.
+Meanwhile, for the pressure update , we derive from equation  \ref{eq:energy-def} the result
+\begin{equation} p' =p + (\gamma-1)\left[\Delta E -  \frac{v^2}{2}\Delta \rho -  \rho'\left(\frac{\bf v'+v}{2}\right)\cdot\Delta{\bf v} - \left(\frac{\bf B' + B}{8\pi}\right)\cdot\Delta{\bf B}\right] \end{equation}
+where $\Delta E$ is the change in energy density,  $\Delta \bf v = v'-v$ is as given by equation \ref{eq:delta-v}.
+Updating pressure in this way ensures that if all components of $\Delta U$ are zero, then all components of $W$ will remain unchanged at a bit level. 
+As an added benefit, this procedure requires fewer floating point multiplications than a round trip conversion to conservative state.
+
+In DRAGON, this procedure is implemented in the \cpp{PrimitiveState += ConservativeState} operator.
+ 
+ 
+ 
+
 \section{Constrained Transport} \label{sec:ct}
 
 DRAGON uses constrained transport \citep{EvansHawley1988} to ensure that magnetic fields remain free of divergences.
@@ -1121,13 +1151,13 @@ In 2D, the $E_z$ component is likewise derived as
 \begin{equation}
 E^z_{i-\frac12,j-\frac12} = \frac14\left[ F^{Y, B_x}_{i-1,j-\frac12, j}+ F^{Y, B_x}_{i,j-\frac12} - F^{X, B_y}_{i-\frac12,j-1}- F^{X, B_y}_{i-\frac12,j}\right].
 \end{equation}
-Meanwhile, the $E_x$ and $E_y$ components only touch one face:
+while the $E_x$ and $E_y$ components only touch one face:
 \begin{equation}
     E^x_{i,j-\frac12} = -F^{Y, B_z}_{i,j-\frac12}, \qquad E^y_{i-\frac12,j} = F^{X,B_z}_{i-\frac12,j}
 \end{equation}
 
 
-\subsubsection{CTU Upwinding}
+%\subsubsection{CTU Upwinding}
 
 The above four-face average is only first-order accurate at the edge and can allow spurious checkerboard-like noise to grow. 
 DRAGON corrects this in \cpp{CT::upwindElectric} using the unsplit Corner Transport Upwind (CTU) scheme of \citet{GardinerStone2008}.
@@ -1181,7 +1211,7 @@ DRAGON supports three different procedures for handling the energy in the CT upd
 \begin{itemize}
 \item \textit{Always keep total energy constant} (\cpp{CT_CONSV_TOTAL_E}). This is done by converting $\mathbf{w}$ to conservative form, setting $\mathbf{B} $ on the conservative form, and then converting back to primitive form. This method ensures energy conservation, but may be prone to numerical issues where thermal pressure irrecoverably becomes nonphysical.
 \item \textit{Always keep thermal pressure constant} (\cpp{CT_CONSV_THERMAL}). This is done by simply setting $\mathbf{B}$ on the primitive state $\mathbf{w}$. This method is the most robust, but will almost always violate energy conservation. This may be justifiable in some astrophysical flows on grounds that radiation violates energy conservation anyway.
-\item \textit{Dynamically between the above options} (\cpp{CT_CONSV_BETA_GATED}). In this procedure, the local value of the plasma beta $\beta_m = \frac{8\pi p}{\mathbf{B}^2}$ is calculated and compared to \cpp{CONFIG::CT_Energy_Beta}. For cells with a plasma beta below the threshold, thermal energy is conserved to avoid numerical issues; otherwise, total energy is conserved. This option allows the simulation to remain closer to total energy conservation while still avoiding numerical issues. 
+\item \textit{Dynamically switch between the above options} (\cpp{CT_CONSV_BETA_GATED}). In this procedure, the local value of the plasma beta $\beta_m = \frac{8\pi p}{\mathbf{B}^2}$ is calculated and compared to \cpp{CONFIG::CT_Energy_Beta}. For cells with a plasma beta below the threshold, thermal energy is conserved to avoid numerical issues; otherwise, total energy is conserved. This option allows the simulation to remain closer to total energy conservation while still avoiding numerical issues. 
 \end{itemize}
 The desired option can be selected by setting \cpp{CT_ENERGY_CONSV} in \bash{Config.h}.
 
@@ -1194,12 +1224,16 @@ Passive scalars are quantities which are advected by the fluid but don't feed ba
 At each interface, the flux of each passive scalar is calculated by multiplying the mass flux by $q_i$ from the upwind cell.
 
 To add a passive scalar to your grid, call \cpp{grid.passives().add(key_str)}, where \cpp{key_str} is a string used to identify the name of the scalar. In addition to identifying the scalar within DRAGON, this key is used to denote the scalar within output files and can therefore be used to plot the scalar in DRAGONGAZE. 
-If you no longer need a particular scalar, you can remove it with \cpp{grid.passives().remove(key_str)}. Attempting to add a key which is already there or removing a nonexistent key won't do anything.
+If you no longer need a particular scalar and wish to free its memory, you can remove it by calling \cpp{grid.passives().remove(key_str)}. Attempting to add a key which is already there or removing a nonexistent key won't do anything.
 
 The current values of the passive at each cell can be accessed via  \cpp{grid.passives()[i, key_str]}, \cpp{grid.passives()[i,j, key_str]}, or \cpp{grid.passives()[i,j,k, key_str]} as appropriate for the dimension. Alternatively, \cpp{grid.passives()[i]}, \cpp{grid.passives()[i,j]}, or \cpp{grid.passives()[i,j,k]} will return a vector containing all of the passive values at a given cell, which can later be disambiguated by calling \cpp{grid.passives().lookup(passive_vector, key_str)} if needed.
 
 Because passive scalars are by definition passive, only one layer of ghost cells is stored. For outflow and reflective boundaries, each cell in the ghost layer is filled by the immediately adjacent physical cell; for periodic boundaries, the ghost cells instead match the opposite side. 
 Fixed-state boundary conditions don't define how the boundary should behave for passive scalars, you would need to implement that yourself.
+
+\chapter{Source Terms} \label{ch:source}
+
+
 
 
 % ================= DRAGONWING =================
@@ -1234,6 +1268,11 @@ When an array is released (via \cpp{ArrayGuard::release()} it is marked inactive
 If instead \cpp{REUSE_AUX_GRIDS} is disabled, Requests for arrays always allocate arrays with \cpp{new}, and releasing arrays always frees the array with \cpp{delete}. No pool is kept, so there is nothing to purge and no stale-data concern, at the cost of paying full allocation/deallocation overhead on every step.
 
 
+
+
+
+
+
 \section{Multithreading}
 \label{sec:wing-threading}
 
@@ -1243,8 +1282,8 @@ If instead \cpp{REUSE_AUX_GRIDS} is disabled, Requests for arrays always allocat
 
 From a synchronisation standpoint, each-step advancement of a subgrid is divided into two phases:
 \begin{enumerate}
-\item Each subgrid, computes all updated values and verifies that the solution is physically admissible (steps 1-6 in \Cref{sec:unsplit}). The original array remains in tact so that the step can be restarted if necessary.  In an unsplit update, this phase uses a significant amount of scratch memory.  
-\item Each subgrid commits the preliminary update to the base array (step 8 in \Cref{sec:unsplit}).
+\item Each subgrid, computes all updated values and verifies that the solution is physically admissible (steps 1-10 in \Cref{sec:unsplit}). The original array remains in tact so that the step can be restarted if necessary.  In an unsplit update, this phase uses a significant amount of scratch memory.  
+\item Each subgrid commits the preliminary update to the base array (step 12 in \Cref{sec:unsplit}).
 \end{enumerate}
 All subgrids must complete phase 1 before any can enter phase 2. This requirement allows any subgrid to request that the step be restarted before the existing data is overwritten.
 
@@ -2208,6 +2247,11 @@ Full-page versions of the MHD 1D reference plots referenced from \Cref{sec:tests
 \end{figure}
 
 \chapter{Version History}
+\textbf{1 September 2026}: DRAGON v1.1 introduced the following changes
+\begin{itemize}
+\item An API for source terms
+\item The \cpp{PrimitiveState += ConservativeState} operator has been rearchitected to improve stability (\Cref{sec:addition})
+\end{itemize}
 \textbf{1 September 2026}: DRAGON v1.1 introduced the following changes
 \begin{itemize}
 \item Added support for user-defined passive scalars (\Cref{sec:passive}).
